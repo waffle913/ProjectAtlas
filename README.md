@@ -10,9 +10,9 @@ An original political-map foundation for a future geopolitical simulation, with 
 
 The map is explicitly not the game state. `Country` holds stable identity and sourced facts. `Territory` holds a named geometry and an initial owner. `SimulationState.territoryOwnership` overrides that owner at runtime. This allows future treaties, annexations, and subnational regions without rewriting source geometry.
 
-Natural Earth admin-0 country geometry is stored in `public/data/natural-earth-admin-0.geojson`. It is public domain. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
+Natural Earth admin-0 country geometry, plus its 110m physical land, lakes, and river centreline datasets, are stored in `public/data/`. They are public domain. The map uses no runtime tile service or remotely loaded map asset, and remains usable while disconnected. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
 
-OpenStreetMap is used only as an optional background tile layer and is attributed in the map control; production use must comply with [ODbL attribution requirements](https://www.openstreetmap.org/copyright).
+The physical layers are a local visual basemap only. Political ownership and international borders are rendered separately above them from territory state; no political border is baked into the background.
 
 ## Geopolitical assumptions
 

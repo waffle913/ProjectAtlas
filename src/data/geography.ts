@@ -22,7 +22,6 @@ export function buildWorld(featureCollection: GeoJSON.FeatureCollection) {
     if (!countries.has(iso3)) countries.set(iso3, {
       id: iso3, commonName: p.ADMIN ?? name, officialName: p.FORMAL_EN || undefined, iso2, iso3,
       kind, continent: p.CONTINENT || undefined, subregion: p.SUBREGION || undefined,
-      flagUrl: iso2 ? `https://flagcdn.com/w80/${iso2.toLowerCase()}.png` : undefined,
       sources: {
         identity: { value: 'Natural Earth Admin 0', source: 'Natural Earth', sourceUrl: 'https://www.naturalearthdata.com/', asOf: '2022', note: 'Geographic identity and classification only; statistics are intentionally not inferred.' }
       }
