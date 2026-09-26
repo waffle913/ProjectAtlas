@@ -5,8 +5,16 @@ export interface EntityRegistry {
   schemaVersion: number;
   countries: Array<{
     id: string;
-    label: string;
+    commonName: string;
+    officialName?: string;
     externalIds: { isoAlpha2?: string; isoAlpha3?: string; unM49?: string };
+    entityType: 'sovereign_state' | 'dependency' | 'disputed' | 'partially_recognized' | 'special_status';
+    sovereignCountryId?: string;
+    continent?: string;
+    unSubregion?: string;
+    capital?: string;
+    sources: Record<string, Array<{ name: string; url: string; datasetId: string; retrievedAt: string }>>;
+    sourceMetadata?: Record<string, unknown>;
   }>;
   territories: Array<{ id: string; label: string; initialOwnerCountryId: string }>;
 }
@@ -18,12 +26,12 @@ export interface DatasetMapping {
   features: Array<{ sourceId: string; territoryId: string; countryId: string }>;
 }
 
-export const entityRegistry: EntityRegistry = entities;
-export const naturalEarthMapping: DatasetMapping = naturalEarth;
+export const entityRegistry = entities as unknown as EntityRegistry;
+export const naturalEarthMapping = naturalEarth as unknown as DatasetMapping;
 
 /** IDs are assigned in the registry, never generated from source data at runtime. */
 export function indexRegistry(registry: EntityRegistry, mapping: DatasetMapping) {
-  if (registry.schemaVersion !== 1 || mapping.schemaVersion !== 1) {
+  if (registry.schemaVersion !== 2 || mapping.schemaVersion !== 1) {
     throw new Error('Unsupported entity registry or geographic mapping version.');
   }
   const unique = <T extends { id: string }>(entries: T[]) => {

@@ -29,7 +29,8 @@ describe('persistent entity registry', () => {
     const after = buildWorld(changed);
     expect([...after.countries.keys()].sort()).toEqual([...before.countries.keys()].sort());
     expect(after.territories.map(t => t.id).sort()).toEqual(before.territories.map(t => t.id).sort());
-    expect([...after.countries.values()].map(c => c.iso3).sort()).toEqual([...before.countries.values()].map(c => c.iso3).sort());
+    expect([...after.countries.values()].map(c => c.externalIds.isoAlpha3).sort()).toEqual([...before.countries.values()].map(c => c.externalIds.isoAlpha3).sort());
+    expect([...after.countries.values()].map(c => [c.commonName,c.capital]).sort()).toEqual([...before.countries.values()].map(c => [c.commonName,c.capital]).sort());
   });
 
   it('resolves saved ownership after explicitly mapping a replacement dataset with new external IDs', () => {

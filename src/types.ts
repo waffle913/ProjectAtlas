@@ -1,13 +1,17 @@
 export type EntityKind = 'sovereign' | 'dependency' | 'disputed' | 'other';
 
-export interface SourceValue<T> { value: T; source: string; sourceUrl: string; asOf: string; note?: string }
+export interface DataSource { name: string; url: string; datasetId: string; retrievedAt: string }
+export interface SourceValue<T> { value: T; source: DataSource; referenceDate: string; isEstimate: boolean; note?: string }
 export interface Country {
-  id: string; commonName: string; officialName?: string; iso2?: string; iso3?: string; unM49?: string;
-  kind: EntityKind; sourceClassification: string; capital?: string; continent?: string; subregion?: string;
-  sources: Record<string, SourceValue<string | number> | undefined>;
+  id: string; commonName: string; officialName?: string;
+  externalIds: { isoAlpha2?: string; isoAlpha3?: string; unM49?: string };
+  entityType: 'sovereign_state' | 'dependency' | 'disputed' | 'partially_recognized' | 'special_status';
+  sovereignCountryId?: string; capital?: string; continent?: string; unSubregion?: string;
+  sources: Record<string, DataSource[]>; kind: EntityKind;
 }
 export interface Territory {
   id: string; name: string; geometry: GeoJSON.Geometry; ownerCountryId?: string;
-  sovereignty: string; kind: EntityKind; sourceClassification: string; sourceFeatureId: string; sourceDatasetId: string;
+  kind: EntityKind; sourceFeatureId: string; sourceDatasetId: string;
+  sourceMetadata: Record<string, unknown>;
 }
 export interface SimulationState { date: string; paused: boolean; speed: 1 | 2 | 5; territoryOwnership: Record<string, string | undefined> }
