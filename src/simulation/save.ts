@@ -8,19 +8,27 @@ export interface LegacySimulationStateV1 {
   territoryOwnership: Record<string, string | undefined>;
 }
 
-export function migrateSimulationState(save: LegacySimulationStateV1 | SimulationState, regions: RegionEntity[]): SimulationState {
-  if (save.schemaVersion === 2) return {
-    ...save,
-    territoryOwnership: { ...save.territoryOwnership },
-    regionOwnership: { ...save.regionOwnership },
-  };
+export function migrateSimulationState(save: unknown, regions: RegionEntity[]): SimulationState {
+  if (!save || typeof save !== 'object') throw new Error('Malformed simulation save.');
+  const version = (save as { schemaVersion?: unknown }).schemaVersion;
+  if (version === 2) {
+    const current = save as SimulationState;
+    return {
+      ...current,
+      territoryOwnership: { ...current.territoryOwnership },
+      regionOwnership: { ...current.regionOwnership },
+    };
+  }
+  if (version !== undefined && version !== 1) throw new Error(`Unsupported simulation save schema version: ${String(version)}`);
+  const legacy = save as LegacySimulationStateV1;
+  if (!legacy.territoryOwnership || !legacy.date || ![1, 2, 5].includes(legacy.speed)) throw new Error('Malformed legacy simulation save.');
   const regionOwnership = Object.fromEntries(regions.map(region => [
     region.id,
-    (region.macroTerritoryId && save.territoryOwnership[region.macroTerritoryId]) ?? region.initialOwnerCountryId,
+    (region.macroTerritoryId && legacy.territoryOwnership[region.macroTerritoryId]) ?? region.initialOwnerCountryId,
   ]));
-  return { ...save, schemaVersion: 2, territoryOwnership: { ...save.territoryOwnership }, regionOwnership };
+  return { ...legacy, schemaVersion: 2, territoryOwnership: { ...legacy.territoryOwnership }, regionOwnership };
 }
 
 export const serializeSimulationState = (state: SimulationState) => JSON.stringify(state);
 export const restoreSimulationState = (serialized: string, regions: RegionEntity[]) =>
-  migrateSimulationState(JSON.parse(serialized) as LegacySimulationStateV1 | SimulationState, regions);
+  migrateSimulationState(JSON.parse(serialized), regions);

@@ -12,6 +12,11 @@ const coverage = read<RegionCoverageReport>('src/data/admin1-coverage-report.jso
 const countries = read<EntityRegistry>('src/data/entity-registry.json');
 const source = read<GeoJSON.FeatureCollection>('src/data/source-snapshots/natural-earth-admin1-v5.1.2.geojson');
 const overview = read<GeoJSON.FeatureCollection>('public/data/admin1/overview.geojson');
+const identities = read<{
+  schemaVersion: number;
+  regions: Array<{ id: string; status: 'active' | 'retired'; parentCountryId: string; commonName: string; iso31662?: string; stableExternalIds: Record<string, string[]> }>;
+  reservedRegionIds: Array<{ id: string; status: 'reserved'; reason: string }>;
+}>('src/data/region-id-assignments.json');
 const clone = <T>(value: T): T => structuredClone(value);
 
 describe('persistent global Region registry', () => {
@@ -22,6 +27,19 @@ describe('persistent global Region registry', () => {
     const isoCodes = registry.regions.flatMap(region => region.iso31662 ? [region.iso31662] : []);
     expect(new Set(isoCodes).size).toBe(isoCodes.length);
     expect(coverage.summary.totalRegions).toBe(registry.regions.length);
+  });
+  it('keeps authoritative identity records free of Natural Earth identifiers', () => {
+    expect(identities.schemaVersion).toBe(2);
+    const active = identities.regions.filter(identity => identity.status === 'active');
+    expect(active.map(identity => identity.id).sort()).toEqual(registry.regions.map(region => region.id).sort());
+    const allKnownIds = [...identities.regions.map(identity => identity.id), ...identities.reservedRegionIds.map(identity => identity.id)];
+    expect(new Set(allKnownIds).size).toBe(allKnownIds.length);
+    for (const identity of identities.regions) {
+      expect(identity.parentCountryId).toBeTruthy();
+      expect(identity.commonName).toBeTruthy();
+      expect(JSON.stringify(identity)).not.toMatch(/natural[-_ ]?earth|adm1_code|sourceFeature/i);
+    }
+    expect(mapping.features.every(feature => feature.sourceAdmin1Code)).toBe(true);
   });
   it('maps every displayed source feature exactly once while allowing multipart Regions', () => {
     expect(new Set(mapping.features.map(feature => feature.sourceId)).size).toBe(mapping.features.length);

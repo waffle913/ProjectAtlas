@@ -73,7 +73,7 @@ export async function loadAdmin1Model() {
     const sourceCodes = records.map(record => String(record.properties.adm1_code));
     const iso31662 = first.sourceIso && !ambiguousIsoCodes.has(first.sourceIso) ? first.sourceIso : undefined;
     return {
-      assignmentKey: `natural-earth:${sourceCodes[0]}`,
+      sourceGroupKey: `natural-earth:${sourceCodes[0]}`,
       country: first.country,
       macroTerritory: territoryByCountry.get(first.country.id),
       name: first.properties.name_en ?? first.properties.name,
@@ -88,7 +88,7 @@ export async function loadAdmin1Model() {
       ambiguous: Boolean(first.properties.note || !iso31662 || records.some(record => record.properties.note)),
       notes: [...new Set(records.map(record => record.properties.note).filter(Boolean))],
     };
-  }).sort((a, b) => a.assignmentKey.localeCompare(b.assignmentKey));
+  }).sort((a, b) => a.sourceGroupKey.localeCompare(b.sourceGroupKey));
 
   const candidateByCountry = new Map();
   for (const group of candidateGroups) {
@@ -114,4 +114,18 @@ export async function loadAdmin1Model() {
   }
   const fallbackCountries = countryRegistry.countries.filter(country => !groupsByCountry.has(country.id));
   return { metadata, source, countryRegistry, countriesById, territoryByCountry, regionGroups, groupsByCountry, fallbackCountries, excluded };
+}
+
+export function toReconciliationCandidates(model) {
+  return model.regionGroups.map(group => ({
+    datasetId: model.metadata.snapshotId,
+    reviewKey: `${model.metadata.snapshotId}:${group.sourceGroupKey}`,
+    parentCountryId: group.country.id,
+    name: group.name,
+    iso31662: group.iso31662,
+    wikidataIds: group.wikidataIds,
+    sourceFeatureIds: group.sourceIds,
+    sourceAdmin1Codes: group.sourceCodes,
+    group,
+  }));
 }

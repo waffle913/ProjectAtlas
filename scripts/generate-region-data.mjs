@@ -4,12 +4,20 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadAdmin1Model } from './admin1-model.mjs';
+import { loadAdmin1Model, toReconciliationCandidates } from './admin1-model.mjs';
+import { reconcileRegionCandidates } from '../src/data/regionReconciliation.js';
 
 const root = new URL('../', import.meta.url);
 const readJson = async path => JSON.parse(await readFile(new URL(path, root), 'utf8'));
-const model = await loadAdmin1Model();
-const assignments = await readJson('src/data/region-id-assignments.json');
+const [model, identities, priorMapping, reconciliationOverrides] = await Promise.all([
+  loadAdmin1Model(),
+  readJson('src/data/region-id-assignments.json'),
+  readJson('src/data/admin1-mapping.json'),
+  readJson('src/data/region-reconciliation-overrides.json'),
+]);
+if (identities.schemaVersion !== 2) throw new Error('Unsupported Region identity registry schema.');
+const allPermanentIds = [...identities.regions.map(identity => identity.id), ...identities.reservedRegionIds.map(identity => identity.id)];
+if (new Set(allPermanentIds).size !== allPermanentIds.length) throw new Error('Region identity registry reuses a permanent or reserved ID.');
 const sourcePath = fileURLToPath(new URL(`src/data/source-snapshots/natural-earth-admin1-v${model.metadata.version}.geojson`, root));
 const sourceBytes = await readFile(sourcePath);
 if (createHash('sha256').update(sourceBytes).digest('hex') !== model.metadata.sha256) throw new Error('Pinned Admin-1 snapshot checksum does not match its metadata.');
@@ -26,11 +34,20 @@ const admin0Source = {
   datasetId: 'natural-earth-admin-0-110m',
   retrievedAt: model.metadata.retrievedAt,
 };
-const assignmentFor = key => {
-  const assignment = assignments.regions[key];
-  if (!assignment?.regionId) throw new Error(`Missing permanent region assignment: ${key}. Run npm run data:regions:assign and review the new IDs.`);
-  return assignment;
-};
+const aliases = priorMapping.features.map(feature => ({
+  datasetId: priorMapping.datasetId,
+  sourceId: feature.sourceId,
+  sourceAdmin1Code: feature.sourceAdmin1Code,
+  regionId: feature.regionId,
+}));
+const reconciled = reconcileRegionCandidates({
+  identities: identities.regions,
+  aliases,
+  candidates: toReconciliationCandidates(model),
+  reviewedMatches: reconciliationOverrides.matches,
+});
+const reconciledByKey = new Map(reconciled.map(item => [item.reviewKey, item]));
+const identityById = new Map(identities.regions.map(identity => [identity.id, identity]));
 
 const assetName = countryId => `${countryId.replace(/[^a-zA-Z0-9.-]/g, '_')}.geojson`;
 const geometryAssetsByCountry = {};
@@ -38,48 +55,56 @@ const regions = [];
 const mappingFeatures = [];
 const sourceToRegion = new Map();
 for (const group of model.regionGroups) {
-  const { regionId } = assignmentFor(group.assignmentKey);
+  const reviewKey = `${model.metadata.snapshotId}:${group.sourceGroupKey}`;
+  const regionId = reconciledByKey.get(reviewKey)?.regionId;
+  const identity = identityById.get(regionId);
+  if (!identity) throw new Error(`Reconciliation did not resolve an authoritative Region identity: ${reviewKey}`);
   const runtimeAsset = `/data/admin1/countries/${assetName(group.country.id)}`;
   geometryAssetsByCountry[group.country.id] = runtimeAsset;
   regions.push({
-    id: regionId,
-    parentCountryId: group.country.id,
-    initialOwnerCountryId: group.country.id,
-    macroTerritoryId: group.macroTerritory?.id,
-    commonName: group.name,
-    ...(group.localType && { localAdministrativeType: group.localType }),
-    administrativeLevel: group.administrativeLevel,
-    ...(group.iso31662 && { iso31662: group.iso31662 }),
-    externalIds: {
-      naturalEarthAdm1: group.sourceCodes,
-      naturalEarthFeature: group.sourceIds,
-      ...(group.wikidataIds.length && { wikidata: group.wikidataIds }),
-      ...(group.candidateIso31662 && { candidateIso31662: group.candidateIso31662 }),
-    },
+    id: identity.id,
+    parentCountryId: identity.parentCountryId,
+    initialOwnerCountryId: identity.initialOwnerCountryId,
+    macroTerritoryId: identity.macroTerritoryId,
+    commonName: identity.commonName,
+    ...(identity.localAdministrativeType && { localAdministrativeType: identity.localAdministrativeType }),
+    administrativeLevel: identity.administrativeLevel,
+    ...(identity.iso31662 && { iso31662: identity.iso31662 }),
+    externalIds: identity.stableExternalIds,
     geographyMapping: {
       status: 'mapped', datasetId: model.metadata.snapshotId,
       sourceFeatureIds: group.sourceIds,
     },
-    sourceMetadata: { notes: group.notes, sourceFeatureCount: group.sourceIds.length },
+    sourceMetadata: { currentSourceNames: [...new Set(group.records.map(record => record.properties.name))], notes: group.notes, sourceFeatureCount: group.sourceIds.length },
   });
-  for (const sourceId of group.sourceIds) {
-    mappingFeatures.push({ sourceId, regionId, countryId: group.country.id });
-    sourceToRegion.set(sourceId, { regionId, countryId: group.country.id });
+  for (const record of group.records) {
+    mappingFeatures.push({
+      sourceId: record.sourceId,
+      sourceAdmin1Code: String(record.properties.adm1_code),
+      sourceName: record.properties.name,
+      ...(record.sourceIso && { sourceIso31662: record.sourceIso }),
+      ...(record.properties.wikidataid && { sourceWikidataId: record.properties.wikidataid }),
+      regionId: identity.id,
+      countryId: identity.parentCountryId,
+    });
+    sourceToRegion.set(record.sourceId, { regionId: identity.id, countryId: identity.parentCountryId });
   }
 }
 for (const country of model.fallbackCountries) {
-  const { regionId } = assignmentFor(`fallback:${country.id}`);
+  const matches = identities.regions.filter(identity => identity.status === 'active' && identity.identityKind === 'national_fallback' && identity.parentCountryId === country.id);
+  if (matches.length !== 1) throw new Error(`Fallback Region identity requires explicit review: ${country.id}`);
+  const identity = matches[0];
   const territory = model.territoryByCountry.get(country.id);
   const admin0Available = territory?.geographicMapping.status === 'mapped';
   regions.push({
-    id: regionId,
-    parentCountryId: country.id,
-    initialOwnerCountryId: country.id,
-    macroTerritoryId: territory?.id,
-    commonName: country.commonName,
-    localAdministrativeType: 'National fallback region',
-    administrativeLevel: 0,
-    externalIds: {},
+    id: identity.id,
+    parentCountryId: identity.parentCountryId,
+    initialOwnerCountryId: identity.initialOwnerCountryId,
+    macroTerritoryId: identity.macroTerritoryId,
+    commonName: identity.commonName,
+    localAdministrativeType: identity.localAdministrativeType,
+    administrativeLevel: identity.administrativeLevel,
+    externalIds: identity.stableExternalIds,
     geographyMapping: admin0Available ? {
       status: 'fallback_admin0', territoryId: territory.id,
       reason: 'No reliable first-order subdivision set is present in the pinned Admin-1 snapshot; the existing Admin-0 territory is used as one playable region.',
@@ -90,6 +115,11 @@ for (const country of model.fallbackCountries) {
       checkedAt: model.metadata.retrievedAt, source,
     },
   });
+}
+const generatedIds = new Set(regions.map(region => region.id));
+const activeIdentityIds = identities.regions.filter(identity => identity.status === 'active').map(identity => identity.id);
+if (activeIdentityIds.some(id => !generatedIds.has(id)) || generatedIds.size !== activeIdentityIds.length) {
+  throw new Error('Generated Region coverage does not exactly match the authoritative active identity registry.');
 }
 regions.sort((a, b) => a.id.localeCompare(b.id));
 mappingFeatures.sort((a, b) => a.sourceId.localeCompare(b.sourceId));
@@ -130,13 +160,15 @@ const coverage = {
   limitations: model.metadata.limitations,
 };
 const registry = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sourceSnapshot: model.metadata,
   geometryAssetsByCountry,
   regions,
+  retiredRegions: identities.regions.filter(identity => identity.status === 'retired'),
+  reservedRegionIds: identities.reservedRegionIds,
 };
 const mapping = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   datasetId: model.metadata.snapshotId,
   featureIdProperty: 'ne_id',
   features: mappingFeatures,

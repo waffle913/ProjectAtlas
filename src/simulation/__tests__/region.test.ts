@@ -34,4 +34,7 @@ describe('Region ownership and saves', () => {
     expect(migrated.territoryOwnership['territory.alpha']).toBe('country.beta');
     expect(migrated.regionOwnership[region.id]).toBe('country.beta');
   });
+  it('rejects unsupported future save schemas instead of treating them as v1', () => {
+    expect(() => migrateSimulationState({ schemaVersion: 3, date: '2030-01-01', paused: true, speed: 1, territoryOwnership: {} }, [region])).toThrow(/Unsupported simulation save schema version: 3/);
+  });
 });

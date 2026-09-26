@@ -9,12 +9,14 @@ export interface RegionRegistry {
   sourceSnapshot: { snapshotId: string; retrievedAt: string; sourceUrl: string; license: string; licenseUrl: string; limitations: string[] };
   geometryAssetsByCountry: Record<string, string>;
   regions: RegionEntity[];
+  retiredRegions: Array<{ id: string; status: 'retired'; successorRegionId?: string }>;
+  reservedRegionIds: Array<{ id: string; status: 'reserved'; reason: string }>;
 }
 export interface Admin1Mapping {
   schemaVersion: number;
   datasetId: string;
   featureIdProperty: string;
-  features: Array<{ sourceId: string; regionId: string; countryId: string }>;
+  features: Array<{ sourceId: string; sourceAdmin1Code?: string; sourceName?: string; sourceIso31662?: string; sourceWikidataId?: string; regionId: string; countryId: string }>;
   excludedFeatures: Array<{ sourceId: string; sourceCountryCode: string; name: string; reason: string }>;
 }
 export interface RegionCoverageReport {
@@ -32,6 +34,7 @@ export interface LoadedRegionData {
 const isDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 export function validateRegionData(registry: RegionRegistry, mapping: Admin1Mapping, countries: EntityRegistry) {
   const errors: string[] = [];
+  if (registry.schemaVersion !== 2 || mapping.schemaVersion !== 2) errors.push('Unsupported Region registry or Admin-1 mapping schema.');
   const countryIds = new Set(countries.countries.map(country => country.id));
   const territoryIds = new Set(countries.territories.map(territory => territory.id));
   const regionIds = new Set<string>();
@@ -54,6 +57,16 @@ export function validateRegionData(registry: RegionRegistry, mapping: Admin1Mapp
       if (!geography.reason || !isDate(geography.checkedAt) || !geography.source?.datasetId) errors.push(`Missing geography lacks provenance: ${region.id}`);
       if (geography.status === 'fallback_admin0' && !territoryIds.has(geography.territoryId)) errors.push(`Fallback references an unknown territory: ${region.id}`);
     }
+  }
+  const historicalIds = new Set(regionIds);
+  for (const retired of registry.retiredRegions) {
+    if (!retired.id || historicalIds.has(retired.id)) errors.push(`Retired Region ID is missing or reused: ${retired.id}`);
+    historicalIds.add(retired.id);
+    if (!retired.successorRegionId || !regionIds.has(retired.successorRegionId)) errors.push(`Retired Region lacks a known active successor: ${retired.id}`);
+  }
+  for (const reserved of registry.reservedRegionIds) {
+    if (!reserved.id || historicalIds.has(reserved.id) || !reserved.reason) errors.push(`Reserved Region ID is missing, reused or unexplained: ${reserved.id}`);
+    historicalIds.add(reserved.id);
   }
   for (const countryId of countryIds) if (!countsByCountry.has(countryId)) errors.push(`Country has no gameplay Region: ${countryId}`);
 

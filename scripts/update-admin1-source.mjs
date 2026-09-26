@@ -32,3 +32,4 @@ await writeFile(new URL('natural-earth-admin1-metadata.json', output), JSON.stri
   ],
 }, null, 2) + '\n');
 console.log(`Pinned Natural Earth Admin-1 ${version}: ${snapshot.features.length} features, ${bytes.length} bytes.`);
+console.log('Run npm run data:regions:reconcile next. Unmatched or ambiguous features require explicit review.');
