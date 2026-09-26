@@ -1,0 +1,1013 @@
+{
+  "schemaVersion": 1,
+  "entities": {
+    "iso:FJI": {
+      "countryId": "country.1bxt04r",
+      "territoryId": "territory.5gvgkl"
+    },
+    "iso:TZA": {
+      "countryId": "country.10umxsb",
+      "territoryId": "territory.1tiukfd"
+    },
+    "iso:ESH": {
+      "countryId": "country.rvhaqt",
+      "territoryId": "territory.1v0uk58"
+    },
+    "iso:CAN": {
+      "countryId": "country.1aj872z",
+      "territoryId": "territory.cqhfm7"
+    },
+    "iso:USA": {
+      "countryId": "country.u6myyj",
+      "territoryId": "territory.1udc934"
+    },
+    "iso:KAZ": {
+      "countryId": "country.1y9w9xr",
+      "territoryId": "territory.1gydiqz"
+    },
+    "iso:UZB": {
+      "countryId": "country.c55i8p",
+      "territoryId": "territory.5qlw3e"
+    },
+    "iso:PNG": {
+      "countryId": "country.zvvq7v",
+      "territoryId": "territory.1wwlz8f"
+    },
+    "iso:IDN": {
+      "countryId": "country.1gtbljd",
+      "territoryId": "territory.1r4jo33"
+    },
+    "iso:ARG": {
+      "countryId": "country.1cin176",
+      "territoryId": "territory.1vghjo8"
+    },
+    "iso:CHL": {
+      "countryId": "country.yhajqy",
+      "territoryId": "territory.1r6mvst"
+    },
+    "iso:COD": {
+      "countryId": "country.78ys5y",
+      "territoryId": "territory.pccjlq"
+    },
+    "iso:SOM": {
+      "countryId": "country.1k431t",
+      "territoryId": "territory.nqovst"
+    },
+    "iso:KEN": {
+      "countryId": "country.1y5kvsv",
+      "territoryId": "territory.11z7ss4"
+    },
+    "iso:SDN": {
+      "countryId": "country.jg9ci8",
+      "territoryId": "territory.1v3qpfp"
+    },
+    "iso:TCD": {
+      "countryId": "country.e55nqx",
+      "territoryId": "territory.g7145j"
+    },
+    "iso:HTI": {
+      "countryId": "country.1r1l1cm",
+      "territoryId": "territory.19m1bpd"
+    },
+    "iso:DOM": {
+      "countryId": "country.d772x9",
+      "territoryId": "territory.1v8fvmf"
+    },
+    "iso:RUS": {
+      "countryId": "country.h03oz0",
+      "territoryId": "territory.dok0st"
+    },
+    "iso:BHS": {
+      "countryId": "country.6sun05",
+      "territoryId": "territory.107yfao"
+    },
+    "iso:FLK": {
+      "countryId": "country.c7ig3n",
+      "territoryId": "territory.x473c5"
+    },
+    "iso:NOR": {
+      "countryId": "country.1vrmp4h",
+      "territoryId": "territory.8xyk25"
+    },
+    "iso:GRL": {
+      "countryId": "country.14jkmlh",
+      "territoryId": "territory.9865nt"
+    },
+    "iso:ATF": {
+      "countryId": "country.11efhcg",
+      "territoryId": "territory.1dqhtc7"
+    },
+    "iso:TLS": {
+      "countryId": "country.1p0y3nd",
+      "territoryId": "territory.13sv7kv"
+    },
+    "iso:ZAF": {
+      "countryId": "country.t3667i",
+      "territoryId": "territory.1fbq71q"
+    },
+    "iso:LSO": {
+      "countryId": "country.1mkrhod",
+      "territoryId": "territory.17q3vcy"
+    },
+    "iso:MEX": {
+      "countryId": "country.1i4b92q",
+      "territoryId": "territory.1bgsqer"
+    },
+    "iso:URY": {
+      "countryId": "country.1qeehvj",
+      "territoryId": "territory.19mfx77"
+    },
+    "iso:BRA": {
+      "countryId": "country.1mxwn59",
+      "territoryId": "territory.ywg1y9"
+    },
+    "iso:BOL": {
+      "countryId": "country.1wszh7v",
+      "territoryId": "territory.1oticyk"
+    },
+    "iso:PER": {
+      "countryId": "country.8cy639",
+      "territoryId": "territory.xo21d4"
+    },
+    "iso:COL": {
+      "countryId": "country.ckoh6f",
+      "territoryId": "territory.512oae"
+    },
+    "iso:PAN": {
+      "countryId": "country.8thyov",
+      "territoryId": "territory.18f6h0j"
+    },
+    "iso:CRI": {
+      "countryId": "country.18zkp24",
+      "territoryId": "territory.1r8afdo"
+    },
+    "iso:NIC": {
+      "countryId": "country.z7gp3s",
+      "territoryId": "territory.3mxqk"
+    },
+    "iso:HND": {
+      "countryId": "country.3f7ydp",
+      "territoryId": "territory.u0edn"
+    },
+    "iso:SLV": {
+      "countryId": "country.mgrohe",
+      "territoryId": "territory.ym48mv"
+    },
+    "iso:GTM": {
+      "countryId": "country.wkwrv6",
+      "territoryId": "territory.1dpk6pf"
+    },
+    "iso:BLZ": {
+      "countryId": "country.u4ua72",
+      "territoryId": "territory.zpwht7"
+    },
+    "iso:VEN": {
+      "countryId": "country.qdlh80",
+      "territoryId": "territory.1qvw1qy"
+    },
+    "iso:GUY": {
+      "countryId": "country.aheews",
+      "territoryId": "territory.zck768"
+    },
+    "iso:SUR": {
+      "countryId": "country.ieqa5v",
+      "territoryId": "territory.d7s5aq"
+    },
+    "iso:FRA": {
+      "countryId": "country.97e14s",
+      "territoryId": "territory.1n6zo4u"
+    },
+    "iso:ECU": {
+      "countryId": "country.13l0w18",
+      "territoryId": "territory.1hw1hac"
+    },
+    "iso:PRI": {
+      "countryId": "country.1b9pd3r",
+      "territoryId": "territory.i34k2w"
+    },
+    "iso:JAM": {
+      "countryId": "country.1rzzy0l",
+      "territoryId": "territory.1szx4kl"
+    },
+    "iso:CUB": {
+      "countryId": "country.1slft1c",
+      "territoryId": "territory.xlbqg2"
+    },
+    "iso:ZWE": {
+      "countryId": "country.6th7vw",
+      "territoryId": "territory.1bqlhz4"
+    },
+    "iso:BWA": {
+      "countryId": "country.1g4p5xi",
+      "territoryId": "territory.1p78rij"
+    },
+    "iso:NAM": {
+      "countryId": "country.13ie6ly",
+      "territoryId": "territory.syq6y7"
+    },
+    "iso:SEN": {
+      "countryId": "country.1bf4760",
+      "territoryId": "territory.19veitl"
+    },
+    "iso:MLI": {
+      "countryId": "country.13gf39o",
+      "territoryId": "territory.12iu14v"
+    },
+    "iso:MRT": {
+      "countryId": "country.1powv0y",
+      "territoryId": "territory.1ch97as"
+    },
+    "iso:BEN": {
+      "countryId": "country.n7hxdt",
+      "territoryId": "territory.1oj63an"
+    },
+    "iso:NER": {
+      "countryId": "country.15217la",
+      "territoryId": "territory.qblais"
+    },
+    "iso:NGA": {
+      "countryId": "country.1wvxlzg",
+      "territoryId": "territory.1nqsm62"
+    },
+    "iso:CMR": {
+      "countryId": "country.1w9qxht",
+      "territoryId": "territory.k9uai"
+    },
+    "iso:TGO": {
+      "countryId": "country.1akiyqe",
+      "territoryId": "territory.t7h4hj"
+    },
+    "iso:GHA": {
+      "countryId": "country.1nz4j7w",
+      "territoryId": "territory.5yzven"
+    },
+    "iso:CIV": {
+      "countryId": "country.ukura0",
+      "territoryId": "territory.1x114mu"
+    },
+    "iso:GIN": {
+      "countryId": "country.1knbk6o",
+      "territoryId": "territory.14wptwz"
+    },
+    "iso:GNB": {
+      "countryId": "country.tyezxm",
+      "territoryId": "territory.ybmyxp"
+    },
+    "iso:LBR": {
+      "countryId": "country.13si2qd",
+      "territoryId": "territory.bujgbe"
+    },
+    "iso:SLE": {
+      "countryId": "country.mqcp0q",
+      "territoryId": "territory.gq5e4"
+    },
+    "iso:BFA": {
+      "countryId": "country.14vdqsc",
+      "territoryId": "territory.yvz8pp"
+    },
+    "iso:CAF": {
+      "countryId": "country.14nagci",
+      "territoryId": "territory.16trlto"
+    },
+    "iso:COG": {
+      "countryId": "country.mce667",
+      "territoryId": "territory.1y5h9xa"
+    },
+    "iso:GAB": {
+      "countryId": "country.1jpkbk",
+      "territoryId": "territory.javhc8"
+    },
+    "iso:GNQ": {
+      "countryId": "country.72e2lh",
+      "territoryId": "territory.15jxugq"
+    },
+    "iso:ZMB": {
+      "countryId": "country.9cg02n",
+      "territoryId": "territory.artf4c"
+    },
+    "iso:MWI": {
+      "countryId": "country.1ena0me",
+      "territoryId": "territory.18k65gj"
+    },
+    "iso:MOZ": {
+      "countryId": "country.zaf4y3",
+      "territoryId": "territory.1p1zdko"
+    },
+    "iso:SWZ": {
+      "countryId": "country.td9ldb",
+      "territoryId": "territory.8mge70"
+    },
+    "iso:AGO": {
+      "countryId": "country.1oit02h",
+      "territoryId": "territory.svkrhq"
+    },
+    "iso:BDI": {
+      "countryId": "country.82nqba",
+      "territoryId": "territory.1l4tame"
+    },
+    "iso:ISR": {
+      "countryId": "country.1dsqes5",
+      "territoryId": "territory.fahonf"
+    },
+    "iso:LBN": {
+      "countryId": "country.14p3bj2",
+      "territoryId": "territory.1gjnchl"
+    },
+    "iso:MDG": {
+      "countryId": "country.snc7v9",
+      "territoryId": "territory.dcyolh"
+    },
+    "iso:PSE": {
+      "countryId": "country.x4ahyj",
+      "territoryId": "territory.lgziwd"
+    },
+    "iso:GMB": {
+      "countryId": "country.jmri14",
+      "territoryId": "territory.6wj208"
+    },
+    "iso:TUN": {
+      "countryId": "country.1fog5xu",
+      "territoryId": "territory.zchehf"
+    },
+    "iso:DZA": {
+      "countryId": "country.hw7u0k",
+      "territoryId": "territory.feseka"
+    },
+    "iso:JOR": {
+      "countryId": "country.awshmp",
+      "territoryId": "territory.sesy9j"
+    },
+    "iso:ARE": {
+      "countryId": "country.xjfx2m",
+      "territoryId": "territory.1d7iwel"
+    },
+    "iso:QAT": {
+      "countryId": "country.1pvjhz6",
+      "territoryId": "territory.4b4jq"
+    },
+    "iso:KWT": {
+      "countryId": "country.18echaw",
+      "territoryId": "territory.1qbm74x"
+    },
+    "iso:IRQ": {
+      "countryId": "country.1y3qxos",
+      "territoryId": "territory.1f664ew"
+    },
+    "iso:OMN": {
+      "countryId": "country.sq8sl2",
+      "territoryId": "territory.1sb7i3f"
+    },
+    "iso:VUT": {
+      "countryId": "country.1hnoduz",
+      "territoryId": "territory.9gf45q"
+    },
+    "iso:KHM": {
+      "countryId": "country.10o3gxv",
+      "territoryId": "territory.1f2lkz1"
+    },
+    "iso:THA": {
+      "countryId": "country.gddwz0",
+      "territoryId": "territory.12n9bwv"
+    },
+    "iso:LAO": {
+      "countryId": "country.18zobjo",
+      "territoryId": "territory.125bp4f"
+    },
+    "iso:MMR": {
+      "countryId": "country.50z1vg",
+      "territoryId": "territory.wsh3g3"
+    },
+    "iso:VNM": {
+      "countryId": "country.opradj",
+      "territoryId": "territory.4tly36"
+    },
+    "iso:PRK": {
+      "countryId": "country.jm8gea",
+      "territoryId": "territory.1n73yaw"
+    },
+    "iso:KOR": {
+      "countryId": "country.1jzfv40",
+      "territoryId": "territory.apzq82"
+    },
+    "iso:MNG": {
+      "countryId": "country.9j09vn",
+      "territoryId": "territory.1hwu8t5"
+    },
+    "iso:IND": {
+      "countryId": "country.12rbtu0",
+      "territoryId": "territory.sae20y"
+    },
+    "iso:BGD": {
+      "countryId": "country.1rdien2",
+      "territoryId": "territory.14s42tj"
+    },
+    "iso:BTN": {
+      "countryId": "country.1lye27d",
+      "territoryId": "territory.1r0bviw"
+    },
+    "iso:NPL": {
+      "countryId": "country.hs6fyh",
+      "territoryId": "territory.1to7iqu"
+    },
+    "iso:PAK": {
+      "countryId": "country.f5u1ei",
+      "territoryId": "territory.6pxffb"
+    },
+    "iso:AFG": {
+      "countryId": "country.1us5oyp",
+      "territoryId": "territory.rms6ru"
+    },
+    "iso:TJK": {
+      "countryId": "country.1pajyhp",
+      "territoryId": "territory.1ieid8n"
+    },
+    "iso:KGZ": {
+      "countryId": "country.7zmt7h",
+      "territoryId": "territory.15sld5i"
+    },
+    "iso:TKM": {
+      "countryId": "country.88o7pu",
+      "territoryId": "territory.mivmum"
+    },
+    "iso:IRN": {
+      "countryId": "country.yc1r8r",
+      "territoryId": "territory.tqwyzr"
+    },
+    "iso:SYR": {
+      "countryId": "country.19iew1b",
+      "territoryId": "territory.3sb20a"
+    },
+    "iso:ARM": {
+      "countryId": "country.1x9bk5g",
+      "territoryId": "territory.1dvz5ja"
+    },
+    "iso:SWE": {
+      "countryId": "country.1ga7ffb",
+      "territoryId": "territory.170ka22"
+    },
+    "iso:BLR": {
+      "countryId": "country.joydxr",
+      "territoryId": "territory.op5fwp"
+    },
+    "iso:UKR": {
+      "countryId": "country.8zv92e",
+      "territoryId": "territory.15noyq3"
+    },
+    "iso:POL": {
+      "countryId": "country.1yyv1wz",
+      "territoryId": "territory.8cqter"
+    },
+    "iso:AUT": {
+      "countryId": "country.alucm0",
+      "territoryId": "territory.6vvyyk"
+    },
+    "iso:HUN": {
+      "countryId": "country.1t8wy2p",
+      "territoryId": "territory.uzljpf"
+    },
+    "iso:MDA": {
+      "countryId": "country.6mdobv",
+      "territoryId": "territory.18k7v5p"
+    },
+    "iso:ROU": {
+      "countryId": "country.zsxuo0",
+      "territoryId": "territory.lbb1js"
+    },
+    "iso:LTU": {
+      "countryId": "country.1abe1vk",
+      "territoryId": "territory.15rr1c9"
+    },
+    "iso:LVA": {
+      "countryId": "country.nusos0",
+      "territoryId": "territory.yq2021"
+    },
+    "iso:EST": {
+      "countryId": "country.159s948",
+      "territoryId": "territory.3q9c88"
+    },
+    "iso:DEU": {
+      "countryId": "country.sxojze",
+      "territoryId": "territory.cmxjgc"
+    },
+    "iso:BGR": {
+      "countryId": "country.kb8qjm",
+      "territoryId": "territory.vukpen"
+    },
+    "iso:GRC": {
+      "countryId": "country.1ge48fm",
+      "territoryId": "territory.xpj5xo"
+    },
+    "iso:TUR": {
+      "countryId": "country.jvmcgx",
+      "territoryId": "territory.13ik24e"
+    },
+    "iso:ALB": {
+      "countryId": "country.1rdws0z",
+      "territoryId": "territory.1atfb6n"
+    },
+    "iso:HRV": {
+      "countryId": "country.1dg1asq",
+      "territoryId": "territory.1ai0av8"
+    },
+    "iso:CHE": {
+      "countryId": "country.1s29x2y",
+      "territoryId": "territory.zn3j0d"
+    },
+    "iso:LUX": {
+      "countryId": "country.qo855j",
+      "territoryId": "territory.1qwc9rt"
+    },
+    "iso:BEL": {
+      "countryId": "country.bk8phe",
+      "territoryId": "territory.1t1cb05"
+    },
+    "iso:NLD": {
+      "countryId": "country.1ddp0cj",
+      "territoryId": "territory.15pfm7o"
+    },
+    "iso:PRT": {
+      "countryId": "country.pauqcg",
+      "territoryId": "territory.pcpa47"
+    },
+    "iso:ESP": {
+      "countryId": "country.e06wze",
+      "territoryId": "territory.psoj8h"
+    },
+    "iso:IRL": {
+      "countryId": "country.s93ito",
+      "territoryId": "territory.180usej"
+    },
+    "iso:NCL": {
+      "countryId": "country.5lwy1g",
+      "territoryId": "territory.14tooz1"
+    },
+    "iso:SLB": {
+      "countryId": "country.1629o6e",
+      "territoryId": "territory.tcwgya"
+    },
+    "iso:NZL": {
+      "countryId": "country.1bryr1g",
+      "territoryId": "territory.bapd9s"
+    },
+    "iso:AUS": {
+      "countryId": "country.1gxtyz9",
+      "territoryId": "territory.1ehd5t3"
+    },
+    "iso:LKA": {
+      "countryId": "country.xs7zo4",
+      "territoryId": "territory.zwj3rt"
+    },
+    "iso:CHN": {
+      "countryId": "country.j4e5mk",
+      "territoryId": "territory.gknvg3"
+    },
+    "iso:TWN": {
+      "countryId": "country.113l9xv",
+      "territoryId": "territory.djwoyb"
+    },
+    "iso:ITA": {
+      "countryId": "country.1onsv24",
+      "territoryId": "territory.1kuw8gg"
+    },
+    "iso:DNK": {
+      "countryId": "country.pqqumd",
+      "territoryId": "territory.lnyilm"
+    },
+    "iso:GBR": {
+      "countryId": "country.zwicjl",
+      "territoryId": "territory.3r4p35"
+    },
+    "iso:ISL": {
+      "countryId": "country.2r4kh5",
+      "territoryId": "territory.n3d5gk"
+    },
+    "iso:AZE": {
+      "countryId": "country.n2i2m0",
+      "territoryId": "territory.1p3oi4p"
+    },
+    "iso:GEO": {
+      "countryId": "country.1bqmiqj",
+      "territoryId": "territory.16qs4ba"
+    },
+    "iso:PHL": {
+      "countryId": "country.1ckv6i4",
+      "territoryId": "territory.15vymix"
+    },
+    "iso:MYS": {
+      "countryId": "country.1a1ajo",
+      "territoryId": "territory.1f23lsi"
+    },
+    "iso:BRN": {
+      "countryId": "country.1tac25k",
+      "territoryId": "territory.1euaaix"
+    },
+    "iso:SVN": {
+      "countryId": "country.1yl9unk",
+      "territoryId": "territory.1hs2hgk"
+    },
+    "iso:FIN": {
+      "countryId": "country.sadyi7",
+      "territoryId": "territory.11yu4h8"
+    },
+    "iso:SVK": {
+      "countryId": "country.1nths69",
+      "territoryId": "territory.1nchplj"
+    },
+    "iso:CZE": {
+      "countryId": "country.i9fek6",
+      "territoryId": "territory.dm8mhh"
+    },
+    "iso:ERI": {
+      "countryId": "country.1rbe765",
+      "territoryId": "territory.1ovnzl4"
+    },
+    "iso:JPN": {
+      "countryId": "country.1xyn8u3",
+      "territoryId": "territory.xl25vp"
+    },
+    "iso:PRY": {
+      "countryId": "country.qw8j9b",
+      "territoryId": "territory.l9hjid"
+    },
+    "iso:YEM": {
+      "countryId": "country.8zgnf1",
+      "territoryId": "territory.1od1lux"
+    },
+    "iso:SAU": {
+      "countryId": "country.17se0x",
+      "territoryId": "territory.18ufck1"
+    },
+    "iso:ATA": {
+      "countryId": "country.ucqeq5",
+      "territoryId": "territory.19khbl3"
+    },
+    "atlas:northern-cyprus": {
+      "countryId": "country.1ffxfif",
+      "territoryId": "territory.1qda4o4"
+    },
+    "iso:CYP": {
+      "countryId": "country.1dtcx1v",
+      "territoryId": "territory.1t34yt0"
+    },
+    "iso:MAR": {
+      "countryId": "country.1orw7jp",
+      "territoryId": "territory.7n3h5j"
+    },
+    "iso:EGY": {
+      "countryId": "country.b4jfbk",
+      "territoryId": "territory.1bi7gz1"
+    },
+    "iso:LBY": {
+      "countryId": "country.wxv6tu",
+      "territoryId": "territory.1rmdl2b"
+    },
+    "iso:ETH": {
+      "countryId": "country.d0e7yk",
+      "territoryId": "territory.1rhyc71"
+    },
+    "iso:DJI": {
+      "countryId": "country.12na4wl",
+      "territoryId": "territory.hb8r1h"
+    },
+    "atlas:somaliland": {
+      "countryId": "country.fn8xdv",
+      "territoryId": "territory.1fdbeda"
+    },
+    "iso:UGA": {
+      "countryId": "country.5q931z",
+      "territoryId": "territory.1achxx5"
+    },
+    "iso:RWA": {
+      "countryId": "country.1qt08wm",
+      "territoryId": "territory.19qs6t7"
+    },
+    "iso:BIH": {
+      "countryId": "country.mbt8ni",
+      "territoryId": "territory.1ke5bzh"
+    },
+    "iso:MKD": {
+      "countryId": "country.eno4h9",
+      "territoryId": "territory.g12zfp"
+    },
+    "iso:SRB": {
+      "countryId": "country.1br72am",
+      "territoryId": "territory.mx9foh"
+    },
+    "iso:MNE": {
+      "countryId": "country.1cf3s0n",
+      "territoryId": "territory.19qtqds"
+    },
+    "atlas:kosovo": {
+      "countryId": "country.xso2dg",
+      "territoryId": "territory.nhg5fu"
+    },
+    "iso:TTO": {
+      "countryId": "country.ao8edp",
+      "territoryId": "territory.urt67r"
+    },
+    "iso:SSD": {
+      "countryId": "country.1bwwirt",
+      "territoryId": "territory.i3njzm"
+    },
+    "iso:IOT": {
+      "countryId": "country.8407a8d8-70de-4f9f-b22e-029c8312b476",
+      "territoryId": "territory.033f9849-92fd-4e95-8b67-3cb0fad26fbe"
+    },
+    "iso:COM": {
+      "countryId": "country.f3a9acdf-e608-4c67-9f5c-aab01b6ac91f",
+      "territoryId": "territory.e4b48204-2ea4-43a5-87b8-9d16b112c49b"
+    },
+    "iso:MUS": {
+      "countryId": "country.589767fd-d38e-45be-933c-e243cd22ec04",
+      "territoryId": "territory.04103a78-f076-464e-9d31-2356051e8e95"
+    },
+    "iso:MYT": {
+      "countryId": "country.ff993996-0239-4e2c-8fae-234d3985f9b5",
+      "territoryId": "territory.2e9d4676-292f-423a-befa-5f1de5dab9f3"
+    },
+    "iso:REU": {
+      "countryId": "country.58c98914-d491-401e-b681-40a699a6e3c5",
+      "territoryId": "territory.eafb226e-fbc1-4764-b531-6b7d3833660d"
+    },
+    "iso:SYC": {
+      "countryId": "country.54732cb4-6064-445b-a3c2-461d752e4305",
+      "territoryId": "territory.52b5bd1a-88dc-48c2-949b-3489aca4ba36"
+    },
+    "iso:STP": {
+      "countryId": "country.b8da38ac-b364-44d1-82ea-fc39ff807e0b",
+      "territoryId": "territory.ede22812-cb54-45be-957a-dce9363deadf"
+    },
+    "iso:CPV": {
+      "countryId": "country.46088230-c32b-4e3f-a816-fa6daf9737c4",
+      "territoryId": "territory.58c4ed38-dca8-45a5-8930-14abe8d51a7b"
+    },
+    "iso:SHN": {
+      "countryId": "country.4449fa36-e713-4df2-9651-ae5850828346",
+      "territoryId": "territory.45f5c4fc-fcfe-4723-a786-04c657c836e6"
+    },
+    "iso:AIA": {
+      "countryId": "country.c826fd7f-d7a1-43da-96df-b6d4569ef38a",
+      "territoryId": "territory.b0b91b00-7838-4b49-9195-da271286af83"
+    },
+    "iso:ATG": {
+      "countryId": "country.fbc079c5-7b73-4476-a6c0-f9cf0aa983f5",
+      "territoryId": "territory.d05f96d3-58bd-47e3-84b7-fd2312bf7b53"
+    },
+    "iso:ABW": {
+      "countryId": "country.4267c600-c365-46b7-8a45-019fae158ae5",
+      "territoryId": "territory.65fd476a-d5b5-4868-89d7-334356892c93"
+    },
+    "iso:BRB": {
+      "countryId": "country.5d8b54a9-8886-4e50-ac35-dfdbac3cdcff",
+      "territoryId": "territory.bbbc9c29-67fc-4bc6-b5db-24aa8ffb3cc2"
+    },
+    "iso:BES": {
+      "countryId": "country.fb028d5c-e50f-413d-a54a-f7c16bc4a40b",
+      "territoryId": "territory.1afbd847-5abf-4123-9788-73ad0606db0f"
+    },
+    "iso:VGB": {
+      "countryId": "country.cf8c6db8-4864-45c8-bec3-97f778d234f3",
+      "territoryId": "territory.1ef3bcc3-1c27-466c-9a43-1ae25bfb92cc"
+    },
+    "iso:CYM": {
+      "countryId": "country.6fea45ff-6dc6-468a-a4c7-00b07dcde242",
+      "territoryId": "territory.126e294d-0fb8-4e02-8622-0ee6bb8abce4"
+    },
+    "iso:CUW": {
+      "countryId": "country.e51e585f-84c6-430b-ae14-163905e3a241",
+      "territoryId": "territory.69b5560e-c9f3-4f08-b9d3-976c7358e68a"
+    },
+    "iso:DMA": {
+      "countryId": "country.abcbf2de-3898-4bff-9a00-899fcadcc32a",
+      "territoryId": "territory.48bb1856-3fbf-4cf0-87b5-9931192a2800"
+    },
+    "iso:GRD": {
+      "countryId": "country.fb52b2fd-95f8-4731-a50a-e7e0f6fbeb26",
+      "territoryId": "territory.4fcf951b-4820-4bfd-a3b1-d2aacdb0b24d"
+    },
+    "iso:GLP": {
+      "countryId": "country.ec0f2089-48e2-4c74-bcf8-4ce52b58bc71",
+      "territoryId": "territory.b26bc857-746d-4cdf-aeae-9709eea71fbb"
+    },
+    "iso:MTQ": {
+      "countryId": "country.d9a0b532-0785-4fdb-8e0e-dd5a97dee8b1",
+      "territoryId": "territory.30742317-2e37-4d87-bf9f-11dc7b782d94"
+    },
+    "iso:MSR": {
+      "countryId": "country.8a7dbb03-20f0-4679-858f-e8afad2bfdaa",
+      "territoryId": "territory.c7150fae-444e-4d76-8891-965c44265b6f"
+    },
+    "iso:BLM": {
+      "countryId": "country.18835158-28ca-4c62-88c0-824a08092b27",
+      "territoryId": "territory.0c84af89-a56e-4c7f-928b-7f530cb15a39"
+    },
+    "iso:KNA": {
+      "countryId": "country.4c29f8cf-400e-4d36-ac63-b9fd94058944",
+      "territoryId": "territory.3badba06-5a7d-4d40-b268-ef7af955da29"
+    },
+    "iso:LCA": {
+      "countryId": "country.8554a20a-f004-46eb-a49c-b26c269c127c",
+      "territoryId": "territory.ee903e9b-d555-4fc9-b9cf-68bd80181401"
+    },
+    "iso:MAF": {
+      "countryId": "country.e19c605e-802b-4844-b3b6-21e0d33be36d",
+      "territoryId": "territory.dfdd821c-4c47-4cd4-9b00-e2db1f7c5943"
+    },
+    "iso:VCT": {
+      "countryId": "country.15794b34-37b2-4053-964a-2dfea1e18400",
+      "territoryId": "territory.3d397021-82cb-4818-895d-e8f148f0b25b"
+    },
+    "iso:SXM": {
+      "countryId": "country.278c58e4-229a-4a7a-8e16-51e0abfebd45",
+      "territoryId": "territory.8c124041-dd1c-473b-b7f1-49430a6cab92"
+    },
+    "iso:TCA": {
+      "countryId": "country.56c8424f-4640-4fb6-8584-1655d6feb9db",
+      "territoryId": "territory.08939bd1-98ec-4d1a-bf16-36297d6e1c49"
+    },
+    "iso:VIR": {
+      "countryId": "country.3d22be69-b741-4de3-a8ee-4abf889e77d0",
+      "territoryId": "territory.941c1bb3-5c70-4c5d-b9ea-c7052fc8f9a5"
+    },
+    "iso:BVT": {
+      "countryId": "country.b603f5b4-6bae-4964-aa27-7f805b4a149b",
+      "territoryId": "territory.91a1432b-7c11-4ea8-a8d8-cf33033c5faa"
+    },
+    "iso:GUF": {
+      "countryId": "country.897e7a46-935e-44af-a7df-806dbd257f18",
+      "territoryId": "territory.be97b341-a943-4794-8944-0b56245bb960"
+    },
+    "iso:SGS": {
+      "countryId": "country.f9d11b4c-74d3-4103-8cc0-7c81d8023cc3",
+      "territoryId": "territory.6d38ebd3-52fc-4c9f-b262-10f1f2dec016"
+    },
+    "iso:BMU": {
+      "countryId": "country.75cd3e08-1b7e-45c4-95d0-9f87779537d0",
+      "territoryId": "territory.1edaad1e-c809-4da8-b000-07ec06389f0b"
+    },
+    "iso:SPM": {
+      "countryId": "country.2e4582fa-4432-4e61-bfc3-2083336428b4",
+      "territoryId": "territory.01e90da2-fbb2-4d2f-b9d5-365c946e6447"
+    },
+    "iso:HKG": {
+      "countryId": "country.ad423c13-233a-4e60-9502-1e34755b8c13",
+      "territoryId": "territory.62225d43-2bd7-4343-b956-e5c95429fa73"
+    },
+    "iso:MAC": {
+      "countryId": "country.9b3d3149-891f-4f40-a9cf-dfd31e15fbd0",
+      "territoryId": "territory.fab3a5e6-83ad-4db7-a043-927eb2337de2"
+    },
+    "iso:SGP": {
+      "countryId": "country.19420d8c-93e0-40af-afbe-4ca4d8c4de9e",
+      "territoryId": "territory.9dcfe81a-08bd-4aeb-a4d2-b2c19bec22cd"
+    },
+    "iso:MDV": {
+      "countryId": "country.2aded07b-a46c-4e6b-8b87-ad5e4f973d52",
+      "territoryId": "territory.253211bf-3b8a-451d-a613-8774811cb25c"
+    },
+    "iso:BHR": {
+      "countryId": "country.4b67c337-52f1-4fbe-bb69-f51e8f67fc03",
+      "territoryId": "territory.86d69cbb-4a36-474a-9b77-79138b644679"
+    },
+    "iso:ALA": {
+      "countryId": "country.15febdb5-6025-49d0-9318-d737d6bf6ee1",
+      "territoryId": "territory.20ede08d-16d9-4365-ba9d-edde49116caf"
+    },
+    "iso:FRO": {
+      "countryId": "country.74f6fa04-b347-461a-9de9-b129d0cf8964",
+      "territoryId": "territory.bc9af24d-beb9-4502-95c2-d05f2f169ea5"
+    },
+    "iso:GGY": {
+      "countryId": "country.8d08fbf0-b991-4a80-87d2-f39a7ba6046e",
+      "territoryId": "territory.609b2d20-1f01-43a4-988d-106d102e2476"
+    },
+    "iso:IMN": {
+      "countryId": "country.cd70257e-3801-4640-88b9-ebcecc88b0dd",
+      "territoryId": "territory.1cb16da5-8130-485a-8a84-bddbbadedcca"
+    },
+    "iso:JEY": {
+      "countryId": "country.7df323f9-c786-4db9-a8fc-568d3ba3e521",
+      "territoryId": "territory.098f9621-0b0d-4fa0-8ea3-910aac88caa9"
+    },
+    "iso:SJM": {
+      "countryId": "country.ef509eaf-8e5e-4b35-b3e3-8cfdb3d3f8fb",
+      "territoryId": "territory.efb3bbac-67fe-4976-b3fb-8732bb0e74ef"
+    },
+    "iso:AND": {
+      "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+      "territoryId": "territory.329f2ed4-7b01-4356-a43d-5ec4deeeccb2"
+    },
+    "iso:GIB": {
+      "countryId": "country.af7ed2b9-bee5-42cb-8494-f2e1bbbdae05",
+      "territoryId": "territory.73a40018-5b3b-4a4b-b2c3-24e64a7b1572"
+    },
+    "iso:VAT": {
+      "countryId": "country.69f3c77b-79f8-4f74-b523-6b82bf404d68",
+      "territoryId": "territory.f8e28050-18f8-4fc1-9583-95202cc85b00"
+    },
+    "iso:MLT": {
+      "countryId": "country.5472bc14-36bc-4d4a-a088-d270a3bb1347",
+      "territoryId": "territory.af1cad94-1d17-4313-8f2a-eea4d4a834da"
+    },
+    "iso:SMR": {
+      "countryId": "country.8c79c739-2c80-452e-88cf-10db55637921",
+      "territoryId": "territory.6db5e1ef-4141-4bdd-9909-5d114610cafe"
+    },
+    "iso:LIE": {
+      "countryId": "country.2f7f4233-514c-485b-b289-248f71b3c562",
+      "territoryId": "territory.c19494b1-2388-48ee-b6cb-6f55433a678b"
+    },
+    "iso:MCO": {
+      "countryId": "country.656241b3-385a-416c-86a1-6512d294a685",
+      "territoryId": "territory.9c7170bc-65f2-4939-8c33-f751ec957003"
+    },
+    "iso:CXR": {
+      "countryId": "country.69fe9c66-74ba-44ed-96a0-9038aaa569c5",
+      "territoryId": "territory.d364eb86-719a-4b76-9a47-91ec22e86d70"
+    },
+    "iso:CCK": {
+      "countryId": "country.43f77294-1d5a-4495-a4bb-afc7f1a9caa1",
+      "territoryId": "territory.5a95030d-a595-475c-a39d-203096920059"
+    },
+    "iso:HMD": {
+      "countryId": "country.0347fd43-fbf9-48cb-933a-e966f52a32c7",
+      "territoryId": "territory.11c22c1a-9957-498b-88dc-8bcd20025490"
+    },
+    "iso:NFK": {
+      "countryId": "country.a0834483-9834-4b4c-a58e-d773480028b4",
+      "territoryId": "territory.a7296fe6-289c-4b2b-9642-8388341fd877"
+    },
+    "iso:GUM": {
+      "countryId": "country.6fba350d-54a6-4141-9357-dbb86eee3d87",
+      "territoryId": "territory.efbd25c8-b9a1-42c1-a8e5-a4f6f235acca"
+    },
+    "iso:KIR": {
+      "countryId": "country.133c7481-f1fb-49a2-a220-d585495c33c5",
+      "territoryId": "territory.7aeda258-92d9-4132-a0a3-309d13e5e685"
+    },
+    "iso:MHL": {
+      "countryId": "country.04362960-a7d3-4b19-8f76-6572995728e9",
+      "territoryId": "territory.3de1aaf7-d96f-4b71-9df0-67f3f597cbdf"
+    },
+    "iso:FSM": {
+      "countryId": "country.79df96d6-6b58-4696-b486-ed62877ef5e8",
+      "territoryId": "territory.147b0761-a6d3-4e78-8342-ee8ba4d0614c"
+    },
+    "iso:NRU": {
+      "countryId": "country.f8c2068a-5e07-4e6a-bc75-4cb20c9fd1e6",
+      "territoryId": "territory.d1658fd5-3245-475f-8b84-c2d9add68e6c"
+    },
+    "iso:MNP": {
+      "countryId": "country.5805152e-6b76-4319-a310-703e8e668877",
+      "territoryId": "territory.41138db4-2cd8-4906-9b33-bfbb889d178c"
+    },
+    "iso:PLW": {
+      "countryId": "country.91355bcb-0475-45e6-8a22-9425ff14ef5a",
+      "territoryId": "territory.851ccd71-7894-4db2-8b42-de1e7fc56e1b"
+    },
+    "iso:UMI": {
+      "countryId": "country.b4be4e13-e987-40e3-9f89-e4b7ad294ab3",
+      "territoryId": "territory.ac52e361-4a8e-4001-a591-a90632e016ad"
+    },
+    "iso:ASM": {
+      "countryId": "country.feb9ab4a-93bc-49fa-b4aa-282b2cf5b8b5",
+      "territoryId": "territory.b055629b-362a-4408-8ef8-82450d337408"
+    },
+    "iso:COK": {
+      "countryId": "country.8606462a-5750-456d-8472-ba3c5cafd087",
+      "territoryId": "territory.a8c5634a-006b-4311-a02e-3288440f3aea"
+    },
+    "iso:PYF": {
+      "countryId": "country.2991edff-bec4-4423-825e-8196fca18992",
+      "territoryId": "territory.1644534f-6a29-466e-a6f2-19f571ebf22f"
+    },
+    "iso:NIU": {
+      "countryId": "country.d7d86522-66aa-4d61-91bb-39638018b9dc",
+      "territoryId": "territory.ced3b5e9-932c-4cfc-ba59-509db20048de"
+    },
+    "iso:PCN": {
+      "countryId": "country.c6270d38-e150-4780-98bd-a6d01df06f20",
+      "territoryId": "territory.6ff9a9b1-581f-4de0-b842-80113065c3e0"
+    },
+    "iso:WSM": {
+      "countryId": "country.b6fde5b8-cf15-4377-94fd-cef6d5af956b",
+      "territoryId": "territory.958a9441-2ac5-4ae3-8057-399049ce95e8"
+    },
+    "iso:TKL": {
+      "countryId": "country.90d3394a-c3d8-415d-8c79-8151ec2d258f",
+      "territoryId": "territory.138c3df9-2174-4277-b8d4-8ecc387badd4"
+    },
+    "iso:TON": {
+      "countryId": "country.7215346f-26f3-4d15-bc2a-e04350b1acc0",
+      "territoryId": "territory.fe1e50d5-ae38-4f43-84ff-9ad205768a17"
+    },
+    "iso:TUV": {
+      "countryId": "country.17a684c6-aac3-4f9a-8908-86e91c0a097d",
+      "territoryId": "territory.30af5d9c-6c0a-4a2c-86f8-add1410bd5d1"
+    },
+    "iso:WLF": {
+      "countryId": "country.04352166-79c8-4cee-8bd8-4a7eb810c8ba",
+      "territoryId": "territory.17863c17-65d4-427a-9429-4c122891fc75"
+    }
+  }
+}

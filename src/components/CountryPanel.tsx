@@ -1,8 +1,5 @@
-import type { Country, SourceValue } from "../types";
-import {
-  countryFactsById,
-  officeholdersByCountryId,
-} from "../data/countryData";
+import type { Country } from "../types";
+import type { CountryFactsRecord, FactValue, Officeholder, PoliticalOffice } from "../data/countryData";
 const label = (name: string, value?: string | number) => (
   <div className="field" key={name}>
     <span>{name}</span>
@@ -32,13 +29,13 @@ const formatValue = (value: unknown) => {
       .join(", ");
   return String(value);
 };
-const fact = (name: string, observation?: SourceValue<unknown>) => (
+const fact = (name: string, observation?: FactValue) => (
   <div className="fact" key={name}>
     <div className="field">
       <span>{name}</span>
-      <b>{observation ? formatValue(observation.value) : "Not yet sourced"}</b>
+      <b>{observation?.status === "available" ? formatValue(observation.value) : "Unavailable"}</b>
     </div>
-    {observation && (
+    {observation?.status === "available" && (
       <small>
         <a href={observation.source.url} target="_blank">
           {observation.source.name}
@@ -47,9 +44,10 @@ const fact = (name: string, observation?: SourceValue<unknown>) => (
         {observation.isEstimate ? " · estimate" : ""}
       </small>
     )}
+    {observation?.status === "unavailable" && <small title={observation.reason}><a href={observation.source.url} target="_blank">{observation.source.name}</a> · checked {observation.checkedAt}</small>}
   </div>
 );
-export function CountryPanel({ country }: { country?: Country }) {
+export function CountryPanel({ country, factsRecord, officeholders = [] }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}> }) {
   if (!country)
     return (
       <aside className="panel empty">
@@ -60,8 +58,7 @@ export function CountryPanel({ country }: { country?: Country }) {
         </small>
       </aside>
     );
-  const facts = countryFactsById.get(country.id)?.facts ?? {};
-  const officeholders = officeholdersByCountryId.get(country.id) ?? [];
+  const facts = factsRecord?.facts ?? {};
   return (
     <aside className="panel">
       <div className="title">
@@ -80,6 +77,7 @@ export function CountryPanel({ country }: { country?: Country }) {
         {label("ISO alpha-2", country.externalIds.isoAlpha2)}
         {label("ISO alpha-3", country.externalIds.isoAlpha3)}
         {label("UN M49", country.externalIds.unM49)}
+        {label("UN status", country.unMembership.replace("_", " "))}
         {label("Capital", country.capital)}
         {label("Continent", country.continent)}
         {label("UN subregion", country.unSubregion)}
@@ -100,12 +98,12 @@ export function CountryPanel({ country }: { country?: Country }) {
         {officeholders.length ? (
           officeholders.map(({ office, holder }) => (
             <div className="fact" key={office.id}>
-              {label(office.title, holder.person.name)}
+              {label(office.title, holder.status === "available" ? holder.person.name : "Unavailable")}
               <small>
                 <a href={holder.source.url} target="_blank">
                   {holder.source.name}
                 </a>
-                {holder.startDate ? ` · since ${holder.startDate}` : ""}
+                {holder.status === "available" && holder.startDate ? ` · since ${holder.startDate}` : holder.status === "unavailable" ? ` · checked ${holder.checkedAt}` : ""}
               </small>
             </div>
           ))

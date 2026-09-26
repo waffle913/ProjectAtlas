@@ -1,0 +1,1991 @@
+{
+  "snapshotId": "UNSD-M49@2026-09-26",
+  "retrievedAt": "2026-09-26",
+  "sourceUrl": "https://unstats.un.org/unsd/methodology/m49/overview",
+  "entities": [
+    {
+      "commonName": "Algeria",
+      "unM49": "012",
+      "isoAlpha2": "DZ",
+      "isoAlpha3": "DZA",
+      "continent": "Africa",
+      "unSubregion": "Northern Africa"
+    },
+    {
+      "commonName": "Egypt",
+      "unM49": "818",
+      "isoAlpha2": "EG",
+      "isoAlpha3": "EGY",
+      "continent": "Africa",
+      "unSubregion": "Northern Africa"
+    },
+    {
+      "commonName": "Libya",
+      "unM49": "434",
+      "isoAlpha2": "LY",
+      "isoAlpha3": "LBY",
+      "continent": "Africa",
+      "unSubregion": "Northern Africa"
+    },
+    {
+      "commonName": "Morocco",
+      "unM49": "504",
+      "isoAlpha2": "MA",
+      "isoAlpha3": "MAR",
+      "continent": "Africa",
+      "unSubregion": "Northern Africa"
+    },
+    {
+      "commonName": "Sudan",
+      "unM49": "729",
+      "isoAlpha2": "SD",
+      "isoAlpha3": "SDN",
+      "continent": "Africa",
+      "unSubregion": "Northern Africa"
+    },
+    {
+      "commonName": "Tunisia",
+      "unM49": "788",
+      "isoAlpha2": "TN",
+      "isoAlpha3": "TUN",
+      "continent": "Africa",
+      "unSubregion": "Northern Africa"
+    },
+    {
+      "commonName": "Western Sahara",
+      "unM49": "732",
+      "isoAlpha2": "EH",
+      "isoAlpha3": "ESH",
+      "continent": "Africa",
+      "unSubregion": "Northern Africa"
+    },
+    {
+      "commonName": "British Indian Ocean Territory",
+      "unM49": "086",
+      "isoAlpha2": "IO",
+      "isoAlpha3": "IOT",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Burundi",
+      "unM49": "108",
+      "isoAlpha2": "BI",
+      "isoAlpha3": "BDI",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Comoros",
+      "unM49": "174",
+      "isoAlpha2": "KM",
+      "isoAlpha3": "COM",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Djibouti",
+      "unM49": "262",
+      "isoAlpha2": "DJ",
+      "isoAlpha3": "DJI",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Eritrea",
+      "unM49": "232",
+      "isoAlpha2": "ER",
+      "isoAlpha3": "ERI",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Ethiopia",
+      "unM49": "231",
+      "isoAlpha2": "ET",
+      "isoAlpha3": "ETH",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "French Southern Territories",
+      "unM49": "260",
+      "isoAlpha2": "TF",
+      "isoAlpha3": "ATF",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Kenya",
+      "unM49": "404",
+      "isoAlpha2": "KE",
+      "isoAlpha3": "KEN",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Madagascar",
+      "unM49": "450",
+      "isoAlpha2": "MG",
+      "isoAlpha3": "MDG",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Malawi",
+      "unM49": "454",
+      "isoAlpha2": "MW",
+      "isoAlpha3": "MWI",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Mauritius",
+      "unM49": "480",
+      "isoAlpha2": "MU",
+      "isoAlpha3": "MUS",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Mayotte",
+      "unM49": "175",
+      "isoAlpha2": "YT",
+      "isoAlpha3": "MYT",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Mozambique",
+      "unM49": "508",
+      "isoAlpha2": "MZ",
+      "isoAlpha3": "MOZ",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "R&#233;union",
+      "unM49": "638",
+      "isoAlpha2": "RE",
+      "isoAlpha3": "REU",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Rwanda",
+      "unM49": "646",
+      "isoAlpha2": "RW",
+      "isoAlpha3": "RWA",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Seychelles",
+      "unM49": "690",
+      "isoAlpha2": "SC",
+      "isoAlpha3": "SYC",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Somalia",
+      "unM49": "706",
+      "isoAlpha2": "SO",
+      "isoAlpha3": "SOM",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "South Sudan",
+      "unM49": "728",
+      "isoAlpha2": "SS",
+      "isoAlpha3": "SSD",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Uganda",
+      "unM49": "800",
+      "isoAlpha2": "UG",
+      "isoAlpha3": "UGA",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "United Republic of Tanzania",
+      "unM49": "834",
+      "isoAlpha2": "TZ",
+      "isoAlpha3": "TZA",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Zambia",
+      "unM49": "894",
+      "isoAlpha2": "ZM",
+      "isoAlpha3": "ZMB",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Zimbabwe",
+      "unM49": "716",
+      "isoAlpha2": "ZW",
+      "isoAlpha3": "ZWE",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Angola",
+      "unM49": "024",
+      "isoAlpha2": "AO",
+      "isoAlpha3": "AGO",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Cameroon",
+      "unM49": "120",
+      "isoAlpha2": "CM",
+      "isoAlpha3": "CMR",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Central African Republic",
+      "unM49": "140",
+      "isoAlpha2": "CF",
+      "isoAlpha3": "CAF",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Chad",
+      "unM49": "148",
+      "isoAlpha2": "TD",
+      "isoAlpha3": "TCD",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Congo",
+      "unM49": "178",
+      "isoAlpha2": "CG",
+      "isoAlpha3": "COG",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Democratic Republic of the Congo",
+      "unM49": "180",
+      "isoAlpha2": "CD",
+      "isoAlpha3": "COD",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Equatorial Guinea",
+      "unM49": "226",
+      "isoAlpha2": "GQ",
+      "isoAlpha3": "GNQ",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Gabon",
+      "unM49": "266",
+      "isoAlpha2": "GA",
+      "isoAlpha3": "GAB",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Sao Tome and Principe",
+      "unM49": "678",
+      "isoAlpha2": "ST",
+      "isoAlpha3": "STP",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Botswana",
+      "unM49": "072",
+      "isoAlpha2": "BW",
+      "isoAlpha3": "BWA",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Eswatini",
+      "unM49": "748",
+      "isoAlpha2": "SZ",
+      "isoAlpha3": "SWZ",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Lesotho",
+      "unM49": "426",
+      "isoAlpha2": "LS",
+      "isoAlpha3": "LSO",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Namibia",
+      "unM49": "516",
+      "isoAlpha2": "NA",
+      "isoAlpha3": "NAM",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "South Africa",
+      "unM49": "710",
+      "isoAlpha2": "ZA",
+      "isoAlpha3": "ZAF",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Benin",
+      "unM49": "204",
+      "isoAlpha2": "BJ",
+      "isoAlpha3": "BEN",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Burkina Faso",
+      "unM49": "854",
+      "isoAlpha2": "BF",
+      "isoAlpha3": "BFA",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Cabo Verde",
+      "unM49": "132",
+      "isoAlpha2": "CV",
+      "isoAlpha3": "CPV",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "C&#244;te d’Ivoire",
+      "unM49": "384",
+      "isoAlpha2": "CI",
+      "isoAlpha3": "CIV",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Gambia",
+      "unM49": "270",
+      "isoAlpha2": "GM",
+      "isoAlpha3": "GMB",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Ghana",
+      "unM49": "288",
+      "isoAlpha2": "GH",
+      "isoAlpha3": "GHA",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Guinea",
+      "unM49": "324",
+      "isoAlpha2": "GN",
+      "isoAlpha3": "GIN",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Guinea-Bissau",
+      "unM49": "624",
+      "isoAlpha2": "GW",
+      "isoAlpha3": "GNB",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Liberia",
+      "unM49": "430",
+      "isoAlpha2": "LR",
+      "isoAlpha3": "LBR",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Mali",
+      "unM49": "466",
+      "isoAlpha2": "ML",
+      "isoAlpha3": "MLI",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Mauritania",
+      "unM49": "478",
+      "isoAlpha2": "MR",
+      "isoAlpha3": "MRT",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Niger",
+      "unM49": "562",
+      "isoAlpha2": "NE",
+      "isoAlpha3": "NER",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Nigeria",
+      "unM49": "566",
+      "isoAlpha2": "NG",
+      "isoAlpha3": "NGA",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Saint Helena",
+      "unM49": "654",
+      "isoAlpha2": "SH",
+      "isoAlpha3": "SHN",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Senegal",
+      "unM49": "686",
+      "isoAlpha2": "SN",
+      "isoAlpha3": "SEN",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Sierra Leone",
+      "unM49": "694",
+      "isoAlpha2": "SL",
+      "isoAlpha3": "SLE",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Togo",
+      "unM49": "768",
+      "isoAlpha2": "TG",
+      "isoAlpha3": "TGO",
+      "continent": "Africa",
+      "unSubregion": "Sub-Saharan Africa"
+    },
+    {
+      "commonName": "Anguilla",
+      "unM49": "660",
+      "isoAlpha2": "AI",
+      "isoAlpha3": "AIA",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Antigua and Barbuda",
+      "unM49": "028",
+      "isoAlpha2": "AG",
+      "isoAlpha3": "ATG",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Aruba",
+      "unM49": "533",
+      "isoAlpha2": "AW",
+      "isoAlpha3": "ABW",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Bahamas",
+      "unM49": "044",
+      "isoAlpha2": "BS",
+      "isoAlpha3": "BHS",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Barbados",
+      "unM49": "052",
+      "isoAlpha2": "BB",
+      "isoAlpha3": "BRB",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Bonaire, Sint Eustatius and Saba",
+      "unM49": "535",
+      "isoAlpha2": "BQ",
+      "isoAlpha3": "BES",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "British Virgin Islands",
+      "unM49": "092",
+      "isoAlpha2": "VG",
+      "isoAlpha3": "VGB",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Cayman Islands",
+      "unM49": "136",
+      "isoAlpha2": "KY",
+      "isoAlpha3": "CYM",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Cuba",
+      "unM49": "192",
+      "isoAlpha2": "CU",
+      "isoAlpha3": "CUB",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Cura&#231;ao",
+      "unM49": "531",
+      "isoAlpha2": "CW",
+      "isoAlpha3": "CUW",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Dominica",
+      "unM49": "212",
+      "isoAlpha2": "DM",
+      "isoAlpha3": "DMA",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Dominican Republic",
+      "unM49": "214",
+      "isoAlpha2": "DO",
+      "isoAlpha3": "DOM",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Grenada",
+      "unM49": "308",
+      "isoAlpha2": "GD",
+      "isoAlpha3": "GRD",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Guadeloupe",
+      "unM49": "312",
+      "isoAlpha2": "GP",
+      "isoAlpha3": "GLP",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Haiti",
+      "unM49": "332",
+      "isoAlpha2": "HT",
+      "isoAlpha3": "HTI",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Jamaica",
+      "unM49": "388",
+      "isoAlpha2": "JM",
+      "isoAlpha3": "JAM",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Martinique",
+      "unM49": "474",
+      "isoAlpha2": "MQ",
+      "isoAlpha3": "MTQ",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Montserrat",
+      "unM49": "500",
+      "isoAlpha2": "MS",
+      "isoAlpha3": "MSR",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Puerto Rico",
+      "unM49": "630",
+      "isoAlpha2": "PR",
+      "isoAlpha3": "PRI",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Saint Barth&#233;lemy",
+      "unM49": "652",
+      "isoAlpha2": "BL",
+      "isoAlpha3": "BLM",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Saint Kitts and Nevis",
+      "unM49": "659",
+      "isoAlpha2": "KN",
+      "isoAlpha3": "KNA",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Saint Lucia",
+      "unM49": "662",
+      "isoAlpha2": "LC",
+      "isoAlpha3": "LCA",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Saint Martin (French Part)",
+      "unM49": "663",
+      "isoAlpha2": "MF",
+      "isoAlpha3": "MAF",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Saint Vincent and the Grenadines",
+      "unM49": "670",
+      "isoAlpha2": "VC",
+      "isoAlpha3": "VCT",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Sint Maarten (Dutch part)",
+      "unM49": "534",
+      "isoAlpha2": "SX",
+      "isoAlpha3": "SXM",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Trinidad and Tobago",
+      "unM49": "780",
+      "isoAlpha2": "TT",
+      "isoAlpha3": "TTO",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Turks and Caicos Islands",
+      "unM49": "796",
+      "isoAlpha2": "TC",
+      "isoAlpha3": "TCA",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "United States Virgin Islands",
+      "unM49": "850",
+      "isoAlpha2": "VI",
+      "isoAlpha3": "VIR",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Belize",
+      "unM49": "084",
+      "isoAlpha2": "BZ",
+      "isoAlpha3": "BLZ",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Costa Rica",
+      "unM49": "188",
+      "isoAlpha2": "CR",
+      "isoAlpha3": "CRI",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "El Salvador",
+      "unM49": "222",
+      "isoAlpha2": "SV",
+      "isoAlpha3": "SLV",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Guatemala",
+      "unM49": "320",
+      "isoAlpha2": "GT",
+      "isoAlpha3": "GTM",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Honduras",
+      "unM49": "340",
+      "isoAlpha2": "HN",
+      "isoAlpha3": "HND",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Mexico",
+      "unM49": "484",
+      "isoAlpha2": "MX",
+      "isoAlpha3": "MEX",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Nicaragua",
+      "unM49": "558",
+      "isoAlpha2": "NI",
+      "isoAlpha3": "NIC",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Panama",
+      "unM49": "591",
+      "isoAlpha2": "PA",
+      "isoAlpha3": "PAN",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Argentina",
+      "unM49": "032",
+      "isoAlpha2": "AR",
+      "isoAlpha3": "ARG",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Bolivia (Plurinational State of)",
+      "unM49": "068",
+      "isoAlpha2": "BO",
+      "isoAlpha3": "BOL",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Bouvet Island",
+      "unM49": "074",
+      "isoAlpha2": "BV",
+      "isoAlpha3": "BVT",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Brazil",
+      "unM49": "076",
+      "isoAlpha2": "BR",
+      "isoAlpha3": "BRA",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Chile",
+      "unM49": "152",
+      "isoAlpha2": "CL",
+      "isoAlpha3": "CHL",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Colombia",
+      "unM49": "170",
+      "isoAlpha2": "CO",
+      "isoAlpha3": "COL",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Ecuador",
+      "unM49": "218",
+      "isoAlpha2": "EC",
+      "isoAlpha3": "ECU",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Falkland Islands (Malvinas)",
+      "unM49": "238",
+      "isoAlpha2": "FK",
+      "isoAlpha3": "FLK",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "French Guiana",
+      "unM49": "254",
+      "isoAlpha2": "GF",
+      "isoAlpha3": "GUF",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Guyana",
+      "unM49": "328",
+      "isoAlpha2": "GY",
+      "isoAlpha3": "GUY",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Paraguay",
+      "unM49": "600",
+      "isoAlpha2": "PY",
+      "isoAlpha3": "PRY",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Peru",
+      "unM49": "604",
+      "isoAlpha2": "PE",
+      "isoAlpha3": "PER",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "South Georgia and the South Sandwich Islands",
+      "unM49": "239",
+      "isoAlpha2": "GS",
+      "isoAlpha3": "SGS",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Suriname",
+      "unM49": "740",
+      "isoAlpha2": "SR",
+      "isoAlpha3": "SUR",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Uruguay",
+      "unM49": "858",
+      "isoAlpha2": "UY",
+      "isoAlpha3": "URY",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Venezuela (Bolivarian Republic of)",
+      "unM49": "862",
+      "isoAlpha2": "VE",
+      "isoAlpha3": "VEN",
+      "continent": "Americas",
+      "unSubregion": "Latin America and the Caribbean"
+    },
+    {
+      "commonName": "Bermuda",
+      "unM49": "060",
+      "isoAlpha2": "BM",
+      "isoAlpha3": "BMU",
+      "continent": "Americas",
+      "unSubregion": "Northern America"
+    },
+    {
+      "commonName": "Canada",
+      "unM49": "124",
+      "isoAlpha2": "CA",
+      "isoAlpha3": "CAN",
+      "continent": "Americas",
+      "unSubregion": "Northern America"
+    },
+    {
+      "commonName": "Greenland",
+      "unM49": "304",
+      "isoAlpha2": "GL",
+      "isoAlpha3": "GRL",
+      "continent": "Americas",
+      "unSubregion": "Northern America"
+    },
+    {
+      "commonName": "Saint Pierre and Miquelon",
+      "unM49": "666",
+      "isoAlpha2": "PM",
+      "isoAlpha3": "SPM",
+      "continent": "Americas",
+      "unSubregion": "Northern America"
+    },
+    {
+      "commonName": "United States of America",
+      "unM49": "840",
+      "isoAlpha2": "US",
+      "isoAlpha3": "USA",
+      "continent": "Americas",
+      "unSubregion": "Northern America"
+    },
+    {
+      "commonName": "Antarctica",
+      "unM49": "010",
+      "isoAlpha2": "AQ",
+      "isoAlpha3": "ATA",
+      "continent": "",
+      "unSubregion": ""
+    },
+    {
+      "commonName": "Kazakhstan",
+      "unM49": "398",
+      "isoAlpha2": "KZ",
+      "isoAlpha3": "KAZ",
+      "continent": "Asia",
+      "unSubregion": "Central Asia"
+    },
+    {
+      "commonName": "Kyrgyzstan",
+      "unM49": "417",
+      "isoAlpha2": "KG",
+      "isoAlpha3": "KGZ",
+      "continent": "Asia",
+      "unSubregion": "Central Asia"
+    },
+    {
+      "commonName": "Tajikistan",
+      "unM49": "762",
+      "isoAlpha2": "TJ",
+      "isoAlpha3": "TJK",
+      "continent": "Asia",
+      "unSubregion": "Central Asia"
+    },
+    {
+      "commonName": "Turkmenistan",
+      "unM49": "795",
+      "isoAlpha2": "TM",
+      "isoAlpha3": "TKM",
+      "continent": "Asia",
+      "unSubregion": "Central Asia"
+    },
+    {
+      "commonName": "Uzbekistan",
+      "unM49": "860",
+      "isoAlpha2": "UZ",
+      "isoAlpha3": "UZB",
+      "continent": "Asia",
+      "unSubregion": "Central Asia"
+    },
+    {
+      "commonName": "China",
+      "unM49": "156",
+      "isoAlpha2": "CN",
+      "isoAlpha3": "CHN",
+      "continent": "Asia",
+      "unSubregion": "Eastern Asia"
+    },
+    {
+      "commonName": "China, Hong Kong Special Administrative Region",
+      "unM49": "344",
+      "isoAlpha2": "HK",
+      "isoAlpha3": "HKG",
+      "continent": "Asia",
+      "unSubregion": "Eastern Asia"
+    },
+    {
+      "commonName": "China, Macao Special Administrative Region",
+      "unM49": "446",
+      "isoAlpha2": "MO",
+      "isoAlpha3": "MAC",
+      "continent": "Asia",
+      "unSubregion": "Eastern Asia"
+    },
+    {
+      "commonName": "Democratic People's Republic of Korea",
+      "unM49": "408",
+      "isoAlpha2": "KP",
+      "isoAlpha3": "PRK",
+      "continent": "Asia",
+      "unSubregion": "Eastern Asia"
+    },
+    {
+      "commonName": "Japan",
+      "unM49": "392",
+      "isoAlpha2": "JP",
+      "isoAlpha3": "JPN",
+      "continent": "Asia",
+      "unSubregion": "Eastern Asia"
+    },
+    {
+      "commonName": "Mongolia",
+      "unM49": "496",
+      "isoAlpha2": "MN",
+      "isoAlpha3": "MNG",
+      "continent": "Asia",
+      "unSubregion": "Eastern Asia"
+    },
+    {
+      "commonName": "Republic of Korea",
+      "unM49": "410",
+      "isoAlpha2": "KR",
+      "isoAlpha3": "KOR",
+      "continent": "Asia",
+      "unSubregion": "Eastern Asia"
+    },
+    {
+      "commonName": "Brunei Darussalam",
+      "unM49": "096",
+      "isoAlpha2": "BN",
+      "isoAlpha3": "BRN",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Cambodia",
+      "unM49": "116",
+      "isoAlpha2": "KH",
+      "isoAlpha3": "KHM",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Indonesia",
+      "unM49": "360",
+      "isoAlpha2": "ID",
+      "isoAlpha3": "IDN",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Lao People's Democratic Republic",
+      "unM49": "418",
+      "isoAlpha2": "LA",
+      "isoAlpha3": "LAO",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Malaysia",
+      "unM49": "458",
+      "isoAlpha2": "MY",
+      "isoAlpha3": "MYS",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Myanmar",
+      "unM49": "104",
+      "isoAlpha2": "MM",
+      "isoAlpha3": "MMR",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Philippines",
+      "unM49": "608",
+      "isoAlpha2": "PH",
+      "isoAlpha3": "PHL",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Singapore",
+      "unM49": "702",
+      "isoAlpha2": "SG",
+      "isoAlpha3": "SGP",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Thailand",
+      "unM49": "764",
+      "isoAlpha2": "TH",
+      "isoAlpha3": "THA",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Timor-Leste",
+      "unM49": "626",
+      "isoAlpha2": "TL",
+      "isoAlpha3": "TLS",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Viet Nam",
+      "unM49": "704",
+      "isoAlpha2": "VN",
+      "isoAlpha3": "VNM",
+      "continent": "Asia",
+      "unSubregion": "South-eastern Asia"
+    },
+    {
+      "commonName": "Afghanistan",
+      "unM49": "004",
+      "isoAlpha2": "AF",
+      "isoAlpha3": "AFG",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Bangladesh",
+      "unM49": "050",
+      "isoAlpha2": "BD",
+      "isoAlpha3": "BGD",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Bhutan",
+      "unM49": "064",
+      "isoAlpha2": "BT",
+      "isoAlpha3": "BTN",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "India",
+      "unM49": "356",
+      "isoAlpha2": "IN",
+      "isoAlpha3": "IND",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Iran (Islamic Republic of)",
+      "unM49": "364",
+      "isoAlpha2": "IR",
+      "isoAlpha3": "IRN",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Maldives",
+      "unM49": "462",
+      "isoAlpha2": "MV",
+      "isoAlpha3": "MDV",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Nepal",
+      "unM49": "524",
+      "isoAlpha2": "NP",
+      "isoAlpha3": "NPL",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Pakistan",
+      "unM49": "586",
+      "isoAlpha2": "PK",
+      "isoAlpha3": "PAK",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Sri Lanka",
+      "unM49": "144",
+      "isoAlpha2": "LK",
+      "isoAlpha3": "LKA",
+      "continent": "Asia",
+      "unSubregion": "Southern Asia"
+    },
+    {
+      "commonName": "Armenia",
+      "unM49": "051",
+      "isoAlpha2": "AM",
+      "isoAlpha3": "ARM",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Azerbaijan",
+      "unM49": "031",
+      "isoAlpha2": "AZ",
+      "isoAlpha3": "AZE",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Bahrain",
+      "unM49": "048",
+      "isoAlpha2": "BH",
+      "isoAlpha3": "BHR",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Cyprus",
+      "unM49": "196",
+      "isoAlpha2": "CY",
+      "isoAlpha3": "CYP",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Georgia",
+      "unM49": "268",
+      "isoAlpha2": "GE",
+      "isoAlpha3": "GEO",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Iraq",
+      "unM49": "368",
+      "isoAlpha2": "IQ",
+      "isoAlpha3": "IRQ",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Israel",
+      "unM49": "376",
+      "isoAlpha2": "IL",
+      "isoAlpha3": "ISR",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Jordan",
+      "unM49": "400",
+      "isoAlpha2": "JO",
+      "isoAlpha3": "JOR",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Kuwait",
+      "unM49": "414",
+      "isoAlpha2": "KW",
+      "isoAlpha3": "KWT",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Lebanon",
+      "unM49": "422",
+      "isoAlpha2": "LB",
+      "isoAlpha3": "LBN",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Oman",
+      "unM49": "512",
+      "isoAlpha2": "OM",
+      "isoAlpha3": "OMN",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Qatar",
+      "unM49": "634",
+      "isoAlpha2": "QA",
+      "isoAlpha3": "QAT",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Saudi Arabia",
+      "unM49": "682",
+      "isoAlpha2": "SA",
+      "isoAlpha3": "SAU",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "State of Palestine",
+      "unM49": "275",
+      "isoAlpha2": "PS",
+      "isoAlpha3": "PSE",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Syrian Arab Republic",
+      "unM49": "760",
+      "isoAlpha2": "SY",
+      "isoAlpha3": "SYR",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "T&#252;rkiye",
+      "unM49": "792",
+      "isoAlpha2": "TR",
+      "isoAlpha3": "TUR",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "United Arab Emirates",
+      "unM49": "784",
+      "isoAlpha2": "AE",
+      "isoAlpha3": "ARE",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Yemen",
+      "unM49": "887",
+      "isoAlpha2": "YE",
+      "isoAlpha3": "YEM",
+      "continent": "Asia",
+      "unSubregion": "Western Asia"
+    },
+    {
+      "commonName": "Belarus",
+      "unM49": "112",
+      "isoAlpha2": "BY",
+      "isoAlpha3": "BLR",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Bulgaria",
+      "unM49": "100",
+      "isoAlpha2": "BG",
+      "isoAlpha3": "BGR",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Czechia",
+      "unM49": "203",
+      "isoAlpha2": "CZ",
+      "isoAlpha3": "CZE",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Hungary",
+      "unM49": "348",
+      "isoAlpha2": "HU",
+      "isoAlpha3": "HUN",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Poland",
+      "unM49": "616",
+      "isoAlpha2": "PL",
+      "isoAlpha3": "POL",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Republic of Moldova",
+      "unM49": "498",
+      "isoAlpha2": "MD",
+      "isoAlpha3": "MDA",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Romania",
+      "unM49": "642",
+      "isoAlpha2": "RO",
+      "isoAlpha3": "ROU",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Russian Federation",
+      "unM49": "643",
+      "isoAlpha2": "RU",
+      "isoAlpha3": "RUS",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Slovakia",
+      "unM49": "703",
+      "isoAlpha2": "SK",
+      "isoAlpha3": "SVK",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "Ukraine",
+      "unM49": "804",
+      "isoAlpha2": "UA",
+      "isoAlpha3": "UKR",
+      "continent": "Europe",
+      "unSubregion": "Eastern Europe"
+    },
+    {
+      "commonName": "&#197;land Islands",
+      "unM49": "248",
+      "isoAlpha2": "AX",
+      "isoAlpha3": "ALA",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Denmark",
+      "unM49": "208",
+      "isoAlpha2": "DK",
+      "isoAlpha3": "DNK",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Estonia",
+      "unM49": "233",
+      "isoAlpha2": "EE",
+      "isoAlpha3": "EST",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Faroe Islands",
+      "unM49": "234",
+      "isoAlpha2": "FO",
+      "isoAlpha3": "FRO",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Finland",
+      "unM49": "246",
+      "isoAlpha2": "FI",
+      "isoAlpha3": "FIN",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Guernsey",
+      "unM49": "831",
+      "isoAlpha2": "GG",
+      "isoAlpha3": "GGY",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Iceland",
+      "unM49": "352",
+      "isoAlpha2": "IS",
+      "isoAlpha3": "ISL",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Ireland",
+      "unM49": "372",
+      "isoAlpha2": "IE",
+      "isoAlpha3": "IRL",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Isle of Man",
+      "unM49": "833",
+      "isoAlpha2": "IM",
+      "isoAlpha3": "IMN",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Jersey",
+      "unM49": "832",
+      "isoAlpha2": "JE",
+      "isoAlpha3": "JEY",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Latvia",
+      "unM49": "428",
+      "isoAlpha2": "LV",
+      "isoAlpha3": "LVA",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Lithuania",
+      "unM49": "440",
+      "isoAlpha2": "LT",
+      "isoAlpha3": "LTU",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Norway",
+      "unM49": "578",
+      "isoAlpha2": "NO",
+      "isoAlpha3": "NOR",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Svalbard and Jan Mayen Islands",
+      "unM49": "744",
+      "isoAlpha2": "SJ",
+      "isoAlpha3": "SJM",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Sweden",
+      "unM49": "752",
+      "isoAlpha2": "SE",
+      "isoAlpha3": "SWE",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "United Kingdom of Great Britain and Northern Ireland",
+      "unM49": "826",
+      "isoAlpha2": "GB",
+      "isoAlpha3": "GBR",
+      "continent": "Europe",
+      "unSubregion": "Northern Europe"
+    },
+    {
+      "commonName": "Albania",
+      "unM49": "008",
+      "isoAlpha2": "AL",
+      "isoAlpha3": "ALB",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Andorra",
+      "unM49": "020",
+      "isoAlpha2": "AD",
+      "isoAlpha3": "AND",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Bosnia and Herzegovina",
+      "unM49": "070",
+      "isoAlpha2": "BA",
+      "isoAlpha3": "BIH",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Croatia",
+      "unM49": "191",
+      "isoAlpha2": "HR",
+      "isoAlpha3": "HRV",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Gibraltar",
+      "unM49": "292",
+      "isoAlpha2": "GI",
+      "isoAlpha3": "GIB",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Greece",
+      "unM49": "300",
+      "isoAlpha2": "GR",
+      "isoAlpha3": "GRC",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Holy See",
+      "unM49": "336",
+      "isoAlpha2": "VA",
+      "isoAlpha3": "VAT",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Italy",
+      "unM49": "380",
+      "isoAlpha2": "IT",
+      "isoAlpha3": "ITA",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Malta",
+      "unM49": "470",
+      "isoAlpha2": "MT",
+      "isoAlpha3": "MLT",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Montenegro",
+      "unM49": "499",
+      "isoAlpha2": "ME",
+      "isoAlpha3": "MNE",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "North Macedonia",
+      "unM49": "807",
+      "isoAlpha2": "MK",
+      "isoAlpha3": "MKD",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Portugal",
+      "unM49": "620",
+      "isoAlpha2": "PT",
+      "isoAlpha3": "PRT",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "San Marino",
+      "unM49": "674",
+      "isoAlpha2": "SM",
+      "isoAlpha3": "SMR",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Serbia",
+      "unM49": "688",
+      "isoAlpha2": "RS",
+      "isoAlpha3": "SRB",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Slovenia",
+      "unM49": "705",
+      "isoAlpha2": "SI",
+      "isoAlpha3": "SVN",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Spain",
+      "unM49": "724",
+      "isoAlpha2": "ES",
+      "isoAlpha3": "ESP",
+      "continent": "Europe",
+      "unSubregion": "Southern Europe"
+    },
+    {
+      "commonName": "Austria",
+      "unM49": "040",
+      "isoAlpha2": "AT",
+      "isoAlpha3": "AUT",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Belgium",
+      "unM49": "056",
+      "isoAlpha2": "BE",
+      "isoAlpha3": "BEL",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "France",
+      "unM49": "250",
+      "isoAlpha2": "FR",
+      "isoAlpha3": "FRA",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Germany",
+      "unM49": "276",
+      "isoAlpha2": "DE",
+      "isoAlpha3": "DEU",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Liechtenstein",
+      "unM49": "438",
+      "isoAlpha2": "LI",
+      "isoAlpha3": "LIE",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Luxembourg",
+      "unM49": "442",
+      "isoAlpha2": "LU",
+      "isoAlpha3": "LUX",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Monaco",
+      "unM49": "492",
+      "isoAlpha2": "MC",
+      "isoAlpha3": "MCO",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Netherlands (Kingdom of the)",
+      "unM49": "528",
+      "isoAlpha2": "NL",
+      "isoAlpha3": "NLD",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Switzerland",
+      "unM49": "756",
+      "isoAlpha2": "CH",
+      "isoAlpha3": "CHE",
+      "continent": "Europe",
+      "unSubregion": "Western Europe"
+    },
+    {
+      "commonName": "Australia",
+      "unM49": "036",
+      "isoAlpha2": "AU",
+      "isoAlpha3": "AUS",
+      "continent": "Oceania",
+      "unSubregion": "Australia and New Zealand"
+    },
+    {
+      "commonName": "Christmas Island",
+      "unM49": "162",
+      "isoAlpha2": "CX",
+      "isoAlpha3": "CXR",
+      "continent": "Oceania",
+      "unSubregion": "Australia and New Zealand"
+    },
+    {
+      "commonName": "Cocos (Keeling) Islands",
+      "unM49": "166",
+      "isoAlpha2": "CC",
+      "isoAlpha3": "CCK",
+      "continent": "Oceania",
+      "unSubregion": "Australia and New Zealand"
+    },
+    {
+      "commonName": "Heard Island and McDonald Islands",
+      "unM49": "334",
+      "isoAlpha2": "HM",
+      "isoAlpha3": "HMD",
+      "continent": "Oceania",
+      "unSubregion": "Australia and New Zealand"
+    },
+    {
+      "commonName": "New Zealand",
+      "unM49": "554",
+      "isoAlpha2": "NZ",
+      "isoAlpha3": "NZL",
+      "continent": "Oceania",
+      "unSubregion": "Australia and New Zealand"
+    },
+    {
+      "commonName": "Norfolk Island",
+      "unM49": "574",
+      "isoAlpha2": "NF",
+      "isoAlpha3": "NFK",
+      "continent": "Oceania",
+      "unSubregion": "Australia and New Zealand"
+    },
+    {
+      "commonName": "Fiji",
+      "unM49": "242",
+      "isoAlpha2": "FJ",
+      "isoAlpha3": "FJI",
+      "continent": "Oceania",
+      "unSubregion": "Melanesia"
+    },
+    {
+      "commonName": "New Caledonia",
+      "unM49": "540",
+      "isoAlpha2": "NC",
+      "isoAlpha3": "NCL",
+      "continent": "Oceania",
+      "unSubregion": "Melanesia"
+    },
+    {
+      "commonName": "Papua New Guinea",
+      "unM49": "598",
+      "isoAlpha2": "PG",
+      "isoAlpha3": "PNG",
+      "continent": "Oceania",
+      "unSubregion": "Melanesia"
+    },
+    {
+      "commonName": "Solomon Islands",
+      "unM49": "090",
+      "isoAlpha2": "SB",
+      "isoAlpha3": "SLB",
+      "continent": "Oceania",
+      "unSubregion": "Melanesia"
+    },
+    {
+      "commonName": "Vanuatu",
+      "unM49": "548",
+      "isoAlpha2": "VU",
+      "isoAlpha3": "VUT",
+      "continent": "Oceania",
+      "unSubregion": "Melanesia"
+    },
+    {
+      "commonName": "Guam",
+      "unM49": "316",
+      "isoAlpha2": "GU",
+      "isoAlpha3": "GUM",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "Kiribati",
+      "unM49": "296",
+      "isoAlpha2": "KI",
+      "isoAlpha3": "KIR",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "Marshall Islands",
+      "unM49": "584",
+      "isoAlpha2": "MH",
+      "isoAlpha3": "MHL",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "Micronesia (Federated States of)",
+      "unM49": "583",
+      "isoAlpha2": "FM",
+      "isoAlpha3": "FSM",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "Naoero",
+      "unM49": "520",
+      "isoAlpha2": "NR",
+      "isoAlpha3": "NRU",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "Northern Mariana Islands",
+      "unM49": "580",
+      "isoAlpha2": "MP",
+      "isoAlpha3": "MNP",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "Palau",
+      "unM49": "585",
+      "isoAlpha2": "PW",
+      "isoAlpha3": "PLW",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "United States Minor Outlying Islands",
+      "unM49": "581",
+      "isoAlpha2": "UM",
+      "isoAlpha3": "UMI",
+      "continent": "Oceania",
+      "unSubregion": "Micronesia"
+    },
+    {
+      "commonName": "American Samoa",
+      "unM49": "016",
+      "isoAlpha2": "AS",
+      "isoAlpha3": "ASM",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Cook Islands",
+      "unM49": "184",
+      "isoAlpha2": "CK",
+      "isoAlpha3": "COK",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "French Polynesia",
+      "unM49": "258",
+      "isoAlpha2": "PF",
+      "isoAlpha3": "PYF",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Niue",
+      "unM49": "570",
+      "isoAlpha2": "NU",
+      "isoAlpha3": "NIU",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Pitcairn",
+      "unM49": "612",
+      "isoAlpha2": "PN",
+      "isoAlpha3": "PCN",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Samoa",
+      "unM49": "882",
+      "isoAlpha2": "WS",
+      "isoAlpha3": "WSM",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Tokelau",
+      "unM49": "772",
+      "isoAlpha2": "TK",
+      "isoAlpha3": "TKL",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Tonga",
+      "unM49": "776",
+      "isoAlpha2": "TO",
+      "isoAlpha3": "TON",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Tuvalu",
+      "unM49": "798",
+      "isoAlpha2": "TV",
+      "isoAlpha3": "TUV",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    },
+    {
+      "commonName": "Wallis and Futuna Islands",
+      "unM49": "876",
+      "isoAlpha2": "WF",
+      "isoAlpha3": "WLF",
+      "continent": "Oceania",
+      "unSubregion": "Polynesia"
+    }
+  ]
+}

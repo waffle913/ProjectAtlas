@@ -1,0 +1,2179 @@
+{
+  "snapshotId": "Wikidata-offices@2026-09-26",
+  "referenceDate": "2026-01-01",
+  "retrievedAt": "2026-09-26",
+  "sourceUrl": "https://query.wikidata.org/",
+  "headsOfState": {
+    "MDA": {
+      "personId": "Q15071069",
+      "personName": "Maia Sandu",
+      "startDate": "2020-12-24"
+    },
+    "GRL": {
+      "personId": "Q1004037",
+      "personName": "Frederik X of Denmark",
+      "startDate": "2024-01-14"
+    },
+    "HRV": {
+      "personId": "Q57687",
+      "personName": "Zoran Milanović",
+      "startDate": "2020-02-19"
+    },
+    "MCO": {
+      "personId": "Q3910",
+      "personName": "Albert II, Prince of Monaco",
+      "startDate": "2005-04-06"
+    },
+    "IDN": {
+      "personId": "Q2107268",
+      "personName": "Prabowo Subianto",
+      "startDate": "2024-10-20"
+    },
+    "ZAF": {
+      "personId": "Q1148669",
+      "personName": "Cyril Ramaphosa",
+      "startDate": "2018-02-15"
+    },
+    "DNK": {
+      "personId": "Q1004037",
+      "personName": "Frederik X of Denmark",
+      "startDate": "2024-01-14"
+    },
+    "GRC": {
+      "personId": "Q20995518",
+      "personName": "Konstantinos Tasoulas",
+      "startDate": "2025-03-13"
+    },
+    "KHM": {
+      "personId": "Q57319",
+      "personName": "Norodom Sihamoni",
+      "startDate": "2004-10-14"
+    },
+    "PRT": {
+      "personId": "Q6756617",
+      "personName": "Marcelo Rebelo de Sousa",
+      "startDate": "2016-03-09",
+      "endDate": "2026-03-09"
+    },
+    "TLS": {
+      "personId": "Q11665",
+      "personName": "José Ramos-Horta",
+      "startDate": "2022-05-20"
+    },
+    "TUV": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "URY": {
+      "personId": "Q19946921",
+      "personName": "Yamandú Orsi",
+      "startDate": "2025-03-01"
+    },
+    "BIH": {
+      "personId": "Q13081568",
+      "personName": "Denis Bećirović",
+      "startDate": "2022-11-16"
+    },
+    "KEN": {
+      "personId": "Q195725",
+      "personName": "William Ruto",
+      "startDate": "2022-09-13"
+    },
+    "ETH": {
+      "personId": "Q124831090",
+      "personName": "Taye Atske Selassie",
+      "startDate": "2024-10-07"
+    },
+    "GHA": {
+      "personId": "Q50678",
+      "personName": "John Mahama",
+      "startDate": "2025-01-07"
+    },
+    "GBR": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "JPN": {
+      "personId": "Q217096",
+      "personName": "Naruhito",
+      "startDate": "2019-05-01"
+    },
+    "EST": {
+      "personId": "Q12358575",
+      "personName": "Alar Karis",
+      "startDate": "2021-10-11"
+    },
+    "NOR": {
+      "personId": "Q57287",
+      "personName": "Harald V of Norway",
+      "startDate": "1991-01-17",
+      "endDate": "2026-08-28"
+    },
+    "UKR": {
+      "personId": "Q3874799",
+      "personName": "Volodymyr Zelenskyy",
+      "startDate": "2019-05-20"
+    },
+    "CZE": {
+      "personId": "Q2080040",
+      "personName": "Petr Pavel",
+      "startDate": "2023-03-09"
+    },
+    "SVK": {
+      "personId": "Q17330556",
+      "personName": "Peter Pellegrini",
+      "startDate": "2024-06-15"
+    },
+    "SVN": {
+      "personId": "Q12797332",
+      "personName": "Nataša Pirc Musar",
+      "startDate": "2022-12-22"
+    },
+    "ROU": {
+      "personId": "Q11163124",
+      "personName": "Nicușor Dan",
+      "startDate": "2025-05-26"
+    },
+    "BGR": {
+      "personId": "Q26257557",
+      "personName": "Rumen Radev",
+      "startDate": "2017-01-22"
+    },
+    "MKD": {
+      "personId": "Q12277168",
+      "personName": "Gordana Siljanovska-Davkova",
+      "startDate": "2024-05-12"
+    },
+    "ALB": {
+      "personId": "Q107422711",
+      "personName": "Bajram Begaj",
+      "startDate": "2022-07-24"
+    },
+    "AZE": {
+      "personId": "Q57371",
+      "personName": "Ilham Aliyev",
+      "startDate": "2003-10-31"
+    },
+    "MLT": {
+      "personId": "Q1647394",
+      "personName": "Myriam Spiteri Debono",
+      "startDate": "2024-04-04"
+    },
+    "GEO": {
+      "personId": "Q711893",
+      "personName": "Mikheil Kavelashvili",
+      "startDate": "2024-12-29"
+    },
+    "MNE": {
+      "personId": "Q104417661",
+      "personName": "Jakov Milatović",
+      "startDate": "2023-05-20"
+    },
+    "VAT": {
+      "personId": "Q6109517",
+      "personName": "Leo XIV",
+      "startDate": "2025-05-08"
+    },
+    "SMR": {
+      "personId": "Q1353628",
+      "personName": "Italo Righi",
+      "startDate": "2025-04-01"
+    },
+    "CUB": {
+      "personId": "Q1932603",
+      "personName": "Miguel Díaz-Canel",
+      "startDate": "2018-04-19"
+    },
+    "UZB": {
+      "personId": "Q57808",
+      "personName": "Shavkat Mirziyoyev",
+      "startDate": "2016-09-08"
+    },
+    "SGP": {
+      "personId": "Q983752",
+      "personName": "Tharman Shanmugaratnam",
+      "startDate": "2023-09-14"
+    },
+    "ARM": {
+      "personId": "Q3553274",
+      "personName": "Vahagn Khachatryan",
+      "startDate": "2022-03-13"
+    },
+    "NZL": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "IND": {
+      "personId": "Q19901232",
+      "personName": "Droupadi Murmu",
+      "startDate": "2022-07-25"
+    },
+    "PER": {
+      "personId": "Q107480088",
+      "personName": "José Jerí",
+      "startDate": "2025-10-10",
+      "endDate": "2026-02-17"
+    },
+    "FRA": {
+      "personId": "Q3052772",
+      "personName": "Q3052772",
+      "startDate": "2017-05-14"
+    },
+    "CHN": {
+      "personId": "Q15031",
+      "personName": "Xi Jinping",
+      "startDate": "2013-03-14"
+    },
+    "BRA": {
+      "personId": "Q37181",
+      "personName": "Luiz Inácio Lula da Silva",
+      "startDate": "2023-01-01"
+    },
+    "RUS": {
+      "personId": "Q7747",
+      "personName": "Vladimir Putin",
+      "startDate": "2012-05-07"
+    },
+    "DEU": {
+      "personId": "Q76658",
+      "personName": "Frank-Walter Steinmeier",
+      "startDate": "2017-03-19"
+    },
+    "BLR": {
+      "personId": "Q2866",
+      "personName": "Alexander Lukashenka",
+      "startDate": "1994-07-20"
+    },
+    "ISL": {
+      "personId": "Q24494577",
+      "personName": "Halla Tómasdóttir",
+      "startDate": "2024-08-01"
+    },
+    "LVA": {
+      "personId": "Q3047551",
+      "personName": "Edgars Rinkēvičs",
+      "startDate": "2023-07-08"
+    },
+    "TUR": {
+      "personId": "Q39259",
+      "personName": "Recep Tayyip Erdoğan",
+      "startDate": "2014-08-28"
+    },
+    "EGY": {
+      "personId": "Q307871",
+      "personName": "Abdel Fattah el-Sisi",
+      "startDate": "2014-06-08"
+    },
+    "MEX": {
+      "personId": "Q5771800",
+      "personName": "Q5771800",
+      "startDate": "2024-10-01"
+    },
+    "CAN": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "IRL": {
+      "personId": "Q5052598",
+      "personName": "Catherine Connolly",
+      "startDate": "2025-11-11"
+    },
+    "HUN": {
+      "personId": "Q28599854",
+      "personName": "Tamás Sulyok",
+      "startDate": "2024-03-05"
+    },
+    "ESP": {
+      "personId": "Q191045",
+      "personName": "Felipe VI of Spain",
+      "startDate": "2014-06-19"
+    },
+    "USA": {
+      "personId": "Q22686",
+      "personName": "Q22686",
+      "startDate": "2025-01-20"
+    },
+    "BEL": {
+      "personId": "Q155004",
+      "personName": "Philippe of Belgium",
+      "startDate": "2013-07-21"
+    },
+    "FIN": {
+      "personId": "Q503143",
+      "personName": "Alexander Stubb",
+      "startDate": "2024-03-01"
+    },
+    "SWE": {
+      "personId": "Q45068",
+      "personName": "Carl XVI Gustaf of Sweden",
+      "startDate": "1973-09-15"
+    },
+    "LTU": {
+      "personId": "Q9268379",
+      "personName": "Gitanas Nausėda",
+      "startDate": "2019-07-12"
+    },
+    "ITA": {
+      "personId": "Q3956186",
+      "personName": "Sergio Mattarella",
+      "startDate": "2015-02-03"
+    },
+    "CHE": {
+      "personId": "Q30917",
+      "personName": "Swiss Federal Council"
+    },
+    "AUT": {
+      "personId": "Q78869",
+      "personName": "Alexander Van der Bellen",
+      "startDate": "2017-01-26"
+    },
+    "POL": {
+      "personId": "Q17704749",
+      "personName": "Karol Nawrocki",
+      "startDate": "2025-08-06"
+    },
+    "LUX": {
+      "personId": "Q161319",
+      "personName": "Guillaume V, Grand Duke of Luxembourg",
+      "startDate": "2025-10-03"
+    },
+    "XKS": {
+      "personId": "Q13047644",
+      "personName": "Vjosa Osmani",
+      "startDate": "2021-04-04",
+      "endDate": "2026-04-04"
+    },
+    "MSR": {
+      "personId": "Q98425237",
+      "personName": "Harriet Cross",
+      "startDate": "2025-04-08"
+    },
+    "TCA": {
+      "personId": "Q43274",
+      "personName": "Charles III"
+    },
+    "BMU": {
+      "personId": "Q15429094",
+      "personName": "John Rankin"
+    },
+    "NLD": {
+      "personId": "Q154952",
+      "personName": "William Alexander of the Netherlands",
+      "startDate": "2013-04-30"
+    },
+    "FRO": {
+      "personId": "Q1004037",
+      "personName": "Frederik X of Denmark",
+      "startDate": "2024-01-14"
+    },
+    "VUT": {
+      "personId": "Q113239716",
+      "personName": "Nikenike Vurobaravu",
+      "startDate": "2022-07-23"
+    },
+    "NRU": {
+      "personId": "Q58096",
+      "personName": "David Adeang",
+      "startDate": "2023-09-30"
+    },
+    "FSM": {
+      "personId": "Q7984081",
+      "personName": "Wesley Simina",
+      "startDate": "2023-01-01"
+    },
+    "KIR": {
+      "personId": "Q23034482",
+      "personName": "Taneti Maamau",
+      "startDate": "2016-03-11"
+    },
+    "FJI": {
+      "personId": "Q109012733",
+      "personName": "Wiliame Katonivere",
+      "startDate": "2021-11-12"
+    },
+    "SUR": {
+      "personId": "Q440403",
+      "personName": "Jennifer Geerlings-Simons",
+      "startDate": "2025-07-16"
+    },
+    "PRY": {
+      "personId": "Q22695687",
+      "personName": "Santiago Peña Palacios",
+      "startDate": "2023-04-30"
+    },
+    "VCT": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "JAM": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "BHS": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "JEY": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "SLV": {
+      "personId": "Q17712353",
+      "personName": "Nayib Bukele",
+      "startDate": "2019-06-01"
+    },
+    "CRI": {
+      "personId": "Q98017689",
+      "personName": "Rodrigo Chaves",
+      "startDate": "2022-05-08",
+      "endDate": "2026-05-08"
+    },
+    "KWT": {
+      "personId": "Q12243161",
+      "personName": "Mishal Al-Ahmad Al-Jaber Al-Sabah",
+      "startDate": "2023-12-16"
+    },
+    "MMR": {
+      "personId": "Q3331362",
+      "personName": "Myint Swe",
+      "startDate": "2021-02-01"
+    },
+    "NPL": {
+      "personId": "Q3183124",
+      "personName": "Ram Chandra Poudel",
+      "startDate": "2023-01-01"
+    },
+    "PAK": {
+      "personId": "Q57373",
+      "personName": "Asif Ali Zardari",
+      "startDate": "2024-01-01"
+    },
+    "QAT": {
+      "personId": "Q1855372",
+      "personName": "Tamim bin Hamad Al Thani",
+      "startDate": "2013-06-25"
+    },
+    "BTN": {
+      "personId": "Q57376",
+      "personName": "Jigme Khesar Namgyel Wangchuck",
+      "startDate": "2008-11-06"
+    },
+    "TZA": {
+      "personId": "Q16193885",
+      "personName": "Samia Suluhu Hassan",
+      "startDate": "2021-03-19"
+    },
+    "PHL": {
+      "personId": "Q983324",
+      "personName": "Bongbong Marcos",
+      "startDate": "2022-06-30"
+    },
+    "ZMB": {
+      "personId": "Q717185",
+      "personName": "Hakainde Hichilema",
+      "startDate": "2021-08-24"
+    },
+    "FLK": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "IMN": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "COG": {
+      "personId": "Q57418",
+      "personName": "Denis Sassou-Nguesso",
+      "startDate": "1997-10-25"
+    },
+    "GNQ": {
+      "personId": "Q57385",
+      "personName": "Teodoro Obiang",
+      "startDate": "1979-08-03"
+    },
+    "AND": {
+      "personId": "Q93244592",
+      "personName": "Josep-Lluís Serrano Pentinat",
+      "startDate": "2025-01-01"
+    },
+    "CYP": {
+      "personId": "Q48905549",
+      "personName": "Nicos Christodoulides",
+      "startDate": "2023-02-12"
+    },
+    "KAZ": {
+      "personId": "Q200881",
+      "personName": "Kassym-Jomart Tokayev",
+      "startDate": "2019-03-20"
+    },
+    "BLZ": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "BRB": {
+      "personId": "Q9333540",
+      "personName": "Sandra Mason",
+      "startDate": "2021-11-30"
+    },
+    "DZA": {
+      "personId": "Q2821166",
+      "personName": "Abdelmadjid Tebboune",
+      "startDate": "2019-12-19"
+    },
+    "CHL": {
+      "personId": "Q16297876",
+      "personName": "Gabriel Boric",
+      "startDate": "2022-03-11",
+      "endDate": "2026-03-11"
+    },
+    "LIE": {
+      "personId": "Q57454",
+      "personName": "Hans-Adam II, Prince of Liechtenstein",
+      "startDate": "1989-11-13"
+    },
+    "BHR": {
+      "personId": "Q57352",
+      "personName": "Hamad II of Bahrain",
+      "startDate": "1999-03-06"
+    },
+    "SRB": {
+      "personId": "Q222031",
+      "personName": "Aleksandar Vučić",
+      "startDate": "2017-05-31"
+    },
+    "AUS": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "ARG": {
+      "personId": "Q52395487",
+      "personName": "Javier Milei",
+      "startDate": "2023-12-10"
+    },
+    "PRK": {
+      "personId": "Q56226",
+      "personName": "Kim Jong-un",
+      "startDate": "2011-12-30"
+    },
+    "TCD": {
+      "personId": "Q16206405",
+      "personName": "Mahamat Déby"
+    },
+    "WSM": {
+      "personId": "Q32014514",
+      "personName": "Va'aletoa Sualauvi II",
+      "startDate": "2017-07-21"
+    },
+    "SLB": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "MHL": {
+      "personId": "Q20090884",
+      "personName": "Hilda Heine",
+      "startDate": "2024-01-03"
+    },
+    "COL": {
+      "personId": "Q704022",
+      "personName": "Gustavo Petro",
+      "startDate": "2022-08-07",
+      "endDate": "2026-08-07"
+    },
+    "KNA": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "GRD": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "ATG": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "HTI": {
+      "personId": "Q124846311",
+      "personName": "Transitional Presidential Council",
+      "startDate": "2024-04-25"
+    },
+    "PAN": {
+      "personId": "Q108454869",
+      "personName": "José Raúl Mulino",
+      "startDate": "2024-07-01"
+    },
+    "MDV": {
+      "personId": "Q116293030",
+      "personName": "Mohamed Muizzu",
+      "startDate": "2023-11-17"
+    },
+    "LKA": {
+      "personId": "Q4777855",
+      "personName": "Anura Kurankan Dissanayake",
+      "startDate": "2024-09-23"
+    },
+    "SYR": {
+      "personId": "Q7934206",
+      "personName": "Ahmed al-Sharaa",
+      "startDate": "2025-01-29"
+    },
+    "DMA": {
+      "personId": "Q122208779",
+      "personName": "Sylvanie Burton",
+      "startDate": "2023-10-02"
+    },
+    "TON": {
+      "personId": "Q208497",
+      "personName": "Tupou VI of Tonga",
+      "startDate": "2012-03-18"
+    },
+    "PNG": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "PLW": {
+      "personId": "Q26703072",
+      "personName": "Surangel Whipps Jr.",
+      "startDate": "2021-01-21"
+    },
+    "MNG": {
+      "personId": "Q27058418",
+      "personName": "Khurelsukh Ukhnaa",
+      "startDate": "2021-06-25"
+    },
+    "GUY": {
+      "personId": "Q64840184",
+      "personName": "Irfaan Ali",
+      "startDate": "2020-08-02"
+    },
+    "ECU": {
+      "personId": "Q112075625",
+      "personName": "Daniel Noboa",
+      "startDate": "2023-11-23"
+    },
+    "TTO": {
+      "personId": "Q97400315",
+      "personName": "Christine Kangaloo",
+      "startDate": "2023-03-20"
+    },
+    "LCA": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "GTM": {
+      "personId": "Q107254030",
+      "personName": "Bernardo Arévalo de León",
+      "startDate": "2024-01-15"
+    },
+    "HND": {
+      "personId": "Q8044708",
+      "personName": "Xiomara Castro",
+      "startDate": "2022-01-27",
+      "endDate": "2026-01-27"
+    },
+    "DOM": {
+      "personId": "Q16594097",
+      "personName": "Luis Abinader",
+      "startDate": "2020-08-16"
+    },
+    "IRQ": {
+      "personId": "Q115579547",
+      "personName": "Nizar Amidi",
+      "startDate": "2022-10-17"
+    },
+    "ISR": {
+      "personId": "Q983258",
+      "personName": "Isaac Herzog",
+      "startDate": "2021-07-07"
+    },
+    "YEM": {
+      "personId": "Q12213376",
+      "personName": "Rashad al-Alimi",
+      "startDate": "2022-04-07"
+    },
+    "JOR": {
+      "personId": "Q57464",
+      "personName": "Abdullah II of Jordan"
+    },
+    "NIC": {
+      "personId": "Q57402",
+      "personName": "Daniel Ortega",
+      "startDate": "2007-01-10"
+    },
+    "KGZ": {
+      "personId": "Q25597826",
+      "personName": "Sadyr Japarov",
+      "startDate": "2021-01-28"
+    },
+    "LAO": {
+      "personId": "Q58323",
+      "personName": "Thongloun Sisoulith"
+    },
+    "LBN": {
+      "personId": "Q29033962",
+      "personName": "Joseph Aoun",
+      "startDate": "2025-01-09"
+    },
+    "MYS": {
+      "personId": "Q2657043",
+      "personName": "Ibrahim Iskandar of Johor",
+      "startDate": "2024-01-31"
+    },
+    "OMN": {
+      "personId": "Q12250314",
+      "personName": "Haitham bin Tarik Al Said",
+      "startDate": "2020-01-11"
+    },
+    "GAB": {
+      "personId": "Q122067521",
+      "personName": "Brice Clotaire Oligui Nguema",
+      "startDate": "2023-08-30"
+    },
+    "GMB": {
+      "personId": "Q27917049",
+      "personName": "Adama Barrow",
+      "startDate": "2017-01-21"
+    },
+    "GIN": {
+      "personId": "Q108418519",
+      "personName": "Mamady Doumbouya",
+      "startDate": "2021-10-01"
+    },
+    "CIV": {
+      "personId": "Q57413",
+      "personName": "Alassane Ouattara",
+      "startDate": "2010-12-04"
+    },
+    "CMR": {
+      "personId": "Q57272",
+      "personName": "Paul Biya",
+      "startDate": "1982-11-06"
+    },
+    "CPV": {
+      "personId": "Q57649",
+      "personName": "José Maria Neves",
+      "startDate": "2021-11-09"
+    },
+    "LSO": {
+      "personId": "Q57537",
+      "personName": "Letsie III of Lesotho",
+      "startDate": "1996-02-07"
+    },
+    "TWN": {
+      "personId": "Q3847080",
+      "personName": "Lai Ching-te",
+      "startDate": "2024-05-20"
+    },
+    "THA": {
+      "personId": "Q548733",
+      "personName": "Vajiralongkorn",
+      "startDate": "2016-10-13"
+    },
+    "KOR": {
+      "personId": "Q12612463",
+      "personName": "Lee Jae Myung",
+      "startDate": "2025-06-04"
+    },
+    "BGD": {
+      "personId": "Q116763154",
+      "personName": "Mohammad Shahabuddin",
+      "startDate": "2023-04-24"
+    },
+    "MLI": {
+      "personId": "Q98497406",
+      "personName": "Assimi Goïta",
+      "startDate": "2021-05-24"
+    },
+    "AGO": {
+      "personId": "Q28650390",
+      "personName": "João Lourenço",
+      "startDate": "2017-08-23"
+    },
+    "CAF": {
+      "personId": "Q57758",
+      "personName": "Faustin-Archange Touadéra",
+      "startDate": "2016-03-30"
+    },
+    "TGO": {
+      "personId": "Q6169516",
+      "personName": "Jean-Lucien Savi de Tové",
+      "startDate": "2025-05-03"
+    },
+    "TUN": {
+      "personId": "Q16120878",
+      "personName": "Kais Saied",
+      "startDate": "2019-10-23"
+    },
+    "SSD": {
+      "personId": "Q57315",
+      "personName": "Salva Kiir Mayardit",
+      "startDate": "2011-07-09"
+    },
+    "BEN": {
+      "personId": "Q16669148",
+      "personName": "Patrice Talon",
+      "startDate": "2016-04-06",
+      "endDate": "2026-05-24"
+    },
+    "BFA": {
+      "personId": "Q114341246",
+      "personName": "Ibrahim Traoré",
+      "startDate": "2022-10-06"
+    },
+    "BOL": {
+      "personId": "Q110520817",
+      "personName": "Rodrigo Paz",
+      "startDate": "2025-11-08"
+    },
+    "IRN": {
+      "personId": "Q57336",
+      "personName": "Ali Khamenei",
+      "startDate": "1989-06-04",
+      "endDate": "2026-02-28"
+    },
+    "LBR": {
+      "personId": "Q2630483",
+      "personName": "Joseph Boakai",
+      "startDate": "2024-01-01"
+    },
+    "LBY": {
+      "personId": "Q105319610",
+      "personName": "Mohamed al-Menfi",
+      "startDate": "2021-03-15"
+    },
+    "MDG": {
+      "personId": "Q57363",
+      "personName": "Andry Rajoelina",
+      "startDate": "2025-10-14"
+    },
+    "MWI": {
+      "personId": "Q16202782",
+      "personName": "Lazarus Chakwera",
+      "startDate": "2020-06-28"
+    },
+    "MRT": {
+      "personId": "Q12241106",
+      "personName": "Mohamed Ould Ghazouani",
+      "startDate": "2019-08-01"
+    },
+    "MUS": {
+      "personId": "Q131403499",
+      "personName": "Dharam Gokhool",
+      "startDate": "2024-12-06"
+    },
+    "MAR": {
+      "personId": "Q57553",
+      "personName": "Mohammed VI of Morocco",
+      "startDate": "1999-07-23"
+    },
+    "MOZ": {
+      "personId": "Q97058466",
+      "personName": "Daniel Chapo",
+      "startDate": "2025-01-15"
+    },
+    "NAM": {
+      "personId": "Q527020",
+      "personName": "Netumbo Nandi-Ndaitwah",
+      "startDate": "2025-03-21"
+    },
+    "NER": {
+      "personId": "Q120965176",
+      "personName": "Abdourahamane Tiani",
+      "startDate": "2023-07-28"
+    },
+    "UGA": {
+      "personId": "Q57274",
+      "personName": "Yoweri Museveni",
+      "startDate": "1986-01-29"
+    },
+    "STP": {
+      "personId": "Q27982047",
+      "personName": "Carlos Vila Nova",
+      "startDate": "2021-10-02"
+    },
+    "SLE": {
+      "personId": "Q283829",
+      "personName": "Julius Maada Bio",
+      "startDate": "2018-04-04"
+    },
+    "SOM": {
+      "personId": "Q319153",
+      "personName": "Hassan Sheikh Mohamud",
+      "startDate": "2022-05-15"
+    },
+    "SDN": {
+      "personId": "Q63111184",
+      "personName": "Abdel Fattah al-Burhan",
+      "startDate": "2019-04-12"
+    },
+    "SWZ": {
+      "personId": "Q57340",
+      "personName": "Mswati III",
+      "startDate": "1986-04-25"
+    },
+    "GIB": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "GGY": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "SXM": {
+      "personId": "Q2298739",
+      "personName": "Eugene Holiday"
+    },
+    "COK": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "NIU": {
+      "personId": "Q43274",
+      "personName": "Charles III",
+      "startDate": "2022-09-08"
+    },
+    "CYM": {
+      "personId": "Q43274",
+      "personName": "Charles III"
+    },
+    "SAU": {
+      "personId": "Q367825",
+      "personName": "Salman bin Abdulaziz Al Saud",
+      "startDate": "2015-01-23"
+    },
+    "TJK": {
+      "personId": "Q57366",
+      "personName": "Emomali Rahmon"
+    },
+    "TKM": {
+      "personId": "Q51874548",
+      "personName": "Serdar Berdimuhamedow",
+      "startDate": "2022-03-19"
+    },
+    "ARE": {
+      "personId": "Q1951896",
+      "personName": "Mohammed Bin Zayed Al Nahyan",
+      "startDate": "2022-05-14"
+    },
+    "VNM": {
+      "personId": "Q10831196",
+      "personName": "Tô Lâm",
+      "startDate": "2024-05-22"
+    },
+    "AFG": {
+      "personId": "Q24237654",
+      "personName": "Hibatullah Akhundzada",
+      "startDate": "2021-08-15"
+    },
+    "BRN": {
+      "personId": "Q57327",
+      "personName": "Hassanal Bolkiah I of Brunei"
+    },
+    "ZWE": {
+      "personId": "Q510523",
+      "personName": "Emmerson Mnangagwa",
+      "startDate": "2017-11-24"
+    },
+    "BWA": {
+      "personId": "Q18618881",
+      "personName": "Duma Boko",
+      "startDate": "2024-11-01"
+    },
+    "BDI": {
+      "personId": "Q27329764",
+      "personName": "Évariste Ndayishimiye",
+      "startDate": "2020-06-18"
+    },
+    "COM": {
+      "personId": "Q515602",
+      "personName": "Azali Assoumani",
+      "startDate": "2016-01-01"
+    },
+    "COD": {
+      "personId": "Q29032770",
+      "personName": "Félix Tshisekedi",
+      "startDate": "2019-01-24"
+    },
+    "DJI": {
+      "personId": "Q57390",
+      "personName": "Ismail Omar Guelleh",
+      "startDate": "1999-05-08"
+    },
+    "ERI": {
+      "personId": "Q57348",
+      "personName": "Isaias Afwerki",
+      "startDate": "1993-01-01"
+    },
+    "NGA": {
+      "personId": "Q3510872",
+      "personName": "Bola Tinubu",
+      "startDate": "2023-05-29"
+    },
+    "RWA": {
+      "personId": "Q1231345",
+      "personName": "Paul Kagame",
+      "startDate": "2000-03-24"
+    },
+    "SEN": {
+      "personId": "Q124382437",
+      "personName": "Bassirou Diomaye Faye",
+      "startDate": "2024-04-02"
+    },
+    "ABW": {
+      "personId": "Q154952",
+      "personName": "William Alexander of the Netherlands"
+    },
+    "PSE": {
+      "personId": "Q127998",
+      "personName": "Mahmoud Abbas",
+      "startDate": "2005-01-15"
+    },
+    "CUW": {
+      "personId": "Q154952",
+      "personName": "William Alexander of the Netherlands"
+    },
+    "SYC": {
+      "personId": "Q16190544",
+      "personName": "Patrick Herminie",
+      "startDate": "2025-10-26"
+    }
+  },
+  "headsOfGovernment": {
+    "GRL": {
+      "personId": "Q16262782",
+      "personName": "Jens-Frederik Nielsen",
+      "startDate": "2025-03-28"
+    },
+    "HRV": {
+      "personId": "Q11685764",
+      "personName": "Andrej Plenković",
+      "startDate": "2016-10-19"
+    },
+    "DNK": {
+      "personId": "Q5015",
+      "personName": "Mette Frederiksen",
+      "startDate": "2019-06-27"
+    },
+    "GRC": {
+      "personId": "Q552751",
+      "personName": "Kyriakos Mitsotakis",
+      "startDate": "2019-06-08"
+    },
+    "PRT": {
+      "personId": "Q11764394",
+      "personName": "Luís Montenegro",
+      "startDate": "2024-04-02"
+    },
+    "URY": {
+      "personId": "Q19946921",
+      "personName": "Yamandú Orsi",
+      "startDate": "2025-03-01"
+    },
+    "MDA": {
+      "personId": "Q136489383",
+      "personName": "Alexandru Munteanu",
+      "startDate": "2025-11-01",
+      "endDate": "2026-07-08"
+    },
+    "BIH": {
+      "personId": "Q387491",
+      "personName": "Borjana Krišto",
+      "startDate": "2022-12-28"
+    },
+    "KEN": {
+      "personId": "Q195725",
+      "personName": "William Ruto",
+      "startDate": "2022-09-13"
+    },
+    "ETH": {
+      "personId": "Q50365049",
+      "personName": "Abiy Ahmed",
+      "startDate": "2018-04-01"
+    },
+    "GHA": {
+      "personId": "Q718601",
+      "personName": "Nana Akufo-Addo",
+      "startDate": "2017-01-01"
+    },
+    "GBR": {
+      "personId": "Q6383803",
+      "personName": "Keir Starmer",
+      "startDate": "2024-07-05",
+      "endDate": "2026-07-20"
+    },
+    "EST": {
+      "personId": "Q1789192",
+      "personName": "Kristen Michal",
+      "startDate": "2024-07-23"
+    },
+    "NOR": {
+      "personId": "Q467948",
+      "personName": "Jonas Gahr Støre",
+      "startDate": "2021-10-14"
+    },
+    "UKR": {
+      "personId": "Q61112536",
+      "personName": "Yulia Svyrydenko",
+      "startDate": "2025-07-17",
+      "endDate": "2026-07-16"
+    },
+    "JPN": {
+      "personId": "Q1705028",
+      "personName": "Sanae Takaichi",
+      "startDate": "2025-10-21"
+    },
+    "CZE": {
+      "personId": "Q10819807",
+      "personName": "Andrej Babiš",
+      "startDate": "2025-12-09"
+    },
+    "PRI": {
+      "personId": "Q16215793",
+      "personName": "Jenniffer González",
+      "startDate": "2025-01-01"
+    },
+    "XKS": {
+      "personId": "Q441633",
+      "personName": "Albin Kurti",
+      "startDate": "2021-03-22"
+    },
+    "MCO": {
+      "personId": "Q29934395",
+      "personName": "Christophe Mirmand",
+      "startDate": "2025-07-21"
+    },
+    "IDN": {
+      "personId": "Q2107268",
+      "personName": "Prabowo Subianto"
+    },
+    "ZAF": {
+      "personId": "Q1148669",
+      "personName": "Cyril Ramaphosa",
+      "startDate": "2018-02-15"
+    },
+    "KHM": {
+      "personId": "Q13024351",
+      "personName": "Hun Manet"
+    },
+    "TLS": {
+      "personId": "Q11509",
+      "personName": "Xanana Gusmão",
+      "startDate": "2023-01-01"
+    },
+    "TUV": {
+      "personId": "Q5441662",
+      "personName": "Ben Do",
+      "startDate": "2024-02-26"
+    },
+    "VUT": {
+      "personId": "Q16190741",
+      "personName": "Bob Loughman",
+      "startDate": "2020-04-20"
+    },
+    "NRU": {
+      "personId": "Q58096",
+      "personName": "David Adeang",
+      "startDate": "2023-10-30"
+    },
+    "FSM": {
+      "personId": "Q7984081",
+      "personName": "Wesley Simina",
+      "startDate": "2023-01-01"
+    },
+    "KIR": {
+      "personId": "Q23034482",
+      "personName": "Taneti Maamau",
+      "startDate": "2016-03-11"
+    },
+    "FJI": {
+      "personId": "Q981549",
+      "personName": "Sitiveni Rabuka",
+      "startDate": "2022-12-24"
+    },
+    "SUR": {
+      "personId": "Q440403",
+      "personName": "Jennifer Geerlings-Simons",
+      "startDate": "2025-07-16"
+    },
+    "PRY": {
+      "personId": "Q22695687",
+      "personName": "Santiago Peña Palacios"
+    },
+    "VCT": {
+      "personId": "Q28319076",
+      "personName": "Godwin Friday"
+    },
+    "JAM": {
+      "personId": "Q505200",
+      "personName": "Andrew Holness"
+    },
+    "BHS": {
+      "personId": "Q7183082",
+      "personName": "Philip \"Brave\" Davis",
+      "startDate": "2021-09-17"
+    },
+    "JEY": {
+      "personId": "Q16196549",
+      "personName": "John Le Fondré"
+    },
+    "SLV": {
+      "personId": "Q17712353",
+      "personName": "Nayib Bukele",
+      "startDate": "2019-06-01"
+    },
+    "CRI": {
+      "personId": "Q98017689",
+      "personName": "Rodrigo Chaves",
+      "startDate": "2022-05-08",
+      "endDate": "2026-05-08"
+    },
+    "KWT": {
+      "personId": "Q12219691",
+      "personName": "Sabah Al-Khalid Al-Sabah"
+    },
+    "MMR": {
+      "personId": "Q3462649",
+      "personName": "Min Aung Hlaing",
+      "startDate": "2021-02-01"
+    },
+    "NPL": {
+      "personId": "Q315500",
+      "personName": "Pushpa Kamal Dahal",
+      "startDate": "2022-12-26"
+    },
+    "PAK": {
+      "personId": "Q2096387",
+      "personName": "Shehbaz Sharif",
+      "startDate": "2022-04-11"
+    },
+    "QAT": {
+      "personId": "Q23020336",
+      "personName": "Mohammed bin Abdulrahman Al Thani",
+      "startDate": "2023-01-01"
+    },
+    "BTN": {
+      "personId": "Q7849613",
+      "personName": "Tshering Tobgay",
+      "startDate": "2024-01-28"
+    },
+    "TZA": {
+      "personId": "Q16193885",
+      "personName": "Samia Suluhu Hassan"
+    },
+    "PHL": {
+      "personId": "Q983324",
+      "personName": "Bongbong Marcos",
+      "startDate": "2022-06-30"
+    },
+    "ZMB": {
+      "personId": "Q18352991",
+      "personName": "Edgar Lungu"
+    },
+    "COG": {
+      "personId": "Q4752077",
+      "personName": "Anatole Collinet Makosso",
+      "startDate": "2021-05-12"
+    },
+    "GNQ": {
+      "personId": "Q129263796",
+      "personName": "Manuel Osa Nsue Nsua",
+      "startDate": "2024-08-17"
+    },
+    "CAN": {
+      "personId": "Q192533",
+      "personName": "Mark Carney",
+      "startDate": "2025-03-14"
+    },
+    "IRL": {
+      "personId": "Q920403",
+      "personName": "Micheál Martin",
+      "startDate": "2025-01-23"
+    },
+    "HUN": {
+      "personId": "Q57641",
+      "personName": "Viktor Orbán",
+      "startDate": "2010-05-29",
+      "endDate": "2026-05-09"
+    },
+    "ESP": {
+      "personId": "Q6070218",
+      "personName": "Pedro Sánchez",
+      "startDate": "2018-06-02"
+    },
+    "USA": {
+      "personId": "Q22686",
+      "personName": "Q22686",
+      "startDate": "2025-01-20"
+    },
+    "BEL": {
+      "personId": "Q336599",
+      "personName": "Bart De Wever",
+      "startDate": "2025-02-03"
+    },
+    "LUX": {
+      "personId": "Q592101",
+      "personName": "Luc Frieden",
+      "startDate": "2023-11-17"
+    },
+    "SVK": {
+      "personId": "Q57606",
+      "personName": "Robert Fico",
+      "startDate": "2023-10-25"
+    },
+    "SVN": {
+      "personId": "Q18645045",
+      "personName": "Robert Golob",
+      "startDate": "2022-05-25",
+      "endDate": "2026-06-04"
+    },
+    "ROU": {
+      "personId": "Q18538164",
+      "personName": "Ilie Bolojan",
+      "startDate": "2025-06-23"
+    },
+    "BGR": {
+      "personId": "Q59978016",
+      "personName": "Rosen Zhelyazkov",
+      "startDate": "2025-01-16",
+      "endDate": "2026-05-08"
+    },
+    "MKD": {
+      "personId": "Q46675558",
+      "personName": "Hristijan Mickoski",
+      "startDate": "2024-06-23"
+    },
+    "ALB": {
+      "personId": "Q316901",
+      "personName": "Edi Rama"
+    },
+    "AZE": {
+      "personId": "Q12850075",
+      "personName": "Ali Asadov",
+      "startDate": "2018-10-08"
+    },
+    "VIR": {
+      "personId": "Q59302363",
+      "personName": "Albert Bryan Jr.",
+      "startDate": "2019-01-07"
+    },
+    "MSR": {
+      "personId": "Q18164296",
+      "personName": "Donaldson Romeo"
+    },
+    "MAC": {
+      "personId": "Q7407632",
+      "personName": "Sam Hou Fai",
+      "startDate": "2024-12-20"
+    },
+    "GUM": {
+      "personId": "Q21066675",
+      "personName": "Lou Leon Guerrero",
+      "startDate": "2019-01-07"
+    },
+    "GLP": {
+      "personId": "Q2866091",
+      "personName": "Ary Chalus",
+      "startDate": "2015-12-18"
+    },
+    "MYT": {
+      "personId": "Q63765801",
+      "personName": "Ben Issa Ousseni",
+      "startDate": "2021-07-01"
+    },
+    "TCA": {
+      "personId": "Q7972058",
+      "personName": "Washington Misick"
+    },
+    "BMU": {
+      "personId": "Q33120852",
+      "personName": "E. David Burt"
+    },
+    "NLD": {
+      "personId": "Q22338116",
+      "personName": "Dick Schoof",
+      "startDate": "2024-01-01",
+      "endDate": "2026-02-23"
+    },
+    "PYF": {
+      "personId": "Q1106890",
+      "personName": "Édouard Fritch"
+    },
+    "NCL": {
+      "personId": "Q3379907",
+      "personName": "Philippe Germain"
+    },
+    "PCN": {
+      "personId": "Q75462006",
+      "personName": "Charlene Warren-Peu",
+      "startDate": "2020-01-01"
+    },
+    "GUF": {
+      "personId": "Q3108632",
+      "personName": "Rodolphe Alexandre"
+    },
+    "FRO": {
+      "personId": "Q556712",
+      "personName": "Aksel V. Johannesen",
+      "startDate": "2015-09-15"
+    },
+    "IMN": {
+      "personId": "Q25752002",
+      "personName": "Alfred Cannan"
+    },
+    "MLT": {
+      "personId": "Q37860840",
+      "personName": "Robert Abela",
+      "startDate": "2020-01-01"
+    },
+    "MNE": {
+      "personId": "Q101225458",
+      "personName": "Milojko Spajić",
+      "startDate": "2023-10-31"
+    },
+    "VAT": {
+      "personId": "Q109385659",
+      "personName": "Raffaella Petrini",
+      "startDate": "2025-03-01"
+    },
+    "CUB": {
+      "personId": "Q79358625",
+      "personName": "Manuel Marrero Cruz",
+      "startDate": "2019-12-21"
+    },
+    "UZB": {
+      "personId": "Q28002959",
+      "personName": "Abdulla Aripov",
+      "startDate": "2016-12-14"
+    },
+    "SGP": {
+      "personId": "Q6504758",
+      "personName": "Lawrence Wong",
+      "startDate": "2024-05-15"
+    },
+    "ARM": {
+      "personId": "Q7035479",
+      "personName": "Nikol Pashinyan",
+      "startDate": "2018-05-08"
+    },
+    "NZL": {
+      "personId": "Q74370310",
+      "personName": "Christopher Luxon",
+      "startDate": "2023-11-27"
+    },
+    "IND": {
+      "personId": "Q1058",
+      "personName": "Narendra Modi",
+      "startDate": "2014-05-26"
+    },
+    "PNG": {
+      "personId": "Q6138903",
+      "personName": "James Marape",
+      "startDate": "2019-05-30"
+    },
+    "PLW": {
+      "personId": "Q26703072",
+      "personName": "Surangel Whipps Jr.",
+      "startDate": "2021-01-21"
+    },
+    "MNG": {
+      "personId": "Q4142905",
+      "personName": "Gombojavyn Zandanshatar",
+      "startDate": "2025-06-13",
+      "endDate": "2026-03-30"
+    },
+    "GUY": {
+      "personId": "Q98053664",
+      "personName": "Mark Phillips",
+      "startDate": "2020-08-02"
+    },
+    "ECU": {
+      "personId": "Q112075625",
+      "personName": "Daniel Noboa",
+      "startDate": "2023-11-23"
+    },
+    "TTO": {
+      "personId": "Q57712",
+      "personName": "Kamla Persad-Bissessar",
+      "startDate": "2025-05-01"
+    },
+    "GTM": {
+      "personId": "Q107254030",
+      "personName": "Bernardo Arévalo de León",
+      "startDate": "2024-01-15"
+    },
+    "HND": {
+      "personId": "Q8044708",
+      "personName": "Xiomara Castro",
+      "startDate": "2022-01-27",
+      "endDate": "2026-01-27"
+    },
+    "DOM": {
+      "personId": "Q16594097",
+      "personName": "Luis Abinader",
+      "startDate": "2020-08-16"
+    },
+    "BOL": {
+      "personId": "Q110520817",
+      "personName": "Rodrigo Paz",
+      "startDate": "2025-11-08"
+    },
+    "LCA": {
+      "personId": "Q7184214",
+      "personName": "Philip J. Pierre",
+      "startDate": "2021-07-28"
+    },
+    "TON": {
+      "personId": "Q5437258",
+      "personName": "Fatafehi Fakafānua, 8th Lord Fakafānua",
+      "startDate": "2025-12-18"
+    },
+    "GEO": {
+      "personId": "Q27885302",
+      "personName": "Irakli Kobakhidze",
+      "startDate": "2024-02-08"
+    },
+    "GAB": {
+      "personId": "Q57856",
+      "personName": "Raymond Ndong Sima",
+      "startDate": "2023-09-07"
+    },
+    "GMB": {
+      "personId": "Q27917049",
+      "personName": "Adama Barrow",
+      "startDate": "2017-01-21"
+    },
+    "GIN": {
+      "personId": "Q22209348",
+      "personName": "Bah Oury",
+      "startDate": "2024-02-27"
+    },
+    "GNB": {
+      "personId": "Q627337",
+      "personName": "Rui Duarte de Barros",
+      "startDate": "2023-12-21"
+    },
+    "CIV": {
+      "personId": "Q3434569",
+      "personName": "Robert Beugré Mambé",
+      "startDate": "2023-10-16"
+    },
+    "CMR": {
+      "personId": "Q60441515",
+      "personName": "Joseph Ngute",
+      "startDate": "2019-01-04"
+    },
+    "CPV": {
+      "personId": "Q23899522",
+      "personName": "Ulisses Correia e Silva",
+      "startDate": "2016-04-22",
+      "endDate": "2026-06-19"
+    },
+    "LSO": {
+      "personId": "Q114588964",
+      "personName": "Sam Matekane",
+      "startDate": "2022-10-28"
+    },
+    "LBR": {
+      "personId": "Q2630483",
+      "personName": "Joseph Boakai",
+      "startDate": "2024-01-01"
+    },
+    "LBY": {
+      "personId": "Q105319569",
+      "personName": "Abd al-Hamid Dbeibeh",
+      "startDate": "2021-02-05"
+    },
+    "MDG": {
+      "personId": "Q136448305",
+      "personName": "Ruphin Zafisambo",
+      "startDate": "2025-10-06"
+    },
+    "MAR": {
+      "personId": "Q1638114",
+      "personName": "Aziz Akhannouch",
+      "startDate": "2021-10-07"
+    },
+    "NAM": {
+      "personId": "Q5360975",
+      "personName": "Elijah Ngurare",
+      "startDate": "2025-03-21"
+    },
+    "NGA": {
+      "personId": "Q3510872",
+      "personName": "Bola Tinubu",
+      "startDate": "2023-05-29"
+    },
+    "SEN": {
+      "personId": "Q124382437",
+      "personName": "Bassirou Diomaye Faye",
+      "startDate": "2024-04-02"
+    },
+    "MTQ": {
+      "personId": "Q608242",
+      "personName": "Serge Letchimy"
+    },
+    "REU": {
+      "personId": "Q3142774",
+      "personName": "Huguette Bello",
+      "startDate": "2021-01-01"
+    },
+    "ABW": {
+      "personId": "Q23038705",
+      "personName": "Evelyn Wever-Croes",
+      "startDate": "2017-11-17"
+    },
+    "CUW": {
+      "personId": "Q29030093",
+      "personName": "Gilmar Pisas",
+      "startDate": "2021-03-20"
+    },
+    "SGS": {
+      "personId": "Q3341354",
+      "personName": "Nigel Haywood"
+    },
+    "ALA": {
+      "personId": "Q2269243",
+      "personName": "Katrin Sjögren"
+    },
+    "TUN": {
+      "personId": "Q108892374",
+      "personName": "Sarra Zaafrani",
+      "startDate": "2025-03-21"
+    },
+    "SSD": {
+      "personId": "Q57315",
+      "personName": "Salva Kiir Mayardit"
+    },
+    "BEN": {
+      "personId": "Q16669148",
+      "personName": "Patrice Talon",
+      "startDate": "2016-04-06"
+    },
+    "BFA": {
+      "personId": "Q114835874",
+      "personName": "Apollinaire Joachim Kyélem de Tambèla",
+      "startDate": "2022-01-23"
+    },
+    "RWA": {
+      "personId": "Q135454730",
+      "personName": "Justin Nsengiyumva",
+      "startDate": "2025-07-25"
+    },
+    "SYC": {
+      "personId": "Q16190544",
+      "personName": "Patrick Herminie",
+      "startDate": "2025-10-26"
+    },
+    "IRN": {
+      "personId": "Q5933752",
+      "personName": "Masoud Pezeshkian",
+      "startDate": "2024-07-28"
+    },
+    "IRQ": {
+      "personId": "Q3700793",
+      "personName": "Muhammad Shia' al-Sudani",
+      "startDate": "2022-10-27"
+    },
+    "ISR": {
+      "personId": "Q43723",
+      "personName": "Benjamin Netanyahu",
+      "startDate": "2022-12-29"
+    },
+    "NIC": {
+      "personId": "Q57402",
+      "personName": "Daniel Ortega",
+      "startDate": "2007-01-10"
+    },
+    "KGZ": {
+      "personId": "Q112703041",
+      "personName": "Adylbek Kasymaliev",
+      "startDate": "2024-12-16"
+    },
+    "LBN": {
+      "personId": "Q638463",
+      "personName": "Nawaf Salam",
+      "startDate": "2025-02-08"
+    },
+    "MYS": {
+      "personId": "Q299574",
+      "personName": "Anwar Ibrahim",
+      "startDate": "2022-11-24"
+    },
+    "OMN": {
+      "personId": "Q12250314",
+      "personName": "Haitham bin Tarik Al Said",
+      "startDate": "2020-01-11"
+    },
+    "SAU": {
+      "personId": "Q367825",
+      "personName": "Salman bin Abdulaziz Al Saud",
+      "startDate": "2015-01-23"
+    },
+    "TJK": {
+      "personId": "Q15222839",
+      "personName": "Kokhir Rasulzoda",
+      "startDate": "2013-11-23"
+    },
+    "TKM": {
+      "personId": "Q51874548",
+      "personName": "Serdar Berdimuhamedow",
+      "startDate": "2022-03-19"
+    },
+    "ARE": {
+      "personId": "Q57655",
+      "personName": "Mohammed bin Rashid Al Maktoum"
+    },
+    "VNM": {
+      "personId": "Q10806940",
+      "personName": "Phạm Minh Chính",
+      "startDate": "2021-04-05"
+    },
+    "AFG": {
+      "personId": "Q108444479",
+      "personName": "Mohammad Hasan Akhund",
+      "startDate": "2023-07-17"
+    },
+    "BRN": {
+      "personId": "Q57327",
+      "personName": "Hassanal Bolkiah I of Brunei"
+    },
+    "JOR": {
+      "personId": "Q97011032",
+      "personName": "Jafar Hassan",
+      "startDate": "2024-09-15"
+    },
+    "YEM": {
+      "personId": "Q68837007",
+      "personName": "Salem Saleh bin Braik",
+      "startDate": "2025-05-03"
+    },
+    "LAO": {
+      "personId": "Q104914585",
+      "personName": "Sonexay Siphandone",
+      "startDate": "2022-12-30"
+    },
+    "FIN": {
+      "personId": "Q6029546",
+      "personName": "Petteri Orpo",
+      "startDate": "2023-06-20"
+    },
+    "SWE": {
+      "personId": "Q1780398",
+      "personName": "Q1780398",
+      "startDate": "2022-10-18"
+    },
+    "POL": {
+      "personId": "Q946",
+      "personName": "Donald Tusk",
+      "startDate": "2023-12-13"
+    },
+    "ITA": {
+      "personId": "Q451791",
+      "personName": "Giorgia Meloni",
+      "startDate": "2022-10-22"
+    },
+    "LTU": {
+      "personId": "Q124516173",
+      "personName": "Inga Ruginienė",
+      "startDate": "2025-09-25",
+      "endDate": "2026-07-14"
+    },
+    "CHN": {
+      "personId": "Q4414390",
+      "personName": "Li Qiang",
+      "startDate": "2023-03-11"
+    },
+    "BRA": {
+      "personId": "Q37181",
+      "personName": "Luiz Inácio Lula da Silva",
+      "startDate": "2023-01-01"
+    },
+    "RUS": {
+      "personId": "Q4298520",
+      "personName": "Mikhail Mishustin",
+      "startDate": "2020-01-16"
+    },
+    "DEU": {
+      "personId": "Q566257",
+      "personName": "Friedrich Merz",
+      "startDate": "2025-05-06"
+    },
+    "CHE": {
+      "personId": "Q30917",
+      "personName": "Swiss Federal Council"
+    },
+    "AUT": {
+      "personId": "Q64576653",
+      "personName": "Christian Stocker",
+      "startDate": "2025-03-03"
+    },
+    "TUR": {
+      "personId": "Q39259",
+      "personName": "Recep Tayyip Erdoğan",
+      "startDate": "2018-06-24"
+    },
+    "EGY": {
+      "personId": "Q54901515",
+      "personName": "Mostafa Madbouly",
+      "startDate": "2018-06-14"
+    },
+    "MEX": {
+      "personId": "Q5771800",
+      "personName": "Q5771800",
+      "startDate": "2024-09-30"
+    },
+    "FRA": {
+      "personId": "Q20089181",
+      "personName": "Sébastien Lecornu",
+      "startDate": "2025-09-09"
+    },
+    "BLR": {
+      "personId": "Q56235580",
+      "personName": "Alexander Turchyn",
+      "startDate": "2025-03-10"
+    },
+    "ISL": {
+      "personId": "Q108856371",
+      "personName": "Kristrún Mjöll Frostadóttir",
+      "startDate": "2024-12-21"
+    },
+    "LVA": {
+      "personId": "Q61121565",
+      "personName": "Evika Siliņa",
+      "startDate": "2023-09-15"
+    },
+    "AND": {
+      "personId": "Q21001195",
+      "personName": "Xavier Espot Zamora",
+      "startDate": "2019-05-16"
+    },
+    "CYP": {
+      "personId": "Q48905549",
+      "personName": "Nicos Christodoulides",
+      "startDate": "2023-02-12"
+    },
+    "BLZ": {
+      "personId": "Q6266369",
+      "personName": "Johnny Briceño",
+      "startDate": "2020-11-12"
+    },
+    "BRB": {
+      "personId": "Q6827147",
+      "personName": "Mia Mottley",
+      "startDate": "2018-05-25"
+    },
+    "BHR": {
+      "personId": "Q58140",
+      "personName": "Salman bin Hamad, Crown Prince of Bahrain",
+      "startDate": "2020-11-11"
+    },
+    "SRB": {
+      "personId": "Q42478807",
+      "personName": "Q42478807",
+      "startDate": "2025-04-16"
+    },
+    "AUS": {
+      "personId": "Q335697",
+      "personName": "Anthony Albanese",
+      "startDate": "2022-05-23"
+    },
+    "DZA": {
+      "personId": "Q133540883",
+      "personName": "Sifi Ghrieb",
+      "startDate": "2025-08-28"
+    },
+    "LIE": {
+      "personId": "Q129676165",
+      "personName": "Brigitte Haas",
+      "startDate": "2025-04-10"
+    },
+    "KAZ": {
+      "personId": "Q124436646",
+      "personName": "Olzhas Bektenov",
+      "startDate": "2024-02-06"
+    },
+    "MWI": {
+      "personId": "Q16202782",
+      "personName": "Lazarus Chakwera"
+    },
+    "ARG": {
+      "personId": "Q52395487",
+      "personName": "Javier Milei",
+      "startDate": "2023-12-10"
+    },
+    "PRK": {
+      "personId": "Q16905281",
+      "personName": "Pak Thae-song",
+      "startDate": "2024-12-01"
+    },
+    "WSM": {
+      "personId": "Q5446290",
+      "personName": "Fiamē Naomi Mataʻafa",
+      "startDate": "2021-05-24"
+    },
+    "SLB": {
+      "personId": "Q6180897",
+      "personName": "Jeremiah Manele",
+      "startDate": "2024-05-02"
+    },
+    "MHL": {
+      "personId": "Q20090884",
+      "personName": "Hilda Heine",
+      "startDate": "2024-01-03"
+    },
+    "COL": {
+      "personId": "Q704022",
+      "personName": "Gustavo Petro",
+      "startDate": "2022-08-07",
+      "endDate": "2026-08-07"
+    },
+    "KNA": {
+      "personId": "Q113443525",
+      "personName": "Terrance Drew",
+      "startDate": "2022-01-01"
+    },
+    "GRD": {
+      "personId": "Q112679881",
+      "personName": "Dickon Mitchell",
+      "startDate": "2022-01-01"
+    },
+    "ATG": {
+      "personId": "Q17177542",
+      "personName": "Gaston Browne"
+    },
+    "DMA": {
+      "personId": "Q57823",
+      "personName": "Roosevelt Skerrit",
+      "startDate": "2004-01-08"
+    },
+    "HTI": {
+      "personId": "Q131140314",
+      "personName": "Alix Didier Fils-Aimé",
+      "startDate": "2024-11-11"
+    },
+    "PAN": {
+      "personId": "Q108454869",
+      "personName": "José Raúl Mulino",
+      "startDate": "2024-07-01"
+    },
+    "MDV": {
+      "personId": "Q116293030",
+      "personName": "Mohamed Muizzu",
+      "startDate": "2023-11-17"
+    },
+    "LKA": {
+      "personId": "Q98298397",
+      "personName": "Harini Amarasuriya",
+      "startDate": "2024-09-24"
+    },
+    "TWN": {
+      "personId": "Q5116472",
+      "personName": "Cho Jung-tai",
+      "startDate": "2024-05-20"
+    },
+    "THA": {
+      "personId": "Q13018661",
+      "personName": "Phumtham Wechayachai",
+      "startDate": "2025-07-03"
+    },
+    "BGD": {
+      "personId": "Q43969",
+      "personName": "Muhammad Yunus",
+      "startDate": "2024-08-08",
+      "endDate": "2026-02-16"
+    },
+    "MLI": {
+      "personId": "Q113577661",
+      "personName": "Abdoulaye Maïga",
+      "startDate": "2022-08-21"
+    },
+    "AGO": {
+      "personId": "Q28650390",
+      "personName": "João Lourenço",
+      "startDate": "2017-09-26"
+    },
+    "CAF": {
+      "personId": "Q88310768",
+      "personName": "Félix Moloua",
+      "startDate": "2022-02-07"
+    },
+    "TGO": {
+      "personId": "Q4414",
+      "personName": "Faure Essozimna Gnassingbé",
+      "startDate": "2025-05-03"
+    },
+    "KOR": {
+      "personId": "Q12612463",
+      "personName": "Lee Jae Myung",
+      "startDate": "2025-06-04"
+    },
+    "PSE": {
+      "personId": "Q16192933",
+      "personName": "Mohammad Shtayyeh",
+      "startDate": "2019-03-10"
+    },
+    "MRT": {
+      "personId": "Q66793577",
+      "personName": "Moctar Ould Djay",
+      "startDate": "2024-08-02"
+    },
+    "MUS": {
+      "personId": "Q3401447",
+      "personName": "Pravind Jugnauth",
+      "startDate": "2017-01-23"
+    },
+    "MOZ": {
+      "personId": "Q6761049",
+      "personName": "Maria Benvinda Levy",
+      "startDate": "2025-01-15"
+    },
+    "NER": {
+      "personId": "Q2646711",
+      "personName": "Ali Lamine Zeine",
+      "startDate": "2023-08-08"
+    },
+    "UGA": {
+      "personId": "Q62481397",
+      "personName": "Nabbanja Robinah",
+      "startDate": "2021-06-01"
+    },
+    "STP": {
+      "personId": "Q131749390",
+      "personName": "Américo Ramos",
+      "startDate": "2025-01-12"
+    },
+    "SLE": {
+      "personId": "Q23728768",
+      "personName": "David Sengeh",
+      "startDate": "2023-01-01"
+    },
+    "SOM": {
+      "personId": "Q99605101",
+      "personName": "Mohamed Hussein Roble",
+      "startDate": "2020-09-23"
+    },
+    "SDN": {
+      "personId": "Q27654948",
+      "personName": "Abdalla Hamdok",
+      "startDate": "2019-08-21"
+    },
+    "SWZ": {
+      "personId": "Q123342092",
+      "personName": "Edeupa Yerimin",
+      "startDate": "2023-11-04"
+    },
+    "GIB": {
+      "personId": "Q2356379",
+      "personName": "Fabian Picardo",
+      "startDate": "2011-12-09"
+    },
+    "ASM": {
+      "personId": "Q131299388",
+      "personName": "Pula Nikolao Pula",
+      "startDate": "2025-01-01"
+    },
+    "SHN": {
+      "personId": "Q59638933",
+      "personName": "Philip Rushbrook"
+    },
+    "AIA": {
+      "personId": "Q98079363",
+      "personName": "Ellis Webster",
+      "startDate": "2020-06-30"
+    },
+    "GGY": {
+      "personId": "Q27517421",
+      "personName": "Gavin St Pier",
+      "startDate": "2016-05-04"
+    },
+    "VGB": {
+      "personId": "Q28709152",
+      "personName": "Andrew Fahie",
+      "startDate": "2019-02-26"
+    },
+    "SXM": {
+      "personId": "Q47262798",
+      "personName": "Leona Marlin-Romeo",
+      "startDate": "2018-01-15"
+    },
+    "COK": {
+      "personId": "Q6766871",
+      "personName": "Mark Brown",
+      "startDate": "2020-10-01"
+    },
+    "NIU": {
+      "personId": "Q19876617",
+      "personName": "Dalton Tagelagi",
+      "startDate": "2020-06-11"
+    },
+    "SPM": {
+      "personId": "Q3501568",
+      "personName": "Stéphane Artano"
+    },
+    "CYM": {
+      "personId": "Q109772130",
+      "personName": "Andre M. Ebanks",
+      "startDate": "2025-05-06"
+    },
+    "HKG": {
+      "personId": "Q9051824",
+      "personName": "John Lee",
+      "startDate": "2022-07-01"
+    },
+    "ZWE": {
+      "personId": "Q510523",
+      "personName": "Emmerson Mnangagwa",
+      "startDate": "2017-11-24"
+    },
+    "BDI": {
+      "personId": "Q107136851",
+      "personName": "Gervais Ndirakobuca",
+      "startDate": "2023-09-07"
+    },
+    "COM": {
+      "personId": "Q515602",
+      "personName": "Azali Assoumani",
+      "startDate": "2016-05-26"
+    },
+    "COD": {
+      "personId": "Q63967715",
+      "personName": "Ilunga Ilunkamba Sylvestre",
+      "startDate": "2019-09-07"
+    },
+    "DJI": {
+      "personId": "Q10522744",
+      "personName": "Abdoulkader Kamil Mohamed",
+      "startDate": "2013-04-01"
+    },
+    "ERI": {
+      "personId": "Q57348",
+      "personName": "Isaias Afwerki",
+      "startDate": "1993-01-01"
+    },
+    "MNP": {
+      "personId": "Q108413751",
+      "personName": "David M. Apatang",
+      "startDate": "2025-07-23"
+    }
+  }
+}

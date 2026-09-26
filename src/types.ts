@@ -6,6 +6,7 @@ export interface Country {
   id: string; commonName: string; officialName?: string;
   externalIds: { isoAlpha2?: string; isoAlpha3?: string; unM49?: string };
   entityType: 'sovereign_state' | 'dependency' | 'disputed' | 'partially_recognized' | 'special_status';
+  unMembership: 'member' | 'observer' | 'non_member';
   sovereignCountryId?: string; capital?: string; continent?: string; unSubregion?: string;
   sources: Record<string, DataSource[]>; kind: EntityKind;
 }

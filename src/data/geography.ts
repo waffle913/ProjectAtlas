@@ -1,12 +1,12 @@
 import type { Country, Territory } from '../types';
-import { entityRegistry, naturalEarthMapping, indexRegistry } from './registry';
+import { indexRegistry } from './registry';
 import type { EntityRegistry, DatasetMapping } from './registry';
 
 /** Converts a published geographic snapshot into gameplay entities. Source geometry remains immutable. */
 export function buildWorld(
   featureCollection: GeoJSON.FeatureCollection,
-  mapping: DatasetMapping = naturalEarthMapping,
-  registry: EntityRegistry = entityRegistry,
+  mapping: DatasetMapping,
+  registry: EntityRegistry,
 ) {
   const index = indexRegistry(registry, mapping);
   const seen = new Set<string>();
@@ -26,6 +26,7 @@ export function buildWorld(
     if (!countries.has(countryId)) countries.set(countryId, {
       id: countryId, commonName: countryEntity.commonName, officialName: countryEntity.officialName,
       externalIds: countryEntity.externalIds, entityType: countryEntity.entityType,
+      unMembership: countryEntity.unMembership,
       sovereignCountryId: countryEntity.sovereignCountryId, capital: countryEntity.capital,
       continent: countryEntity.continent, unSubregion: countryEntity.unSubregion,
       sources: countryEntity.sources, kind,

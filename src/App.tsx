@@ -3,6 +3,7 @@ import { GeoJSON, MapContainer, useMap } from "react-leaflet";
 import type L from "leaflet";
 import type { Country, SimulationState, Territory } from "./types";
 import { buildWorld } from "./data/geography";
+import { loadCountryData, type LoadedCountryData } from "./data/countryData";
 import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
 import { SimulationClock } from "./simulation/clock";
@@ -38,27 +39,29 @@ export default function App() {
     rivers?: GeoJSON.FeatureCollection;
   }>({});
   const [selected, setSelected] = useState<string>();
+  const [countryData, setCountryData] = useState<LoadedCountryData>();
   const [sim, setSim] = useState(initialState);
   const [loadError, setLoadError] = useState<string>();
   const clock = useRef(new SimulationClock(initialState));
   useEffect(() => {
     let active = true;
     Promise.all([
+      loadCountryData(),
       fetch("/data/natural-earth-admin-0.geojson"),
       fetch("/data/natural-earth-land.geojson"),
       fetch("/data/natural-earth-lakes.geojson"),
       fetch("/data/natural-earth-rivers.geojson"),
     ])
-      .then(async (responses) => {
+      .then(async ([data, ...responses]) => {
         if (responses.some((response) => !response.ok))
           throw new Error(
             "One or more local geographic assets are unavailable.",
           );
-        return Promise.all(responses.map((response) => response.json()));
+        return [data, ...(await Promise.all(responses.map((response) => response.json())))] as const;
       })
-      .then(([admin0, land, lakes, rivers]) => {
+      .then(([data, admin0, land, lakes, rivers]) => {
         if (!active) return;
-        const nextWorld = buildWorld(admin0);
+        const nextWorld = buildWorld(admin0, data.mapping, data.registry);
         const ownership = Object.fromEntries(
           nextWorld.territories.map((territory) => [
             territory.id,
@@ -68,6 +71,7 @@ export default function App() {
         clock.current.setTerritoryOwnership(ownership);
         setSim(clock.current.snapshot());
         setWorld(nextWorld);
+        setCountryData(data);
         setPhysical({ land, lakes, rivers });
       })
       .catch(
@@ -217,7 +221,11 @@ export default function App() {
             Local Natural Earth physical basemap · separate political overlay
           </div>
         </section>
-        <CountryPanel country={selectedCountry} />
+        <CountryPanel
+          country={selectedCountry}
+          factsRecord={selected ? countryData?.factsByCountryId.get(selected) : undefined}
+          officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
+        />
       </div>
     </main>
   );

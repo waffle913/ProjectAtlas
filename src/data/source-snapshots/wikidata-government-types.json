@@ -1,0 +1,1544 @@
+{
+  "snapshotId": "Wikidata-government-types@2026-09-26",
+  "referenceDate": "2026-09-26",
+  "retrievedAt": "2026-09-26",
+  "sourceUrl": "https://query.wikidata.org/",
+  "forms": {
+    "CAN": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q43702",
+        "name": "federation"
+      },
+      {
+        "id": "Q166747",
+        "name": "parliamentary system"
+      }
+    ],
+    "IRL": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "HUN": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "ESP": [
+      {
+        "id": "Q3330103",
+        "name": "parliamentary monarchy"
+      }
+    ],
+    "USA": [
+      {
+        "id": "Q1520223",
+        "name": "constitutional republic"
+      },
+      {
+        "id": "Q5255892",
+        "name": "democratic republic"
+      }
+    ],
+    "BEL": [
+      {
+        "id": "Q43702",
+        "name": "federation"
+      }
+    ],
+    "LUX": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "FIN": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "SWE": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      }
+    ],
+    "POL": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q166747",
+        "name": "parliamentary system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "LTU": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "ITA": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "CHE": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      },
+      {
+        "id": "Q2523556",
+        "name": "directorial system"
+      }
+    ],
+    "AUT": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q5440547",
+        "name": "federal parliamentary republic"
+      }
+    ],
+    "TUR": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "EGY": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "MEX": [
+      {
+        "id": "Q48349",
+        "name": "empire"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      },
+      {
+        "id": "Q1520223",
+        "name": "constitutional republic"
+      },
+      {
+        "id": "Q5255892",
+        "name": "democratic republic"
+      }
+    ],
+    "FRA": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      }
+    ],
+    "CHN": [
+      {
+        "id": "Q465613",
+        "name": "people's republic"
+      }
+    ],
+    "BRA": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      },
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "RUS": [
+      {
+        "id": "Q4446300",
+        "name": "super-presidential republic"
+      }
+    ],
+    "DEU": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "BLR": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "ISL": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "LVA": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "AND": [
+      {
+        "id": "Q20105434",
+        "name": "parliamentary coprincipality"
+      }
+    ],
+    "CYP": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "KAZ": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "BLZ": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q3330103",
+        "name": "parliamentary monarchy"
+      }
+    ],
+    "BRB": [
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "DZA": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q465613",
+        "name": "people's republic"
+      }
+    ],
+    "CHL": [
+      {
+        "id": "Q5255892",
+        "name": "democratic republic"
+      }
+    ],
+    "LIE": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "BHR": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "AUS": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q43702",
+        "name": "federation"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      }
+    ],
+    "ARG": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "PRK": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q50686",
+        "name": "one-party state"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q181800",
+        "name": "Juche"
+      },
+      {
+        "id": "Q842112",
+        "name": "socialist state"
+      },
+      {
+        "id": "Q5433328",
+        "name": "family dictatorship"
+      },
+      {
+        "id": "Q117405807",
+        "name": "communist dictatorship"
+      }
+    ],
+    "COL": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "KNA": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q3208952",
+        "name": "federal monarchy"
+      }
+    ],
+    "ATG": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "PAN": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "LKA": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "SYR": [
+      {
+        "id": "Q59281",
+        "name": "provisional government"
+      }
+    ],
+    "TWN": [
+      {
+        "id": "Q7174",
+        "name": "democracy"
+      },
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q1520223",
+        "name": "constitutional republic"
+      }
+    ],
+    "THA": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q3330103",
+        "name": "parliamentary monarchy"
+      }
+    ],
+    "KOR": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "BGD": [
+      {
+        "id": "Q720477",
+        "name": "Westminster system"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "AGO": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "TUN": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "SSD": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "BEN": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "BFA": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q25424534",
+        "name": "military junta"
+      }
+    ],
+    "GAB": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "GMB": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "GIN": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "CIV": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "CMR": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "CPV": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "JPN": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "NOR": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q166747",
+        "name": "parliamentary system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      }
+    ],
+    "ETH": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "GHA": [
+      {
+        "id": "Q7174",
+        "name": "democracy"
+      }
+    ],
+    "GBR": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "EST": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "UKR": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      }
+    ],
+    "CZE": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "SVK": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "SVN": [
+      {
+        "id": "Q5255892",
+        "name": "democratic republic"
+      }
+    ],
+    "ROU": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "BGR": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "MKD": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "ALB": [
+      {
+        "id": "Q166747",
+        "name": "parliamentary system"
+      }
+    ],
+    "AZE": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "GEO": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "MLT": [
+      {
+        "id": "Q3043547",
+        "name": "parliamentary democracy"
+      }
+    ],
+    "MNE": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "VAT": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q44405",
+        "name": "theocracy"
+      },
+      {
+        "id": "Q12774933",
+        "name": "papacy"
+      }
+    ],
+    "SMR": [
+      {
+        "id": "Q936648",
+        "name": "diarchy"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "CUB": [
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "UZB": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "SGP": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "ARM": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q166747",
+        "name": "parliamentary system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "PER": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "NZL": [
+      {
+        "id": "Q3330103",
+        "name": "parliamentary monarchy"
+      }
+    ],
+    "IND": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      },
+      {
+        "id": "Q1520223",
+        "name": "constitutional republic"
+      },
+      {
+        "id": "Q5255892",
+        "name": "democratic republic"
+      }
+    ],
+    "MNG": [
+      {
+        "id": "Q166747",
+        "name": "parliamentary system"
+      }
+    ],
+    "VEN": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "GUY": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "ECU": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "BOL": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "TTO": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "LCA": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "GTM": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      }
+    ],
+    "HND": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "IRN": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q672729",
+        "name": "Islamic Republic"
+      },
+      {
+        "id": "Q138567551",
+        "name": "islamic theocracy"
+      }
+    ],
+    "IRQ": [
+      {
+        "id": "Q43702",
+        "name": "federation"
+      },
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "ISR": [
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "YEM": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "NIC": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "KGZ": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "LAO": [
+      {
+        "id": "Q465613",
+        "name": "people's republic"
+      },
+      {
+        "id": "Q117405807",
+        "name": "communist dictatorship"
+      }
+    ],
+    "LBN": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "MYS": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q43702",
+        "name": "federation"
+      },
+      {
+        "id": "Q584683",
+        "name": "elective monarchy"
+      },
+      {
+        "id": "Q3208952",
+        "name": "federal monarchy"
+      },
+      {
+        "id": "Q3330103",
+        "name": "parliamentary monarchy"
+      }
+    ],
+    "OMN": [
+      {
+        "id": "Q184558",
+        "name": "absolute monarchy"
+      }
+    ],
+    "SAU": [
+      {
+        "id": "Q7269",
+        "name": "monarchy"
+      },
+      {
+        "id": "Q184558",
+        "name": "absolute monarchy"
+      },
+      {
+        "id": "Q138567551",
+        "name": "islamic theocracy"
+      }
+    ],
+    "TJK": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "TKM": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "ARE": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q184558",
+        "name": "absolute monarchy"
+      },
+      {
+        "id": "Q3208952",
+        "name": "federal monarchy"
+      }
+    ],
+    "VNM": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q50686",
+        "name": "one-party state"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "AFG": [
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q189898",
+        "name": "Emirate"
+      },
+      {
+        "id": "Q138567551",
+        "name": "islamic theocracy"
+      }
+    ],
+    "BRN": [
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q184558",
+        "name": "absolute monarchy"
+      },
+      {
+        "id": "Q4204060",
+        "name": "Islamic state"
+      }
+    ],
+    "BWA": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "BDI": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      }
+    ],
+    "COM": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "LSO": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "LBR": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q1520223",
+        "name": "constitutional republic"
+      },
+      {
+        "id": "Q17023307",
+        "name": "Herrenvolk democracy"
+      }
+    ],
+    "LBY": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "MDG": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "MAR": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "NGA": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "RWA": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      }
+    ],
+    "SEN": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "SUN": [
+      {
+        "id": "Q43702",
+        "name": "federation"
+      },
+      {
+        "id": "Q50686",
+        "name": "one-party state"
+      },
+      {
+        "id": "Q118365",
+        "name": "dictatorship of the proletariat"
+      },
+      {
+        "id": "Q1075404",
+        "name": "soviet republic"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "DDR": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      },
+      {
+        "id": "Q117405807",
+        "name": "communist dictatorship"
+      }
+    ],
+    "ABW": [
+      {
+        "id": "Q7269",
+        "name": "monarchy"
+      }
+    ],
+    "CUW": [
+      {
+        "id": "Q3043547",
+        "name": "parliamentary democracy"
+      }
+    ],
+    "PSE": [
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "COD": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "MRT": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "MUS": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "UGA": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "SLE": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "SOM": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "SDN": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "SWZ": [
+      {
+        "id": "Q184558",
+        "name": "absolute monarchy"
+      }
+    ],
+    "CYM": [
+      {
+        "id": "Q46395",
+        "name": "British Overseas Territories"
+      }
+    ],
+    "ANT": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "AIA": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "SPM": [
+      {
+        "id": "Q719487",
+        "name": "overseas collectivity of France"
+      }
+    ],
+    "WLF": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "PCI": [
+      {
+        "id": "Q985073",
+        "name": "United Nations trust territory"
+      }
+    ],
+    "DHY": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "AFI": [
+      {
+        "id": "Q203396",
+        "name": "Overseas France"
+      }
+    ],
+    "DNK": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "GRC": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "PRT": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "URY": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q310988",
+        "name": "participatory democracy"
+      }
+    ],
+    "MDA": [
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "GRL": [
+      {
+        "id": "Q3330103",
+        "name": "parliamentary monarchy"
+      }
+    ],
+    "HRV": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "BIH": [
+      {
+        "id": "Q5440547",
+        "name": "federal parliamentary republic"
+      }
+    ],
+    "MCO": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q849242",
+        "name": "hereditary monarchy"
+      }
+    ],
+    "IDN": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      }
+    ],
+    "ZAF": [
+      {
+        "id": "Q11409",
+        "name": "apartheid"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "KHM": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "TLS": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49890",
+        "name": "semi-presidential system"
+      },
+      {
+        "id": "Q179164",
+        "name": "unitary state"
+      }
+    ],
+    "FSM": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "SUR": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "VCT": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "BHS": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "JEY": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q3043547",
+        "name": "parliamentary democracy"
+      },
+      {
+        "id": "Q3330103",
+        "name": "parliamentary monarchy"
+      }
+    ],
+    "SLV": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      },
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      }
+    ],
+    "KWT": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "MMR": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "NPL": [
+      {
+        "id": "Q465613",
+        "name": "people's republic"
+      },
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      }
+    ],
+    "PAK": [
+      {
+        "id": "Q512187",
+        "name": "federal republic"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "QAT": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "BTN": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "PHL": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "ZMB": [
+      {
+        "id": "Q49892",
+        "name": "presidential system"
+      },
+      {
+        "id": "Q188759",
+        "name": "representative democracy"
+      }
+    ],
+    "COG": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "XKS": [
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      }
+    ],
+    "BYS": [
+      {
+        "id": "Q1075404",
+        "name": "soviet republic"
+      }
+    ],
+    "BMU": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      },
+      {
+        "id": "Q46395",
+        "name": "British Overseas Territories"
+      }
+    ],
+    "NLD": [
+      {
+        "id": "Q41614",
+        "name": "constitutional monarchy"
+      }
+    ],
+    "CSK": [
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "YUG": [
+      {
+        "id": "Q50686",
+        "name": "one-party state"
+      },
+      {
+        "id": "Q663333",
+        "name": "Titoism"
+      },
+      {
+        "id": "Q842112",
+        "name": "socialist state"
+      },
+      {
+        "id": "Q4198907",
+        "name": "parliamentary republic"
+      },
+      {
+        "id": "Q7270",
+        "name": "republic"
+      }
+    ],
+    "HVO": [
+      {
+        "id": "Q7448101",
+        "name": "self-governing colony"
+      }
+    ]
+  }
+}

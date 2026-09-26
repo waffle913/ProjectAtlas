@@ -9,8 +9,10 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "data:generate": "node scripts/generate-country-data.mjs",
+    "data:sources:update": "node scripts/update-source-snapshots.mjs",
+    "data:verify": "node scripts/verify-generated-data.mjs",
     "test": "vitest run",
-    "verify": "npm run build && npm test"
+    "verify": "npm run data:verify && npm run build && npm test"
   },
   "repository": {
     "type": "git",

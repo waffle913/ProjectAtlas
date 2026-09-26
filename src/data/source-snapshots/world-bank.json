@@ -1,0 +1,5161 @@
+{
+  "snapshotId": "WDI@2026-09-26",
+  "retrievedAt": "2026-09-26",
+  "sourceUrl": "https://api.worldbank.org/v2/",
+  "indicators": {
+    "SP.POP.TOTL": {
+      "AFE": {
+        "value": 788844284,
+        "referenceDate": "2025"
+      },
+      "AFW": {
+        "value": 532809933,
+        "referenceDate": "2025"
+      },
+      "ARB": {
+        "value": 503356133,
+        "referenceDate": "2025"
+      },
+      "CSS": {
+        "value": 4556558,
+        "referenceDate": "2025"
+      },
+      "CEB": {
+        "value": 99814596,
+        "referenceDate": "2025"
+      },
+      "EAR": {
+        "value": 3592750579,
+        "referenceDate": "2025"
+      },
+      "EAS": {
+        "value": 2390873921,
+        "referenceDate": "2025"
+      },
+      "EAP": {
+        "value": 2143908411,
+        "referenceDate": "2025"
+      },
+      "TEA": {
+        "value": 2117367063,
+        "referenceDate": "2025"
+      },
+      "EMU": {
+        "value": 358664361,
+        "referenceDate": "2025"
+      },
+      "ECS": {
+        "value": 932525035,
+        "referenceDate": "2025"
+      },
+      "ECA": {
+        "value": 253280471,
+        "referenceDate": "2025"
+      },
+      "TEC": {
+        "value": 462559433,
+        "referenceDate": "2025"
+      },
+      "EUU": {
+        "value": 451127411,
+        "referenceDate": "2025"
+      },
+      "HPC": {
+        "value": 965148593,
+        "referenceDate": "2025"
+      },
+      "IBD": {
+        "value": 5006926951,
+        "referenceDate": "2025"
+      },
+      "IBT": {
+        "value": 6993790788,
+        "referenceDate": "2025"
+      },
+      "IDB": {
+        "value": 689783382,
+        "referenceDate": "2025"
+      },
+      "IDX": {
+        "value": 1297080455,
+        "referenceDate": "2025"
+      },
+      "IDA": {
+        "value": 1986863837,
+        "referenceDate": "2025"
+      },
+      "LTE": {
+        "value": 2330425681,
+        "referenceDate": "2025"
+      },
+      "LCN": {
+        "value": 666592570,
+        "referenceDate": "2025"
+      },
+      "LAC": {
+        "value": 626808315,
+        "referenceDate": "2025"
+      },
+      "TLA": {
+        "value": 651467364,
+        "referenceDate": "2025"
+      },
+      "LDC": {
+        "value": 1214167506,
+        "referenceDate": "2025"
+      },
+      "LMY": {
+        "value": 6791684991,
+        "referenceDate": "2025"
+      },
+      "MEA": {
+        "value": 828025185,
+        "referenceDate": "2025"
+      },
+      "MNA": {
+        "value": 753903407,
+        "referenceDate": "2025"
+      },
+      "TMN": {
+        "value": 748489811,
+        "referenceDate": "2025"
+      },
+      "MIC": {
+        "value": 6024194822,
+        "referenceDate": "2025"
+      },
+      "NAC": {
+        "value": 383501065,
+        "referenceDate": "2025"
+      },
+      "OED": {
+        "value": 1402243571,
+        "referenceDate": "2025"
+      },
+      "OSS": {
+        "value": 13034928,
+        "referenceDate": "2025"
+      },
+      "PSS": {
+        "value": 2755649,
+        "referenceDate": "2025"
+      },
+      "PST": {
+        "value": 1132621782,
+        "referenceDate": "2025"
+      },
+      "PRE": {
+        "value": 1133132223,
+        "referenceDate": "2025"
+      },
+      "SST": {
+        "value": 20347135,
+        "referenceDate": "2025"
+      },
+      "SAS": {
+        "value": 1692252900,
+        "referenceDate": "2025"
+      },
+      "TSA": {
+        "value": 1692252900,
+        "referenceDate": "2025"
+      },
+      "SSF": {
+        "value": 1321654217,
+        "referenceDate": "2025"
+      },
+      "SSA": {
+        "value": 1321531487,
+        "referenceDate": "2025"
+      },
+      "TSS": {
+        "value": 1321654217,
+        "referenceDate": "2025"
+      },
+      "WLD": {
+        "value": 8215424893,
+        "referenceDate": "2025"
+      },
+      "AFG": {
+        "value": 43844111,
+        "referenceDate": "2025"
+      },
+      "ALB": {
+        "value": 2349580,
+        "referenceDate": "2025"
+      },
+      "DZA": {
+        "value": 47435312,
+        "referenceDate": "2025"
+      },
+      "ASM": {
+        "value": 46029,
+        "referenceDate": "2025"
+      },
+      "AND": {
+        "value": 82904,
+        "referenceDate": "2025"
+      },
+      "AGO": {
+        "value": 39040039,
+        "referenceDate": "2025"
+      },
+      "ATG": {
+        "value": 94209,
+        "referenceDate": "2025"
+      },
+      "ARG": {
+        "value": 45851378,
+        "referenceDate": "2025"
+      },
+      "ARM": {
+        "value": 3086700,
+        "referenceDate": "2025"
+      },
+      "ABW": {
+        "value": 108785,
+        "referenceDate": "2025"
+      },
+      "AUS": {
+        "value": 27614411,
+        "referenceDate": "2025"
+      },
+      "AUT": {
+        "value": 9208163,
+        "referenceDate": "2025"
+      },
+      "AZE": {
+        "value": 10246996,
+        "referenceDate": "2025"
+      },
+      "BHS": {
+        "value": 403033,
+        "referenceDate": "2025"
+      },
+      "BHR": {
+        "value": 1600366,
+        "referenceDate": "2025"
+      },
+      "BGD": {
+        "value": 175686899,
+        "referenceDate": "2025"
+      },
+      "BRB": {
+        "value": 282623,
+        "referenceDate": "2025"
+      },
+      "BLR": {
+        "value": 9085991,
+        "referenceDate": "2025"
+      },
+      "BEL": {
+        "value": 11941781,
+        "referenceDate": "2025"
+      },
+      "BLZ": {
+        "value": 422924,
+        "referenceDate": "2025"
+      },
+      "BEN": {
+        "value": 14814460,
+        "referenceDate": "2025"
+      },
+      "BMU": {
+        "value": 64555,
+        "referenceDate": "2025"
+      },
+      "BTN": {
+        "value": 796682,
+        "referenceDate": "2025"
+      },
+      "BOL": {
+        "value": 12581843,
+        "referenceDate": "2025"
+      },
+      "BIH": {
+        "value": 3140095,
+        "referenceDate": "2025"
+      },
+      "BWA": {
+        "value": 2562122,
+        "referenceDate": "2025"
+      },
+      "BRA": {
+        "value": 212812405,
+        "referenceDate": "2025"
+      },
+      "VGB": {
+        "value": 39732,
+        "referenceDate": "2025"
+      },
+      "BRN": {
+        "value": 466330,
+        "referenceDate": "2025"
+      },
+      "BGR": {
+        "value": 6433302,
+        "referenceDate": "2025"
+      },
+      "BFA": {
+        "value": 24074580,
+        "referenceDate": "2025"
+      },
+      "BDI": {
+        "value": 14390003,
+        "referenceDate": "2025"
+      },
+      "CPV": {
+        "value": 527326,
+        "referenceDate": "2025"
+      },
+      "KHM": {
+        "value": 17847982,
+        "referenceDate": "2025"
+      },
+      "CMR": {
+        "value": 29879337,
+        "referenceDate": "2025"
+      },
+      "CAN": {
+        "value": 41651653,
+        "referenceDate": "2025"
+      },
+      "CYM": {
+        "value": 75844,
+        "referenceDate": "2025"
+      },
+      "CAF": {
+        "value": 5513282,
+        "referenceDate": "2025"
+      },
+      "TCD": {
+        "value": 21003705,
+        "referenceDate": "2025"
+      },
+      "CHI": {
+        "value": 168466,
+        "referenceDate": "2025"
+      },
+      "CHL": {
+        "value": 19859921,
+        "referenceDate": "2025"
+      },
+      "CHN": {
+        "value": 1406585000,
+        "referenceDate": "2025"
+      },
+      "COL": {
+        "value": 53425635,
+        "referenceDate": "2025"
+      },
+      "COM": {
+        "value": 882847,
+        "referenceDate": "2025"
+      },
+      "COD": {
+        "value": 112832473,
+        "referenceDate": "2025"
+      },
+      "COG": {
+        "value": 6484437,
+        "referenceDate": "2025"
+      },
+      "CRI": {
+        "value": 5152950,
+        "referenceDate": "2025"
+      },
+      "CIV": {
+        "value": 32711547,
+        "referenceDate": "2025"
+      },
+      "HRV": {
+        "value": 3876200,
+        "referenceDate": "2025"
+      },
+      "CUB": {
+        "value": 10937203,
+        "referenceDate": "2025"
+      },
+      "CUW": {
+        "value": 156263,
+        "referenceDate": "2025"
+      },
+      "CYP": {
+        "value": 1370754,
+        "referenceDate": "2025"
+      },
+      "CZE": {
+        "value": 10886878,
+        "referenceDate": "2025"
+      },
+      "DNK": {
+        "value": 6009169,
+        "referenceDate": "2025"
+      },
+      "DJI": {
+        "value": 1184076,
+        "referenceDate": "2025"
+      },
+      "DMA": {
+        "value": 65871,
+        "referenceDate": "2025"
+      },
+      "DOM": {
+        "value": 11520487,
+        "referenceDate": "2025"
+      },
+      "ECU": {
+        "value": 18289896,
+        "referenceDate": "2025"
+      },
+      "EGY": {
+        "value": 118365995,
+        "referenceDate": "2025"
+      },
+      "SLV": {
+        "value": 6365503,
+        "referenceDate": "2025"
+      },
+      "GNQ": {
+        "value": 1938431,
+        "referenceDate": "2025"
+      },
+      "ERI": {
+        "value": 3607003,
+        "referenceDate": "2025"
+      },
+      "EST": {
+        "value": 1366475,
+        "referenceDate": "2025"
+      },
+      "SWZ": {
+        "value": 1256174,
+        "referenceDate": "2025"
+      },
+      "ETH": {
+        "value": 135472051,
+        "referenceDate": "2025"
+      },
+      "FRO": {
+        "value": 54900,
+        "referenceDate": "2025"
+      },
+      "FJI": {
+        "value": 933154,
+        "referenceDate": "2025"
+      },
+      "FIN": {
+        "value": 5646436,
+        "referenceDate": "2025"
+      },
+      "FRA": {
+        "value": 68720337,
+        "referenceDate": "2025"
+      },
+      "PYF": {
+        "value": 282465,
+        "referenceDate": "2025"
+      },
+      "GAB": {
+        "value": 2593130,
+        "referenceDate": "2025"
+      },
+      "GMB": {
+        "value": 2822093,
+        "referenceDate": "2025"
+      },
+      "GEO": {
+        "value": 3935766,
+        "referenceDate": "2025"
+      },
+      "DEU": {
+        "value": 83491249,
+        "referenceDate": "2025"
+      },
+      "GHA": {
+        "value": 35064272,
+        "referenceDate": "2025"
+      },
+      "GIB": {
+        "value": 40126,
+        "referenceDate": "2025"
+      },
+      "GRC": {
+        "value": 10413962,
+        "referenceDate": "2025"
+      },
+      "GRL": {
+        "value": 56831,
+        "referenceDate": "2025"
+      },
+      "GRD": {
+        "value": 117303,
+        "referenceDate": "2025"
+      },
+      "GUM": {
+        "value": 168999,
+        "referenceDate": "2025"
+      },
+      "GTM": {
+        "value": 18687881,
+        "referenceDate": "2025"
+      },
+      "GIN": {
+        "value": 15099727,
+        "referenceDate": "2025"
+      },
+      "GNB": {
+        "value": 2249515,
+        "referenceDate": "2025"
+      },
+      "GUY": {
+        "value": 835986,
+        "referenceDate": "2025"
+      },
+      "HTI": {
+        "value": 11906095,
+        "referenceDate": "2025"
+      },
+      "HND": {
+        "value": 11005850,
+        "referenceDate": "2025"
+      },
+      "HKG": {
+        "value": 7498900,
+        "referenceDate": "2025"
+      },
+      "HUN": {
+        "value": 9514251,
+        "referenceDate": "2025"
+      },
+      "ISL": {
+        "value": 392404,
+        "referenceDate": "2025"
+      },
+      "IND": {
+        "value": 1463865525,
+        "referenceDate": "2025"
+      },
+      "IDN": {
+        "value": 285721236,
+        "referenceDate": "2025"
+      },
+      "IRN": {
+        "value": 92417681,
+        "referenceDate": "2025"
+      },
+      "IRQ": {
+        "value": 47020774,
+        "referenceDate": "2025"
+      },
+      "IRL": {
+        "value": 5484367,
+        "referenceDate": "2025"
+      },
+      "IMN": {
+        "value": 84118,
+        "referenceDate": "2025"
+      },
+      "ISR": {
+        "value": 10122800,
+        "referenceDate": "2025"
+      },
+      "ITA": {
+        "value": 58915656,
+        "referenceDate": "2025"
+      },
+      "JAM": {
+        "value": 2837077,
+        "referenceDate": "2025"
+      },
+      "JPN": {
+        "value": 123366734,
+        "referenceDate": "2025"
+      },
+      "JOR": {
+        "value": 11520684,
+        "referenceDate": "2025"
+      },
+      "KAZ": {
+        "value": 20843754,
+        "referenceDate": "2025"
+      },
+      "KEN": {
+        "value": 57532493,
+        "referenceDate": "2025"
+      },
+      "KIR": {
+        "value": 136488,
+        "referenceDate": "2025"
+      },
+      "PRK": {
+        "value": 26571036,
+        "referenceDate": "2025"
+      },
+      "KOR": {
+        "value": 51684564,
+        "referenceDate": "2025"
+      },
+      "XKX": {
+        "value": 1576876,
+        "referenceDate": "2025"
+      },
+      "KWT": {
+        "value": 4865298,
+        "referenceDate": "2025"
+      },
+      "KGZ": {
+        "value": 7343064,
+        "referenceDate": "2025"
+      },
+      "LAO": {
+        "value": 7873046,
+        "referenceDate": "2025"
+      },
+      "LVA": {
+        "value": 1847785,
+        "referenceDate": "2025"
+      },
+      "LBN": {
+        "value": 5849421,
+        "referenceDate": "2025"
+      },
+      "LSO": {
+        "value": 2363325,
+        "referenceDate": "2025"
+      },
+      "LBR": {
+        "value": 5731206,
+        "referenceDate": "2025"
+      },
+      "LBY": {
+        "value": 7458555,
+        "referenceDate": "2025"
+      },
+      "LIE": {
+        "value": 41024,
+        "referenceDate": "2025"
+      },
+      "LTU": {
+        "value": 2888774,
+        "referenceDate": "2025"
+      },
+      "LUX": {
+        "value": 686970,
+        "referenceDate": "2025"
+      },
+      "MAC": {
+        "value": 685900,
+        "referenceDate": "2025"
+      },
+      "MDG": {
+        "value": 32740678,
+        "referenceDate": "2025"
+      },
+      "MWI": {
+        "value": 22216120,
+        "referenceDate": "2025"
+      },
+      "MYS": {
+        "value": 35977838,
+        "referenceDate": "2025"
+      },
+      "MDV": {
+        "value": 529676,
+        "referenceDate": "2025"
+      },
+      "MLI": {
+        "value": 25198821,
+        "referenceDate": "2025"
+      },
+      "MLT": {
+        "value": 579704,
+        "referenceDate": "2025"
+      },
+      "MHL": {
+        "value": 36282,
+        "referenceDate": "2025"
+      },
+      "MRT": {
+        "value": 5315065,
+        "referenceDate": "2025"
+      },
+      "MUS": {
+        "value": 1243741,
+        "referenceDate": "2025"
+      },
+      "MEX": {
+        "value": 131946900,
+        "referenceDate": "2025"
+      },
+      "FSM": {
+        "value": 113683,
+        "referenceDate": "2025"
+      },
+      "MDA": {
+        "value": 2360527,
+        "referenceDate": "2025"
+      },
+      "MCO": {
+        "value": 38341,
+        "referenceDate": "2025"
+      },
+      "MNG": {
+        "value": 3568978,
+        "referenceDate": "2025"
+      },
+      "MNE": {
+        "value": 623129,
+        "referenceDate": "2025"
+      },
+      "MAR": {
+        "value": 38430770,
+        "referenceDate": "2025"
+      },
+      "MOZ": {
+        "value": 35631653,
+        "referenceDate": "2025"
+      },
+      "MMR": {
+        "value": 54850648,
+        "referenceDate": "2025"
+      },
+      "NAM": {
+        "value": 3092816,
+        "referenceDate": "2025"
+      },
+      "NRU": {
+        "value": 12025,
+        "referenceDate": "2025"
+      },
+      "NPL": {
+        "value": 29618118,
+        "referenceDate": "2025"
+      },
+      "NLD": {
+        "value": 18087633,
+        "referenceDate": "2025"
+      },
+      "NCL": {
+        "value": 295333,
+        "referenceDate": "2025"
+      },
+      "NZL": {
+        "value": 5324700,
+        "referenceDate": "2025"
+      },
+      "NIC": {
+        "value": 7007502,
+        "referenceDate": "2025"
+      },
+      "NER": {
+        "value": 27917831,
+        "referenceDate": "2025"
+      },
+      "NGA": {
+        "value": 237527782,
+        "referenceDate": "2025"
+      },
+      "MKD": {
+        "value": 1820909,
+        "referenceDate": "2025"
+      },
+      "MNP": {
+        "value": 43541,
+        "referenceDate": "2025"
+      },
+      "NOR": {
+        "value": 5610870,
+        "referenceDate": "2025"
+      },
+      "OMN": {
+        "value": 5494691,
+        "referenceDate": "2025"
+      },
+      "PAK": {
+        "value": 255219554,
+        "referenceDate": "2025"
+      },
+      "PLW": {
+        "value": 17663,
+        "referenceDate": "2025"
+      },
+      "PAN": {
+        "value": 4571189,
+        "referenceDate": "2025"
+      },
+      "PNG": {
+        "value": 10762817,
+        "referenceDate": "2025"
+      },
+      "PRY": {
+        "value": 7013078,
+        "referenceDate": "2025"
+      },
+      "PER": {
+        "value": 34576665,
+        "referenceDate": "2025"
+      },
+      "PHL": {
+        "value": 116786962,
+        "referenceDate": "2025"
+      },
+      "POL": {
+        "value": 36435861,
+        "referenceDate": "2025"
+      },
+      "PRT": {
+        "value": 10804871,
+        "referenceDate": "2025"
+      },
+      "PRI": {
+        "value": 3184835,
+        "referenceDate": "2025"
+      },
+      "QAT": {
+        "value": 2972215,
+        "referenceDate": "2025"
+      },
+      "ROU": {
+        "value": 19020271,
+        "referenceDate": "2025"
+      },
+      "RUS": {
+        "value": 143513328,
+        "referenceDate": "2025"
+      },
+      "RWA": {
+        "value": 14569341,
+        "referenceDate": "2025"
+      },
+      "WSM": {
+        "value": 219306,
+        "referenceDate": "2025"
+      },
+      "SMR": {
+        "value": 34109,
+        "referenceDate": "2025"
+      },
+      "STP": {
+        "value": 240254,
+        "referenceDate": "2025"
+      },
+      "SAU": {
+        "value": 36973555,
+        "referenceDate": "2025"
+      },
+      "SEN": {
+        "value": 18931966,
+        "referenceDate": "2025"
+      },
+      "SRB": {
+        "value": 6549143,
+        "referenceDate": "2025"
+      },
+      "SYC": {
+        "value": 122730,
+        "referenceDate": "2025"
+      },
+      "SLE": {
+        "value": 8819794,
+        "referenceDate": "2025"
+      },
+      "SGP": {
+        "value": 6111175,
+        "referenceDate": "2025"
+      },
+      "SXM": {
+        "value": 43923,
+        "referenceDate": "2025"
+      },
+      "SVK": {
+        "value": 5413813,
+        "referenceDate": "2025"
+      },
+      "SVN": {
+        "value": 2130986,
+        "referenceDate": "2025"
+      },
+      "SLB": {
+        "value": 838645,
+        "referenceDate": "2025"
+      },
+      "SOM": {
+        "value": 19654739,
+        "referenceDate": "2025"
+      },
+      "ZAF": {
+        "value": 64747319,
+        "referenceDate": "2025"
+      },
+      "SSD": {
+        "value": 12188788,
+        "referenceDate": "2025"
+      },
+      "ESP": {
+        "value": 49355143,
+        "referenceDate": "2025"
+      },
+      "LKA": {
+        "value": 21756000,
+        "referenceDate": "2025"
+      },
+      "KNA": {
+        "value": 46922,
+        "referenceDate": "2025"
+      },
+      "LCA": {
+        "value": 180149,
+        "referenceDate": "2025"
+      },
+      "MAF": {
+        "value": 24941,
+        "referenceDate": "2025"
+      },
+      "VCT": {
+        "value": 99924,
+        "referenceDate": "2025"
+      },
+      "SDN": {
+        "value": 51662147,
+        "referenceDate": "2025"
+      },
+      "SUR": {
+        "value": 639850,
+        "referenceDate": "2025"
+      },
+      "SWE": {
+        "value": 10596620,
+        "referenceDate": "2025"
+      },
+      "CHE": {
+        "value": 9092436,
+        "referenceDate": "2025"
+      },
+      "SYR": {
+        "value": 25620427,
+        "referenceDate": "2025"
+      },
+      "TJK": {
+        "value": 10786734,
+        "referenceDate": "2025"
+      },
+      "TZA": {
+        "value": 70545865,
+        "referenceDate": "2025"
+      },
+      "THA": {
+        "value": 71619863,
+        "referenceDate": "2025"
+      },
+      "TLS": {
+        "value": 1418517,
+        "referenceDate": "2025"
+      },
+      "TGO": {
+        "value": 8591626,
+        "referenceDate": "2025"
+      },
+      "TON": {
+        "value": 103742,
+        "referenceDate": "2025"
+      },
+      "TTO": {
+        "value": 1367764,
+        "referenceDate": "2025"
+      },
+      "TUN": {
+        "value": 12348573,
+        "referenceDate": "2025"
+      },
+      "TUR": {
+        "value": 85878556,
+        "referenceDate": "2025"
+      },
+      "TKM": {
+        "value": 7618847,
+        "referenceDate": "2025"
+      },
+      "TCA": {
+        "value": 46855,
+        "referenceDate": "2025"
+      },
+      "TUV": {
+        "value": 9492,
+        "referenceDate": "2025"
+      },
+      "UGA": {
+        "value": 51384894,
+        "referenceDate": "2025"
+      },
+      "UKR": {
+        "value": 38980376,
+        "referenceDate": "2025"
+      },
+      "ARE": {
+        "value": 11513149,
+        "referenceDate": "2025"
+      },
+      "GBR": {
+        "value": 69487000,
+        "referenceDate": "2025"
+      },
+      "USA": {
+        "value": 341784857,
+        "referenceDate": "2025"
+      },
+      "URY": {
+        "value": 3384688,
+        "referenceDate": "2025"
+      },
+      "UZB": {
+        "value": 37053428,
+        "referenceDate": "2025"
+      },
+      "VUT": {
+        "value": 335169,
+        "referenceDate": "2025"
+      },
+      "VEN": {
+        "value": 28516896,
+        "referenceDate": "2025"
+      },
+      "VNM": {
+        "value": 101598527,
+        "referenceDate": "2025"
+      },
+      "VIR": {
+        "value": 103792,
+        "referenceDate": "2025"
+      },
+      "PSE": {
+        "value": 5413596,
+        "referenceDate": "2025"
+      },
+      "YEM": {
+        "value": 41773878,
+        "referenceDate": "2025"
+      },
+      "ZMB": {
+        "value": 21913874,
+        "referenceDate": "2025"
+      },
+      "ZWE": {
+        "value": 16950795,
+        "referenceDate": "2025"
+      }
+    },
+    "AG.SRF.TOTL.K2": {
+      "AFE": {
+        "value": 15173741.5,
+        "referenceDate": "2023"
+      },
+      "AFW": {
+        "value": 9166249,
+        "referenceDate": "2023"
+      },
+      "ARB": {
+        "value": 13166251.9,
+        "referenceDate": "2023"
+      },
+      "CSS": {
+        "value": 423996,
+        "referenceDate": "2023"
+      },
+      "CEB": {
+        "value": 1168028.188,
+        "referenceDate": "2023"
+      },
+      "EAR": {
+        "value": 34238951.43,
+        "referenceDate": "2023"
+      },
+      "EAS": {
+        "value": 24794868.121,
+        "referenceDate": "2023"
+      },
+      "EAP": {
+        "value": 16276146.851,
+        "referenceDate": "2023"
+      },
+      "TEA": {
+        "value": 16156086.851,
+        "referenceDate": "2023"
+      },
+      "EMU": {
+        "value": 3017150.738,
+        "referenceDate": "2023"
+      },
+      "ECS": {
+        "value": 28902314.768,
+        "referenceDate": "2023"
+      },
+      "ECA": {
+        "value": 6027327,
+        "referenceDate": "2023"
+      },
+      "TEC": {
+        "value": 23903913.758,
+        "referenceDate": "2023"
+      },
+      "EUU": {
+        "value": 4312962.168,
+        "referenceDate": "2023"
+      },
+      "HPC": {
+        "value": 19801888.5,
+        "referenceDate": "2023"
+      },
+      "IBD": {
+        "value": 72824564.549,
+        "referenceDate": "2023"
+      },
+      "IBT": {
+        "value": 98680450.049,
+        "referenceDate": "2023"
+      },
+      "IDB": {
+        "value": 4997675,
+        "referenceDate": "2023"
+      },
+      "IDX": {
+        "value": 20858210.5,
+        "referenceDate": "2023"
+      },
+      "IDA": {
+        "value": 25855885.5,
+        "referenceDate": "2023"
+      },
+      "LTE": {
+        "value": 45803282.961,
+        "referenceDate": "2023"
+      },
+      "LCN": {
+        "value": 20511022.94,
+        "referenceDate": "2023"
+      },
+      "LAC": {
+        "value": 19204736.06,
+        "referenceDate": "2023"
+      },
+      "TLA": {
+        "value": 20375970.94,
+        "referenceDate": "2023"
+      },
+      "LDC": {
+        "value": 20774982.5,
+        "referenceDate": "2023"
+      },
+      "LMY": {
+        "value": 79758253.411,
+        "referenceDate": "2023"
+      },
+      "MEA": {
+        "value": 12834540.9,
+        "referenceDate": "2023"
+      },
+      "MNA": {
+        "value": 10224203,
+        "referenceDate": "2023"
+      },
+      "TMN": {
+        "value": 10218178,
+        "referenceDate": "2023"
+      },
+      "MIC": {
+        "value": 64785941.911,
+        "referenceDate": "2023"
+      },
+      "NAC": {
+        "value": 25470210,
+        "referenceDate": "2023"
+      },
+      "OED": {
+        "value": 43545173.26,
+        "referenceDate": "2023"
+      },
+      "OSS": {
+        "value": 281069,
+        "referenceDate": "2023"
+      },
+      "PSS": {
+        "value": 65150,
+        "referenceDate": "2023"
+      },
+      "PST": {
+        "value": 39359822.138,
+        "referenceDate": "2023"
+      },
+      "PRE": {
+        "value": 20702943.8,
+        "referenceDate": "2023"
+      },
+      "SST": {
+        "value": 770215,
+        "referenceDate": "2023"
+      },
+      "SAS": {
+        "value": 3686310,
+        "referenceDate": "2023"
+      },
+      "TSA": {
+        "value": 3686310,
+        "referenceDate": "2023"
+      },
+      "SSF": {
+        "value": 24339990.5,
+        "referenceDate": "2023"
+      },
+      "SSA": {
+        "value": 24339530.5,
+        "referenceDate": "2023"
+      },
+      "TSS": {
+        "value": 24339990.5,
+        "referenceDate": "2023"
+      },
+      "WLD": {
+        "value": 140539257.229,
+        "referenceDate": "2023"
+      },
+      "AFG": {
+        "value": 652870,
+        "referenceDate": "2023"
+      },
+      "ALB": {
+        "value": 28750,
+        "referenceDate": "2023"
+      },
+      "DZA": {
+        "value": 2381740,
+        "referenceDate": "2023"
+      },
+      "ASM": {
+        "value": 200,
+        "referenceDate": "2023"
+      },
+      "AND": {
+        "value": 470,
+        "referenceDate": "2023"
+      },
+      "AGO": {
+        "value": 1246700,
+        "referenceDate": "2023"
+      },
+      "ATG": {
+        "value": 440,
+        "referenceDate": "2023"
+      },
+      "ARG": {
+        "value": 2780400,
+        "referenceDate": "2023"
+      },
+      "ARM": {
+        "value": 29740,
+        "referenceDate": "2023"
+      },
+      "ABW": {
+        "value": 180,
+        "referenceDate": "2023"
+      },
+      "AUS": {
+        "value": 7741220,
+        "referenceDate": "2023"
+      },
+      "AUT": {
+        "value": 83879,
+        "referenceDate": "2023"
+      },
+      "AZE": {
+        "value": 86600,
+        "referenceDate": "2023"
+      },
+      "BHS": {
+        "value": 13880,
+        "referenceDate": "2023"
+      },
+      "BHR": {
+        "value": 800,
+        "referenceDate": "2023"
+      },
+      "BGD": {
+        "value": 147570,
+        "referenceDate": "2023"
+      },
+      "BRB": {
+        "value": 430,
+        "referenceDate": "2023"
+      },
+      "BLR": {
+        "value": 207629,
+        "referenceDate": "2023"
+      },
+      "BEL": {
+        "value": 30689,
+        "referenceDate": "2023"
+      },
+      "BLZ": {
+        "value": 22966,
+        "referenceDate": "2023"
+      },
+      "BEN": {
+        "value": 114760,
+        "referenceDate": "2023"
+      },
+      "BMU": {
+        "value": 4290,
+        "referenceDate": "2023"
+      },
+      "BTN": {
+        "value": 38390,
+        "referenceDate": "2023"
+      },
+      "BOL": {
+        "value": 1098580,
+        "referenceDate": "2023"
+      },
+      "BIH": {
+        "value": 51210,
+        "referenceDate": "2023"
+      },
+      "BWA": {
+        "value": 581730,
+        "referenceDate": "2023"
+      },
+      "BRA": {
+        "value": 8510420,
+        "referenceDate": "2023"
+      },
+      "VGB": {
+        "value": 150,
+        "referenceDate": "2023"
+      },
+      "BRN": {
+        "value": 5770,
+        "referenceDate": "2023"
+      },
+      "BGR": {
+        "value": 110996.758,
+        "referenceDate": "2023"
+      },
+      "BFA": {
+        "value": 274200,
+        "referenceDate": "2023"
+      },
+      "BDI": {
+        "value": 27830,
+        "referenceDate": "2023"
+      },
+      "CPV": {
+        "value": 4030,
+        "referenceDate": "2023"
+      },
+      "KHM": {
+        "value": 181040,
+        "referenceDate": "2023"
+      },
+      "CMR": {
+        "value": 475440,
+        "referenceDate": "2023"
+      },
+      "CAN": {
+        "value": 15634410,
+        "referenceDate": "2023"
+      },
+      "CYM": {
+        "value": 264,
+        "referenceDate": "2023"
+      },
+      "CAF": {
+        "value": 622980,
+        "referenceDate": "2023"
+      },
+      "TCD": {
+        "value": 1284000,
+        "referenceDate": "2023"
+      },
+      "CHI": {
+        "value": 198,
+        "referenceDate": "2021"
+      },
+      "CHL": {
+        "value": 757244.88,
+        "referenceDate": "2023"
+      },
+      "CHN": {
+        "value": 9562910,
+        "referenceDate": "2023"
+      },
+      "COL": {
+        "value": 1140619.1,
+        "referenceDate": "2023"
+      },
+      "COM": {
+        "value": 1861,
+        "referenceDate": "2023"
+      },
+      "COD": {
+        "value": 2344860,
+        "referenceDate": "2023"
+      },
+      "COG": {
+        "value": 342000,
+        "referenceDate": "2023"
+      },
+      "CRI": {
+        "value": 51100,
+        "referenceDate": "2023"
+      },
+      "CIV": {
+        "value": 322460,
+        "referenceDate": "2023"
+      },
+      "HRV": {
+        "value": 88070,
+        "referenceDate": "2023"
+      },
+      "CUB": {
+        "value": 109880,
+        "referenceDate": "2023"
+      },
+      "CUW": {
+        "value": 444,
+        "referenceDate": "2023"
+      },
+      "CYP": {
+        "value": 9250,
+        "referenceDate": "2023"
+      },
+      "CZE": {
+        "value": 78871.43,
+        "referenceDate": "2023"
+      },
+      "DNK": {
+        "value": 42920,
+        "referenceDate": "2023"
+      },
+      "DJI": {
+        "value": 23200,
+        "referenceDate": "2023"
+      },
+      "DMA": {
+        "value": 750,
+        "referenceDate": "2023"
+      },
+      "DOM": {
+        "value": 146839.46,
+        "referenceDate": "2023"
+      },
+      "ECU": {
+        "value": 256370,
+        "referenceDate": "2023"
+      },
+      "EGY": {
+        "value": 1001450,
+        "referenceDate": "2023"
+      },
+      "SLV": {
+        "value": 21040,
+        "referenceDate": "2023"
+      },
+      "GNQ": {
+        "value": 28050,
+        "referenceDate": "2023"
+      },
+      "ERI": {
+        "value": 121765.8,
+        "referenceDate": "2023"
+      },
+      "EST": {
+        "value": 45340,
+        "referenceDate": "2023"
+      },
+      "SWZ": {
+        "value": 17360,
+        "referenceDate": "2023"
+      },
+      "ETH": {
+        "value": 1136239.7,
+        "referenceDate": "2023"
+      },
+      "FRO": {
+        "value": 12960,
+        "referenceDate": "2023"
+      },
+      "FJI": {
+        "value": 18270,
+        "referenceDate": "2023"
+      },
+      "FIN": {
+        "value": 338480,
+        "referenceDate": "2023"
+      },
+      "FRA": {
+        "value": 606410,
+        "referenceDate": "2023"
+      },
+      "PYF": {
+        "value": 3471,
+        "referenceDate": "2023"
+      },
+      "GAB": {
+        "value": 267670,
+        "referenceDate": "2023"
+      },
+      "GMB": {
+        "value": 11300,
+        "referenceDate": "2023"
+      },
+      "GEO": {
+        "value": 69700,
+        "referenceDate": "2023"
+      },
+      "DEU": {
+        "value": 357680,
+        "referenceDate": "2023"
+      },
+      "GHA": {
+        "value": 238539,
+        "referenceDate": "2023"
+      },
+      "GIB": {
+        "value": 10,
+        "referenceDate": "2023"
+      },
+      "GRC": {
+        "value": 131960,
+        "referenceDate": "2023"
+      },
+      "GRL": {
+        "value": 410450,
+        "referenceDate": "2023"
+      },
+      "GRD": {
+        "value": 340,
+        "referenceDate": "2023"
+      },
+      "GUM": {
+        "value": 540,
+        "referenceDate": "2023"
+      },
+      "GTM": {
+        "value": 108890,
+        "referenceDate": "2023"
+      },
+      "GIN": {
+        "value": 245860,
+        "referenceDate": "2023"
+      },
+      "GNB": {
+        "value": 36130,
+        "referenceDate": "2023"
+      },
+      "GUY": {
+        "value": 214970,
+        "referenceDate": "2023"
+      },
+      "HTI": {
+        "value": 27750,
+        "referenceDate": "2023"
+      },
+      "HND": {
+        "value": 112490,
+        "referenceDate": "2023"
+      },
+      "HKG": {
+        "value": 1110,
+        "referenceDate": "2023"
+      },
+      "HUN": {
+        "value": 93030,
+        "referenceDate": "2023"
+      },
+      "ISL": {
+        "value": 103000,
+        "referenceDate": "2023"
+      },
+      "IND": {
+        "value": 3287260,
+        "referenceDate": "2023"
+      },
+      "IDN": {
+        "value": 1916906.77,
+        "referenceDate": "2023"
+      },
+      "IRN": {
+        "value": 1745150,
+        "referenceDate": "2023"
+      },
+      "IRQ": {
+        "value": 435050,
+        "referenceDate": "2023"
+      },
+      "IRL": {
+        "value": 70280,
+        "referenceDate": "2023"
+      },
+      "IMN": {
+        "value": 570,
+        "referenceDate": "2023"
+      },
+      "ISR": {
+        "value": 22070,
+        "referenceDate": "2023"
+      },
+      "ITA": {
+        "value": 302070,
+        "referenceDate": "2023"
+      },
+      "JAM": {
+        "value": 10990,
+        "referenceDate": "2023"
+      },
+      "JPN": {
+        "value": 377969.27,
+        "referenceDate": "2023"
+      },
+      "JOR": {
+        "value": 89318,
+        "referenceDate": "2023"
+      },
+      "KAZ": {
+        "value": 2724902,
+        "referenceDate": "2023"
+      },
+      "KEN": {
+        "value": 591969,
+        "referenceDate": "2023"
+      },
+      "KIR": {
+        "value": 810,
+        "referenceDate": "2023"
+      },
+      "PRK": {
+        "value": 120540,
+        "referenceDate": "2023"
+      },
+      "KOR": {
+        "value": 100450,
+        "referenceDate": "2023"
+      },
+      "KWT": {
+        "value": 17820,
+        "referenceDate": "2023"
+      },
+      "KGZ": {
+        "value": 199950,
+        "referenceDate": "2023"
+      },
+      "LAO": {
+        "value": 236800,
+        "referenceDate": "2023"
+      },
+      "LVA": {
+        "value": 64590,
+        "referenceDate": "2023"
+      },
+      "LBN": {
+        "value": 10450,
+        "referenceDate": "2023"
+      },
+      "LSO": {
+        "value": 30360,
+        "referenceDate": "2023"
+      },
+      "LBR": {
+        "value": 111370,
+        "referenceDate": "2023"
+      },
+      "LBY": {
+        "value": 1759540,
+        "referenceDate": "2023"
+      },
+      "LIE": {
+        "value": 160,
+        "referenceDate": "2023"
+      },
+      "LTU": {
+        "value": 65290,
+        "referenceDate": "2023"
+      },
+      "LUX": {
+        "value": 2590,
+        "referenceDate": "2023"
+      },
+      "MAC": {
+        "value": 33,
+        "referenceDate": "2023"
+      },
+      "MDG": {
+        "value": 587295,
+        "referenceDate": "2023"
+      },
+      "MWI": {
+        "value": 118480,
+        "referenceDate": "2023"
+      },
+      "MYS": {
+        "value": 330411,
+        "referenceDate": "2023"
+      },
+      "MDV": {
+        "value": 300,
+        "referenceDate": "2023"
+      },
+      "MLI": {
+        "value": 1240190,
+        "referenceDate": "2023"
+      },
+      "MLT": {
+        "value": 320,
+        "referenceDate": "2023"
+      },
+      "MHL": {
+        "value": 180,
+        "referenceDate": "2023"
+      },
+      "MRT": {
+        "value": 1030700,
+        "referenceDate": "2023"
+      },
+      "MUS": {
+        "value": 2010,
+        "referenceDate": "2023"
+      },
+      "MEX": {
+        "value": 1957193.9,
+        "referenceDate": "2023"
+      },
+      "FSM": {
+        "value": 700,
+        "referenceDate": "2023"
+      },
+      "MDA": {
+        "value": 33850,
+        "referenceDate": "2023"
+      },
+      "MCO": {
+        "value": 74.9,
+        "referenceDate": "2023"
+      },
+      "MNG": {
+        "value": 1564115.75,
+        "referenceDate": "2023"
+      },
+      "MNE": {
+        "value": 13888,
+        "referenceDate": "2023"
+      },
+      "MAR": {
+        "value": 446550,
+        "referenceDate": "2023"
+      },
+      "MOZ": {
+        "value": 799380,
+        "referenceDate": "2023"
+      },
+      "MMR": {
+        "value": 676590,
+        "referenceDate": "2023"
+      },
+      "NAM": {
+        "value": 824290,
+        "referenceDate": "2023"
+      },
+      "NRU": {
+        "value": 20,
+        "referenceDate": "2023"
+      },
+      "NPL": {
+        "value": 147180,
+        "referenceDate": "2023"
+      },
+      "NLD": {
+        "value": 41540,
+        "referenceDate": "2023"
+      },
+      "NCL": {
+        "value": 18580,
+        "referenceDate": "2023"
+      },
+      "NZL": {
+        "value": 267710,
+        "referenceDate": "2023"
+      },
+      "NIC": {
+        "value": 130370,
+        "referenceDate": "2023"
+      },
+      "NER": {
+        "value": 1267000,
+        "referenceDate": "2023"
+      },
+      "NGA": {
+        "value": 923770,
+        "referenceDate": "2023"
+      },
+      "MKD": {
+        "value": 25710,
+        "referenceDate": "2023"
+      },
+      "MNP": {
+        "value": 460,
+        "referenceDate": "2023"
+      },
+      "NOR": {
+        "value": 624500,
+        "referenceDate": "2023"
+      },
+      "OMN": {
+        "value": 309500,
+        "referenceDate": "2023"
+      },
+      "PAK": {
+        "value": 796100,
+        "referenceDate": "2023"
+      },
+      "PLW": {
+        "value": 460,
+        "referenceDate": "2023"
+      },
+      "PAN": {
+        "value": 75320,
+        "referenceDate": "2023"
+      },
+      "PNG": {
+        "value": 462840,
+        "referenceDate": "2023"
+      },
+      "PRY": {
+        "value": 406752,
+        "referenceDate": "2023"
+      },
+      "PER": {
+        "value": 1285215.6,
+        "referenceDate": "2023"
+      },
+      "PHL": {
+        "value": 300000,
+        "referenceDate": "2023"
+      },
+      "POL": {
+        "value": 313930,
+        "referenceDate": "2023"
+      },
+      "PRT": {
+        "value": 92230,
+        "referenceDate": "2023"
+      },
+      "PRI": {
+        "value": 8870,
+        "referenceDate": "2023"
+      },
+      "QAT": {
+        "value": 11490,
+        "referenceDate": "2023"
+      },
+      "ROU": {
+        "value": 238400,
+        "referenceDate": "2023"
+      },
+      "RUS": {
+        "value": 17125190,
+        "referenceDate": "2023"
+      },
+      "RWA": {
+        "value": 26338,
+        "referenceDate": "2023"
+      },
+      "WSM": {
+        "value": 2840,
+        "referenceDate": "2023"
+      },
+      "SMR": {
+        "value": 60,
+        "referenceDate": "2023"
+      },
+      "STP": {
+        "value": 960,
+        "referenceDate": "2023"
+      },
+      "SAU": {
+        "value": 2149690,
+        "referenceDate": "2023"
+      },
+      "SEN": {
+        "value": 196710,
+        "referenceDate": "2023"
+      },
+      "SRB": {
+        "value": 84990,
+        "referenceDate": "2023"
+      },
+      "SYC": {
+        "value": 460,
+        "referenceDate": "2023"
+      },
+      "SLE": {
+        "value": 72300,
+        "referenceDate": "2023"
+      },
+      "SGP": {
+        "value": 728,
+        "referenceDate": "2023"
+      },
+      "SXM": {
+        "value": 34,
+        "referenceDate": "2023"
+      },
+      "SVK": {
+        "value": 49030,
+        "referenceDate": "2023"
+      },
+      "SVN": {
+        "value": 20480,
+        "referenceDate": "2023"
+      },
+      "SLB": {
+        "value": 28900,
+        "referenceDate": "2023"
+      },
+      "SOM": {
+        "value": 637660,
+        "referenceDate": "2023"
+      },
+      "ZAF": {
+        "value": 1219090,
+        "referenceDate": "2023"
+      },
+      "SSD": {
+        "value": 646883,
+        "referenceDate": "2023"
+      },
+      "ESP": {
+        "value": 505975.98,
+        "referenceDate": "2023"
+      },
+      "LKA": {
+        "value": 65610,
+        "referenceDate": "2023"
+      },
+      "KNA": {
+        "value": 260,
+        "referenceDate": "2023"
+      },
+      "LCA": {
+        "value": 620,
+        "referenceDate": "2023"
+      },
+      "MAF": {
+        "value": 50,
+        "referenceDate": "2023"
+      },
+      "VCT": {
+        "value": 390,
+        "referenceDate": "2023"
+      },
+      "SDN": {
+        "value": 1878000,
+        "referenceDate": "2023"
+      },
+      "SUR": {
+        "value": 163820,
+        "referenceDate": "2023"
+      },
+      "SWE": {
+        "value": 528660,
+        "referenceDate": "2023"
+      },
+      "CHE": {
+        "value": 41290.7,
+        "referenceDate": "2023"
+      },
+      "SYR": {
+        "value": 185180,
+        "referenceDate": "2023"
+      },
+      "TJK": {
+        "value": 141379,
+        "referenceDate": "2023"
+      },
+      "TZA": {
+        "value": 947300,
+        "referenceDate": "2023"
+      },
+      "THA": {
+        "value": 513115.021,
+        "referenceDate": "2023"
+      },
+      "TLS": {
+        "value": 14870,
+        "referenceDate": "2023"
+      },
+      "TGO": {
+        "value": 56790,
+        "referenceDate": "2023"
+      },
+      "TON": {
+        "value": 750,
+        "referenceDate": "2023"
+      },
+      "TTO": {
+        "value": 5130,
+        "referenceDate": "2023"
+      },
+      "TUN": {
+        "value": 163610,
+        "referenceDate": "2023"
+      },
+      "TUR": {
+        "value": 785350,
+        "referenceDate": "2023"
+      },
+      "TKM": {
+        "value": 491209,
+        "referenceDate": "2023"
+      },
+      "TCA": {
+        "value": 950,
+        "referenceDate": "2023"
+      },
+      "TUV": {
+        "value": 30,
+        "referenceDate": "2023"
+      },
+      "UGA": {
+        "value": 241550,
+        "referenceDate": "2023"
+      },
+      "UKR": {
+        "value": 603550,
+        "referenceDate": "2023"
+      },
+      "ARE": {
+        "value": 98647.9,
+        "referenceDate": "2023"
+      },
+      "GBR": {
+        "value": 243610,
+        "referenceDate": "2023"
+      },
+      "USA": {
+        "value": 9831510,
+        "referenceDate": "2023"
+      },
+      "URY": {
+        "value": 176220,
+        "referenceDate": "2023"
+      },
+      "UZB": {
+        "value": 448920,
+        "referenceDate": "2023"
+      },
+      "VUT": {
+        "value": 12190,
+        "referenceDate": "2023"
+      },
+      "VEN": {
+        "value": 912050,
+        "referenceDate": "2023"
+      },
+      "VNM": {
+        "value": 331338.31,
+        "referenceDate": "2023"
+      },
+      "VIR": {
+        "value": 350,
+        "referenceDate": "2023"
+      },
+      "PSE": {
+        "value": 6025,
+        "referenceDate": "2023"
+      },
+      "YEM": {
+        "value": 527970,
+        "referenceDate": "2023"
+      },
+      "ZMB": {
+        "value": 752610,
+        "referenceDate": "2023"
+      },
+      "ZWE": {
+        "value": 390760,
+        "referenceDate": "2023"
+      }
+    },
+    "AG.LND.TOTL.K2": {
+      "AFE": {
+        "value": 14856891.3,
+        "referenceDate": "2023"
+      },
+      "AFW": {
+        "value": 9045773,
+        "referenceDate": "2023"
+      },
+      "ARB": {
+        "value": 13100570,
+        "referenceDate": "2023"
+      },
+      "CSS": {
+        "value": 412817.61,
+        "referenceDate": "2023"
+      },
+      "CEB": {
+        "value": 1105071.81,
+        "referenceDate": "2023"
+      },
+      "EAR": {
+        "value": 33328551.93,
+        "referenceDate": "2023"
+      },
+      "EAS": {
+        "value": 24450105.526,
+        "referenceDate": "2023"
+      },
+      "EAP": {
+        "value": 16002104.256,
+        "referenceDate": "2023"
+      },
+      "TEA": {
+        "value": 15882174.256,
+        "referenceDate": "2023"
+      },
+      "EMU": {
+        "value": 2836265.96,
+        "referenceDate": "2023"
+      },
+      "ECS": {
+        "value": 27432007.424,
+        "referenceDate": "2023"
+      },
+      "ECA": {
+        "value": 5907512.44,
+        "referenceDate": "2023"
+      },
+      "TEC": {
+        "value": 22985252.44,
+        "referenceDate": "2023"
+      },
+      "EUU": {
+        "value": 3988313.27,
+        "referenceDate": "2023"
+      },
+      "HPC": {
+        "value": 19409121,
+        "referenceDate": "2023"
+      },
+      "IBD": {
+        "value": 70784279.386,
+        "referenceDate": "2023"
+      },
+      "IBT": {
+        "value": 96099442.296,
+        "referenceDate": "2023"
+      },
+      "IDB": {
+        "value": 4914873.91,
+        "referenceDate": "2023"
+      },
+      "IDX": {
+        "value": 20400289,
+        "referenceDate": "2023"
+      },
+      "IDA": {
+        "value": 25315162.91,
+        "referenceDate": "2023"
+      },
+      "LTE": {
+        "value": 44536067.866,
+        "referenceDate": "2023"
+      },
+      "LCN": {
+        "value": 20055677.3,
+        "referenceDate": "2023"
+      },
+      "LAC": {
+        "value": 18773907.66,
+        "referenceDate": "2023"
+      },
+      "TLA": {
+        "value": 19930599.3,
+        "referenceDate": "2023"
+      },
+      "LDC": {
+        "value": 20358908,
+        "referenceDate": "2023"
+      },
+      "LMY": {
+        "value": 77990505.656,
+        "referenceDate": "2023"
+      },
+      "MEA": {
+        "value": 12640239,
+        "referenceDate": "2023"
+      },
+      "MNA": {
+        "value": 10057959,
+        "referenceDate": "2023"
+      },
+      "TMN": {
+        "value": 10051934,
+        "referenceDate": "2023"
+      },
+      "MIC": {
+        "value": 63299528.656,
+        "referenceDate": "2023"
+      },
+      "NAC": {
+        "value": 17936174,
+        "referenceDate": "2023"
+      },
+      "OED": {
+        "value": 35322923.81,
+        "referenceDate": "2023"
+      },
+      "OSS": {
+        "value": 274896,
+        "referenceDate": "2023"
+      },
+      "PSS": {
+        "value": 64150,
+        "referenceDate": "2023"
+      },
+      "PST": {
+        "value": 31160176.17,
+        "referenceDate": "2023"
+      },
+      "PRE": {
+        "value": 20320555.5,
+        "referenceDate": "2023"
+      },
+      "SST": {
+        "value": 751863.61,
+        "referenceDate": "2023"
+      },
+      "SAS": {
+        "value": 3346818,
+        "referenceDate": "2023"
+      },
+      "TSA": {
+        "value": 3346818,
+        "referenceDate": "2023"
+      },
+      "SSF": {
+        "value": 23902664.3,
+        "referenceDate": "2023"
+      },
+      "SSA": {
+        "value": 23902204.3,
+        "referenceDate": "2023"
+      },
+      "TSS": {
+        "value": 23902664.3,
+        "referenceDate": "2023"
+      },
+      "WLD": {
+        "value": 129763685.55,
+        "referenceDate": "2023"
+      },
+      "AFG": {
+        "value": 652230,
+        "referenceDate": "2023"
+      },
+      "ALB": {
+        "value": 27400,
+        "referenceDate": "2023"
+      },
+      "DZA": {
+        "value": 2381740,
+        "referenceDate": "2023"
+      },
+      "ASM": {
+        "value": 200,
+        "referenceDate": "2023"
+      },
+      "AND": {
+        "value": 470,
+        "referenceDate": "2023"
+      },
+      "AGO": {
+        "value": 1246700,
+        "referenceDate": "2023"
+      },
+      "ATG": {
+        "value": 440,
+        "referenceDate": "2023"
+      },
+      "ARG": {
+        "value": 2736690,
+        "referenceDate": "2023"
+      },
+      "ARM": {
+        "value": 28199.44,
+        "referenceDate": "2023"
+      },
+      "ABW": {
+        "value": 180,
+        "referenceDate": "2023"
+      },
+      "AUS": {
+        "value": 7692020,
+        "referenceDate": "2023"
+      },
+      "AUT": {
+        "value": 82520,
+        "referenceDate": "2023"
+      },
+      "AZE": {
+        "value": 82650,
+        "referenceDate": "2023"
+      },
+      "BHS": {
+        "value": 10010,
+        "referenceDate": "2023"
+      },
+      "BHR": {
+        "value": 800,
+        "referenceDate": "2023"
+      },
+      "BGD": {
+        "value": 129980,
+        "referenceDate": "2023"
+      },
+      "BRB": {
+        "value": 430,
+        "referenceDate": "2023"
+      },
+      "BLR": {
+        "value": 202983,
+        "referenceDate": "2023"
+      },
+      "BEL": {
+        "value": 30494,
+        "referenceDate": "2023"
+      },
+      "BLZ": {
+        "value": 22810,
+        "referenceDate": "2023"
+      },
+      "BEN": {
+        "value": 112760,
+        "referenceDate": "2023"
+      },
+      "BMU": {
+        "value": 54,
+        "referenceDate": "2023"
+      },
+      "BTN": {
+        "value": 38140,
+        "referenceDate": "2023"
+      },
+      "BOL": {
+        "value": 1083300,
+        "referenceDate": "2023"
+      },
+      "BIH": {
+        "value": 51200,
+        "referenceDate": "2023"
+      },
+      "BWA": {
+        "value": 566730,
+        "referenceDate": "2023"
+      },
+      "BRA": {
+        "value": 8358140,
+        "referenceDate": "2023"
+      },
+      "VGB": {
+        "value": 150,
+        "referenceDate": "2023"
+      },
+      "BRN": {
+        "value": 5270,
+        "referenceDate": "2023"
+      },
+      "BGR": {
+        "value": 108560,
+        "referenceDate": "2023"
+      },
+      "BFA": {
+        "value": 273600,
+        "referenceDate": "2023"
+      },
+      "BDI": {
+        "value": 25680,
+        "referenceDate": "2023"
+      },
+      "CPV": {
+        "value": 4030,
+        "referenceDate": "2023"
+      },
+      "KHM": {
+        "value": 176520,
+        "referenceDate": "2023"
+      },
+      "CMR": {
+        "value": 472710,
+        "referenceDate": "2023"
+      },
+      "CAN": {
+        "value": 8788700,
+        "referenceDate": "2023"
+      },
+      "CYM": {
+        "value": 240,
+        "referenceDate": "2023"
+      },
+      "CAF": {
+        "value": 622980,
+        "referenceDate": "2023"
+      },
+      "TCD": {
+        "value": 1259200,
+        "referenceDate": "2023"
+      },
+      "CHI": {
+        "value": 198,
+        "referenceDate": "2021"
+      },
+      "CHL": {
+        "value": 742831.64,
+        "referenceDate": "2023"
+      },
+      "CHN": {
+        "value": 9388210,
+        "referenceDate": "2023"
+      },
+      "COL": {
+        "value": 1109500,
+        "referenceDate": "2023"
+      },
+      "COM": {
+        "value": 1861,
+        "referenceDate": "2023"
+      },
+      "COD": {
+        "value": 2267050,
+        "referenceDate": "2023"
+      },
+      "COG": {
+        "value": 341500,
+        "referenceDate": "2023"
+      },
+      "CRI": {
+        "value": 51060,
+        "referenceDate": "2023"
+      },
+      "CIV": {
+        "value": 318000,
+        "referenceDate": "2023"
+      },
+      "HRV": {
+        "value": 55960,
+        "referenceDate": "2023"
+      },
+      "CUB": {
+        "value": 103800,
+        "referenceDate": "2023"
+      },
+      "CUW": {
+        "value": 444,
+        "referenceDate": "2023"
+      },
+      "CYP": {
+        "value": 9240,
+        "referenceDate": "2023"
+      },
+      "CZE": {
+        "value": 77167.31,
+        "referenceDate": "2023"
+      },
+      "DNK": {
+        "value": 40000,
+        "referenceDate": "2023"
+      },
+      "DJI": {
+        "value": 23180,
+        "referenceDate": "2023"
+      },
+      "DMA": {
+        "value": 750,
+        "referenceDate": "2023"
+      },
+      "DOM": {
+        "value": 48198.02,
+        "referenceDate": "2023"
+      },
+      "ECU": {
+        "value": 248360,
+        "referenceDate": "2023"
+      },
+      "EGY": {
+        "value": 995450,
+        "referenceDate": "2023"
+      },
+      "SLV": {
+        "value": 20720,
+        "referenceDate": "2023"
+      },
+      "GNQ": {
+        "value": 28050,
+        "referenceDate": "2023"
+      },
+      "ERI": {
+        "value": 121178.2,
+        "referenceDate": "2023"
+      },
+      "EST": {
+        "value": 42730,
+        "referenceDate": "2023"
+      },
+      "SWZ": {
+        "value": 17200,
+        "referenceDate": "2023"
+      },
+      "ETH": {
+        "value": 1128498.8,
+        "referenceDate": "2023"
+      },
+      "FRO": {
+        "value": 1370,
+        "referenceDate": "2023"
+      },
+      "FJI": {
+        "value": 18270,
+        "referenceDate": "2023"
+      },
+      "FIN": {
+        "value": 303960,
+        "referenceDate": "2023"
+      },
+      "FRA": {
+        "value": 538950,
+        "referenceDate": "2023"
+      },
+      "PYF": {
+        "value": 3471,
+        "referenceDate": "2023"
+      },
+      "GAB": {
+        "value": 257670,
+        "referenceDate": "2023"
+      },
+      "GMB": {
+        "value": 10120,
+        "referenceDate": "2023"
+      },
+      "GEO": {
+        "value": 69490,
+        "referenceDate": "2023"
+      },
+      "DEU": {
+        "value": 349430,
+        "referenceDate": "2023"
+      },
+      "GHA": {
+        "value": 227533,
+        "referenceDate": "2023"
+      },
+      "GIB": {
+        "value": 10,
+        "referenceDate": "2023"
+      },
+      "GRC": {
+        "value": 128900,
+        "referenceDate": "2023"
+      },
+      "GRL": {
+        "value": 410450,
+        "referenceDate": "2023"
+      },
+      "GRD": {
+        "value": 340,
+        "referenceDate": "2023"
+      },
+      "GUM": {
+        "value": 540,
+        "referenceDate": "2023"
+      },
+      "GTM": {
+        "value": 107160,
+        "referenceDate": "2023"
+      },
+      "GIN": {
+        "value": 245720,
+        "referenceDate": "2023"
+      },
+      "GNB": {
+        "value": 28120,
+        "referenceDate": "2023"
+      },
+      "GUY": {
+        "value": 211140,
+        "referenceDate": "2023"
+      },
+      "HTI": {
+        "value": 27560,
+        "referenceDate": "2023"
+      },
+      "HND": {
+        "value": 111890,
+        "referenceDate": "2023"
+      },
+      "HKG": {
+        "value": 1050,
+        "referenceDate": "2023"
+      },
+      "HUN": {
+        "value": 91260,
+        "referenceDate": "2023"
+      },
+      "ISL": {
+        "value": 100830,
+        "referenceDate": "2023"
+      },
+      "IND": {
+        "value": 2973190,
+        "referenceDate": "2023"
+      },
+      "IDN": {
+        "value": 1892555.47,
+        "referenceDate": "2023"
+      },
+      "IRN": {
+        "value": 1622500,
+        "referenceDate": "2023"
+      },
+      "IRQ": {
+        "value": 434130,
+        "referenceDate": "2023"
+      },
+      "IRL": {
+        "value": 68890,
+        "referenceDate": "2023"
+      },
+      "IMN": {
+        "value": 570,
+        "referenceDate": "2023"
+      },
+      "ISR": {
+        "value": 21640,
+        "referenceDate": "2023"
+      },
+      "ITA": {
+        "value": 295720,
+        "referenceDate": "2023"
+      },
+      "JAM": {
+        "value": 10830,
+        "referenceDate": "2023"
+      },
+      "JPN": {
+        "value": 364569.27,
+        "referenceDate": "2023"
+      },
+      "JOR": {
+        "value": 88794,
+        "referenceDate": "2023"
+      },
+      "KAZ": {
+        "value": 2699700,
+        "referenceDate": "2023"
+      },
+      "KEN": {
+        "value": 580876.3,
+        "referenceDate": "2023"
+      },
+      "KIR": {
+        "value": 810,
+        "referenceDate": "2023"
+      },
+      "PRK": {
+        "value": 120410,
+        "referenceDate": "2023"
+      },
+      "KOR": {
+        "value": 97600,
+        "referenceDate": "2023"
+      },
+      "KWT": {
+        "value": 17820,
+        "referenceDate": "2023"
+      },
+      "KGZ": {
+        "value": 191800,
+        "referenceDate": "2023"
+      },
+      "LAO": {
+        "value": 230800,
+        "referenceDate": "2023"
+      },
+      "LVA": {
+        "value": 62230,
+        "referenceDate": "2023"
+      },
+      "LBN": {
+        "value": 10230,
+        "referenceDate": "2023"
+      },
+      "LSO": {
+        "value": 30360,
+        "referenceDate": "2023"
+      },
+      "LBR": {
+        "value": 96320,
+        "referenceDate": "2023"
+      },
+      "LBY": {
+        "value": 1759540,
+        "referenceDate": "2023"
+      },
+      "LIE": {
+        "value": 160,
+        "referenceDate": "2023"
+      },
+      "LTU": {
+        "value": 62600,
+        "referenceDate": "2023"
+      },
+      "LUX": {
+        "value": 2574.46,
+        "referenceDate": "2023"
+      },
+      "MAC": {
+        "value": 33,
+        "referenceDate": "2023"
+      },
+      "MDG": {
+        "value": 581800,
+        "referenceDate": "2023"
+      },
+      "MWI": {
+        "value": 94280,
+        "referenceDate": "2023"
+      },
+      "MYS": {
+        "value": 328550,
+        "referenceDate": "2023"
+      },
+      "MDV": {
+        "value": 298,
+        "referenceDate": "2023"
+      },
+      "MLI": {
+        "value": 1220190,
+        "referenceDate": "2023"
+      },
+      "MLT": {
+        "value": 320,
+        "referenceDate": "2023"
+      },
+      "MHL": {
+        "value": 180,
+        "referenceDate": "2023"
+      },
+      "MRT": {
+        "value": 1030700,
+        "referenceDate": "2023"
+      },
+      "MUS": {
+        "value": 1997,
+        "referenceDate": "2023"
+      },
+      "MEX": {
+        "value": 1943950,
+        "referenceDate": "2023"
+      },
+      "FSM": {
+        "value": 700,
+        "referenceDate": "2023"
+      },
+      "MDA": {
+        "value": 32930,
+        "referenceDate": "2023"
+      },
+      "MCO": {
+        "value": 2.084,
+        "referenceDate": "2023"
+      },
+      "MNG": {
+        "value": 1558499.786,
+        "referenceDate": "2023"
+      },
+      "MNE": {
+        "value": 13450,
+        "referenceDate": "2023"
+      },
+      "MAR": {
+        "value": 446300,
+        "referenceDate": "2023"
+      },
+      "MOZ": {
+        "value": 786380,
+        "referenceDate": "2023"
+      },
+      "MMR": {
+        "value": 652670,
+        "referenceDate": "2023"
+      },
+      "NAM": {
+        "value": 823290,
+        "referenceDate": "2023"
+      },
+      "NRU": {
+        "value": 20,
+        "referenceDate": "2023"
+      },
+      "NPL": {
+        "value": 143350,
+        "referenceDate": "2023"
+      },
+      "NLD": {
+        "value": 33670,
+        "referenceDate": "2023"
+      },
+      "NCL": {
+        "value": 18280,
+        "referenceDate": "2023"
+      },
+      "NZL": {
+        "value": 263310,
+        "referenceDate": "2023"
+      },
+      "NIC": {
+        "value": 120340,
+        "referenceDate": "2023"
+      },
+      "NER": {
+        "value": 1266700,
+        "referenceDate": "2023"
+      },
+      "NGA": {
+        "value": 910770,
+        "referenceDate": "2023"
+      },
+      "MKD": {
+        "value": 25220,
+        "referenceDate": "2023"
+      },
+      "MNP": {
+        "value": 460,
+        "referenceDate": "2023"
+      },
+      "NOR": {
+        "value": 364270,
+        "referenceDate": "2023"
+      },
+      "OMN": {
+        "value": 309500,
+        "referenceDate": "2023"
+      },
+      "PAK": {
+        "value": 770880,
+        "referenceDate": "2023"
+      },
+      "PLW": {
+        "value": 460,
+        "referenceDate": "2023"
+      },
+      "PAN": {
+        "value": 74180,
+        "referenceDate": "2023"
+      },
+      "PNG": {
+        "value": 452860,
+        "referenceDate": "2023"
+      },
+      "PRY": {
+        "value": 396012.03,
+        "referenceDate": "2023"
+      },
+      "PER": {
+        "value": 1280000,
+        "referenceDate": "2023"
+      },
+      "PHL": {
+        "value": 298170,
+        "referenceDate": "2023"
+      },
+      "POL": {
+        "value": 306270,
+        "referenceDate": "2023"
+      },
+      "PRT": {
+        "value": 91605.6,
+        "referenceDate": "2023"
+      },
+      "PRI": {
+        "value": 8870,
+        "referenceDate": "2023"
+      },
+      "QAT": {
+        "value": 11490,
+        "referenceDate": "2023"
+      },
+      "ROU": {
+        "value": 230080,
+        "referenceDate": "2023"
+      },
+      "RUS": {
+        "value": 16376870,
+        "referenceDate": "2023"
+      },
+      "RWA": {
+        "value": 24670,
+        "referenceDate": "2023"
+      },
+      "WSM": {
+        "value": 2780,
+        "referenceDate": "2023"
+      },
+      "SMR": {
+        "value": 60,
+        "referenceDate": "2023"
+      },
+      "STP": {
+        "value": 960,
+        "referenceDate": "2023"
+      },
+      "SAU": {
+        "value": 2149690,
+        "referenceDate": "2023"
+      },
+      "SEN": {
+        "value": 192530,
+        "referenceDate": "2023"
+      },
+      "SRB": {
+        "value": 84090,
+        "referenceDate": "2023"
+      },
+      "SYC": {
+        "value": 460,
+        "referenceDate": "2023"
+      },
+      "SLE": {
+        "value": 72180,
+        "referenceDate": "2023"
+      },
+      "SGP": {
+        "value": 718,
+        "referenceDate": "2023"
+      },
+      "SXM": {
+        "value": 34,
+        "referenceDate": "2023"
+      },
+      "SVK": {
+        "value": 48080,
+        "referenceDate": "2023"
+      },
+      "SVN": {
+        "value": 20134.5,
+        "referenceDate": "2023"
+      },
+      "SLB": {
+        "value": 27990,
+        "referenceDate": "2023"
+      },
+      "SOM": {
+        "value": 627340,
+        "referenceDate": "2023"
+      },
+      "ZAF": {
+        "value": 1213090,
+        "referenceDate": "2023"
+      },
+      "SSD": {
+        "value": 631930,
+        "referenceDate": "2023"
+      },
+      "ESP": {
+        "value": 499697.4,
+        "referenceDate": "2023"
+      },
+      "LKA": {
+        "value": 61860,
+        "referenceDate": "2023"
+      },
+      "KNA": {
+        "value": 260,
+        "referenceDate": "2023"
+      },
+      "LCA": {
+        "value": 610,
+        "referenceDate": "2023"
+      },
+      "MAF": {
+        "value": 50,
+        "referenceDate": "2023"
+      },
+      "VCT": {
+        "value": 390,
+        "referenceDate": "2023"
+      },
+      "SDN": {
+        "value": 1868000,
+        "referenceDate": "2023"
+      },
+      "SUR": {
+        "value": 160507.61,
+        "referenceDate": "2023"
+      },
+      "SWE": {
+        "value": 407270,
+        "referenceDate": "2023"
+      },
+      "CHE": {
+        "value": 39509.63,
+        "referenceDate": "2023"
+      },
+      "SYR": {
+        "value": 183630,
+        "referenceDate": "2023"
+      },
+      "TJK": {
+        "value": 138790,
+        "referenceDate": "2023"
+      },
+      "TZA": {
+        "value": 885800,
+        "referenceDate": "2023"
+      },
+      "THA": {
+        "value": 510890,
+        "referenceDate": "2023"
+      },
+      "TLS": {
+        "value": 14870,
+        "referenceDate": "2023"
+      },
+      "TGO": {
+        "value": 54390,
+        "referenceDate": "2023"
+      },
+      "TON": {
+        "value": 720,
+        "referenceDate": "2023"
+      },
+      "TTO": {
+        "value": 5130,
+        "referenceDate": "2023"
+      },
+      "TUN": {
+        "value": 155360,
+        "referenceDate": "2023"
+      },
+      "TUR": {
+        "value": 769630,
+        "referenceDate": "2023"
+      },
+      "TKM": {
+        "value": 469930,
+        "referenceDate": "2023"
+      },
+      "TCA": {
+        "value": 950,
+        "referenceDate": "2023"
+      },
+      "TUV": {
+        "value": 30,
+        "referenceDate": "2023"
+      },
+      "UGA": {
+        "value": 200520,
+        "referenceDate": "2023"
+      },
+      "UKR": {
+        "value": 579400,
+        "referenceDate": "2023"
+      },
+      "ARE": {
+        "value": 71020,
+        "referenceDate": "2023"
+      },
+      "GBR": {
+        "value": 241930,
+        "referenceDate": "2023"
+      },
+      "USA": {
+        "value": 9147420,
+        "referenceDate": "2023"
+      },
+      "URY": {
+        "value": 175020,
+        "referenceDate": "2023"
+      },
+      "UZB": {
+        "value": 440650,
+        "referenceDate": "2023"
+      },
+      "VUT": {
+        "value": 12190,
+        "referenceDate": "2023"
+      },
+      "VEN": {
+        "value": 882050,
+        "referenceDate": "2023"
+      },
+      "VNM": {
+        "value": 313429,
+        "referenceDate": "2023"
+      },
+      "VIR": {
+        "value": 350,
+        "referenceDate": "2023"
+      },
+      "PSE": {
+        "value": 6025,
+        "referenceDate": "2023"
+      },
+      "YEM": {
+        "value": 527970,
+        "referenceDate": "2023"
+      },
+      "ZMB": {
+        "value": 743390,
+        "referenceDate": "2023"
+      },
+      "ZWE": {
+        "value": 386850,
+        "referenceDate": "2023"
+      }
+    },
+    "NY.GDP.MKTP.CD": {
+      "AFE": {
+        "value": 1358694050872.54,
+        "referenceDate": "2025"
+      },
+      "AFW": {
+        "value": 852526995230.254,
+        "referenceDate": "2025"
+      },
+      "ARB": {
+        "value": 3797527236194.65,
+        "referenceDate": "2025"
+      },
+      "CSS": {
+        "value": 95141207521.3621,
+        "referenceDate": "2025"
+      },
+      "CEB": {
+        "value": 2762562481345.2,
+        "referenceDate": "2025"
+      },
+      "EAR": {
+        "value": 16406032169247.4,
+        "referenceDate": "2025"
+      },
+      "EAS": {
+        "value": 33656980597208.2,
+        "referenceDate": "2025"
+      },
+      "EAP": {
+        "value": 23247334500847.4,
+        "referenceDate": "2025"
+      },
+      "TEA": {
+        "value": 23218679986475.4,
+        "referenceDate": "2025"
+      },
+      "EMU": {
+        "value": 18010000307247,
+        "referenceDate": "2025"
+      },
+      "ECS": {
+        "value": 32268612230366.9,
+        "referenceDate": "2025"
+      },
+      "ECA": {
+        "value": 2815874458069.5,
+        "referenceDate": "2025"
+      },
+      "TEC": {
+        "value": 7077191807196.39,
+        "referenceDate": "2025"
+      },
+      "EUU": {
+        "value": 21243212570163.3,
+        "referenceDate": "2025"
+      },
+      "HPC": {
+        "value": 1285481386975.21,
+        "referenceDate": "2025"
+      },
+      "IBD": {
+        "value": 43056359078690,
+        "referenceDate": "2025"
+      },
+      "IBT": {
+        "value": 46251403468584.1,
+        "referenceDate": "2025"
+      },
+      "IDB": {
+        "value": 1270032242274.1,
+        "referenceDate": "2025"
+      },
+      "IDX": {
+        "value": 1925012147619.92,
+        "referenceDate": "2025"
+      },
+      "IDA": {
+        "value": 3195044389894.02,
+        "referenceDate": "2025"
+      },
+      "LTE": {
+        "value": 31873985161936.8,
+        "referenceDate": "2025"
+      },
+      "LCN": {
+        "value": 7395989651242.09,
+        "referenceDate": "2025"
+      },
+      "LAC": {
+        "value": 6523496128943.99,
+        "referenceDate": "2025"
+      },
+      "TLA": {
+        "value": 7050566084338.85,
+        "referenceDate": "2025"
+      },
+      "LDC": {
+        "value": 1653686211542.1,
+        "referenceDate": "2025"
+      },
+      "LMY": {
+        "value": 41478597585191.8,
+        "referenceDate": "2025"
+      },
+      "MEA": {
+        "value": 5135569539885.64,
+        "referenceDate": "2025"
+      },
+      "MNA": {
+        "value": 2132889870483.32,
+        "referenceDate": "2025"
+      },
+      "TMN": {
+        "value": 2115722770483.32,
+        "referenceDate": "2025"
+      },
+      "MIC": {
+        "value": 40836798203180.8,
+        "referenceDate": "2025"
+      },
+      "NAC": {
+        "value": 33099237425506.2,
+        "referenceDate": "2025"
+      },
+      "OED": {
+        "value": 72543267888365.3,
+        "referenceDate": "2025"
+      },
+      "OSS": {
+        "value": 228636677706.691,
+        "referenceDate": "2025"
+      },
+      "PSS": {
+        "value": 13005809518.6945,
+        "referenceDate": "2025"
+      },
+      "PST": {
+        "value": 67379697065259.9,
+        "referenceDate": "2025"
+      },
+      "PRE": {
+        "value": 1665770125125.75,
+        "referenceDate": "2025"
+      },
+      "SST": {
+        "value": 337311651764.509,
+        "referenceDate": "2025"
+      },
+      "SAS": {
+        "value": 4578021773987.28,
+        "referenceDate": "2025"
+      },
+      "TSA": {
+        "value": 4578021773987.28,
+        "referenceDate": "2025"
+      },
+      "SSF": {
+        "value": 2211221046102.8,
+        "referenceDate": "2025"
+      },
+      "SSA": {
+        "value": 2208834023249.31,
+        "referenceDate": "2025"
+      },
+      "TSS": {
+        "value": 2211221046102.8,
+        "referenceDate": "2025"
+      },
+      "WLD": {
+        "value": 118350166039396,
+        "referenceDate": "2025"
+      },
+      "AFG": {
+        "value": 17778508875.7396,
+        "referenceDate": "2024"
+      },
+      "ALB": {
+        "value": 30540188271.3421,
+        "referenceDate": "2025"
+      },
+      "DZA": {
+        "value": 287031225987.736,
+        "referenceDate": "2025"
+      },
+      "ASM": {
+        "value": 871000000,
+        "referenceDate": "2022"
+      },
+      "AND": {
+        "value": 4500982731.80784,
+        "referenceDate": "2025"
+      },
+      "AGO": {
+        "value": 122174889423.635,
+        "referenceDate": "2025"
+      },
+      "ATG": {
+        "value": 2338196296.2963,
+        "referenceDate": "2025"
+      },
+      "ARG": {
+        "value": 683097891618.597,
+        "referenceDate": "2025"
+      },
+      "ARM": {
+        "value": 29243452882.3545,
+        "referenceDate": "2025"
+      },
+      "ABW": {
+        "value": 4167588070.29217,
+        "referenceDate": "2024"
+      },
+      "AUS": {
+        "value": 1798518933689.21,
+        "referenceDate": "2025"
+      },
+      "AUT": {
+        "value": 579470021095.418,
+        "referenceDate": "2025"
+      },
+      "AZE": {
+        "value": 75937647058.8235,
+        "referenceDate": "2025"
+      },
+      "BHS": {
+        "value": 15832800000,
+        "referenceDate": "2024"
+      },
+      "BHR": {
+        "value": 48965725531.9149,
+        "referenceDate": "2025"
+      },
+      "BGD": {
+        "value": 456319229255.578,
+        "referenceDate": "2025"
+      },
+      "BRB": {
+        "value": 8016550000,
+        "referenceDate": "2025"
+      },
+      "BLR": {
+        "value": 93397215864.198,
+        "referenceDate": "2025"
+      },
+      "BEL": {
+        "value": 725466462859.646,
+        "referenceDate": "2025"
+      },
+      "BLZ": {
+        "value": 3326500000,
+        "referenceDate": "2025"
+      },
+      "BEN": {
+        "value": 24566420903.5337,
+        "referenceDate": "2025"
+      },
+      "BMU": {
+        "value": 9194499000,
+        "referenceDate": "2024"
+      },
+      "BTN": {
+        "value": 3579320145.13077,
+        "referenceDate": "2025"
+      },
+      "BOL": {
+        "value": 64768947525.3256,
+        "referenceDate": "2025"
+      },
+      "BIH": {
+        "value": 32599982936.3931,
+        "referenceDate": "2025"
+      },
+      "BWA": {
+        "value": 19928479839.4476,
+        "referenceDate": "2025"
+      },
+      "BRA": {
+        "value": 2279920092492.13,
+        "referenceDate": "2025"
+      },
+      "BRN": {
+        "value": 15031980994.1121,
+        "referenceDate": "2025"
+      },
+      "BGR": {
+        "value": 130777235529.606,
+        "referenceDate": "2025"
+      },
+      "BFA": {
+        "value": 27627297461.3181,
+        "referenceDate": "2025"
+      },
+      "BDI": {
+        "value": 3364713864.08488,
+        "referenceDate": "2025"
+      },
+      "CPV": {
+        "value": 3056630435.32463,
+        "referenceDate": "2025"
+      },
+      "KHM": {
+        "value": 51267065842.9641,
+        "referenceDate": "2025"
+      },
+      "CMR": {
+        "value": 58933453923.761,
+        "referenceDate": "2025"
+      },
+      "CAN": {
+        "value": 2319899772425.92,
+        "referenceDate": "2025"
+      },
+      "CYM": {
+        "value": 7765336505.34319,
+        "referenceDate": "2024"
+      },
+      "CAF": {
+        "value": 3066109226.40165,
+        "referenceDate": "2025"
+      },
+      "TCD": {
+        "value": 21472835225.4338,
+        "referenceDate": "2025"
+      },
+      "CHI": {
+        "value": 12507320838.3932,
+        "referenceDate": "2023"
+      },
+      "CHL": {
+        "value": 357371159574.862,
+        "referenceDate": "2025"
+      },
+      "CHN": {
+        "value": 19498039388042.6,
+        "referenceDate": "2025"
+      },
+      "COL": {
+        "value": 457410034202.523,
+        "referenceDate": "2025"
+      },
+      "COM": {
+        "value": 1814920856.27026,
+        "referenceDate": "2025"
+      },
+      "COD": {
+        "value": 91030531316.9936,
+        "referenceDate": "2025"
+      },
+      "COG": {
+        "value": 16306633778.765,
+        "referenceDate": "2025"
+      },
+      "CRI": {
+        "value": 102904921157.478,
+        "referenceDate": "2025"
+      },
+      "CIV": {
+        "value": 99773555666.1988,
+        "referenceDate": "2025"
+      },
+      "HRV": {
+        "value": 105060182186.274,
+        "referenceDate": "2025"
+      },
+      "CUB": {
+        "value": 107352000000,
+        "referenceDate": "2020"
+      },
+      "CUW": {
+        "value": 3561178212.2905,
+        "referenceDate": "2024"
+      },
+      "CYP": {
+        "value": 41225787247.3309,
+        "referenceDate": "2025"
+      },
+      "CZE": {
+        "value": 391026962800.475,
+        "referenceDate": "2025"
+      },
+      "DNK": {
+        "value": 462526660468.393,
+        "referenceDate": "2025"
+      },
+      "DJI": {
+        "value": 4624533092.31886,
+        "referenceDate": "2025"
+      },
+      "DMA": {
+        "value": 723859259.259259,
+        "referenceDate": "2025"
+      },
+      "DOM": {
+        "value": 127407463759.043,
+        "referenceDate": "2025"
+      },
+      "ECU": {
+        "value": 130320560400,
+        "referenceDate": "2025"
+      },
+      "EGY": {
+        "value": 365254630179.737,
+        "referenceDate": "2025"
+      },
+      "SLV": {
+        "value": 36708110000,
+        "referenceDate": "2025"
+      },
+      "GNQ": {
+        "value": 12823210425.9217,
+        "referenceDate": "2025"
+      },
+      "EST": {
+        "value": 47030833798.5866,
+        "referenceDate": "2025"
+      },
+      "SWZ": {
+        "value": 5160679612.81734,
+        "referenceDate": "2025"
+      },
+      "ETH": {
+        "value": 126358758448.356,
+        "referenceDate": "2025"
+      },
+      "FRO": {
+        "value": 4052937169.76536,
+        "referenceDate": "2024"
+      },
+      "FJI": {
+        "value": 6198013062.06553,
+        "referenceDate": "2025"
+      },
+      "FIN": {
+        "value": 317039368819.607,
+        "referenceDate": "2025"
+      },
+      "FRA": {
+        "value": 3366315927447.33,
+        "referenceDate": "2025"
+      },
+      "PYF": {
+        "value": 6323716355.05009,
+        "referenceDate": "2024"
+      },
+      "GAB": {
+        "value": 21427119323.2764,
+        "referenceDate": "2025"
+      },
+      "GMB": {
+        "value": 2593673987.53306,
+        "referenceDate": "2025"
+      },
+      "GEO": {
+        "value": 38143612855.1367,
+        "referenceDate": "2025"
+      },
+      "DEU": {
+        "value": 5050922925047.05,
+        "referenceDate": "2025"
+      },
+      "GHA": {
+        "value": 114209905278.717,
+        "referenceDate": "2025"
+      },
+      "GRC": {
+        "value": 280635521324.441,
+        "referenceDate": "2025"
+      },
+      "GRL": {
+        "value": 3326543974.39193,
+        "referenceDate": "2023"
+      },
+      "GRD": {
+        "value": 1420173228.56948,
+        "referenceDate": "2025"
+      },
+      "GUM": {
+        "value": 6910000000,
+        "referenceDate": "2022"
+      },
+      "GTM": {
+        "value": 123306008821.471,
+        "referenceDate": "2025"
+      },
+      "GIN": {
+        "value": 28346024753.2924,
+        "referenceDate": "2025"
+      },
+      "GNB": {
+        "value": 2527930272.92988,
+        "referenceDate": "2025"
+      },
+      "GUY": {
+        "value": 27097477218.2254,
+        "referenceDate": "2025"
+      },
+      "HTI": {
+        "value": 32077278409.2339,
+        "referenceDate": "2025"
+      },
+      "HND": {
+        "value": 39601409103.3005,
+        "referenceDate": "2025"
+      },
+      "HKG": {
+        "value": 427310315921.993,
+        "referenceDate": "2025"
+      },
+      "HUN": {
+        "value": 246490213513.054,
+        "referenceDate": "2025"
+      },
+      "ISL": {
+        "value": 38582528789.0033,
+        "referenceDate": "2025"
+      },
+      "IND": {
+        "value": 3956067115771.63,
+        "referenceDate": "2025"
+      },
+      "IDN": {
+        "value": 1445642584163.81,
+        "referenceDate": "2025"
+      },
+      "IRN": {
+        "value": 362682115433.364,
+        "referenceDate": "2025"
+      },
+      "IRQ": {
+        "value": 254367293538.462,
+        "referenceDate": "2025"
+      },
+      "IRL": {
+        "value": 721701359046.313,
+        "referenceDate": "2025"
+      },
+      "IMN": {
+        "value": 7576129932.79381,
+        "referenceDate": "2023"
+      },
+      "ISR": {
+        "value": 610777842873.595,
+        "referenceDate": "2025"
+      },
+      "ITA": {
+        "value": 2551556954100.35,
+        "referenceDate": "2025"
+      },
+      "JAM": {
+        "value": 22704903217.5631,
+        "referenceDate": "2025"
+      },
+      "JPN": {
+        "value": 4435162999976.94,
+        "referenceDate": "2025"
+      },
+      "JOR": {
+        "value": 61610052535.2113,
+        "referenceDate": "2025"
+      },
+      "KAZ": {
+        "value": 306239209650.024,
+        "referenceDate": "2025"
+      },
+      "KEN": {
+        "value": 135941278878.815,
+        "referenceDate": "2025"
+      },
+      "KIR": {
+        "value": 349227254.158833,
+        "referenceDate": "2025"
+      },
+      "KOR": {
+        "value": 1872374961553.15,
+        "referenceDate": "2025"
+      },
+      "XKX": {
+        "value": 12456403306.8191,
+        "referenceDate": "2025"
+      },
+      "KWT": {
+        "value": 157209026926.418,
+        "referenceDate": "2025"
+      },
+      "KGZ": {
+        "value": 22623752095.4613,
+        "referenceDate": "2025"
+      },
+      "LAO": {
+        "value": 18302970218.5902,
+        "referenceDate": "2025"
+      },
+      "LVA": {
+        "value": 48618869160.3254,
+        "referenceDate": "2025"
+      },
+      "LBN": {
+        "value": 25971643441.3408,
+        "referenceDate": "2024"
+      },
+      "LSO": {
+        "value": 2573572920.05159,
+        "referenceDate": "2025"
+      },
+      "LBR": {
+        "value": 5245938900,
+        "referenceDate": "2025"
+      },
+      "LBY": {
+        "value": 48098909613.6316,
+        "referenceDate": "2025"
+      },
+      "LIE": {
+        "value": 8905764270.4054,
+        "referenceDate": "2024"
+      },
+      "LTU": {
+        "value": 95210150818.3512,
+        "referenceDate": "2025"
+      },
+      "LUX": {
+        "value": 101157829491.107,
+        "referenceDate": "2025"
+      },
+      "MAC": {
+        "value": 52061007670.169,
+        "referenceDate": "2025"
+      },
+      "MDG": {
+        "value": 19620352035.7899,
+        "referenceDate": "2025"
+      },
+      "MWI": {
+        "value": 14918276698.303,
+        "referenceDate": "2025"
+      },
+      "MYS": {
+        "value": 472193128644.597,
+        "referenceDate": "2025"
+      },
+      "MDV": {
+        "value": 7741066860.6337,
+        "referenceDate": "2025"
+      },
+      "MLI": {
+        "value": 30069148580.7688,
+        "referenceDate": "2025"
+      },
+      "MLT": {
+        "value": 27771821560.9411,
+        "referenceDate": "2025"
+      },
+      "MHL": {
+        "value": 308000000,
+        "referenceDate": "2025"
+      },
+      "MRT": {
+        "value": 11679910946.4371,
+        "referenceDate": "2025"
+      },
+      "MUS": {
+        "value": 16157804491.7614,
+        "referenceDate": "2025"
+      },
+      "MEX": {
+        "value": 1832641364775.52,
+        "referenceDate": "2025"
+      },
+      "FSM": {
+        "value": 501797600,
+        "referenceDate": "2025"
+      },
+      "MDA": {
+        "value": 20351796275.2943,
+        "referenceDate": "2025"
+      },
+      "MCO": {
+        "value": 11125788838.2812,
+        "referenceDate": "2024"
+      },
+      "MNG": {
+        "value": 25369107325.4549,
+        "referenceDate": "2025"
+      },
+      "MNE": {
+        "value": 9232801464.79257,
+        "referenceDate": "2025"
+      },
+      "MAR": {
+        "value": 182374250612.28,
+        "referenceDate": "2025"
+      },
+      "MOZ": {
+        "value": 22337997046.1913,
+        "referenceDate": "2025"
+      },
+      "MMR": {
+        "value": 81665773809.5238,
+        "referenceDate": "2025"
+      },
+      "NAM": {
+        "value": 15080340653.5276,
+        "referenceDate": "2025"
+      },
+      "NRU": {
+        "value": 176040043.932346,
+        "referenceDate": "2025"
+      },
+      "NPL": {
+        "value": 45489810283.1132,
+        "referenceDate": "2025"
+      },
+      "NLD": {
+        "value": 1332767651100.39,
+        "referenceDate": "2025"
+      },
+      "NCL": {
+        "value": 8548919387.12607,
+        "referenceDate": "2024"
+      },
+      "NZL": {
+        "value": 264057413739.965,
+        "referenceDate": "2025"
+      },
+      "NIC": {
+        "value": 22237167113.0916,
+        "referenceDate": "2025"
+      },
+      "NER": {
+        "value": 21646191388.2507,
+        "referenceDate": "2025"
+      },
+      "NGA": {
+        "value": 290794361542.112,
+        "referenceDate": "2025"
+      },
+      "MKD": {
+        "value": 19101199817.0174,
+        "referenceDate": "2025"
+      },
+      "MNP": {
+        "value": 1096000000,
+        "referenceDate": "2022"
+      },
+      "NOR": {
+        "value": 530755719438.879,
+        "referenceDate": "2025"
+      },
+      "OMN": {
+        "value": 109604780696.23,
+        "referenceDate": "2025"
+      },
+      "PAK": {
+        "value": 407307214476.222,
+        "referenceDate": "2025"
+      },
+      "PLW": {
+        "value": 345000000,
+        "referenceDate": "2025"
+      },
+      "PAN": {
+        "value": 90462600000,
+        "referenceDate": "2025"
+      },
+      "PNG": {
+        "value": 32498658653.8415,
+        "referenceDate": "2025"
+      },
+      "PRY": {
+        "value": 49278227554.3339,
+        "referenceDate": "2025"
+      },
+      "PER": {
+        "value": 334854659181.893,
+        "referenceDate": "2025"
+      },
+      "PHL": {
+        "value": 487086123720.417,
+        "referenceDate": "2025"
+      },
+      "POL": {
+        "value": 1035491784197.44,
+        "referenceDate": "2025"
+      },
+      "PRT": {
+        "value": 346639825141.821,
+        "referenceDate": "2025"
+      },
+      "PRI": {
+        "value": 129368484000,
+        "referenceDate": "2025"
+      },
+      "QAT": {
+        "value": 215559615384.615,
+        "referenceDate": "2025"
+      },
+      "ROU": {
+        "value": 428677977854.826,
+        "referenceDate": "2025"
+      },
+      "RUS": {
+        "value": 2561310169358.74,
+        "referenceDate": "2025"
+      },
+      "RWA": {
+        "value": 16372132990.2271,
+        "referenceDate": "2025"
+      },
+      "WSM": {
+        "value": 1287936621.64619,
+        "referenceDate": "2025"
+      },
+      "SMR": {
+        "value": 2027243193.5116,
+        "referenceDate": "2023"
+      },
+      "STP": {
+        "value": 981293586.906408,
+        "referenceDate": "2025"
+      },
+      "SAU": {
+        "value": 1276942933333.33,
+        "referenceDate": "2025"
+      },
+      "SEN": {
+        "value": 37006536238.3731,
+        "referenceDate": "2025"
+      },
+      "SRB": {
+        "value": 99953324472.9042,
+        "referenceDate": "2025"
+      },
+      "SYC": {
+        "value": 2387022853.48583,
+        "referenceDate": "2025"
+      },
+      "SLE": {
+        "value": 7464157904.43509,
+        "referenceDate": "2025"
+      },
+      "SGP": {
+        "value": 603869516998.738,
+        "referenceDate": "2025"
+      },
+      "SXM": {
+        "value": 1887728480.44693,
+        "referenceDate": "2025"
+      },
+      "SVK": {
+        "value": 154530066506.895,
+        "referenceDate": "2025"
+      },
+      "SVN": {
+        "value": 79648204979.3618,
+        "referenceDate": "2025"
+      },
+      "SLB": {
+        "value": 1749572442.95016,
+        "referenceDate": "2025"
+      },
+      "SOM": {
+        "value": 12995200000.2658,
+        "referenceDate": "2025"
+      },
+      "ZAF": {
+        "value": 427184325997.307,
+        "referenceDate": "2025"
+      },
+      "ESP": {
+        "value": 1906453309985.88,
+        "referenceDate": "2025"
+      },
+      "LKA": {
+        "value": 108825231671.196,
+        "referenceDate": "2025"
+      },
+      "KNA": {
+        "value": 1183514814.81481,
+        "referenceDate": "2025"
+      },
+      "LCA": {
+        "value": 2656444444.44444,
+        "referenceDate": "2025"
+      },
+      "MAF": {
+        "value": 649206262.847519,
+        "referenceDate": "2021"
+      },
+      "VCT": {
+        "value": 1255222222.22222,
+        "referenceDate": "2025"
+      },
+      "SDN": {
+        "value": 60162634574.4689,
+        "referenceDate": "2025"
+      },
+      "SUR": {
+        "value": 4523657796.86421,
+        "referenceDate": "2025"
+      },
+      "SWE": {
+        "value": 668998664082.081,
+        "referenceDate": "2025"
+      },
+      "CHE": {
+        "value": 1043529899250.92,
+        "referenceDate": "2025"
+      },
+      "SYR": {
+        "value": 23737634644.3994,
+        "referenceDate": "2022"
+      },
+      "TJK": {
+        "value": 17660626562.4832,
+        "referenceDate": "2025"
+      },
+      "TZA": {
+        "value": 90143496090.4411,
+        "referenceDate": "2025"
+      },
+      "THA": {
+        "value": 577009981112.015,
+        "referenceDate": "2025"
+      },
+      "TLS": {
+        "value": 1902180257.82737,
+        "referenceDate": "2025"
+      },
+      "TGO": {
+        "value": 11889949067.4697,
+        "referenceDate": "2025"
+      },
+      "TON": {
+        "value": 679218218.578017,
+        "referenceDate": "2025"
+      },
+      "TTO": {
+        "value": 25942749718.4685,
+        "referenceDate": "2025"
+      },
+      "TUN": {
+        "value": 57502836548.0878,
+        "referenceDate": "2025"
+      },
+      "TUR": {
+        "value": 1597293229287,
+        "referenceDate": "2025"
+      },
+      "TKM": {
+        "value": 49828621355.6516,
+        "referenceDate": "2025"
+      },
+      "TCA": {
+        "value": 1745378000,
+        "referenceDate": "2024"
+      },
+      "TUV": {
+        "value": 57345434.7234984,
+        "referenceDate": "2025"
+      },
+      "UGA": {
+        "value": 61985829288.1496,
+        "referenceDate": "2025"
+      },
+      "UKR": {
+        "value": 214233312784.397,
+        "referenceDate": "2025"
+      },
+      "ARE": {
+        "value": 552324919095.872,
+        "referenceDate": "2024"
+      },
+      "GBR": {
+        "value": 4002587541846.01,
+        "referenceDate": "2025"
+      },
+      "USA": {
+        "value": 30769700000000,
+        "referenceDate": "2025"
+      },
+      "URY": {
+        "value": 85347696277.6859,
+        "referenceDate": "2025"
+      },
+      "UZB": {
+        "value": 147038081129.405,
+        "referenceDate": "2025"
+      },
+      "VUT": {
+        "value": 1353658840.63993,
+        "referenceDate": "2025"
+      },
+      "VEN": {
+        "value": 99661244155.6306,
+        "referenceDate": "2025"
+      },
+      "VNM": {
+        "value": 514697215165.065,
+        "referenceDate": "2025"
+      },
+      "VIR": {
+        "value": 4672000000,
+        "referenceDate": "2022"
+      },
+      "PSE": {
+        "value": 17167100000,
+        "referenceDate": "2025"
+      },
+      "ZMB": {
+        "value": 28879806220.1264,
+        "referenceDate": "2025"
+      },
+      "ZWE": {
+        "value": 51215643905.5886,
+        "referenceDate": "2025"
+      }
+    },
+    "NY.GDP.PCAP.CD": {
+      "AFE": {
+        "value": 1722.38561960923,
+        "referenceDate": "2025"
+      },
+      "AFW": {
+        "value": 1600.05837434388,
+        "referenceDate": "2025"
+      },
+      "ARB": {
+        "value": 7544.41435641482,
+        "referenceDate": "2025"
+      },
+      "CSS": {
+        "value": 20880.0606776787,
+        "referenceDate": "2025"
+      },
+      "CEB": {
+        "value": 27676.9389653713,
+        "referenceDate": "2025"
+      },
+      "EAR": {
+        "value": 4566.42669968306,
+        "referenceDate": "2025"
+      },
+      "EAS": {
+        "value": 14077.2712026283,
+        "referenceDate": "2025"
+      },
+      "EAP": {
+        "value": 10843.4363994141,
+        "referenceDate": "2025"
+      },
+      "TEA": {
+        "value": 10965.8265646099,
+        "referenceDate": "2025"
+      },
+      "EMU": {
+        "value": 50214.0783015991,
+        "referenceDate": "2025"
+      },
+      "ECS": {
+        "value": 34603.480892464,
+        "referenceDate": "2025"
+      },
+      "ECA": {
+        "value": 11117.61379372,
+        "referenceDate": "2025"
+      },
+      "TEC": {
+        "value": 15300.0702229683,
+        "referenceDate": "2025"
+      },
+      "EUU": {
+        "value": 47089.1638419269,
+        "referenceDate": "2025"
+      },
+      "HPC": {
+        "value": 1331.89997509038,
+        "referenceDate": "2025"
+      },
+      "IBD": {
+        "value": 8599.35834895508,
+        "referenceDate": "2025"
+      },
+      "IBT": {
+        "value": 6613.2094697403,
+        "referenceDate": "2025"
+      },
+      "IDB": {
+        "value": 1841.20446420685,
+        "referenceDate": "2025"
+      },
+      "IDX": {
+        "value": 1484.11159862857,
+        "referenceDate": "2025"
+      },
+      "IDA": {
+        "value": 1608.08422318374,
+        "referenceDate": "2025"
+      },
+      "LTE": {
+        "value": 13677.3231696707,
+        "referenceDate": "2025"
+      },
+      "LCN": {
+        "value": 11095.2176548294,
+        "referenceDate": "2025"
+      },
+      "LAC": {
+        "value": 10407.4817975955,
+        "referenceDate": "2025"
+      },
+      "TLA": {
+        "value": 10822.5929247606,
+        "referenceDate": "2025"
+      },
+      "LDC": {
+        "value": 1361.99182021439,
+        "referenceDate": "2025"
+      },
+      "LMY": {
+        "value": 6107.26169428605,
+        "referenceDate": "2025"
+      },
+      "MEA": {
+        "value": 6202.19002141299,
+        "referenceDate": "2025"
+      },
+      "MNA": {
+        "value": 2829.12883889291,
+        "referenceDate": "2025"
+      },
+      "TMN": {
+        "value": 2826.65540584536,
+        "referenceDate": "2025"
+      },
+      "MIC": {
+        "value": 6778.79773310904,
+        "referenceDate": "2025"
+      },
+      "NAC": {
+        "value": 86308.0717272746,
+        "referenceDate": "2025"
+      },
+      "OED": {
+        "value": 51733.7140199057,
+        "referenceDate": "2025"
+      },
+      "OSS": {
+        "value": 17540.3099815121,
+        "referenceDate": "2025"
+      },
+      "PSS": {
+        "value": 4719.69017777464,
+        "referenceDate": "2025"
+      },
+      "PST": {
+        "value": 59490.0240628251,
+        "referenceDate": "2025"
+      },
+      "PRE": {
+        "value": 1470.05803145865,
+        "referenceDate": "2025"
+      },
+      "SST": {
+        "value": 16577.8450757077,
+        "referenceDate": "2025"
+      },
+      "SAS": {
+        "value": 2705.28227429085,
+        "referenceDate": "2025"
+      },
+      "TSA": {
+        "value": 2705.28227429085,
+        "referenceDate": "2025"
+      },
+      "SSF": {
+        "value": 1673.07077574497,
+        "referenceDate": "2025"
+      },
+      "SSA": {
+        "value": 1671.41989803328,
+        "referenceDate": "2025"
+      },
+      "TSS": {
+        "value": 1673.07077574497,
+        "referenceDate": "2025"
+      },
+      "WLD": {
+        "value": 14405.8484595528,
+        "referenceDate": "2025"
+      },
+      "AFG": {
+        "value": 416.871146273728,
+        "referenceDate": "2024"
+      },
+      "ALB": {
+        "value": 12998.147869552,
+        "referenceDate": "2025"
+      },
+      "DZA": {
+        "value": 6051.00322704182,
+        "referenceDate": "2025"
+      },
+      "ASM": {
+        "value": 18017.4589383973,
+        "referenceDate": "2022"
+      },
+      "AND": {
+        "value": 54291.5026031052,
+        "referenceDate": "2025"
+      },
+      "AGO": {
+        "value": 3129.47662331063,
+        "referenceDate": "2025"
+      },
+      "ATG": {
+        "value": 24819.2454680158,
+        "referenceDate": "2025"
+      },
+      "ARG": {
+        "value": 14898.0885943842,
+        "referenceDate": "2025"
+      },
+      "ARM": {
+        "value": 9474.01849300368,
+        "referenceDate": "2025"
+      },
+      "ABW": {
+        "value": 38590.5650288641,
+        "referenceDate": "2024"
+      },
+      "AUS": {
+        "value": 65129.7227990563,
+        "referenceDate": "2025"
+      },
+      "AUT": {
+        "value": 62930.0351324599,
+        "referenceDate": "2025"
+      },
+      "AZE": {
+        "value": 7410.72281660142,
+        "referenceDate": "2025"
+      },
+      "BHS": {
+        "value": 39455.4466548546,
+        "referenceDate": "2024"
+      },
+      "BHR": {
+        "value": 30596.5794898885,
+        "referenceDate": "2025"
+      },
+      "BGD": {
+        "value": 2597.34352335275,
+        "referenceDate": "2025"
+      },
+      "BRB": {
+        "value": 28364.8181499736,
+        "referenceDate": "2025"
+      },
+      "BLR": {
+        "value": 10279.2547190723,
+        "referenceDate": "2025"
+      },
+      "BEL": {
+        "value": 60750.2735864647,
+        "referenceDate": "2025"
+      },
+      "BLZ": {
+        "value": 7865.47937690933,
+        "referenceDate": "2025"
+      },
+      "BEN": {
+        "value": 1658.27312662991,
+        "referenceDate": "2025"
+      },
+      "BMU": {
+        "value": 142250.433195123,
+        "referenceDate": "2024"
+      },
+      "BTN": {
+        "value": 4492.78400306618,
+        "referenceDate": "2025"
+      },
+      "BOL": {
+        "value": 5147.81081955367,
+        "referenceDate": "2025"
+      },
+      "BIH": {
+        "value": 10381.8460703874,
+        "referenceDate": "2025"
+      },
+      "BWA": {
+        "value": 7778.1151090571,
+        "referenceDate": "2025"
+      },
+      "BRA": {
+        "value": 10713.2856869511,
+        "referenceDate": "2025"
+      },
+      "BRN": {
+        "value": 32234.6428368582,
+        "referenceDate": "2025"
+      },
+      "BGR": {
+        "value": 20328.1667065538,
+        "referenceDate": "2025"
+      },
+      "BFA": {
+        "value": 1147.57131635601,
+        "referenceDate": "2025"
+      },
+      "BDI": {
+        "value": 233.823013385395,
+        "referenceDate": "2025"
+      },
+      "CPV": {
+        "value": 5796.47207860911,
+        "referenceDate": "2025"
+      },
+      "KHM": {
+        "value": 2872.42926639909,
+        "referenceDate": "2025"
+      },
+      "CMR": {
+        "value": 1972.3815800786,
+        "referenceDate": "2025"
+      },
+      "CAN": {
+        "value": 55697.6639660837,
+        "referenceDate": "2025"
+      },
+      "CYM": {
+        "value": 104292.900672109,
+        "referenceDate": "2024"
+      },
+      "CAF": {
+        "value": 556.131398031455,
+        "referenceDate": "2025"
+      },
+      "TCD": {
+        "value": 1022.33559390754,
+        "referenceDate": "2025"
+      },
+      "CHI": {
+        "value": 74585.5224096294,
+        "referenceDate": "2023"
+      },
+      "CHL": {
+        "value": 17994.5911957485,
+        "referenceDate": "2025"
+      },
+      "CHN": {
+        "value": 13861.970224368,
+        "referenceDate": "2025"
+      },
+      "COL": {
+        "value": 8561.62091854449,
+        "referenceDate": "2025"
+      },
+      "COM": {
+        "value": 2055.75921566281,
+        "referenceDate": "2025"
+      },
+      "COD": {
+        "value": 806.776000708534,
+        "referenceDate": "2025"
+      },
+      "COG": {
+        "value": 2514.73393584747,
+        "referenceDate": "2025"
+      },
+      "CRI": {
+        "value": 19970.0989059622,
+        "referenceDate": "2025"
+      },
+      "CIV": {
+        "value": 3050.10202257321,
+        "referenceDate": "2025"
+      },
+      "HRV": {
+        "value": 27103.9116109268,
+        "referenceDate": "2025"
+      },
+      "CUB": {
+        "value": 9605.27914559614,
+        "referenceDate": "2020"
+      },
+      "CUW": {
+        "value": 22832.895498987,
+        "referenceDate": "2024"
+      },
+      "CYP": {
+        "value": 41783.08984375,
+        "referenceDate": "2025"
+      },
+      "CZE": {
+        "value": 35917.2724081665,
+        "referenceDate": "2025"
+      },
+      "DNK": {
+        "value": 76970.1535217919,
+        "referenceDate": "2025"
+      },
+      "DJI": {
+        "value": 3905.604954681,
+        "referenceDate": "2025"
+      },
+      "DMA": {
+        "value": 10989.0431185083,
+        "referenceDate": "2025"
+      },
+      "DOM": {
+        "value": 11059.2081531834,
+        "referenceDate": "2025"
+      },
+      "ECU": {
+        "value": 7125.27618527738,
+        "referenceDate": "2025"
+      },
+      "EGY": {
+        "value": 3085.80712036204,
+        "referenceDate": "2025"
+      },
+      "SLV": {
+        "value": 5766.72574029107,
+        "referenceDate": "2025"
+      },
+      "GNQ": {
+        "value": 6615.25245207167,
+        "referenceDate": "2025"
+      },
+      "EST": {
+        "value": 34417.6320815138,
+        "referenceDate": "2025"
+      },
+      "SWZ": {
+        "value": 4108.25221093363,
+        "referenceDate": "2025"
+      },
+      "ETH": {
+        "value": 932.729352775179,
+        "referenceDate": "2025"
+      },
+      "FRO": {
+        "value": 74175.2776311377,
+        "referenceDate": "2024"
+      },
+      "FJI": {
+        "value": 6642.00449450523,
+        "referenceDate": "2025"
+      },
+      "FIN": {
+        "value": 56148.580949046,
+        "referenceDate": "2025"
+      },
+      "FRA": {
+        "value": 48985.7307807924,
+        "referenceDate": "2025"
+      },
+      "PYF": {
+        "value": 22439.8838746025,
+        "referenceDate": "2024"
+      },
+      "GAB": {
+        "value": 8263.03321595,
+        "referenceDate": "2025"
+      },
+      "GMB": {
+        "value": 919.060423427951,
+        "referenceDate": "2025"
+      },
+      "GEO": {
+        "value": 9691.53472415196,
+        "referenceDate": "2025"
+      },
+      "DEU": {
+        "value": 60496.4350820414,
+        "referenceDate": "2025"
+      },
+      "GHA": {
+        "value": 3257.1588903576,
+        "referenceDate": "2025"
+      },
+      "GRC": {
+        "value": 26948.0070432791,
+        "referenceDate": "2025"
+      },
+      "GRL": {
+        "value": 58498.9707973609,
+        "referenceDate": "2023"
+      },
+      "GRD": {
+        "value": 12106.8790105068,
+        "referenceDate": "2025"
+      },
+      "GUM": {
+        "value": 41833.1517132825,
+        "referenceDate": "2022"
+      },
+      "GTM": {
+        "value": 6598.18032988711,
+        "referenceDate": "2025"
+      },
+      "GIN": {
+        "value": 1877.2541220972,
+        "referenceDate": "2025"
+      },
+      "GNB": {
+        "value": 1123.76679992349,
+        "referenceDate": "2025"
+      },
+      "GUY": {
+        "value": 32413.7930757518,
+        "referenceDate": "2025"
+      },
+      "HTI": {
+        "value": 2694.18969101404,
+        "referenceDate": "2025"
+      },
+      "HND": {
+        "value": 3598.21450440452,
+        "referenceDate": "2025"
+      },
+      "HKG": {
+        "value": 56983.0663059906,
+        "referenceDate": "2025"
+      },
+      "HUN": {
+        "value": 25907.4743259406,
+        "referenceDate": "2025"
+      },
+      "ISL": {
+        "value": 98323.4849517418,
+        "referenceDate": "2025"
+      },
+      "IND": {
+        "value": 2702.47987141553,
+        "referenceDate": "2025"
+      },
+      "IDN": {
+        "value": 5059.62596411213,
+        "referenceDate": "2025"
+      },
+      "IRN": {
+        "value": 3924.38017821898,
+        "referenceDate": "2025"
+      },
+      "IRQ": {
+        "value": 5409.67899716967,
+        "referenceDate": "2025"
+      },
+      "IRL": {
+        "value": 131592.462547877,
+        "referenceDate": "2025"
+      },
+      "IMN": {
+        "value": 90015.2074234398,
+        "referenceDate": "2023"
+      },
+      "ISR": {
+        "value": 60336.8477964194,
+        "referenceDate": "2025"
+      },
+      "ITA": {
+        "value": 43308.6403060733,
+        "referenceDate": "2025"
+      },
+      "JAM": {
+        "value": 8002.92104076242,
+        "referenceDate": "2025"
+      },
+      "JPN": {
+        "value": 35951.0449549304,
+        "referenceDate": "2025"
+      },
+      "JOR": {
+        "value": 5347.77731384797,
+        "referenceDate": "2025"
+      },
+      "KAZ": {
+        "value": 14692.1331757237,
+        "referenceDate": "2025"
+      },
+      "KEN": {
+        "value": 2362.86091198611,
+        "referenceDate": "2025"
+      },
+      "KIR": {
+        "value": 2558.66636011102,
+        "referenceDate": "2025"
+      },
+      "KOR": {
+        "value": 36226.9663637512,
+        "referenceDate": "2025"
+      },
+      "XKX": {
+        "value": 7899.41841135202,
+        "referenceDate": "2025"
+      },
+      "KWT": {
+        "value": 32312.3119953634,
+        "referenceDate": "2025"
+      },
+      "KGZ": {
+        "value": 3080.96893823359,
+        "referenceDate": "2025"
+      },
+      "LAO": {
+        "value": 2324.76353098791,
+        "referenceDate": "2025"
+      },
+      "LVA": {
+        "value": 26311.9730706362,
+        "referenceDate": "2025"
+      },
+      "LBN": {
+        "value": 4473.27134441128,
+        "referenceDate": "2024"
+      },
+      "LSO": {
+        "value": 1088.96276223185,
+        "referenceDate": "2025"
+      },
+      "LBR": {
+        "value": 915.328972645548,
+        "referenceDate": "2025"
+      },
+      "LBY": {
+        "value": 6448.82415074121,
+        "referenceDate": "2025"
+      },
+      "LIE": {
+        "value": 220167.225473557,
+        "referenceDate": "2024"
+      },
+      "LTU": {
+        "value": 32958.6706396386,
+        "referenceDate": "2025"
+      },
+      "LUX": {
+        "value": 147252.179121515,
+        "referenceDate": "2025"
+      },
+      "MAC": {
+        "value": 75901.7461294198,
+        "referenceDate": "2025"
+      },
+      "MDG": {
+        "value": 599.265294255357,
+        "referenceDate": "2025"
+      },
+      "MWI": {
+        "value": 671.506847203876,
+        "referenceDate": "2025"
+      },
+      "MYS": {
+        "value": 13124.5554178269,
+        "referenceDate": "2025"
+      },
+      "MDV": {
+        "value": 14614.7208116541,
+        "referenceDate": "2025"
+      },
+      "MLI": {
+        "value": 1193.27601004701,
+        "referenceDate": "2025"
+      },
+      "MLT": {
+        "value": 47906.9000057635,
+        "referenceDate": "2025"
+      },
+      "MHL": {
+        "value": 8489.05793506422,
+        "referenceDate": "2025"
+      },
+      "MRT": {
+        "value": 2197.51046251309,
+        "referenceDate": "2025"
+      },
+      "MUS": {
+        "value": 12991.2935987166,
+        "referenceDate": "2025"
+      },
+      "MEX": {
+        "value": 13889.2339628708,
+        "referenceDate": "2025"
+      },
+      "FSM": {
+        "value": 4414.00737137479,
+        "referenceDate": "2025"
+      },
+      "MDA": {
+        "value": 8621.71721623786,
+        "referenceDate": "2025"
+      },
+      "MCO": {
+        "value": 288001.574856495,
+        "referenceDate": "2024"
+      },
+      "MNG": {
+        "value": 7108.22743246244,
+        "referenceDate": "2025"
+      },
+      "MNE": {
+        "value": 14816.8380299947,
+        "referenceDate": "2025"
+      },
+      "MAR": {
+        "value": 4672.46826171875,
+        "referenceDate": "2025"
+      },
+      "MOZ": {
+        "value": 626.914419215727,
+        "referenceDate": "2025"
+      },
+      "MMR": {
+        "value": 1488.87527836542,
+        "referenceDate": "2025"
+      },
+      "NAM": {
+        "value": 4875.92558158247,
+        "referenceDate": "2025"
+      },
+      "NRU": {
+        "value": 14639.5046929186,
+        "referenceDate": "2025"
+      },
+      "NPL": {
+        "value": 1535.87781246307,
+        "referenceDate": "2025"
+      },
+      "NLD": {
+        "value": 73683.917132794,
+        "referenceDate": "2025"
+      },
+      "NCL": {
+        "value": 29213.1923192946,
+        "referenceDate": "2024"
+      },
+      "NZL": {
+        "value": 49591.0405731713,
+        "referenceDate": "2025"
+      },
+      "NIC": {
+        "value": 3173.33724815085,
+        "referenceDate": "2025"
+      },
+      "NER": {
+        "value": 775.353622143879,
+        "referenceDate": "2025"
+      },
+      "NGA": {
+        "value": 1224.25410237743,
+        "referenceDate": "2025"
+      },
+      "MKD": {
+        "value": 10489.9255355525,
+        "referenceDate": "2025"
+      },
+      "MNP": {
+        "value": 23785.754590043,
+        "referenceDate": "2022"
+      },
+      "NOR": {
+        "value": 94594.1929573987,
+        "referenceDate": "2025"
+      },
+      "OMN": {
+        "value": 19947.3966227092,
+        "referenceDate": "2025"
+      },
+      "PAK": {
+        "value": 1595.90912252837,
+        "referenceDate": "2025"
+      },
+      "PLW": {
+        "value": 19532.3557719527,
+        "referenceDate": "2025"
+      },
+      "PAN": {
+        "value": 19789.7308555826,
+        "referenceDate": "2025"
+      },
+      "PNG": {
+        "value": 3019.5309140573,
+        "referenceDate": "2025"
+      },
+      "PRY": {
+        "value": 7026.61906146401,
+        "referenceDate": "2025"
+      },
+      "PER": {
+        "value": 9684.41170314988,
+        "referenceDate": "2025"
+      },
+      "PHL": {
+        "value": 4170.72347271451,
+        "referenceDate": "2025"
+      },
+      "POL": {
+        "value": 28419.5777395638,
+        "referenceDate": "2025"
+      },
+      "PRT": {
+        "value": 32081.8106150292,
+        "referenceDate": "2025"
+      },
+      "PRI": {
+        "value": 40620.1526923687,
+        "referenceDate": "2025"
+      },
+      "QAT": {
+        "value": 72524.9066385222,
+        "referenceDate": "2025"
+      },
+      "ROU": {
+        "value": 22537.9532108047,
+        "referenceDate": "2025"
+      },
+      "RUS": {
+        "value": 17546.609375,
+        "referenceDate": "2025"
+      },
+      "RWA": {
+        "value": 1123.73874633225,
+        "referenceDate": "2025"
+      },
+      "WSM": {
+        "value": 5872.78333308796,
+        "referenceDate": "2025"
+      },
+      "SMR": {
+        "value": 59871.3288101478,
+        "referenceDate": "2023"
+      },
+      "STP": {
+        "value": 4084.40062145233,
+        "referenceDate": "2025"
+      },
+      "SAU": {
+        "value": 34536.6555456551,
+        "referenceDate": "2025"
+      },
+      "SEN": {
+        "value": 1954.71174194867,
+        "referenceDate": "2025"
+      },
+      "SRB": {
+        "value": 15262.0464193413,
+        "referenceDate": "2025"
+      },
+      "SYC": {
+        "value": 19449.3836346926,
+        "referenceDate": "2025"
+      },
+      "SLE": {
+        "value": 846.296172499617,
+        "referenceDate": "2025"
+      },
+      "SGP": {
+        "value": 98813.9788172877,
+        "referenceDate": "2025"
+      },
+      "SXM": {
+        "value": 42978.1317407037,
+        "referenceDate": "2025"
+      },
+      "SVK": {
+        "value": 28543.6653439813,
+        "referenceDate": "2025"
+      },
+      "SVN": {
+        "value": 37376.2216079138,
+        "referenceDate": "2025"
+      },
+      "SLB": {
+        "value": 2086.18955928928,
+        "referenceDate": "2025"
+      },
+      "SOM": {
+        "value": 661.173877723116,
+        "referenceDate": "2025"
+      },
+      "ZAF": {
+        "value": 6597.71450918774,
+        "referenceDate": "2025"
+      },
+      "ESP": {
+        "value": 38627.2472148623,
+        "referenceDate": "2025"
+      },
+      "LKA": {
+        "value": 5002.07904353724,
+        "referenceDate": "2025"
+      },
+      "KNA": {
+        "value": 25223.0257622185,
+        "referenceDate": "2025"
+      },
+      "LCA": {
+        "value": 14745.8184305461,
+        "referenceDate": "2025"
+      },
+      "MAF": {
+        "value": 21668.3776525323,
+        "referenceDate": "2021"
+      },
+      "VCT": {
+        "value": 12561.769166789,
+        "referenceDate": "2025"
+      },
+      "SDN": {
+        "value": 1164.53991699219,
+        "referenceDate": "2025"
+      },
+      "SUR": {
+        "value": 7069.87230892274,
+        "referenceDate": "2025"
+      },
+      "SWE": {
+        "value": 63133.2126736715,
+        "referenceDate": "2025"
+      },
+      "CHE": {
+        "value": 114769.012314293,
+        "referenceDate": "2025"
+      },
+      "SYR": {
+        "value": 1056.78264718197,
+        "referenceDate": "2022"
+      },
+      "TJK": {
+        "value": 1637.2542942547,
+        "referenceDate": "2025"
+      },
+      "TZA": {
+        "value": 1318.81921386719,
+        "referenceDate": "2025"
+      },
+      "THA": {
+        "value": 8056.56359761558,
+        "referenceDate": "2025"
+      },
+      "TLS": {
+        "value": 1340.9640193437,
+        "referenceDate": "2025"
+      },
+      "TGO": {
+        "value": 1383.89974929887,
+        "referenceDate": "2025"
+      },
+      "TON": {
+        "value": 6547.18646814228,
+        "referenceDate": "2025"
+      },
+      "TTO": {
+        "value": 18967.2704636681,
+        "referenceDate": "2025"
+      },
+      "TUN": {
+        "value": 4656.63818386852,
+        "referenceDate": "2025"
+      },
+      "TUR": {
+        "value": 18599.4420922378,
+        "referenceDate": "2025"
+      },
+      "TKM": {
+        "value": 6540.17876401136,
+        "referenceDate": "2025"
+      },
+      "TCA": {
+        "value": 37506.7798431288,
+        "referenceDate": "2024"
+      },
+      "TUV": {
+        "value": 6041.44908591428,
+        "referenceDate": "2025"
+      },
+      "UGA": {
+        "value": 1206.30450825002,
+        "referenceDate": "2025"
+      },
+      "UKR": {
+        "value": 5865.884765625,
+        "referenceDate": "2025"
+      },
+      "ARE": {
+        "value": 50273.5126243239,
+        "referenceDate": "2024"
+      },
+      "GBR": {
+        "value": 57601.9621201954,
+        "referenceDate": "2025"
+      },
+      "USA": {
+        "value": 90026.5163005744,
+        "referenceDate": "2025"
+      },
+      "URY": {
+        "value": 25215.8238152781,
+        "referenceDate": "2025"
+      },
+      "UZB": {
+        "value": 3968.2720079072,
+        "referenceDate": "2025"
+      },
+      "VUT": {
+        "value": 4038.73520713411,
+        "referenceDate": "2025"
+      },
+      "VEN": {
+        "value": 3494.8138870244,
+        "referenceDate": "2025"
+      },
+      "VNM": {
+        "value": 5065.99091899299,
+        "referenceDate": "2025"
+      },
+      "VIR": {
+        "value": 44320.909185774,
+        "referenceDate": "2022"
+      },
+      "PSE": {
+        "value": 3171.10844621579,
+        "referenceDate": "2025"
+      },
+      "ZMB": {
+        "value": 1317.87771619597,
+        "referenceDate": "2025"
+      },
+      "ZWE": {
+        "value": 3021.43019873632,
+        "referenceDate": "2025"
+      }
+    }
+  }
+}
