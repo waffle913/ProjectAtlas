@@ -1,0 +1,892 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "natural-earth-admin-0-110m",
+  "featureIdProperty": "NE_ID",
+  "features": [
+    {
+      "sourceId": "1159320625",
+      "territoryId": "territory.5gvgkl",
+      "countryId": "country.1bxt04r"
+    },
+    {
+      "sourceId": "1159321337",
+      "territoryId": "territory.1tiukfd",
+      "countryId": "country.10umxsb"
+    },
+    {
+      "sourceId": "1159321223",
+      "territoryId": "territory.1v0uk58",
+      "countryId": "country.rvhaqt"
+    },
+    {
+      "sourceId": "1159320467",
+      "territoryId": "territory.cqhfm7",
+      "countryId": "country.1aj872z"
+    },
+    {
+      "sourceId": "1159321369",
+      "territoryId": "territory.1udc934",
+      "countryId": "country.u6myyj"
+    },
+    {
+      "sourceId": "1159320967",
+      "territoryId": "territory.1gydiqz",
+      "countryId": "country.1y9w9xr"
+    },
+    {
+      "sourceId": "1159321405",
+      "territoryId": "territory.5qlw3e",
+      "countryId": "country.c55i8p"
+    },
+    {
+      "sourceId": "1159321173",
+      "territoryId": "territory.1wwlz8f",
+      "countryId": "country.zvvq7v"
+    },
+    {
+      "sourceId": "1159320845",
+      "territoryId": "territory.1r4jo33",
+      "countryId": "country.1gtbljd"
+    },
+    {
+      "sourceId": "1159320331",
+      "territoryId": "territory.1vghjo8",
+      "countryId": "country.1cin176"
+    },
+    {
+      "sourceId": "1159320493",
+      "territoryId": "territory.1r6mvst",
+      "countryId": "country.yhajqy"
+    },
+    {
+      "sourceId": "1159320513",
+      "territoryId": "territory.pccjlq",
+      "countryId": "country.78ys5y"
+    },
+    {
+      "sourceId": "1159321261",
+      "territoryId": "territory.nqovst",
+      "countryId": "country.1k431t"
+    },
+    {
+      "sourceId": "1159320971",
+      "territoryId": "territory.11z7ss4",
+      "countryId": "country.1y5kvsv"
+    },
+    {
+      "sourceId": "1159321229",
+      "territoryId": "territory.1v3qpfp",
+      "countryId": "country.jg9ci8"
+    },
+    {
+      "sourceId": "1159321301",
+      "territoryId": "territory.g7145j",
+      "countryId": "country.e55nqx"
+    },
+    {
+      "sourceId": "1159320839",
+      "territoryId": "territory.19m1bpd",
+      "countryId": "country.1r1l1cm"
+    },
+    {
+      "sourceId": "1159320563",
+      "territoryId": "territory.1v8fvmf",
+      "countryId": "country.d772x9"
+    },
+    {
+      "sourceId": "1159321201",
+      "territoryId": "territory.dok0st",
+      "countryId": "country.h03oz0"
+    },
+    {
+      "sourceId": "1159320415",
+      "territoryId": "territory.107yfao",
+      "countryId": "country.6sun05"
+    },
+    {
+      "sourceId": "1159320711",
+      "territoryId": "territory.x473c5",
+      "countryId": "country.c7ig3n"
+    },
+    {
+      "sourceId": "1159321109",
+      "territoryId": "territory.8xyk25",
+      "countryId": "country.1vrmp4h"
+    },
+    {
+      "sourceId": "1159320551",
+      "territoryId": "territory.9865nt",
+      "countryId": "country.14jkmlh"
+    },
+    {
+      "sourceId": "1159320631",
+      "territoryId": "territory.1dqhtc7",
+      "countryId": "country.11efhcg"
+    },
+    {
+      "sourceId": "1159321313",
+      "territoryId": "territory.13sv7kv",
+      "countryId": "country.1p0y3nd"
+    },
+    {
+      "sourceId": "1159321431",
+      "territoryId": "territory.1fbq71q",
+      "countryId": "country.t3667i"
+    },
+    {
+      "sourceId": "1159321027",
+      "territoryId": "territory.17q3vcy",
+      "countryId": "country.1mkrhod"
+    },
+    {
+      "sourceId": "1159321055",
+      "territoryId": "territory.1bgsqer",
+      "countryId": "country.1i4b92q"
+    },
+    {
+      "sourceId": "1159321353",
+      "territoryId": "territory.19mfx77",
+      "countryId": "country.1qeehvj"
+    },
+    {
+      "sourceId": "1159320441",
+      "territoryId": "territory.ywg1y9",
+      "countryId": "country.1mxwn59"
+    },
+    {
+      "sourceId": "1159320439",
+      "territoryId": "territory.1oticyk",
+      "countryId": "country.1wszh7v"
+    },
+    {
+      "sourceId": "1159321163",
+      "territoryId": "territory.xo21d4",
+      "countryId": "country.8cy639"
+    },
+    {
+      "sourceId": "1159320517",
+      "territoryId": "territory.512oae",
+      "countryId": "country.ckoh6f"
+    },
+    {
+      "sourceId": "1159321161",
+      "territoryId": "territory.18f6h0j",
+      "countryId": "country.8thyov"
+    },
+    {
+      "sourceId": "1159320525",
+      "territoryId": "territory.1r8afdo",
+      "countryId": "country.18zkp24"
+    },
+    {
+      "sourceId": "1159321091",
+      "territoryId": "territory.3mxqk",
+      "countryId": "country.z7gp3s"
+    },
+    {
+      "sourceId": "1159320827",
+      "territoryId": "territory.u0edn",
+      "countryId": "country.3f7ydp"
+    },
+    {
+      "sourceId": "1159321253",
+      "territoryId": "territory.ym48mv",
+      "countryId": "country.mgrohe"
+    },
+    {
+      "sourceId": "1159320815",
+      "territoryId": "territory.1dpk6pf",
+      "countryId": "country.wkwrv6"
+    },
+    {
+      "sourceId": "1159320431",
+      "territoryId": "territory.zpwht7",
+      "countryId": "country.u4ua72"
+    },
+    {
+      "sourceId": "1159321411",
+      "territoryId": "territory.1qvw1qy",
+      "countryId": "country.qdlh80"
+    },
+    {
+      "sourceId": "1159320817",
+      "territoryId": "territory.zck768",
+      "countryId": "country.aheews"
+    },
+    {
+      "sourceId": "1159321281",
+      "territoryId": "territory.d7s5aq",
+      "countryId": "country.ieqa5v"
+    },
+    {
+      "sourceId": "1159320637",
+      "territoryId": "territory.1n6zo4u",
+      "countryId": "country.97e14s"
+    },
+    {
+      "sourceId": "1159320567",
+      "territoryId": "territory.1hw1hac",
+      "countryId": "country.13l0w18"
+    },
+    {
+      "sourceId": "1159321363",
+      "territoryId": "territory.i34k2w",
+      "countryId": "country.1b9pd3r"
+    },
+    {
+      "sourceId": "1159320931",
+      "territoryId": "territory.1szx4kl",
+      "countryId": "country.1rzzy0l"
+    },
+    {
+      "sourceId": "1159320527",
+      "territoryId": "territory.xlbqg2",
+      "countryId": "country.1slft1c"
+    },
+    {
+      "sourceId": "1159321441",
+      "territoryId": "territory.1bqlhz4",
+      "countryId": "country.6th7vw"
+    },
+    {
+      "sourceId": "1159320461",
+      "territoryId": "territory.1p78rij",
+      "countryId": "country.1g4p5xi"
+    },
+    {
+      "sourceId": "1159321085",
+      "territoryId": "territory.syq6y7",
+      "countryId": "country.13ie6ly"
+    },
+    {
+      "sourceId": "1159321243",
+      "territoryId": "territory.19veitl",
+      "countryId": "country.1bf4760"
+    },
+    {
+      "sourceId": "1159321063",
+      "territoryId": "territory.12iu14v",
+      "countryId": "country.13gf39o"
+    },
+    {
+      "sourceId": "1159321075",
+      "territoryId": "territory.1ch97as",
+      "countryId": "country.1powv0y"
+    },
+    {
+      "sourceId": "1159320399",
+      "territoryId": "territory.1oj63an",
+      "countryId": "country.n7hxdt"
+    },
+    {
+      "sourceId": "1159321087",
+      "territoryId": "territory.qblais",
+      "countryId": "country.15217la"
+    },
+    {
+      "sourceId": "1159321089",
+      "territoryId": "territory.1nqsm62",
+      "countryId": "country.1wvxlzg"
+    },
+    {
+      "sourceId": "1159320509",
+      "territoryId": "territory.k9uai",
+      "countryId": "country.1w9qxht"
+    },
+    {
+      "sourceId": "1159321303",
+      "territoryId": "territory.t7h4hj",
+      "countryId": "country.1akiyqe"
+    },
+    {
+      "sourceId": "1159320793",
+      "territoryId": "territory.5yzven",
+      "countryId": "country.1nz4j7w"
+    },
+    {
+      "sourceId": "1159320507",
+      "territoryId": "territory.1x114mu",
+      "countryId": "country.ukura0"
+    },
+    {
+      "sourceId": "1159320795",
+      "territoryId": "territory.14wptwz",
+      "countryId": "country.1knbk6o"
+    },
+    {
+      "sourceId": "1159320799",
+      "territoryId": "territory.ybmyxp",
+      "countryId": "country.tyezxm"
+    },
+    {
+      "sourceId": "1159321015",
+      "territoryId": "territory.bujgbe",
+      "countryId": "country.13si2qd"
+    },
+    {
+      "sourceId": "1159321251",
+      "territoryId": "territory.gq5e4",
+      "countryId": "country.mqcp0q"
+    },
+    {
+      "sourceId": "1159320405",
+      "territoryId": "territory.yvz8pp",
+      "countryId": "country.14vdqsc"
+    },
+    {
+      "sourceId": "1159320463",
+      "territoryId": "territory.16trlto",
+      "countryId": "country.14nagci"
+    },
+    {
+      "sourceId": "1159320515",
+      "territoryId": "territory.1y5h9xa",
+      "countryId": "country.mce667"
+    },
+    {
+      "sourceId": "1159320693",
+      "territoryId": "territory.javhc8",
+      "countryId": "country.1jpkbk"
+    },
+    {
+      "sourceId": "1159320801",
+      "territoryId": "territory.15jxugq",
+      "countryId": "country.72e2lh"
+    },
+    {
+      "sourceId": "1159321439",
+      "territoryId": "territory.artf4c",
+      "countryId": "country.9cg02n"
+    },
+    {
+      "sourceId": "1159321081",
+      "territoryId": "territory.18k65gj",
+      "countryId": "country.1ena0me"
+    },
+    {
+      "sourceId": "1159321073",
+      "territoryId": "territory.1p1zdko",
+      "countryId": "country.zaf4y3"
+    },
+    {
+      "sourceId": "1159321289",
+      "territoryId": "territory.8mge70",
+      "countryId": "country.td9ldb"
+    },
+    {
+      "sourceId": "1159320323",
+      "territoryId": "territory.svkrhq",
+      "countryId": "country.1oit02h"
+    },
+    {
+      "sourceId": "1159320387",
+      "territoryId": "territory.1l4tame",
+      "countryId": "country.82nqba"
+    },
+    {
+      "sourceId": "1159320895",
+      "territoryId": "territory.fahonf",
+      "countryId": "country.1dsqes5"
+    },
+    {
+      "sourceId": "1159321013",
+      "territoryId": "territory.1gjnchl",
+      "countryId": "country.14p3bj2"
+    },
+    {
+      "sourceId": "1159321051",
+      "territoryId": "territory.dcyolh",
+      "countryId": "country.snc7v9"
+    },
+    {
+      "sourceId": "1159320899",
+      "territoryId": "territory.lgziwd",
+      "countryId": "country.x4ahyj"
+    },
+    {
+      "sourceId": "1159320797",
+      "territoryId": "territory.6wj208",
+      "countryId": "country.jmri14"
+    },
+    {
+      "sourceId": "1159321327",
+      "territoryId": "territory.zchehf",
+      "countryId": "country.1fog5xu"
+    },
+    {
+      "sourceId": "1159320565",
+      "territoryId": "territory.feseka",
+      "countryId": "country.hw7u0k"
+    },
+    {
+      "sourceId": "1159320935",
+      "territoryId": "territory.sesy9j",
+      "countryId": "country.awshmp"
+    },
+    {
+      "sourceId": "1159320329",
+      "territoryId": "territory.1d7iwel",
+      "countryId": "country.xjfx2m"
+    },
+    {
+      "sourceId": "1159321197",
+      "territoryId": "territory.4b4jq",
+      "countryId": "country.1pvjhz6"
+    },
+    {
+      "sourceId": "1159321009",
+      "territoryId": "territory.1qbm74x",
+      "countryId": "country.18echaw"
+    },
+    {
+      "sourceId": "1159320887",
+      "territoryId": "territory.1f664ew",
+      "countryId": "country.1y3qxos"
+    },
+    {
+      "sourceId": "1159321151",
+      "territoryId": "territory.1sb7i3f",
+      "countryId": "country.sq8sl2"
+    },
+    {
+      "sourceId": "1159321421",
+      "territoryId": "territory.9gf45q",
+      "countryId": "country.1hnoduz"
+    },
+    {
+      "sourceId": "1159320979",
+      "territoryId": "territory.1f2lkz1",
+      "countryId": "country.10o3gxv"
+    },
+    {
+      "sourceId": "1159321305",
+      "territoryId": "territory.12n9bwv",
+      "countryId": "country.gddwz0"
+    },
+    {
+      "sourceId": "1159321011",
+      "territoryId": "territory.125bp4f",
+      "countryId": "country.18zobjo"
+    },
+    {
+      "sourceId": "1159321067",
+      "territoryId": "territory.wsh3g3",
+      "countryId": "country.50z1vg"
+    },
+    {
+      "sourceId": "1159321417",
+      "territoryId": "territory.4tly36",
+      "countryId": "country.opradj"
+    },
+    {
+      "sourceId": "1159321181",
+      "territoryId": "territory.1n73yaw",
+      "countryId": "country.jm8gea"
+    },
+    {
+      "sourceId": "1159320985",
+      "territoryId": "territory.apzq82",
+      "countryId": "country.1jzfv40"
+    },
+    {
+      "sourceId": "1159321071",
+      "territoryId": "territory.1hwu8t5",
+      "countryId": "country.9j09vn"
+    },
+    {
+      "sourceId": "1159320847",
+      "territoryId": "territory.sae20y",
+      "countryId": "country.12rbtu0"
+    },
+    {
+      "sourceId": "1159320407",
+      "territoryId": "territory.14s42tj",
+      "countryId": "country.1rdien2"
+    },
+    {
+      "sourceId": "1159320453",
+      "territoryId": "territory.1r0bviw",
+      "countryId": "country.1lye27d"
+    },
+    {
+      "sourceId": "1159321121",
+      "territoryId": "territory.1to7iqu",
+      "countryId": "country.hs6fyh"
+    },
+    {
+      "sourceId": "1159321153",
+      "territoryId": "territory.6pxffb",
+      "countryId": "country.f5u1ei"
+    },
+    {
+      "sourceId": "1159320319",
+      "territoryId": "territory.rms6ru",
+      "countryId": "country.1us5oyp"
+    },
+    {
+      "sourceId": "1159321307",
+      "territoryId": "territory.1ieid8n",
+      "countryId": "country.1pajyhp"
+    },
+    {
+      "sourceId": "1159320977",
+      "territoryId": "territory.15sld5i",
+      "countryId": "country.7zmt7h"
+    },
+    {
+      "sourceId": "1159321309",
+      "territoryId": "territory.mivmum",
+      "countryId": "country.88o7pu"
+    },
+    {
+      "sourceId": "1159320881",
+      "territoryId": "territory.tqwyzr",
+      "countryId": "country.yc1r8r"
+    },
+    {
+      "sourceId": "1159321295",
+      "territoryId": "territory.3sb20a",
+      "countryId": "country.19iew1b"
+    },
+    {
+      "sourceId": "1159320333",
+      "territoryId": "territory.1dvz5ja",
+      "countryId": "country.1x9bk5g"
+    },
+    {
+      "sourceId": "1159321287",
+      "territoryId": "territory.170ka22",
+      "countryId": "country.1ga7ffb"
+    },
+    {
+      "sourceId": "1159320427",
+      "territoryId": "territory.op5fwp",
+      "countryId": "country.joydxr"
+    },
+    {
+      "sourceId": "1159321345",
+      "territoryId": "territory.15noyq3",
+      "countryId": "country.8zv92e"
+    },
+    {
+      "sourceId": "1159321179",
+      "territoryId": "territory.8cqter",
+      "countryId": "country.1yyv1wz"
+    },
+    {
+      "sourceId": "1159320379",
+      "territoryId": "territory.6vvyyk",
+      "countryId": "country.alucm0"
+    },
+    {
+      "sourceId": "1159320841",
+      "territoryId": "territory.uzljpf",
+      "countryId": "country.1t8wy2p"
+    },
+    {
+      "sourceId": "1159321045",
+      "territoryId": "territory.18k7v5p",
+      "countryId": "country.6mdobv"
+    },
+    {
+      "sourceId": "1159321199",
+      "territoryId": "territory.lbb1js",
+      "countryId": "country.zsxuo0"
+    },
+    {
+      "sourceId": "1159321029",
+      "territoryId": "territory.15rr1c9",
+      "countryId": "country.1abe1vk"
+    },
+    {
+      "sourceId": "1159321033",
+      "territoryId": "territory.yq2021",
+      "countryId": "country.nusos0"
+    },
+    {
+      "sourceId": "1159320615",
+      "territoryId": "territory.3q9c88",
+      "countryId": "country.159s948"
+    },
+    {
+      "sourceId": "1159320539",
+      "territoryId": "territory.cmxjgc",
+      "countryId": "country.sxojze"
+    },
+    {
+      "sourceId": "1159320409",
+      "territoryId": "territory.vukpen",
+      "countryId": "country.kb8qjm"
+    },
+    {
+      "sourceId": "1159320811",
+      "territoryId": "territory.xpj5xo",
+      "countryId": "country.1ge48fm"
+    },
+    {
+      "sourceId": "1159321331",
+      "territoryId": "territory.13ik24e",
+      "countryId": "country.jvmcgx"
+    },
+    {
+      "sourceId": "1159320325",
+      "territoryId": "territory.1atfb6n",
+      "countryId": "country.1rdws0z"
+    },
+    {
+      "sourceId": "1159320833",
+      "territoryId": "territory.1ai0av8",
+      "countryId": "country.1dg1asq"
+    },
+    {
+      "sourceId": "1159320491",
+      "territoryId": "territory.zn3j0d",
+      "countryId": "country.1s29x2y"
+    },
+    {
+      "sourceId": "1159321031",
+      "territoryId": "territory.1qwc9rt",
+      "countryId": "country.qo855j"
+    },
+    {
+      "sourceId": "1159320389",
+      "territoryId": "territory.1t1cb05",
+      "countryId": "country.bk8phe"
+    },
+    {
+      "sourceId": "1159321101",
+      "territoryId": "territory.15pfm7o",
+      "countryId": "country.1ddp0cj"
+    },
+    {
+      "sourceId": "1159321187",
+      "territoryId": "territory.pcpa47",
+      "countryId": "country.pauqcg"
+    },
+    {
+      "sourceId": "1159320587",
+      "territoryId": "territory.psoj8h",
+      "countryId": "country.e06wze"
+    },
+    {
+      "sourceId": "1159320877",
+      "territoryId": "territory.180usej",
+      "countryId": "country.s93ito"
+    },
+    {
+      "sourceId": "1159320641",
+      "territoryId": "territory.14tooz1",
+      "countryId": "country.5lwy1g"
+    },
+    {
+      "sourceId": "1159321249",
+      "territoryId": "territory.tcwgya",
+      "countryId": "country.1629o6e"
+    },
+    {
+      "sourceId": "1159321135",
+      "territoryId": "territory.bapd9s",
+      "countryId": "country.1bryr1g"
+    },
+    {
+      "sourceId": "1159320355",
+      "territoryId": "territory.1ehd5t3",
+      "countryId": "country.1gxtyz9"
+    },
+    {
+      "sourceId": "1159321025",
+      "territoryId": "territory.zwj3rt",
+      "countryId": "country.xs7zo4"
+    },
+    {
+      "sourceId": "1159320471",
+      "territoryId": "territory.gknvg3",
+      "countryId": "country.j4e5mk"
+    },
+    {
+      "sourceId": "1159321335",
+      "territoryId": "territory.djwoyb",
+      "countryId": "country.113l9xv"
+    },
+    {
+      "sourceId": "1159320919",
+      "territoryId": "territory.1kuw8gg",
+      "countryId": "country.1onsv24"
+    },
+    {
+      "sourceId": "1159320547",
+      "territoryId": "territory.lnyilm",
+      "countryId": "country.pqqumd"
+    },
+    {
+      "sourceId": "1159320713",
+      "territoryId": "territory.3r4p35",
+      "countryId": "country.zwicjl"
+    },
+    {
+      "sourceId": "1159320917",
+      "territoryId": "territory.n3d5gk",
+      "countryId": "country.2r4kh5"
+    },
+    {
+      "sourceId": "1159320381",
+      "territoryId": "territory.1p3oi4p",
+      "countryId": "country.n2i2m0"
+    },
+    {
+      "sourceId": "1159320779",
+      "territoryId": "territory.16qs4ba",
+      "countryId": "country.1bqmiqj"
+    },
+    {
+      "sourceId": "1159321169",
+      "territoryId": "territory.15vymix",
+      "countryId": "country.1ckv6i4"
+    },
+    {
+      "sourceId": "1159321083",
+      "territoryId": "territory.1f23lsi",
+      "countryId": "country.1a1ajo"
+    },
+    {
+      "sourceId": "1159320451",
+      "territoryId": "territory.1euaaix",
+      "countryId": "country.1tac25k"
+    },
+    {
+      "sourceId": "1159321285",
+      "territoryId": "territory.1hs2hgk",
+      "countryId": "country.1yl9unk"
+    },
+    {
+      "sourceId": "1159320623",
+      "territoryId": "territory.11yu4h8",
+      "countryId": "country.sadyi7"
+    },
+    {
+      "sourceId": "1159321283",
+      "territoryId": "territory.1nchplj",
+      "countryId": "country.1nths69"
+    },
+    {
+      "sourceId": "1159320535",
+      "territoryId": "territory.dm8mhh",
+      "countryId": "country.i9fek6"
+    },
+    {
+      "sourceId": "1159320581",
+      "territoryId": "territory.1ovnzl4",
+      "countryId": "country.1rbe765"
+    },
+    {
+      "sourceId": "1159320937",
+      "territoryId": "territory.xl25vp",
+      "countryId": "country.1xyn8u3"
+    },
+    {
+      "sourceId": "1159321195",
+      "territoryId": "territory.l9hjid",
+      "countryId": "country.qw8j9b"
+    },
+    {
+      "sourceId": "1159321425",
+      "territoryId": "territory.1od1lux",
+      "countryId": "country.8zgnf1"
+    },
+    {
+      "sourceId": "1159321225",
+      "territoryId": "territory.18ufck1",
+      "countryId": "country.17se0x"
+    },
+    {
+      "sourceId": "1159320335",
+      "territoryId": "territory.19khbl3",
+      "countryId": "country.ucqeq5"
+    },
+    {
+      "sourceId": "1159320531",
+      "territoryId": "territory.1qda4o4",
+      "countryId": "country.1ffxfif"
+    },
+    {
+      "sourceId": "1159320533",
+      "territoryId": "territory.1t34yt0",
+      "countryId": "country.1dtcx1v"
+    },
+    {
+      "sourceId": "1159321035",
+      "territoryId": "territory.7n3h5j",
+      "countryId": "country.1orw7jp"
+    },
+    {
+      "sourceId": "1159320575",
+      "territoryId": "territory.1bi7gz1",
+      "countryId": "country.b4jfbk"
+    },
+    {
+      "sourceId": "1159321017",
+      "territoryId": "territory.1rmdl2b",
+      "countryId": "country.wxv6tu"
+    },
+    {
+      "sourceId": "1159320617",
+      "territoryId": "territory.1rhyc71",
+      "countryId": "country.d0e7yk"
+    },
+    {
+      "sourceId": "1159320541",
+      "territoryId": "territory.hb8r1h",
+      "countryId": "country.12na4wl"
+    },
+    {
+      "sourceId": "1159321259",
+      "territoryId": "territory.1fdbeda",
+      "countryId": "country.fn8xdv"
+    },
+    {
+      "sourceId": "1159321343",
+      "territoryId": "territory.1achxx5",
+      "countryId": "country.5q931z"
+    },
+    {
+      "sourceId": "1159321219",
+      "territoryId": "territory.19qs6t7",
+      "countryId": "country.1qt08wm"
+    },
+    {
+      "sourceId": "1159320417",
+      "territoryId": "territory.1ke5bzh",
+      "countryId": "country.mbt8ni"
+    },
+    {
+      "sourceId": "1159321061",
+      "territoryId": "territory.g12zfp",
+      "countryId": "country.eno4h9"
+    },
+    {
+      "sourceId": "1159321267",
+      "territoryId": "territory.mx9foh",
+      "countryId": "country.1br72am"
+    },
+    {
+      "sourceId": "1159321069",
+      "territoryId": "territory.19qtqds",
+      "countryId": "country.1cf3s0n"
+    },
+    {
+      "sourceId": "1159321007",
+      "territoryId": "territory.nhg5fu",
+      "countryId": "country.xso2dg"
+    },
+    {
+      "sourceId": "1159321321",
+      "territoryId": "territory.urt67r",
+      "countryId": "country.ao8edp"
+    },
+    {
+      "sourceId": "1159321235",
+      "territoryId": "territory.i3njzm",
+      "countryId": "country.1bwwirt"
+    }
+  ]
+}

@@ -8,7 +8,19 @@ An original political-map foundation for a future geopolitical simulation, with 
 
 ## Model
 
-The map is explicitly not the game state. `Country` holds stable internal identity and sourced facts; ISO and Natural Earth codes are external identifiers only. `Territory` has a deterministic internal ID derived from immutable source identity and geometry, never its GeoJSON array position. `SimulationState.territoryOwnership` overrides the initial owner at runtime. This allows future treaties, annexations, and subnational regions without rewriting source geometry.
+The map is explicitly not the game state. `Country` holds stable internal identity and sourced facts. `Territory` has an assigned, permanent internal ID. `SimulationState.territoryOwnership` overrides the initial owner at runtime. Country → Territory → geometry remains the model; replacing geometry does not replace the entity.
+
+### Persistent entity registry
+
+`src/data/entity-registry.json` is the authoritative, versioned registry of country and territory identities and initial ownership. IDs are opaque literals: never regenerate, rename, recycle, or derive them from labels, codes, ordering or coordinates. Registry labels are descriptive and editable. ISO/M49 codes are optional external mappings on country records; Natural Earth administrative codes are not substitutes for ISO codes.
+
+`src/data/natural-earth-mapping.json` maps this particular geographic dataset's NE_ID values to existing registry entities. The importer looks up this mapping and does not generate identities. Unmapped, duplicate, missing or ambiguous features and broken references fail explicitly, reaching the application's loading-error screen.
+
+The registry freezes the IDs produced by release `83ce014` for the bundled dataset, preserving existing country and ownership references without a migration. Their hash-like spelling is historical only: no runtime hashing remains. Saves should persist these internal IDs, never source feature IDs.
+
+To adopt a new dataset or resolution, add a reviewed DatasetMapping that maps its external feature IDs to the same registry IDs and pass it to `buildWorld`. Edit external aliases when standards change; do not edit internal IDs. The current importer expects one Polygon/MultiPolygon feature per territory: merge multipart source features explicitly before import. A real new entity requires a newly assigned, unused opaque ID committed to the registry. Splits/mergers need an explicit future save migration; geometry updates alone do not. Retain old IDs for saved references rather than silently deleting them.
+
+Tests cover registry coverage, legacy ID compatibility, changed labels and geometry, feature order, replacement dataset mappings and saved territorial ownership, as well as invalid mappings.
 
 `SimulationClock` is UI-independent. It starts from 2026-01-01, measures real elapsed time, progresses one game day per second at ×1 (with ×2 / ×5 multipliers), and is separately tested along with pure territory transfers.
 

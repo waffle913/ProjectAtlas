@@ -1,0 +1,2473 @@
+{
+  "schemaVersion": 1,
+  "countries": [
+    {
+      "id": "country.1bxt04r",
+      "label": "Fiji",
+      "externalIds": {
+        "isoAlpha2": "FJ",
+        "isoAlpha3": "FJI",
+        "unM49": "242"
+      }
+    },
+    {
+      "id": "country.10umxsb",
+      "label": "United Republic of Tanzania",
+      "externalIds": {
+        "isoAlpha2": "TZ",
+        "isoAlpha3": "TZA",
+        "unM49": "834"
+      }
+    },
+    {
+      "id": "country.rvhaqt",
+      "label": "Western Sahara",
+      "externalIds": {
+        "isoAlpha2": "EH",
+        "isoAlpha3": "ESH",
+        "unM49": "732"
+      }
+    },
+    {
+      "id": "country.1aj872z",
+      "label": "Canada",
+      "externalIds": {
+        "isoAlpha2": "CA",
+        "isoAlpha3": "CAN",
+        "unM49": "124"
+      }
+    },
+    {
+      "id": "country.u6myyj",
+      "label": "United States of America",
+      "externalIds": {
+        "isoAlpha2": "US",
+        "isoAlpha3": "USA",
+        "unM49": "840"
+      }
+    },
+    {
+      "id": "country.1y9w9xr",
+      "label": "Kazakhstan",
+      "externalIds": {
+        "isoAlpha2": "KZ",
+        "isoAlpha3": "KAZ",
+        "unM49": "398"
+      }
+    },
+    {
+      "id": "country.c55i8p",
+      "label": "Uzbekistan",
+      "externalIds": {
+        "isoAlpha2": "UZ",
+        "isoAlpha3": "UZB",
+        "unM49": "860"
+      }
+    },
+    {
+      "id": "country.zvvq7v",
+      "label": "Papua New Guinea",
+      "externalIds": {
+        "isoAlpha2": "PG",
+        "isoAlpha3": "PNG",
+        "unM49": "598"
+      }
+    },
+    {
+      "id": "country.1gtbljd",
+      "label": "Indonesia",
+      "externalIds": {
+        "isoAlpha2": "ID",
+        "isoAlpha3": "IDN",
+        "unM49": "360"
+      }
+    },
+    {
+      "id": "country.1cin176",
+      "label": "Argentina",
+      "externalIds": {
+        "isoAlpha2": "AR",
+        "isoAlpha3": "ARG",
+        "unM49": "032"
+      }
+    },
+    {
+      "id": "country.yhajqy",
+      "label": "Chile",
+      "externalIds": {
+        "isoAlpha2": "CL",
+        "isoAlpha3": "CHL",
+        "unM49": "152"
+      }
+    },
+    {
+      "id": "country.78ys5y",
+      "label": "Democratic Republic of the Congo",
+      "externalIds": {
+        "isoAlpha2": "CD",
+        "isoAlpha3": "COD",
+        "unM49": "180"
+      }
+    },
+    {
+      "id": "country.1k431t",
+      "label": "Somalia",
+      "externalIds": {
+        "isoAlpha2": "SO",
+        "isoAlpha3": "SOM",
+        "unM49": "706"
+      }
+    },
+    {
+      "id": "country.1y5kvsv",
+      "label": "Kenya",
+      "externalIds": {
+        "isoAlpha2": "KE",
+        "isoAlpha3": "KEN",
+        "unM49": "404"
+      }
+    },
+    {
+      "id": "country.jg9ci8",
+      "label": "Sudan",
+      "externalIds": {
+        "isoAlpha2": "SD",
+        "isoAlpha3": "SDN",
+        "unM49": "729"
+      }
+    },
+    {
+      "id": "country.e55nqx",
+      "label": "Chad",
+      "externalIds": {
+        "isoAlpha2": "TD",
+        "isoAlpha3": "TCD",
+        "unM49": "148"
+      }
+    },
+    {
+      "id": "country.1r1l1cm",
+      "label": "Haiti",
+      "externalIds": {
+        "isoAlpha2": "HT",
+        "isoAlpha3": "HTI",
+        "unM49": "332"
+      }
+    },
+    {
+      "id": "country.d772x9",
+      "label": "Dominican Republic",
+      "externalIds": {
+        "isoAlpha2": "DO",
+        "isoAlpha3": "DOM",
+        "unM49": "214"
+      }
+    },
+    {
+      "id": "country.h03oz0",
+      "label": "Russia",
+      "externalIds": {
+        "isoAlpha2": "RU",
+        "isoAlpha3": "RUS",
+        "unM49": "643"
+      }
+    },
+    {
+      "id": "country.6sun05",
+      "label": "The Bahamas",
+      "externalIds": {
+        "isoAlpha2": "BS",
+        "isoAlpha3": "BHS",
+        "unM49": "044"
+      }
+    },
+    {
+      "id": "country.c7ig3n",
+      "label": "Falkland Islands",
+      "externalIds": {
+        "isoAlpha2": "FK",
+        "isoAlpha3": "FLK",
+        "unM49": "238"
+      }
+    },
+    {
+      "id": "country.1vrmp4h",
+      "label": "Norway",
+      "externalIds": {}
+    },
+    {
+      "id": "country.14jkmlh",
+      "label": "Greenland",
+      "externalIds": {
+        "isoAlpha2": "GL",
+        "isoAlpha3": "GRL",
+        "unM49": "304"
+      }
+    },
+    {
+      "id": "country.11efhcg",
+      "label": "French Southern and Antarctic Lands",
+      "externalIds": {
+        "isoAlpha2": "TF",
+        "isoAlpha3": "ATF",
+        "unM49": "260"
+      }
+    },
+    {
+      "id": "country.1p0y3nd",
+      "label": "East Timor",
+      "externalIds": {
+        "isoAlpha2": "TL",
+        "isoAlpha3": "TLS",
+        "unM49": "626"
+      }
+    },
+    {
+      "id": "country.t3667i",
+      "label": "South Africa",
+      "externalIds": {
+        "isoAlpha2": "ZA",
+        "isoAlpha3": "ZAF",
+        "unM49": "710"
+      }
+    },
+    {
+      "id": "country.1mkrhod",
+      "label": "Lesotho",
+      "externalIds": {
+        "isoAlpha2": "LS",
+        "isoAlpha3": "LSO",
+        "unM49": "426"
+      }
+    },
+    {
+      "id": "country.1i4b92q",
+      "label": "Mexico",
+      "externalIds": {
+        "isoAlpha2": "MX",
+        "isoAlpha3": "MEX",
+        "unM49": "484"
+      }
+    },
+    {
+      "id": "country.1qeehvj",
+      "label": "Uruguay",
+      "externalIds": {
+        "isoAlpha2": "UY",
+        "isoAlpha3": "URY",
+        "unM49": "858"
+      }
+    },
+    {
+      "id": "country.1mxwn59",
+      "label": "Brazil",
+      "externalIds": {
+        "isoAlpha2": "BR",
+        "isoAlpha3": "BRA",
+        "unM49": "076"
+      }
+    },
+    {
+      "id": "country.1wszh7v",
+      "label": "Bolivia",
+      "externalIds": {
+        "isoAlpha2": "BO",
+        "isoAlpha3": "BOL",
+        "unM49": "068"
+      }
+    },
+    {
+      "id": "country.8cy639",
+      "label": "Peru",
+      "externalIds": {
+        "isoAlpha2": "PE",
+        "isoAlpha3": "PER",
+        "unM49": "604"
+      }
+    },
+    {
+      "id": "country.ckoh6f",
+      "label": "Colombia",
+      "externalIds": {
+        "isoAlpha2": "CO",
+        "isoAlpha3": "COL",
+        "unM49": "170"
+      }
+    },
+    {
+      "id": "country.8thyov",
+      "label": "Panama",
+      "externalIds": {
+        "isoAlpha2": "PA",
+        "isoAlpha3": "PAN",
+        "unM49": "591"
+      }
+    },
+    {
+      "id": "country.18zkp24",
+      "label": "Costa Rica",
+      "externalIds": {
+        "isoAlpha2": "CR",
+        "isoAlpha3": "CRI",
+        "unM49": "188"
+      }
+    },
+    {
+      "id": "country.z7gp3s",
+      "label": "Nicaragua",
+      "externalIds": {
+        "isoAlpha2": "NI",
+        "isoAlpha3": "NIC",
+        "unM49": "558"
+      }
+    },
+    {
+      "id": "country.3f7ydp",
+      "label": "Honduras",
+      "externalIds": {
+        "isoAlpha2": "HN",
+        "isoAlpha3": "HND",
+        "unM49": "340"
+      }
+    },
+    {
+      "id": "country.mgrohe",
+      "label": "El Salvador",
+      "externalIds": {
+        "isoAlpha2": "SV",
+        "isoAlpha3": "SLV",
+        "unM49": "222"
+      }
+    },
+    {
+      "id": "country.wkwrv6",
+      "label": "Guatemala",
+      "externalIds": {
+        "isoAlpha2": "GT",
+        "isoAlpha3": "GTM",
+        "unM49": "320"
+      }
+    },
+    {
+      "id": "country.u4ua72",
+      "label": "Belize",
+      "externalIds": {
+        "isoAlpha2": "BZ",
+        "isoAlpha3": "BLZ",
+        "unM49": "084"
+      }
+    },
+    {
+      "id": "country.qdlh80",
+      "label": "Venezuela",
+      "externalIds": {
+        "isoAlpha2": "VE",
+        "isoAlpha3": "VEN",
+        "unM49": "862"
+      }
+    },
+    {
+      "id": "country.aheews",
+      "label": "Guyana",
+      "externalIds": {
+        "isoAlpha2": "GY",
+        "isoAlpha3": "GUY",
+        "unM49": "328"
+      }
+    },
+    {
+      "id": "country.ieqa5v",
+      "label": "Suriname",
+      "externalIds": {
+        "isoAlpha2": "SR",
+        "isoAlpha3": "SUR",
+        "unM49": "740"
+      }
+    },
+    {
+      "id": "country.97e14s",
+      "label": "France",
+      "externalIds": {
+        "unM49": "250"
+      }
+    },
+    {
+      "id": "country.13l0w18",
+      "label": "Ecuador",
+      "externalIds": {
+        "isoAlpha2": "EC",
+        "isoAlpha3": "ECU",
+        "unM49": "218"
+      }
+    },
+    {
+      "id": "country.1b9pd3r",
+      "label": "Puerto Rico",
+      "externalIds": {
+        "isoAlpha2": "PR",
+        "isoAlpha3": "PRI",
+        "unM49": "630"
+      }
+    },
+    {
+      "id": "country.1rzzy0l",
+      "label": "Jamaica",
+      "externalIds": {
+        "isoAlpha2": "JM",
+        "isoAlpha3": "JAM",
+        "unM49": "388"
+      }
+    },
+    {
+      "id": "country.1slft1c",
+      "label": "Cuba",
+      "externalIds": {
+        "isoAlpha2": "CU",
+        "isoAlpha3": "CUB",
+        "unM49": "192"
+      }
+    },
+    {
+      "id": "country.6th7vw",
+      "label": "Zimbabwe",
+      "externalIds": {
+        "isoAlpha2": "ZW",
+        "isoAlpha3": "ZWE",
+        "unM49": "716"
+      }
+    },
+    {
+      "id": "country.1g4p5xi",
+      "label": "Botswana",
+      "externalIds": {
+        "isoAlpha2": "BW",
+        "isoAlpha3": "BWA",
+        "unM49": "072"
+      }
+    },
+    {
+      "id": "country.13ie6ly",
+      "label": "Namibia",
+      "externalIds": {
+        "isoAlpha2": "NA",
+        "isoAlpha3": "NAM",
+        "unM49": "516"
+      }
+    },
+    {
+      "id": "country.1bf4760",
+      "label": "Senegal",
+      "externalIds": {
+        "isoAlpha2": "SN",
+        "isoAlpha3": "SEN",
+        "unM49": "686"
+      }
+    },
+    {
+      "id": "country.13gf39o",
+      "label": "Mali",
+      "externalIds": {
+        "isoAlpha2": "ML",
+        "isoAlpha3": "MLI",
+        "unM49": "466"
+      }
+    },
+    {
+      "id": "country.1powv0y",
+      "label": "Mauritania",
+      "externalIds": {
+        "isoAlpha2": "MR",
+        "isoAlpha3": "MRT",
+        "unM49": "478"
+      }
+    },
+    {
+      "id": "country.n7hxdt",
+      "label": "Benin",
+      "externalIds": {
+        "isoAlpha2": "BJ",
+        "isoAlpha3": "BEN",
+        "unM49": "204"
+      }
+    },
+    {
+      "id": "country.15217la",
+      "label": "Niger",
+      "externalIds": {
+        "isoAlpha2": "NE",
+        "isoAlpha3": "NER",
+        "unM49": "562"
+      }
+    },
+    {
+      "id": "country.1wvxlzg",
+      "label": "Nigeria",
+      "externalIds": {
+        "isoAlpha2": "NG",
+        "isoAlpha3": "NGA",
+        "unM49": "566"
+      }
+    },
+    {
+      "id": "country.1w9qxht",
+      "label": "Cameroon",
+      "externalIds": {
+        "isoAlpha2": "CM",
+        "isoAlpha3": "CMR",
+        "unM49": "120"
+      }
+    },
+    {
+      "id": "country.1akiyqe",
+      "label": "Togo",
+      "externalIds": {
+        "isoAlpha2": "TG",
+        "isoAlpha3": "TGO",
+        "unM49": "768"
+      }
+    },
+    {
+      "id": "country.1nz4j7w",
+      "label": "Ghana",
+      "externalIds": {
+        "isoAlpha2": "GH",
+        "isoAlpha3": "GHA",
+        "unM49": "288"
+      }
+    },
+    {
+      "id": "country.ukura0",
+      "label": "Ivory Coast",
+      "externalIds": {
+        "isoAlpha2": "CI",
+        "isoAlpha3": "CIV",
+        "unM49": "384"
+      }
+    },
+    {
+      "id": "country.1knbk6o",
+      "label": "Guinea",
+      "externalIds": {
+        "isoAlpha2": "GN",
+        "isoAlpha3": "GIN",
+        "unM49": "324"
+      }
+    },
+    {
+      "id": "country.tyezxm",
+      "label": "Guinea-Bissau",
+      "externalIds": {
+        "isoAlpha2": "GW",
+        "isoAlpha3": "GNB",
+        "unM49": "624"
+      }
+    },
+    {
+      "id": "country.13si2qd",
+      "label": "Liberia",
+      "externalIds": {
+        "isoAlpha2": "LR",
+        "isoAlpha3": "LBR",
+        "unM49": "430"
+      }
+    },
+    {
+      "id": "country.mqcp0q",
+      "label": "Sierra Leone",
+      "externalIds": {
+        "isoAlpha2": "SL",
+        "isoAlpha3": "SLE",
+        "unM49": "694"
+      }
+    },
+    {
+      "id": "country.14vdqsc",
+      "label": "Burkina Faso",
+      "externalIds": {
+        "isoAlpha2": "BF",
+        "isoAlpha3": "BFA",
+        "unM49": "854"
+      }
+    },
+    {
+      "id": "country.14nagci",
+      "label": "Central African Republic",
+      "externalIds": {
+        "isoAlpha2": "CF",
+        "isoAlpha3": "CAF",
+        "unM49": "140"
+      }
+    },
+    {
+      "id": "country.mce667",
+      "label": "Republic of the Congo",
+      "externalIds": {
+        "isoAlpha2": "CG",
+        "isoAlpha3": "COG",
+        "unM49": "178"
+      }
+    },
+    {
+      "id": "country.1jpkbk",
+      "label": "Gabon",
+      "externalIds": {
+        "isoAlpha2": "GA",
+        "isoAlpha3": "GAB",
+        "unM49": "266"
+      }
+    },
+    {
+      "id": "country.72e2lh",
+      "label": "Equatorial Guinea",
+      "externalIds": {
+        "isoAlpha2": "GQ",
+        "isoAlpha3": "GNQ",
+        "unM49": "226"
+      }
+    },
+    {
+      "id": "country.9cg02n",
+      "label": "Zambia",
+      "externalIds": {
+        "isoAlpha2": "ZM",
+        "isoAlpha3": "ZMB",
+        "unM49": "894"
+      }
+    },
+    {
+      "id": "country.1ena0me",
+      "label": "Malawi",
+      "externalIds": {
+        "isoAlpha2": "MW",
+        "isoAlpha3": "MWI",
+        "unM49": "454"
+      }
+    },
+    {
+      "id": "country.zaf4y3",
+      "label": "Mozambique",
+      "externalIds": {
+        "isoAlpha2": "MZ",
+        "isoAlpha3": "MOZ",
+        "unM49": "508"
+      }
+    },
+    {
+      "id": "country.td9ldb",
+      "label": "eSwatini",
+      "externalIds": {
+        "isoAlpha2": "SZ",
+        "isoAlpha3": "SWZ",
+        "unM49": "748"
+      }
+    },
+    {
+      "id": "country.1oit02h",
+      "label": "Angola",
+      "externalIds": {
+        "isoAlpha2": "AO",
+        "isoAlpha3": "AGO",
+        "unM49": "024"
+      }
+    },
+    {
+      "id": "country.82nqba",
+      "label": "Burundi",
+      "externalIds": {
+        "isoAlpha2": "BI",
+        "isoAlpha3": "BDI",
+        "unM49": "108"
+      }
+    },
+    {
+      "id": "country.1dsqes5",
+      "label": "Israel",
+      "externalIds": {
+        "isoAlpha2": "IL",
+        "isoAlpha3": "ISR",
+        "unM49": "376"
+      }
+    },
+    {
+      "id": "country.14p3bj2",
+      "label": "Lebanon",
+      "externalIds": {
+        "isoAlpha2": "LB",
+        "isoAlpha3": "LBN",
+        "unM49": "422"
+      }
+    },
+    {
+      "id": "country.snc7v9",
+      "label": "Madagascar",
+      "externalIds": {
+        "isoAlpha2": "MG",
+        "isoAlpha3": "MDG",
+        "unM49": "450"
+      }
+    },
+    {
+      "id": "country.x4ahyj",
+      "label": "Palestine",
+      "externalIds": {
+        "isoAlpha2": "PS",
+        "isoAlpha3": "PSE",
+        "unM49": "275"
+      }
+    },
+    {
+      "id": "country.jmri14",
+      "label": "Gambia",
+      "externalIds": {
+        "isoAlpha2": "GM",
+        "isoAlpha3": "GMB",
+        "unM49": "270"
+      }
+    },
+    {
+      "id": "country.1fog5xu",
+      "label": "Tunisia",
+      "externalIds": {
+        "isoAlpha2": "TN",
+        "isoAlpha3": "TUN",
+        "unM49": "788"
+      }
+    },
+    {
+      "id": "country.hw7u0k",
+      "label": "Algeria",
+      "externalIds": {
+        "isoAlpha2": "DZ",
+        "isoAlpha3": "DZA",
+        "unM49": "012"
+      }
+    },
+    {
+      "id": "country.awshmp",
+      "label": "Jordan",
+      "externalIds": {
+        "isoAlpha2": "JO",
+        "isoAlpha3": "JOR",
+        "unM49": "400"
+      }
+    },
+    {
+      "id": "country.xjfx2m",
+      "label": "United Arab Emirates",
+      "externalIds": {
+        "isoAlpha2": "AE",
+        "isoAlpha3": "ARE",
+        "unM49": "784"
+      }
+    },
+    {
+      "id": "country.1pvjhz6",
+      "label": "Qatar",
+      "externalIds": {
+        "isoAlpha2": "QA",
+        "isoAlpha3": "QAT",
+        "unM49": "634"
+      }
+    },
+    {
+      "id": "country.18echaw",
+      "label": "Kuwait",
+      "externalIds": {
+        "isoAlpha2": "KW",
+        "isoAlpha3": "KWT",
+        "unM49": "414"
+      }
+    },
+    {
+      "id": "country.1y3qxos",
+      "label": "Iraq",
+      "externalIds": {
+        "isoAlpha2": "IQ",
+        "isoAlpha3": "IRQ",
+        "unM49": "368"
+      }
+    },
+    {
+      "id": "country.sq8sl2",
+      "label": "Oman",
+      "externalIds": {
+        "isoAlpha2": "OM",
+        "isoAlpha3": "OMN",
+        "unM49": "512"
+      }
+    },
+    {
+      "id": "country.1hnoduz",
+      "label": "Vanuatu",
+      "externalIds": {
+        "isoAlpha2": "VU",
+        "isoAlpha3": "VUT",
+        "unM49": "548"
+      }
+    },
+    {
+      "id": "country.10o3gxv",
+      "label": "Cambodia",
+      "externalIds": {
+        "isoAlpha2": "KH",
+        "isoAlpha3": "KHM",
+        "unM49": "116"
+      }
+    },
+    {
+      "id": "country.gddwz0",
+      "label": "Thailand",
+      "externalIds": {
+        "isoAlpha2": "TH",
+        "isoAlpha3": "THA",
+        "unM49": "764"
+      }
+    },
+    {
+      "id": "country.18zobjo",
+      "label": "Laos",
+      "externalIds": {
+        "isoAlpha2": "LA",
+        "isoAlpha3": "LAO",
+        "unM49": "418"
+      }
+    },
+    {
+      "id": "country.50z1vg",
+      "label": "Myanmar",
+      "externalIds": {
+        "isoAlpha2": "MM",
+        "isoAlpha3": "MMR",
+        "unM49": "104"
+      }
+    },
+    {
+      "id": "country.opradj",
+      "label": "Vietnam",
+      "externalIds": {
+        "isoAlpha2": "VN",
+        "isoAlpha3": "VNM",
+        "unM49": "704"
+      }
+    },
+    {
+      "id": "country.jm8gea",
+      "label": "North Korea",
+      "externalIds": {
+        "isoAlpha2": "KP",
+        "isoAlpha3": "PRK",
+        "unM49": "408"
+      }
+    },
+    {
+      "id": "country.1jzfv40",
+      "label": "South Korea",
+      "externalIds": {
+        "isoAlpha2": "KR",
+        "isoAlpha3": "KOR",
+        "unM49": "410"
+      }
+    },
+    {
+      "id": "country.9j09vn",
+      "label": "Mongolia",
+      "externalIds": {
+        "isoAlpha2": "MN",
+        "isoAlpha3": "MNG",
+        "unM49": "496"
+      }
+    },
+    {
+      "id": "country.12rbtu0",
+      "label": "India",
+      "externalIds": {
+        "isoAlpha2": "IN",
+        "isoAlpha3": "IND",
+        "unM49": "356"
+      }
+    },
+    {
+      "id": "country.1rdien2",
+      "label": "Bangladesh",
+      "externalIds": {
+        "isoAlpha2": "BD",
+        "isoAlpha3": "BGD",
+        "unM49": "050"
+      }
+    },
+    {
+      "id": "country.1lye27d",
+      "label": "Bhutan",
+      "externalIds": {
+        "isoAlpha2": "BT",
+        "isoAlpha3": "BTN",
+        "unM49": "064"
+      }
+    },
+    {
+      "id": "country.hs6fyh",
+      "label": "Nepal",
+      "externalIds": {
+        "isoAlpha2": "NP",
+        "isoAlpha3": "NPL",
+        "unM49": "524"
+      }
+    },
+    {
+      "id": "country.f5u1ei",
+      "label": "Pakistan",
+      "externalIds": {
+        "isoAlpha2": "PK",
+        "isoAlpha3": "PAK",
+        "unM49": "586"
+      }
+    },
+    {
+      "id": "country.1us5oyp",
+      "label": "Afghanistan",
+      "externalIds": {
+        "isoAlpha2": "AF",
+        "isoAlpha3": "AFG",
+        "unM49": "004"
+      }
+    },
+    {
+      "id": "country.1pajyhp",
+      "label": "Tajikistan",
+      "externalIds": {
+        "isoAlpha2": "TJ",
+        "isoAlpha3": "TJK",
+        "unM49": "762"
+      }
+    },
+    {
+      "id": "country.7zmt7h",
+      "label": "Kyrgyzstan",
+      "externalIds": {
+        "isoAlpha2": "KG",
+        "isoAlpha3": "KGZ",
+        "unM49": "417"
+      }
+    },
+    {
+      "id": "country.88o7pu",
+      "label": "Turkmenistan",
+      "externalIds": {
+        "isoAlpha2": "TM",
+        "isoAlpha3": "TKM",
+        "unM49": "795"
+      }
+    },
+    {
+      "id": "country.yc1r8r",
+      "label": "Iran",
+      "externalIds": {
+        "isoAlpha2": "IR",
+        "isoAlpha3": "IRN",
+        "unM49": "364"
+      }
+    },
+    {
+      "id": "country.19iew1b",
+      "label": "Syria",
+      "externalIds": {
+        "isoAlpha2": "SY",
+        "isoAlpha3": "SYR",
+        "unM49": "760"
+      }
+    },
+    {
+      "id": "country.1x9bk5g",
+      "label": "Armenia",
+      "externalIds": {
+        "isoAlpha2": "AM",
+        "isoAlpha3": "ARM",
+        "unM49": "051"
+      }
+    },
+    {
+      "id": "country.1ga7ffb",
+      "label": "Sweden",
+      "externalIds": {
+        "isoAlpha2": "SE",
+        "isoAlpha3": "SWE",
+        "unM49": "752"
+      }
+    },
+    {
+      "id": "country.joydxr",
+      "label": "Belarus",
+      "externalIds": {
+        "isoAlpha2": "BY",
+        "isoAlpha3": "BLR",
+        "unM49": "112"
+      }
+    },
+    {
+      "id": "country.8zv92e",
+      "label": "Ukraine",
+      "externalIds": {
+        "isoAlpha2": "UA",
+        "isoAlpha3": "UKR",
+        "unM49": "804"
+      }
+    },
+    {
+      "id": "country.1yyv1wz",
+      "label": "Poland",
+      "externalIds": {
+        "isoAlpha2": "PL",
+        "isoAlpha3": "POL",
+        "unM49": "616"
+      }
+    },
+    {
+      "id": "country.alucm0",
+      "label": "Austria",
+      "externalIds": {
+        "isoAlpha2": "AT",
+        "isoAlpha3": "AUT",
+        "unM49": "040"
+      }
+    },
+    {
+      "id": "country.1t8wy2p",
+      "label": "Hungary",
+      "externalIds": {
+        "isoAlpha2": "HU",
+        "isoAlpha3": "HUN",
+        "unM49": "348"
+      }
+    },
+    {
+      "id": "country.6mdobv",
+      "label": "Moldova",
+      "externalIds": {
+        "isoAlpha2": "MD",
+        "isoAlpha3": "MDA",
+        "unM49": "498"
+      }
+    },
+    {
+      "id": "country.zsxuo0",
+      "label": "Romania",
+      "externalIds": {
+        "isoAlpha2": "RO",
+        "isoAlpha3": "ROU",
+        "unM49": "642"
+      }
+    },
+    {
+      "id": "country.1abe1vk",
+      "label": "Lithuania",
+      "externalIds": {
+        "isoAlpha2": "LT",
+        "isoAlpha3": "LTU",
+        "unM49": "440"
+      }
+    },
+    {
+      "id": "country.nusos0",
+      "label": "Latvia",
+      "externalIds": {
+        "isoAlpha2": "LV",
+        "isoAlpha3": "LVA",
+        "unM49": "428"
+      }
+    },
+    {
+      "id": "country.159s948",
+      "label": "Estonia",
+      "externalIds": {
+        "isoAlpha2": "EE",
+        "isoAlpha3": "EST",
+        "unM49": "233"
+      }
+    },
+    {
+      "id": "country.sxojze",
+      "label": "Germany",
+      "externalIds": {
+        "isoAlpha2": "DE",
+        "isoAlpha3": "DEU",
+        "unM49": "276"
+      }
+    },
+    {
+      "id": "country.kb8qjm",
+      "label": "Bulgaria",
+      "externalIds": {
+        "isoAlpha2": "BG",
+        "isoAlpha3": "BGR",
+        "unM49": "100"
+      }
+    },
+    {
+      "id": "country.1ge48fm",
+      "label": "Greece",
+      "externalIds": {
+        "isoAlpha2": "GR",
+        "isoAlpha3": "GRC",
+        "unM49": "300"
+      }
+    },
+    {
+      "id": "country.jvmcgx",
+      "label": "Turkey",
+      "externalIds": {
+        "isoAlpha2": "TR",
+        "isoAlpha3": "TUR",
+        "unM49": "792"
+      }
+    },
+    {
+      "id": "country.1rdws0z",
+      "label": "Albania",
+      "externalIds": {
+        "isoAlpha2": "AL",
+        "isoAlpha3": "ALB",
+        "unM49": "008"
+      }
+    },
+    {
+      "id": "country.1dg1asq",
+      "label": "Croatia",
+      "externalIds": {
+        "isoAlpha2": "HR",
+        "isoAlpha3": "HRV",
+        "unM49": "191"
+      }
+    },
+    {
+      "id": "country.1s29x2y",
+      "label": "Switzerland",
+      "externalIds": {
+        "isoAlpha2": "CH",
+        "isoAlpha3": "CHE",
+        "unM49": "756"
+      }
+    },
+    {
+      "id": "country.qo855j",
+      "label": "Luxembourg",
+      "externalIds": {
+        "isoAlpha2": "LU",
+        "isoAlpha3": "LUX",
+        "unM49": "442"
+      }
+    },
+    {
+      "id": "country.bk8phe",
+      "label": "Belgium",
+      "externalIds": {
+        "isoAlpha2": "BE",
+        "isoAlpha3": "BEL",
+        "unM49": "056"
+      }
+    },
+    {
+      "id": "country.1ddp0cj",
+      "label": "Netherlands",
+      "externalIds": {
+        "isoAlpha2": "NL",
+        "isoAlpha3": "NLD",
+        "unM49": "528"
+      }
+    },
+    {
+      "id": "country.pauqcg",
+      "label": "Portugal",
+      "externalIds": {
+        "isoAlpha2": "PT",
+        "isoAlpha3": "PRT",
+        "unM49": "620"
+      }
+    },
+    {
+      "id": "country.e06wze",
+      "label": "Spain",
+      "externalIds": {
+        "isoAlpha2": "ES",
+        "isoAlpha3": "ESP",
+        "unM49": "724"
+      }
+    },
+    {
+      "id": "country.s93ito",
+      "label": "Ireland",
+      "externalIds": {
+        "isoAlpha2": "IE",
+        "isoAlpha3": "IRL",
+        "unM49": "372"
+      }
+    },
+    {
+      "id": "country.5lwy1g",
+      "label": "New Caledonia",
+      "externalIds": {
+        "isoAlpha2": "NC",
+        "isoAlpha3": "NCL",
+        "unM49": "540"
+      }
+    },
+    {
+      "id": "country.1629o6e",
+      "label": "Solomon Islands",
+      "externalIds": {
+        "isoAlpha2": "SB",
+        "isoAlpha3": "SLB",
+        "unM49": "090"
+      }
+    },
+    {
+      "id": "country.1bryr1g",
+      "label": "New Zealand",
+      "externalIds": {
+        "isoAlpha2": "NZ",
+        "isoAlpha3": "NZL",
+        "unM49": "554"
+      }
+    },
+    {
+      "id": "country.1gxtyz9",
+      "label": "Australia",
+      "externalIds": {
+        "isoAlpha2": "AU",
+        "isoAlpha3": "AUS",
+        "unM49": "036"
+      }
+    },
+    {
+      "id": "country.xs7zo4",
+      "label": "Sri Lanka",
+      "externalIds": {
+        "isoAlpha2": "LK",
+        "isoAlpha3": "LKA",
+        "unM49": "144"
+      }
+    },
+    {
+      "id": "country.j4e5mk",
+      "label": "China",
+      "externalIds": {
+        "isoAlpha2": "CN",
+        "isoAlpha3": "CHN",
+        "unM49": "156"
+      }
+    },
+    {
+      "id": "country.113l9xv",
+      "label": "Taiwan",
+      "externalIds": {
+        "isoAlpha2": "CN-TW",
+        "isoAlpha3": "TWN",
+        "unM49": "-099"
+      }
+    },
+    {
+      "id": "country.1onsv24",
+      "label": "Italy",
+      "externalIds": {
+        "isoAlpha2": "IT",
+        "isoAlpha3": "ITA",
+        "unM49": "380"
+      }
+    },
+    {
+      "id": "country.pqqumd",
+      "label": "Denmark",
+      "externalIds": {
+        "isoAlpha2": "DK",
+        "isoAlpha3": "DNK",
+        "unM49": "208"
+      }
+    },
+    {
+      "id": "country.zwicjl",
+      "label": "United Kingdom",
+      "externalIds": {
+        "isoAlpha2": "GB",
+        "isoAlpha3": "GBR",
+        "unM49": "826"
+      }
+    },
+    {
+      "id": "country.2r4kh5",
+      "label": "Iceland",
+      "externalIds": {
+        "isoAlpha2": "IS",
+        "isoAlpha3": "ISL",
+        "unM49": "352"
+      }
+    },
+    {
+      "id": "country.n2i2m0",
+      "label": "Azerbaijan",
+      "externalIds": {
+        "isoAlpha2": "AZ",
+        "isoAlpha3": "AZE",
+        "unM49": "031"
+      }
+    },
+    {
+      "id": "country.1bqmiqj",
+      "label": "Georgia",
+      "externalIds": {
+        "isoAlpha2": "GE",
+        "isoAlpha3": "GEO",
+        "unM49": "268"
+      }
+    },
+    {
+      "id": "country.1ckv6i4",
+      "label": "Philippines",
+      "externalIds": {
+        "isoAlpha2": "PH",
+        "isoAlpha3": "PHL",
+        "unM49": "608"
+      }
+    },
+    {
+      "id": "country.1a1ajo",
+      "label": "Malaysia",
+      "externalIds": {
+        "isoAlpha2": "MY",
+        "isoAlpha3": "MYS",
+        "unM49": "458"
+      }
+    },
+    {
+      "id": "country.1tac25k",
+      "label": "Brunei",
+      "externalIds": {
+        "isoAlpha2": "BN",
+        "isoAlpha3": "BRN",
+        "unM49": "096"
+      }
+    },
+    {
+      "id": "country.1yl9unk",
+      "label": "Slovenia",
+      "externalIds": {
+        "isoAlpha2": "SI",
+        "isoAlpha3": "SVN",
+        "unM49": "705"
+      }
+    },
+    {
+      "id": "country.sadyi7",
+      "label": "Finland",
+      "externalIds": {
+        "isoAlpha2": "FI",
+        "isoAlpha3": "FIN",
+        "unM49": "246"
+      }
+    },
+    {
+      "id": "country.1nths69",
+      "label": "Slovakia",
+      "externalIds": {
+        "isoAlpha2": "SK",
+        "isoAlpha3": "SVK",
+        "unM49": "703"
+      }
+    },
+    {
+      "id": "country.i9fek6",
+      "label": "Czechia",
+      "externalIds": {
+        "isoAlpha2": "CZ",
+        "isoAlpha3": "CZE",
+        "unM49": "203"
+      }
+    },
+    {
+      "id": "country.1rbe765",
+      "label": "Eritrea",
+      "externalIds": {
+        "isoAlpha2": "ER",
+        "isoAlpha3": "ERI",
+        "unM49": "232"
+      }
+    },
+    {
+      "id": "country.1xyn8u3",
+      "label": "Japan",
+      "externalIds": {
+        "isoAlpha2": "JP",
+        "isoAlpha3": "JPN",
+        "unM49": "392"
+      }
+    },
+    {
+      "id": "country.qw8j9b",
+      "label": "Paraguay",
+      "externalIds": {
+        "isoAlpha2": "PY",
+        "isoAlpha3": "PRY",
+        "unM49": "600"
+      }
+    },
+    {
+      "id": "country.8zgnf1",
+      "label": "Yemen",
+      "externalIds": {
+        "isoAlpha2": "YE",
+        "isoAlpha3": "YEM",
+        "unM49": "887"
+      }
+    },
+    {
+      "id": "country.17se0x",
+      "label": "Saudi Arabia",
+      "externalIds": {
+        "isoAlpha2": "SA",
+        "isoAlpha3": "SAU",
+        "unM49": "682"
+      }
+    },
+    {
+      "id": "country.ucqeq5",
+      "label": "Antarctica",
+      "externalIds": {
+        "isoAlpha2": "AQ",
+        "isoAlpha3": "ATA",
+        "unM49": "010"
+      }
+    },
+    {
+      "id": "country.1ffxfif",
+      "label": "Northern Cyprus",
+      "externalIds": {
+        "unM49": "-099"
+      }
+    },
+    {
+      "id": "country.1dtcx1v",
+      "label": "Cyprus",
+      "externalIds": {
+        "isoAlpha2": "CY",
+        "isoAlpha3": "CYP",
+        "unM49": "196"
+      }
+    },
+    {
+      "id": "country.1orw7jp",
+      "label": "Morocco",
+      "externalIds": {
+        "isoAlpha2": "MA",
+        "isoAlpha3": "MAR",
+        "unM49": "504"
+      }
+    },
+    {
+      "id": "country.b4jfbk",
+      "label": "Egypt",
+      "externalIds": {
+        "isoAlpha2": "EG",
+        "isoAlpha3": "EGY",
+        "unM49": "818"
+      }
+    },
+    {
+      "id": "country.wxv6tu",
+      "label": "Libya",
+      "externalIds": {
+        "isoAlpha2": "LY",
+        "isoAlpha3": "LBY",
+        "unM49": "434"
+      }
+    },
+    {
+      "id": "country.d0e7yk",
+      "label": "Ethiopia",
+      "externalIds": {
+        "isoAlpha2": "ET",
+        "isoAlpha3": "ETH",
+        "unM49": "231"
+      }
+    },
+    {
+      "id": "country.12na4wl",
+      "label": "Djibouti",
+      "externalIds": {
+        "isoAlpha2": "DJ",
+        "isoAlpha3": "DJI",
+        "unM49": "262"
+      }
+    },
+    {
+      "id": "country.fn8xdv",
+      "label": "Somaliland",
+      "externalIds": {
+        "unM49": "-099"
+      }
+    },
+    {
+      "id": "country.5q931z",
+      "label": "Uganda",
+      "externalIds": {
+        "isoAlpha2": "UG",
+        "isoAlpha3": "UGA",
+        "unM49": "800"
+      }
+    },
+    {
+      "id": "country.1qt08wm",
+      "label": "Rwanda",
+      "externalIds": {
+        "isoAlpha2": "RW",
+        "isoAlpha3": "RWA",
+        "unM49": "646"
+      }
+    },
+    {
+      "id": "country.mbt8ni",
+      "label": "Bosnia and Herzegovina",
+      "externalIds": {
+        "isoAlpha2": "BA",
+        "isoAlpha3": "BIH",
+        "unM49": "070"
+      }
+    },
+    {
+      "id": "country.eno4h9",
+      "label": "North Macedonia",
+      "externalIds": {
+        "isoAlpha2": "MK",
+        "isoAlpha3": "MKD",
+        "unM49": "807"
+      }
+    },
+    {
+      "id": "country.1br72am",
+      "label": "Republic of Serbia",
+      "externalIds": {
+        "isoAlpha2": "RS",
+        "isoAlpha3": "SRB",
+        "unM49": "688"
+      }
+    },
+    {
+      "id": "country.1cf3s0n",
+      "label": "Montenegro",
+      "externalIds": {
+        "isoAlpha2": "ME",
+        "isoAlpha3": "MNE",
+        "unM49": "499"
+      }
+    },
+    {
+      "id": "country.xso2dg",
+      "label": "Kosovo",
+      "externalIds": {
+        "unM49": "-099"
+      }
+    },
+    {
+      "id": "country.ao8edp",
+      "label": "Trinidad and Tobago",
+      "externalIds": {
+        "isoAlpha2": "TT",
+        "isoAlpha3": "TTO",
+        "unM49": "780"
+      }
+    },
+    {
+      "id": "country.1bwwirt",
+      "label": "South Sudan",
+      "externalIds": {
+        "isoAlpha2": "SS",
+        "isoAlpha3": "SSD",
+        "unM49": "728"
+      }
+    }
+  ],
+  "territories": [
+    {
+      "id": "territory.5gvgkl",
+      "label": "Fiji",
+      "initialOwnerCountryId": "country.1bxt04r"
+    },
+    {
+      "id": "territory.1tiukfd",
+      "label": "Tanzania",
+      "initialOwnerCountryId": "country.10umxsb"
+    },
+    {
+      "id": "territory.1v0uk58",
+      "label": "Western Sahara",
+      "initialOwnerCountryId": "country.rvhaqt"
+    },
+    {
+      "id": "territory.cqhfm7",
+      "label": "Canada",
+      "initialOwnerCountryId": "country.1aj872z"
+    },
+    {
+      "id": "territory.1udc934",
+      "label": "United States of America",
+      "initialOwnerCountryId": "country.u6myyj"
+    },
+    {
+      "id": "territory.1gydiqz",
+      "label": "Kazakhstan",
+      "initialOwnerCountryId": "country.1y9w9xr"
+    },
+    {
+      "id": "territory.5qlw3e",
+      "label": "Uzbekistan",
+      "initialOwnerCountryId": "country.c55i8p"
+    },
+    {
+      "id": "territory.1wwlz8f",
+      "label": "Papua New Guinea",
+      "initialOwnerCountryId": "country.zvvq7v"
+    },
+    {
+      "id": "territory.1r4jo33",
+      "label": "Indonesia",
+      "initialOwnerCountryId": "country.1gtbljd"
+    },
+    {
+      "id": "territory.1vghjo8",
+      "label": "Argentina",
+      "initialOwnerCountryId": "country.1cin176"
+    },
+    {
+      "id": "territory.1r6mvst",
+      "label": "Chile",
+      "initialOwnerCountryId": "country.yhajqy"
+    },
+    {
+      "id": "territory.pccjlq",
+      "label": "Democratic Republic of the Congo",
+      "initialOwnerCountryId": "country.78ys5y"
+    },
+    {
+      "id": "territory.nqovst",
+      "label": "Somalia",
+      "initialOwnerCountryId": "country.1k431t"
+    },
+    {
+      "id": "territory.11z7ss4",
+      "label": "Kenya",
+      "initialOwnerCountryId": "country.1y5kvsv"
+    },
+    {
+      "id": "territory.1v3qpfp",
+      "label": "Sudan",
+      "initialOwnerCountryId": "country.jg9ci8"
+    },
+    {
+      "id": "territory.g7145j",
+      "label": "Chad",
+      "initialOwnerCountryId": "country.e55nqx"
+    },
+    {
+      "id": "territory.19m1bpd",
+      "label": "Haiti",
+      "initialOwnerCountryId": "country.1r1l1cm"
+    },
+    {
+      "id": "territory.1v8fvmf",
+      "label": "Dominican Republic",
+      "initialOwnerCountryId": "country.d772x9"
+    },
+    {
+      "id": "territory.dok0st",
+      "label": "Russia",
+      "initialOwnerCountryId": "country.h03oz0"
+    },
+    {
+      "id": "territory.107yfao",
+      "label": "The Bahamas",
+      "initialOwnerCountryId": "country.6sun05"
+    },
+    {
+      "id": "territory.x473c5",
+      "label": "Falkland Islands",
+      "initialOwnerCountryId": "country.c7ig3n"
+    },
+    {
+      "id": "territory.8xyk25",
+      "label": "Norway",
+      "initialOwnerCountryId": "country.1vrmp4h"
+    },
+    {
+      "id": "territory.9865nt",
+      "label": "Greenland",
+      "initialOwnerCountryId": "country.14jkmlh"
+    },
+    {
+      "id": "territory.1dqhtc7",
+      "label": "French Southern and Antarctic Lands",
+      "initialOwnerCountryId": "country.11efhcg"
+    },
+    {
+      "id": "territory.13sv7kv",
+      "label": "East Timor",
+      "initialOwnerCountryId": "country.1p0y3nd"
+    },
+    {
+      "id": "territory.1fbq71q",
+      "label": "South Africa",
+      "initialOwnerCountryId": "country.t3667i"
+    },
+    {
+      "id": "territory.17q3vcy",
+      "label": "Lesotho",
+      "initialOwnerCountryId": "country.1mkrhod"
+    },
+    {
+      "id": "territory.1bgsqer",
+      "label": "Mexico",
+      "initialOwnerCountryId": "country.1i4b92q"
+    },
+    {
+      "id": "territory.19mfx77",
+      "label": "Uruguay",
+      "initialOwnerCountryId": "country.1qeehvj"
+    },
+    {
+      "id": "territory.ywg1y9",
+      "label": "Brazil",
+      "initialOwnerCountryId": "country.1mxwn59"
+    },
+    {
+      "id": "territory.1oticyk",
+      "label": "Bolivia",
+      "initialOwnerCountryId": "country.1wszh7v"
+    },
+    {
+      "id": "territory.xo21d4",
+      "label": "Peru",
+      "initialOwnerCountryId": "country.8cy639"
+    },
+    {
+      "id": "territory.512oae",
+      "label": "Colombia",
+      "initialOwnerCountryId": "country.ckoh6f"
+    },
+    {
+      "id": "territory.18f6h0j",
+      "label": "Panama",
+      "initialOwnerCountryId": "country.8thyov"
+    },
+    {
+      "id": "territory.1r8afdo",
+      "label": "Costa Rica",
+      "initialOwnerCountryId": "country.18zkp24"
+    },
+    {
+      "id": "territory.3mxqk",
+      "label": "Nicaragua",
+      "initialOwnerCountryId": "country.z7gp3s"
+    },
+    {
+      "id": "territory.u0edn",
+      "label": "Honduras",
+      "initialOwnerCountryId": "country.3f7ydp"
+    },
+    {
+      "id": "territory.ym48mv",
+      "label": "El Salvador",
+      "initialOwnerCountryId": "country.mgrohe"
+    },
+    {
+      "id": "territory.1dpk6pf",
+      "label": "Guatemala",
+      "initialOwnerCountryId": "country.wkwrv6"
+    },
+    {
+      "id": "territory.zpwht7",
+      "label": "Belize",
+      "initialOwnerCountryId": "country.u4ua72"
+    },
+    {
+      "id": "territory.1qvw1qy",
+      "label": "Venezuela",
+      "initialOwnerCountryId": "country.qdlh80"
+    },
+    {
+      "id": "territory.zck768",
+      "label": "Guyana",
+      "initialOwnerCountryId": "country.aheews"
+    },
+    {
+      "id": "territory.d7s5aq",
+      "label": "Suriname",
+      "initialOwnerCountryId": "country.ieqa5v"
+    },
+    {
+      "id": "territory.1n6zo4u",
+      "label": "France",
+      "initialOwnerCountryId": "country.97e14s"
+    },
+    {
+      "id": "territory.1hw1hac",
+      "label": "Ecuador",
+      "initialOwnerCountryId": "country.13l0w18"
+    },
+    {
+      "id": "territory.i34k2w",
+      "label": "Puerto Rico",
+      "initialOwnerCountryId": "country.1b9pd3r"
+    },
+    {
+      "id": "territory.1szx4kl",
+      "label": "Jamaica",
+      "initialOwnerCountryId": "country.1rzzy0l"
+    },
+    {
+      "id": "territory.xlbqg2",
+      "label": "Cuba",
+      "initialOwnerCountryId": "country.1slft1c"
+    },
+    {
+      "id": "territory.1bqlhz4",
+      "label": "Zimbabwe",
+      "initialOwnerCountryId": "country.6th7vw"
+    },
+    {
+      "id": "territory.1p78rij",
+      "label": "Botswana",
+      "initialOwnerCountryId": "country.1g4p5xi"
+    },
+    {
+      "id": "territory.syq6y7",
+      "label": "Namibia",
+      "initialOwnerCountryId": "country.13ie6ly"
+    },
+    {
+      "id": "territory.19veitl",
+      "label": "Senegal",
+      "initialOwnerCountryId": "country.1bf4760"
+    },
+    {
+      "id": "territory.12iu14v",
+      "label": "Mali",
+      "initialOwnerCountryId": "country.13gf39o"
+    },
+    {
+      "id": "territory.1ch97as",
+      "label": "Mauritania",
+      "initialOwnerCountryId": "country.1powv0y"
+    },
+    {
+      "id": "territory.1oj63an",
+      "label": "Benin",
+      "initialOwnerCountryId": "country.n7hxdt"
+    },
+    {
+      "id": "territory.qblais",
+      "label": "Niger",
+      "initialOwnerCountryId": "country.15217la"
+    },
+    {
+      "id": "territory.1nqsm62",
+      "label": "Nigeria",
+      "initialOwnerCountryId": "country.1wvxlzg"
+    },
+    {
+      "id": "territory.k9uai",
+      "label": "Cameroon",
+      "initialOwnerCountryId": "country.1w9qxht"
+    },
+    {
+      "id": "territory.t7h4hj",
+      "label": "Togo",
+      "initialOwnerCountryId": "country.1akiyqe"
+    },
+    {
+      "id": "territory.5yzven",
+      "label": "Ghana",
+      "initialOwnerCountryId": "country.1nz4j7w"
+    },
+    {
+      "id": "territory.1x114mu",
+      "label": "Ivory Coast",
+      "initialOwnerCountryId": "country.ukura0"
+    },
+    {
+      "id": "territory.14wptwz",
+      "label": "Guinea",
+      "initialOwnerCountryId": "country.1knbk6o"
+    },
+    {
+      "id": "territory.ybmyxp",
+      "label": "Guinea-Bissau",
+      "initialOwnerCountryId": "country.tyezxm"
+    },
+    {
+      "id": "territory.bujgbe",
+      "label": "Liberia",
+      "initialOwnerCountryId": "country.13si2qd"
+    },
+    {
+      "id": "territory.gq5e4",
+      "label": "Sierra Leone",
+      "initialOwnerCountryId": "country.mqcp0q"
+    },
+    {
+      "id": "territory.yvz8pp",
+      "label": "Burkina Faso",
+      "initialOwnerCountryId": "country.14vdqsc"
+    },
+    {
+      "id": "territory.16trlto",
+      "label": "Central African Republic",
+      "initialOwnerCountryId": "country.14nagci"
+    },
+    {
+      "id": "territory.1y5h9xa",
+      "label": "Republic of the Congo",
+      "initialOwnerCountryId": "country.mce667"
+    },
+    {
+      "id": "territory.javhc8",
+      "label": "Gabon",
+      "initialOwnerCountryId": "country.1jpkbk"
+    },
+    {
+      "id": "territory.15jxugq",
+      "label": "Equatorial Guinea",
+      "initialOwnerCountryId": "country.72e2lh"
+    },
+    {
+      "id": "territory.artf4c",
+      "label": "Zambia",
+      "initialOwnerCountryId": "country.9cg02n"
+    },
+    {
+      "id": "territory.18k65gj",
+      "label": "Malawi",
+      "initialOwnerCountryId": "country.1ena0me"
+    },
+    {
+      "id": "territory.1p1zdko",
+      "label": "Mozambique",
+      "initialOwnerCountryId": "country.zaf4y3"
+    },
+    {
+      "id": "territory.8mge70",
+      "label": "Eswatini",
+      "initialOwnerCountryId": "country.td9ldb"
+    },
+    {
+      "id": "territory.svkrhq",
+      "label": "Angola",
+      "initialOwnerCountryId": "country.1oit02h"
+    },
+    {
+      "id": "territory.1l4tame",
+      "label": "Burundi",
+      "initialOwnerCountryId": "country.82nqba"
+    },
+    {
+      "id": "territory.fahonf",
+      "label": "Israel",
+      "initialOwnerCountryId": "country.1dsqes5"
+    },
+    {
+      "id": "territory.1gjnchl",
+      "label": "Lebanon",
+      "initialOwnerCountryId": "country.14p3bj2"
+    },
+    {
+      "id": "territory.dcyolh",
+      "label": "Madagascar",
+      "initialOwnerCountryId": "country.snc7v9"
+    },
+    {
+      "id": "territory.lgziwd",
+      "label": "Palestine",
+      "initialOwnerCountryId": "country.x4ahyj"
+    },
+    {
+      "id": "territory.6wj208",
+      "label": "The Gambia",
+      "initialOwnerCountryId": "country.jmri14"
+    },
+    {
+      "id": "territory.zchehf",
+      "label": "Tunisia",
+      "initialOwnerCountryId": "country.1fog5xu"
+    },
+    {
+      "id": "territory.feseka",
+      "label": "Algeria",
+      "initialOwnerCountryId": "country.hw7u0k"
+    },
+    {
+      "id": "territory.sesy9j",
+      "label": "Jordan",
+      "initialOwnerCountryId": "country.awshmp"
+    },
+    {
+      "id": "territory.1d7iwel",
+      "label": "United Arab Emirates",
+      "initialOwnerCountryId": "country.xjfx2m"
+    },
+    {
+      "id": "territory.4b4jq",
+      "label": "Qatar",
+      "initialOwnerCountryId": "country.1pvjhz6"
+    },
+    {
+      "id": "territory.1qbm74x",
+      "label": "Kuwait",
+      "initialOwnerCountryId": "country.18echaw"
+    },
+    {
+      "id": "territory.1f664ew",
+      "label": "Iraq",
+      "initialOwnerCountryId": "country.1y3qxos"
+    },
+    {
+      "id": "territory.1sb7i3f",
+      "label": "Oman",
+      "initialOwnerCountryId": "country.sq8sl2"
+    },
+    {
+      "id": "territory.9gf45q",
+      "label": "Vanuatu",
+      "initialOwnerCountryId": "country.1hnoduz"
+    },
+    {
+      "id": "territory.1f2lkz1",
+      "label": "Cambodia",
+      "initialOwnerCountryId": "country.10o3gxv"
+    },
+    {
+      "id": "territory.12n9bwv",
+      "label": "Thailand",
+      "initialOwnerCountryId": "country.gddwz0"
+    },
+    {
+      "id": "territory.125bp4f",
+      "label": "Laos",
+      "initialOwnerCountryId": "country.18zobjo"
+    },
+    {
+      "id": "territory.wsh3g3",
+      "label": "Myanmar",
+      "initialOwnerCountryId": "country.50z1vg"
+    },
+    {
+      "id": "territory.4tly36",
+      "label": "Vietnam",
+      "initialOwnerCountryId": "country.opradj"
+    },
+    {
+      "id": "territory.1n73yaw",
+      "label": "North Korea",
+      "initialOwnerCountryId": "country.jm8gea"
+    },
+    {
+      "id": "territory.apzq82",
+      "label": "South Korea",
+      "initialOwnerCountryId": "country.1jzfv40"
+    },
+    {
+      "id": "territory.1hwu8t5",
+      "label": "Mongolia",
+      "initialOwnerCountryId": "country.9j09vn"
+    },
+    {
+      "id": "territory.sae20y",
+      "label": "India",
+      "initialOwnerCountryId": "country.12rbtu0"
+    },
+    {
+      "id": "territory.14s42tj",
+      "label": "Bangladesh",
+      "initialOwnerCountryId": "country.1rdien2"
+    },
+    {
+      "id": "territory.1r0bviw",
+      "label": "Bhutan",
+      "initialOwnerCountryId": "country.1lye27d"
+    },
+    {
+      "id": "territory.1to7iqu",
+      "label": "Nepal",
+      "initialOwnerCountryId": "country.hs6fyh"
+    },
+    {
+      "id": "territory.6pxffb",
+      "label": "Pakistan",
+      "initialOwnerCountryId": "country.f5u1ei"
+    },
+    {
+      "id": "territory.rms6ru",
+      "label": "Afghanistan",
+      "initialOwnerCountryId": "country.1us5oyp"
+    },
+    {
+      "id": "territory.1ieid8n",
+      "label": "Tajikistan",
+      "initialOwnerCountryId": "country.1pajyhp"
+    },
+    {
+      "id": "territory.15sld5i",
+      "label": "Kyrgyzstan",
+      "initialOwnerCountryId": "country.7zmt7h"
+    },
+    {
+      "id": "territory.mivmum",
+      "label": "Turkmenistan",
+      "initialOwnerCountryId": "country.88o7pu"
+    },
+    {
+      "id": "territory.tqwyzr",
+      "label": "Iran",
+      "initialOwnerCountryId": "country.yc1r8r"
+    },
+    {
+      "id": "territory.3sb20a",
+      "label": "Syria",
+      "initialOwnerCountryId": "country.19iew1b"
+    },
+    {
+      "id": "territory.1dvz5ja",
+      "label": "Armenia",
+      "initialOwnerCountryId": "country.1x9bk5g"
+    },
+    {
+      "id": "territory.170ka22",
+      "label": "Sweden",
+      "initialOwnerCountryId": "country.1ga7ffb"
+    },
+    {
+      "id": "territory.op5fwp",
+      "label": "Belarus",
+      "initialOwnerCountryId": "country.joydxr"
+    },
+    {
+      "id": "territory.15noyq3",
+      "label": "Ukraine",
+      "initialOwnerCountryId": "country.8zv92e"
+    },
+    {
+      "id": "territory.8cqter",
+      "label": "Poland",
+      "initialOwnerCountryId": "country.1yyv1wz"
+    },
+    {
+      "id": "territory.6vvyyk",
+      "label": "Austria",
+      "initialOwnerCountryId": "country.alucm0"
+    },
+    {
+      "id": "territory.uzljpf",
+      "label": "Hungary",
+      "initialOwnerCountryId": "country.1t8wy2p"
+    },
+    {
+      "id": "territory.18k7v5p",
+      "label": "Moldova",
+      "initialOwnerCountryId": "country.6mdobv"
+    },
+    {
+      "id": "territory.lbb1js",
+      "label": "Romania",
+      "initialOwnerCountryId": "country.zsxuo0"
+    },
+    {
+      "id": "territory.15rr1c9",
+      "label": "Lithuania",
+      "initialOwnerCountryId": "country.1abe1vk"
+    },
+    {
+      "id": "territory.yq2021",
+      "label": "Latvia",
+      "initialOwnerCountryId": "country.nusos0"
+    },
+    {
+      "id": "territory.3q9c88",
+      "label": "Estonia",
+      "initialOwnerCountryId": "country.159s948"
+    },
+    {
+      "id": "territory.cmxjgc",
+      "label": "Germany",
+      "initialOwnerCountryId": "country.sxojze"
+    },
+    {
+      "id": "territory.vukpen",
+      "label": "Bulgaria",
+      "initialOwnerCountryId": "country.kb8qjm"
+    },
+    {
+      "id": "territory.xpj5xo",
+      "label": "Greece",
+      "initialOwnerCountryId": "country.1ge48fm"
+    },
+    {
+      "id": "territory.13ik24e",
+      "label": "Turkey",
+      "initialOwnerCountryId": "country.jvmcgx"
+    },
+    {
+      "id": "territory.1atfb6n",
+      "label": "Albania",
+      "initialOwnerCountryId": "country.1rdws0z"
+    },
+    {
+      "id": "territory.1ai0av8",
+      "label": "Croatia",
+      "initialOwnerCountryId": "country.1dg1asq"
+    },
+    {
+      "id": "territory.zn3j0d",
+      "label": "Switzerland",
+      "initialOwnerCountryId": "country.1s29x2y"
+    },
+    {
+      "id": "territory.1qwc9rt",
+      "label": "Luxembourg",
+      "initialOwnerCountryId": "country.qo855j"
+    },
+    {
+      "id": "territory.1t1cb05",
+      "label": "Belgium",
+      "initialOwnerCountryId": "country.bk8phe"
+    },
+    {
+      "id": "territory.15pfm7o",
+      "label": "Netherlands",
+      "initialOwnerCountryId": "country.1ddp0cj"
+    },
+    {
+      "id": "territory.pcpa47",
+      "label": "Portugal",
+      "initialOwnerCountryId": "country.pauqcg"
+    },
+    {
+      "id": "territory.psoj8h",
+      "label": "Spain",
+      "initialOwnerCountryId": "country.e06wze"
+    },
+    {
+      "id": "territory.180usej",
+      "label": "Ireland",
+      "initialOwnerCountryId": "country.s93ito"
+    },
+    {
+      "id": "territory.14tooz1",
+      "label": "New Caledonia",
+      "initialOwnerCountryId": "country.5lwy1g"
+    },
+    {
+      "id": "territory.tcwgya",
+      "label": "Solomon Islands",
+      "initialOwnerCountryId": "country.1629o6e"
+    },
+    {
+      "id": "territory.bapd9s",
+      "label": "New Zealand",
+      "initialOwnerCountryId": "country.1bryr1g"
+    },
+    {
+      "id": "territory.1ehd5t3",
+      "label": "Australia",
+      "initialOwnerCountryId": "country.1gxtyz9"
+    },
+    {
+      "id": "territory.zwj3rt",
+      "label": "Sri Lanka",
+      "initialOwnerCountryId": "country.xs7zo4"
+    },
+    {
+      "id": "territory.gknvg3",
+      "label": "People's Republic of China",
+      "initialOwnerCountryId": "country.j4e5mk"
+    },
+    {
+      "id": "territory.djwoyb",
+      "label": "Taiwan",
+      "initialOwnerCountryId": "country.113l9xv"
+    },
+    {
+      "id": "territory.1kuw8gg",
+      "label": "Italy",
+      "initialOwnerCountryId": "country.1onsv24"
+    },
+    {
+      "id": "territory.lnyilm",
+      "label": "Denmark",
+      "initialOwnerCountryId": "country.pqqumd"
+    },
+    {
+      "id": "territory.3r4p35",
+      "label": "United Kingdom",
+      "initialOwnerCountryId": "country.zwicjl"
+    },
+    {
+      "id": "territory.n3d5gk",
+      "label": "Iceland",
+      "initialOwnerCountryId": "country.2r4kh5"
+    },
+    {
+      "id": "territory.1p3oi4p",
+      "label": "Azerbaijan",
+      "initialOwnerCountryId": "country.n2i2m0"
+    },
+    {
+      "id": "territory.16qs4ba",
+      "label": "Georgia",
+      "initialOwnerCountryId": "country.1bqmiqj"
+    },
+    {
+      "id": "territory.15vymix",
+      "label": "Philippines",
+      "initialOwnerCountryId": "country.1ckv6i4"
+    },
+    {
+      "id": "territory.1f23lsi",
+      "label": "Malaysia",
+      "initialOwnerCountryId": "country.1a1ajo"
+    },
+    {
+      "id": "territory.1euaaix",
+      "label": "Brunei",
+      "initialOwnerCountryId": "country.1tac25k"
+    },
+    {
+      "id": "territory.1hs2hgk",
+      "label": "Slovenia",
+      "initialOwnerCountryId": "country.1yl9unk"
+    },
+    {
+      "id": "territory.11yu4h8",
+      "label": "Finland",
+      "initialOwnerCountryId": "country.sadyi7"
+    },
+    {
+      "id": "territory.1nchplj",
+      "label": "Slovakia",
+      "initialOwnerCountryId": "country.1nths69"
+    },
+    {
+      "id": "territory.dm8mhh",
+      "label": "Czech Republic",
+      "initialOwnerCountryId": "country.i9fek6"
+    },
+    {
+      "id": "territory.1ovnzl4",
+      "label": "Eritrea",
+      "initialOwnerCountryId": "country.1rbe765"
+    },
+    {
+      "id": "territory.xl25vp",
+      "label": "Japan",
+      "initialOwnerCountryId": "country.1xyn8u3"
+    },
+    {
+      "id": "territory.l9hjid",
+      "label": "Paraguay",
+      "initialOwnerCountryId": "country.qw8j9b"
+    },
+    {
+      "id": "territory.1od1lux",
+      "label": "Yemen",
+      "initialOwnerCountryId": "country.8zgnf1"
+    },
+    {
+      "id": "territory.18ufck1",
+      "label": "Saudi Arabia",
+      "initialOwnerCountryId": "country.17se0x"
+    },
+    {
+      "id": "territory.19khbl3",
+      "label": "Antarctica",
+      "initialOwnerCountryId": "country.ucqeq5"
+    },
+    {
+      "id": "territory.1qda4o4",
+      "label": "Turkish Republic of Northern Cyprus",
+      "initialOwnerCountryId": "country.1ffxfif"
+    },
+    {
+      "id": "territory.1t34yt0",
+      "label": "Cyprus",
+      "initialOwnerCountryId": "country.1dtcx1v"
+    },
+    {
+      "id": "territory.7n3h5j",
+      "label": "Morocco",
+      "initialOwnerCountryId": "country.1orw7jp"
+    },
+    {
+      "id": "territory.1bi7gz1",
+      "label": "Egypt",
+      "initialOwnerCountryId": "country.b4jfbk"
+    },
+    {
+      "id": "territory.1rmdl2b",
+      "label": "Libya",
+      "initialOwnerCountryId": "country.wxv6tu"
+    },
+    {
+      "id": "territory.1rhyc71",
+      "label": "Ethiopia",
+      "initialOwnerCountryId": "country.d0e7yk"
+    },
+    {
+      "id": "territory.hb8r1h",
+      "label": "Djibouti",
+      "initialOwnerCountryId": "country.12na4wl"
+    },
+    {
+      "id": "territory.1fdbeda",
+      "label": "Somaliland",
+      "initialOwnerCountryId": "country.fn8xdv"
+    },
+    {
+      "id": "territory.1achxx5",
+      "label": "Uganda",
+      "initialOwnerCountryId": "country.5q931z"
+    },
+    {
+      "id": "territory.19qs6t7",
+      "label": "Rwanda",
+      "initialOwnerCountryId": "country.1qt08wm"
+    },
+    {
+      "id": "territory.1ke5bzh",
+      "label": "Bosnia and Herzegovina",
+      "initialOwnerCountryId": "country.mbt8ni"
+    },
+    {
+      "id": "territory.g12zfp",
+      "label": "North Macedonia",
+      "initialOwnerCountryId": "country.eno4h9"
+    },
+    {
+      "id": "territory.mx9foh",
+      "label": "Serbia",
+      "initialOwnerCountryId": "country.1br72am"
+    },
+    {
+      "id": "territory.19qtqds",
+      "label": "Montenegro",
+      "initialOwnerCountryId": "country.1cf3s0n"
+    },
+    {
+      "id": "territory.nhg5fu",
+      "label": "Kosovo",
+      "initialOwnerCountryId": "country.xso2dg"
+    },
+    {
+      "id": "territory.urt67r",
+      "label": "Trinidad and Tobago",
+      "initialOwnerCountryId": "country.ao8edp"
+    },
+    {
+      "id": "territory.i3njzm",
+      "label": "South Sudan",
+      "initialOwnerCountryId": "country.1bwwirt"
+    }
+  ]
+}

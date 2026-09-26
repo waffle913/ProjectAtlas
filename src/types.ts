@@ -8,6 +8,6 @@ export interface Country {
 }
 export interface Territory {
   id: string; name: string; geometry: GeoJSON.Geometry; ownerCountryId?: string;
-  sovereignty: string; kind: EntityKind; sourceClassification: string; sourceFeatureId: string;
+  sovereignty: string; kind: EntityKind; sourceClassification: string; sourceFeatureId: string; sourceDatasetId: string;
 }
 export interface SimulationState { date: string; paused: boolean; speed: 1 | 2 | 5; territoryOwnership: Record<string, string | undefined> }
