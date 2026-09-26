@@ -4,11 +4,13 @@ An original political-map foundation for a future geopolitical simulation, with 
 
 ## Run
 
-`npm install` then `npm run dev`.
+`npm install` then `npm run dev`. Run `npm run verify` for type-checking, production compilation and automated simulation tests.
 
 ## Model
 
-The map is explicitly not the game state. `Country` holds stable identity and sourced facts. `Territory` holds a named geometry and an initial owner. `SimulationState.territoryOwnership` overrides that owner at runtime. This allows future treaties, annexations, and subnational regions without rewriting source geometry.
+The map is explicitly not the game state. `Country` holds stable internal identity and sourced facts; ISO and Natural Earth codes are external identifiers only. `Territory` has a deterministic internal ID derived from immutable source identity and geometry, never its GeoJSON array position. `SimulationState.territoryOwnership` overrides the initial owner at runtime. This allows future treaties, annexations, and subnational regions without rewriting source geometry.
+
+`SimulationClock` is UI-independent. It starts from 2026-01-01, measures real elapsed time, progresses one game day per second at ×1 (with ×2 / ×5 multipliers), and is separately tested along with pure territory transfers.
 
 Natural Earth admin-0 country geometry, plus its 110m physical land, lakes, and river centreline datasets, are stored in `public/data/`. They are public domain. The map uses no runtime tile service or remotely loaded map asset, and remains usable while disconnected. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
 
@@ -16,7 +18,7 @@ The physical layers are a local visual basemap only. Political ownership and int
 
 ## Geopolitical assumptions
 
-Natural Earth feature classifications are preserved as `sovereign`, `dependency`, `disputed`, or `other`; no polygon is silently promoted into an equivalent sovereign country. Map boundaries are a visual baseline, not a legal statement. The source snapshot's date is distinct from the simulation start date.
+Natural Earth feature classifications are preserved as source metadata. A dedicated normalization layer applies explicit 2026-start overrides for known dependencies and disputed entities before a limited source-label fallback; no polygon is silently promoted into an equivalent sovereign country. Map boundaries are a visual baseline, not a legal statement. The source snapshot's date is distinct from the simulation start date.
 
 ## Data integrity roadmap
 
