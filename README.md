@@ -1,14 +1,26 @@
-# ProjectAtlas — Milestone 0.2
+# ProjectAtlas — Milestone 0.3
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
 
 ## Run
 
-`npm install` then `npm run dev`. Run `npm run verify` for reproducible-data validation, type-checking, production compilation and automated tests. `npm run data:generate` regenerates country data offline from the checked-in source snapshots. `npm run data:sources:update` is the separate, deliberate network step that refreshes those snapshots; review and validate its diff before committing.
+`npm install` then `npm run dev`. Run `npm run verify` for country and Region reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate` and `npm run data:regions:generate` regenerate derived data offline from checked-in snapshots.
+
+Source updates are deliberately separate from generation. `npm run data:sources:update` refreshes country sources. `npm run data:regions:sources:update` downloads the pinned Admin-1 version, after which `npm run data:regions:assign` allocates opaque IDs only for genuinely new Region identities. Review source changes and all new assignments before regeneration and commit.
 
 ## Model
 
-The map is explicitly not the game state. `Country` holds stable internal identity and sourced facts. `Territory` has an assigned, permanent internal ID. `SimulationState.territoryOwnership` overrides the initial owner at runtime. Country → Territory → geometry remains the model; replacing geometry does not replace the entity.
+The map is explicitly not the game state. `Country` holds stable political identity, `Region` is the primary gameplay ownership unit, and the existing macro `Territory` remains for compatibility and source mapping. `SimulationState.regionOwnership` changes independently from identity and geometry. The model is Country → Region → replaceable source feature(s); replacing, reordering or simplifying geometry does not replace a Region.
+
+### Global Region registry
+
+`src/data/region-registry.json` contains 4,574 permanent Region entities covering every one of the 252 country entities. Of these, 4,535 are sourced first-order divisions and 39 are explicit national fallback Regions. Each Region records its parent and initial owner, administrative level/type, non-ambiguous ISO 3166-2 code when available, external source aliases, macro Territory link and geography status. Permanent IDs are opaque random assignments stored in `src/data/region-id-assignments.json`; source codes, names, feature order and geometry never generate the permanent identity.
+
+`src/data/admin1-mapping.json` maps Natural Earth feature IDs to Region IDs. Multiple source features may intentionally map to one Region. Ambiguous duplicate ISO codes are retained only as candidate source metadata and are never promoted to duplicate authoritative codes. Unsupported disputed features are excluded explicitly with a reason rather than assigned to a country silently.
+
+`src/data/admin1-coverage-report.json` separates countries with clean source coverage, countries using fallback Regions, and countries whose source coverage is potentially incomplete or ambiguous. The current snapshot yields 213 countries with Admin-1 source regions and 39 fallback countries; 69 of the 213 require extra review. A fallback uses the existing Admin-0 Territory where available, otherwise the Region remains playable with an explicit unavailable-geometry record.
+
+The original 40.7 MB source snapshot stays under `src/data/source-snapshots/`. Generated runtime geography is topology-simplified and split into 213 country-scoped assets under `public/data/admin1/countries/`; it is fetched only after selecting a country. A separate heavily simplified local overview provides subtle global Region boundaries. No Region geometry requires a runtime network request.
 
 ### Persistent entity registry
 
@@ -26,13 +38,17 @@ The registry freezes the IDs produced by release `83ce014` for the bundled datas
 
 To adopt a new dataset or resolution, add a reviewed DatasetMapping that maps its external feature IDs to the same registry IDs and pass it to `buildWorld`. Edit external aliases when standards change; do not edit internal IDs. The current importer expects one Polygon/MultiPolygon feature per territory: merge multipart source features explicitly before import. A real new entity requires a newly assigned, unused opaque ID committed to the registry. Splits/mergers need an explicit future save migration; geometry updates alone do not. Retain old IDs for saved references rather than silently deleting them.
 
-Tests cover the 193-member invariant, registry/map decoupling, exact feature mappings, legacy ID compatibility, changed labels and geometry, feature order, replacement dataset mappings and saved territorial ownership. They also reject duplicate ISO/M49 codes, missing IDs, broken sovereignty, unknown references, malformed dates, unsourced or implicit missing facts, unavailable geometry without provenance and incomplete map coverage. The reproducibility check regenerates all derived country-data files and fails if the committed outputs differ.
+Tests cover the 193-member invariant, registry/map decoupling, exact feature mappings, legacy IDs and saved ownership. Region tests cover unique permanent IDs, known country references, multipart source mappings, geometry and source ordering independence, per-country gameplay coverage, unique ISO 3166-2 codes, explicit missing-geography provenance, immutable transfers and save migration/round trips. Reproducibility checks regenerate all country and Region outputs—including every runtime geometry asset—and fail if committed bytes differ.
 
 `SimulationClock` is UI-independent. It starts from 2026-01-01, measures real elapsed time, progresses one game day per second at ×1 (with ×2 / ×5 multipliers), and is separately tested along with pure territory transfers.
+
+Save schema version 2 adds `regionOwnership` while retaining `territoryOwnership`. The explicit v1 migration applies each legacy macro Territory owner to its child Regions and preserves every old Territory ID. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity or geometry.
 
 Natural Earth admin-0 country geometry, plus its 110m physical land, lakes, and river centreline datasets, are stored in `public/data/`. They are public domain. The map uses no runtime tile service or remotely loaded map asset, and remains usable while disconnected. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
 
 The physical layers are a local visual basemap only. Political ownership and international borders are rendered separately above them from territory state; no political border is baked into the background.
+
+Admin-0 outlines remain the strong international border layer. Admin-1 boundaries are a separate subtle layer that becomes clearer at closer zoom. Country fills use a deterministic muted palette, and all Regions with the same current owner share that owner's colour. After selecting a country, zoom level 4 or closer exposes its lazy-loaded Region polygons and Region panel.
 
 ## Geopolitical assumptions
 
@@ -43,3 +59,9 @@ ProjectAtlas explicitly classifies sovereign states, dependencies, disputed enti
 The complete source inputs are committed under `src/data/source-snapshots/`, including snapshot IDs, retrieval dates and source URLs. ISO codes are referenced to the ISO 3166 Maintenance Agency; names, M49 codes and UN regions use the UN Statistics Division M49 list. Population, area and GDP observations use World Bank World Development Indicators. Capitals, currencies and languages use a mledoze World Countries revision pinned to a Git commit predating the simulation start. Officeholder timelines and government forms use pinned Wikidata query results, supplemented by reviewed explicit overrides for documented gaps. The UI cites every displayed fact and exposes its actual reference date and estimate status.
 
 Some disputed or partially recognized entities have no assigned ISO or M49 code; those fields remain absent. Statistical and government-form coverage varies because the consulted sources do not publish every field for every territory; these gaps remain explicit rather than being fabricated.
+
+## Admin-1 source, licence and limitations
+
+The pinned source is Natural Earth **10m Admin-1 States and Provinces 5.1.2**, Git commit `f1890d9f152c896d250a77557a5751a93d494776`, retrieved 2026-09-26 and verified by the SHA-256 stored in `natural-earth-admin1-metadata.json`. Natural Earth data are public domain; see [Natural Earth terms of use](https://www.naturalearthdata.com/about/terms-of-use/).
+
+Natural Earth describes this global Admin-1 layer as beta. It can be incomplete, generalized, inconsistent in administrative level, or geopolitically ambiguous. ProjectAtlas therefore does not equate source coverage with a legal or exhaustive administrative claim. The coverage report, fallback Regions, candidate-code metadata and explicit excluded-feature records preserve these limitations instead of hiding them.

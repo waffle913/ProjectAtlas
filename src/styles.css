@@ -167,6 +167,21 @@ footer {
 a {
   color: #86c3bd;
 }
+.back-button {
+  border: 0;
+  background: transparent;
+  color: #86c3bd;
+  padding: 0 0 14px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.region-title {
+  padding-top: 2px;
+}
+.source-note {
+  color: #8fa1a8;
+  line-height: 1.5;
+}
 @media (max-width: 800px) {
   .workspace {
     grid-template-columns: 1fr;

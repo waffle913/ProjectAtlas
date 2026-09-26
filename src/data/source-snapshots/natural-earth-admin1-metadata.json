@@ -1,0 +1,15 @@
+{
+  "snapshotId": "natural-earth-admin1-5.1.2@f1890d9f152c896d250a77557a5751a93d494776",
+  "version": "5.1.2",
+  "commit": "f1890d9f152c896d250a77557a5751a93d494776",
+  "retrievedAt": "2026-09-26",
+  "sourceUrl": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/f1890d9f152c896d250a77557a5751a93d494776/geojson/ne_10m_admin_1_states_provinces.geojson",
+  "sha256": "22d0e3ad85eb3e27f17cabf8ba2d50e554fbc27a87796ff891d958185da62fb5",
+  "featureCount": 4596,
+  "license": "Public domain",
+  "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "limitations": [
+    "Natural Earth labels the 10m Admin-1 layer beta and does not guarantee complete or current global coverage.",
+    "Boundaries are cartographic source data and do not express a ProjectAtlas legal position."
+  ]
+}

@@ -1,0 +1,2093 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": "natural-earth-admin1-5.1.2@f1890d9f152c896d250a77557a5751a93d494776",
+  "generatedAt": "2026-09-26",
+  "summary": {
+    "registeredCountries": 252,
+    "totalRegions": 4574,
+    "countriesWithAdmin1": 213,
+    "countriesUsingFallback": 39,
+    "countriesPotentiallyIncompleteOrAmbiguous": 69,
+    "mappedSourceFeatures": 4557,
+    "excludedSourceFeatures": 39
+  },
+  "completeAdmin1Coverage": [
+    {
+      "countryId": "country.1us5oyp",
+      "commonName": "Afghanistan",
+      "regionCount": 32,
+      "sourceFeatureCount": 34,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1oit02h",
+      "commonName": "Angola",
+      "regionCount": 18,
+      "sourceFeatureCount": 18,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1rdws0z",
+      "commonName": "Albania",
+      "regionCount": 12,
+      "sourceFeatureCount": 12,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+      "commonName": "Andorra",
+      "regionCount": 7,
+      "sourceFeatureCount": 7,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1cin176",
+      "commonName": "Argentina",
+      "regionCount": 24,
+      "sourceFeatureCount": 24,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1x9bk5g",
+      "commonName": "Armenia",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.fbc079c5-7b73-4476-a6c0-f9cf0aa983f5",
+      "commonName": "Antigua and Barbuda",
+      "regionCount": 8,
+      "sourceFeatureCount": 8,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.alucm0",
+      "commonName": "Austria",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.82nqba",
+      "commonName": "Burundi",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.n7hxdt",
+      "commonName": "Benin",
+      "regionCount": 12,
+      "sourceFeatureCount": 12,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.14vdqsc",
+      "commonName": "Burkina Faso",
+      "regionCount": 45,
+      "sourceFeatureCount": 45,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1rdien2",
+      "commonName": "Bangladesh",
+      "regionCount": 7,
+      "sourceFeatureCount": 7,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.kb8qjm",
+      "commonName": "Bulgaria",
+      "regionCount": 28,
+      "sourceFeatureCount": 28,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.4b67c337-52f1-4fbe-bb69-f51e8f67fc03",
+      "commonName": "Bahrain",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.joydxr",
+      "commonName": "Belarus",
+      "regionCount": 7,
+      "sourceFeatureCount": 7,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.u4ua72",
+      "commonName": "Belize",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.75cd3e08-1b7e-45c4-95d0-9f87779537d0",
+      "commonName": "Bermuda",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1wszh7v",
+      "commonName": "Bolivia (Plurinational State of)",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1mxwn59",
+      "commonName": "Brazil",
+      "regionCount": 27,
+      "sourceFeatureCount": 27,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.5d8b54a9-8886-4e50-ac35-dfdbac3cdcff",
+      "commonName": "Barbados",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1tac25k",
+      "commonName": "Brunei Darussalam",
+      "regionCount": 4,
+      "sourceFeatureCount": 4,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1lye27d",
+      "commonName": "Bhutan",
+      "regionCount": 20,
+      "sourceFeatureCount": 20,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1g4p5xi",
+      "commonName": "Botswana",
+      "regionCount": 15,
+      "sourceFeatureCount": 15,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.14nagci",
+      "commonName": "Central African Republic",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1aj872z",
+      "commonName": "Canada",
+      "regionCount": 13,
+      "sourceFeatureCount": 13,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1s29x2y",
+      "commonName": "Switzerland",
+      "regionCount": 26,
+      "sourceFeatureCount": 26,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.yhajqy",
+      "commonName": "Chile",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.78ys5y",
+      "commonName": "Democratic Republic of the Congo",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.mce667",
+      "commonName": "Congo",
+      "regionCount": 12,
+      "sourceFeatureCount": 12,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.f3a9acdf-e608-4c67-9f5c-aab01b6ac91f",
+      "commonName": "Comoros",
+      "regionCount": 3,
+      "sourceFeatureCount": 3,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.46088230-c32b-4e3f-a816-fa6daf9737c4",
+      "commonName": "Cabo Verde",
+      "regionCount": 22,
+      "sourceFeatureCount": 22,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.18zkp24",
+      "commonName": "Costa Rica",
+      "regionCount": 7,
+      "sourceFeatureCount": 7,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1dtcx1v",
+      "commonName": "Cyprus",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.i9fek6",
+      "commonName": "Czechia",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.sxojze",
+      "commonName": "Germany",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.12na4wl",
+      "commonName": "Djibouti",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.abcbf2de-3898-4bff-9a00-899fcadcc32a",
+      "commonName": "Dominica",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.pqqumd",
+      "commonName": "Denmark",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.d772x9",
+      "commonName": "Dominican Republic",
+      "regionCount": 32,
+      "sourceFeatureCount": 32,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.hw7u0k",
+      "commonName": "Algeria",
+      "regionCount": 48,
+      "sourceFeatureCount": 48,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.13l0w18",
+      "commonName": "Ecuador",
+      "regionCount": 24,
+      "sourceFeatureCount": 24,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.b4jfbk",
+      "commonName": "Egypt",
+      "regionCount": 27,
+      "sourceFeatureCount": 27,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.e06wze",
+      "commonName": "Spain",
+      "regionCount": 52,
+      "sourceFeatureCount": 52,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.159s948",
+      "commonName": "Estonia",
+      "regionCount": 15,
+      "sourceFeatureCount": 15,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.d0e7yk",
+      "commonName": "Ethiopia",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.sadyi7",
+      "commonName": "Finland",
+      "regionCount": 18,
+      "sourceFeatureCount": 18,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1bxt04r",
+      "commonName": "Fiji",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.79df96d6-6b58-4696-b486-ed62877ef5e8",
+      "commonName": "Micronesia (Federated States of)",
+      "regionCount": 4,
+      "sourceFeatureCount": 4,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1jpkbk",
+      "commonName": "Gabon",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.x4ahyj",
+      "commonName": "State of Palestine",
+      "regionCount": 2,
+      "sourceFeatureCount": 2,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1bqmiqj",
+      "commonName": "Georgia",
+      "regionCount": 12,
+      "sourceFeatureCount": 12,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1nz4j7w",
+      "commonName": "Ghana",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1knbk6o",
+      "commonName": "Guinea",
+      "regionCount": 34,
+      "sourceFeatureCount": 34,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.jmri14",
+      "commonName": "Gambia",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.tyezxm",
+      "commonName": "Guinea-Bissau",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.72e2lh",
+      "commonName": "Equatorial Guinea",
+      "regionCount": 7,
+      "sourceFeatureCount": 7,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1ge48fm",
+      "commonName": "Greece",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.fb52b2fd-95f8-4731-a50a-e7e0f6fbeb26",
+      "commonName": "Grenada",
+      "regionCount": 7,
+      "sourceFeatureCount": 7,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.wkwrv6",
+      "commonName": "Guatemala",
+      "regionCount": 22,
+      "sourceFeatureCount": 22,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.aheews",
+      "commonName": "Guyana",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1dg1asq",
+      "commonName": "Croatia",
+      "regionCount": 20,
+      "sourceFeatureCount": 21,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1r1l1cm",
+      "commonName": "Haiti",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.12rbtu0",
+      "commonName": "India",
+      "regionCount": 36,
+      "sourceFeatureCount": 36,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1y3qxos",
+      "commonName": "Iraq",
+      "regionCount": 18,
+      "sourceFeatureCount": 18,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.2r4kh5",
+      "commonName": "Iceland",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1rzzy0l",
+      "commonName": "Jamaica",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.awshmp",
+      "commonName": "Jordan",
+      "regionCount": 12,
+      "sourceFeatureCount": 12,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1xyn8u3",
+      "commonName": "Japan",
+      "regionCount": 47,
+      "sourceFeatureCount": 47,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.10o3gxv",
+      "commonName": "Cambodia",
+      "regionCount": 24,
+      "sourceFeatureCount": 24,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.4c29f8cf-400e-4d36-ac63-b9fd94058944",
+      "commonName": "Saint Kitts and Nevis",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.18echaw",
+      "commonName": "Kuwait",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.14p3bj2",
+      "commonName": "Lebanon",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.wxv6tu",
+      "commonName": "Libya",
+      "regionCount": 22,
+      "sourceFeatureCount": 22,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.8554a20a-f004-46eb-a49c-b26c269c127c",
+      "commonName": "Saint Lucia",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.2f7f4233-514c-485b-b289-248f71b3c562",
+      "commonName": "Liechtenstein",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1mkrhod",
+      "commonName": "Lesotho",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.qo855j",
+      "commonName": "Luxembourg",
+      "regionCount": 3,
+      "sourceFeatureCount": 3,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1orw7jp",
+      "commonName": "Morocco",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.04362960-a7d3-4b19-8f76-6572995728e9",
+      "commonName": "Marshall Islands",
+      "regionCount": 2,
+      "sourceFeatureCount": 2,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.eno4h9",
+      "commonName": "North Macedonia",
+      "regionCount": 84,
+      "sourceFeatureCount": 84,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.13gf39o",
+      "commonName": "Mali",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.5472bc14-36bc-4d4a-a088-d270a3bb1347",
+      "commonName": "Malta",
+      "regionCount": 68,
+      "sourceFeatureCount": 68,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.50z1vg",
+      "commonName": "Myanmar",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1cf3s0n",
+      "commonName": "Montenegro",
+      "regionCount": 21,
+      "sourceFeatureCount": 21,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.9j09vn",
+      "commonName": "Mongolia",
+      "regionCount": 22,
+      "sourceFeatureCount": 22,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.zaf4y3",
+      "commonName": "Mozambique",
+      "regionCount": 10,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1powv0y",
+      "commonName": "Mauritania",
+      "regionCount": 13,
+      "sourceFeatureCount": 13,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.8a7dbb03-20f0-4679-858f-e8afad2bfdaa",
+      "commonName": "Montserrat",
+      "regionCount": 3,
+      "sourceFeatureCount": 3,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1ena0me",
+      "commonName": "Malawi",
+      "regionCount": 27,
+      "sourceFeatureCount": 28,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1a1ajo",
+      "commonName": "Malaysia",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.15217la",
+      "commonName": "Niger",
+      "regionCount": 8,
+      "sourceFeatureCount": 8,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1wvxlzg",
+      "commonName": "Nigeria",
+      "regionCount": 37,
+      "sourceFeatureCount": 37,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.z7gp3s",
+      "commonName": "Nicaragua",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1ddp0cj",
+      "commonName": "Netherlands (Kingdom of the)",
+      "regionCount": 15,
+      "sourceFeatureCount": 15,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1vrmp4h",
+      "commonName": "Norway",
+      "regionCount": 20,
+      "sourceFeatureCount": 20,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.hs6fyh",
+      "commonName": "Nepal",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.f8c2068a-5e07-4e6a-bc75-4cb20c9fd1e6",
+      "commonName": "Naoero",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.sq8sl2",
+      "commonName": "Oman",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.8thyov",
+      "commonName": "Panama",
+      "regionCount": 12,
+      "sourceFeatureCount": 12,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.91355bcb-0475-45e6-8a22-9425ff14ef5a",
+      "commonName": "Palau",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.zvvq7v",
+      "commonName": "Papua New Guinea",
+      "regionCount": 20,
+      "sourceFeatureCount": 20,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1yyv1wz",
+      "commonName": "Poland",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.jm8gea",
+      "commonName": "Democratic People's Republic of Korea",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.pauqcg",
+      "commonName": "Portugal",
+      "regionCount": 20,
+      "sourceFeatureCount": 20,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.qw8j9b",
+      "commonName": "Paraguay",
+      "regionCount": 18,
+      "sourceFeatureCount": 18,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1pvjhz6",
+      "commonName": "Qatar",
+      "regionCount": 7,
+      "sourceFeatureCount": 7,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1qt08wm",
+      "commonName": "Rwanda",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1bwwirt",
+      "commonName": "South Sudan",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1bf4760",
+      "commonName": "Senegal",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.19420d8c-93e0-40af-afbe-4ca4d8c4de9e",
+      "commonName": "Singapore",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.4449fa36-e713-4df2-9651-ae5850828346",
+      "commonName": "Saint Helena",
+      "regionCount": 3,
+      "sourceFeatureCount": 3,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.mqcp0q",
+      "commonName": "Sierra Leone",
+      "regionCount": 4,
+      "sourceFeatureCount": 4,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.mgrohe",
+      "commonName": "El Salvador",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.8c79c739-2c80-452e-88cf-10db55637921",
+      "commonName": "San Marino",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1k431t",
+      "commonName": "Somalia",
+      "regionCount": 13,
+      "sourceFeatureCount": 13,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1br72am",
+      "commonName": "Serbia",
+      "regionCount": 25,
+      "sourceFeatureCount": 25,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.b8da38ac-b364-44d1-82ea-fc39ff807e0b",
+      "commonName": "Sao Tome and Principe",
+      "regionCount": 2,
+      "sourceFeatureCount": 2,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.ieqa5v",
+      "commonName": "Suriname",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1nths69",
+      "commonName": "Slovakia",
+      "regionCount": 8,
+      "sourceFeatureCount": 8,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1yl9unk",
+      "commonName": "Slovenia",
+      "regionCount": 192,
+      "sourceFeatureCount": 193,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1ga7ffb",
+      "commonName": "Sweden",
+      "regionCount": 21,
+      "sourceFeatureCount": 21,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.td9ldb",
+      "commonName": "Eswatini",
+      "regionCount": 4,
+      "sourceFeatureCount": 4,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1akiyqe",
+      "commonName": "Togo",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.gddwz0",
+      "commonName": "Thailand",
+      "regionCount": 77,
+      "sourceFeatureCount": 77,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.88o7pu",
+      "commonName": "Turkmenistan",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1p0y3nd",
+      "commonName": "Timor-Leste",
+      "regionCount": 13,
+      "sourceFeatureCount": 13,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.7215346f-26f3-4d15-bc2a-e04350b1acc0",
+      "commonName": "Tonga",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.ao8edp",
+      "commonName": "Trinidad and Tobago",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1fog5xu",
+      "commonName": "Tunisia",
+      "regionCount": 23,
+      "sourceFeatureCount": 23,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.jvmcgx",
+      "commonName": "T&#252;rkiye",
+      "regionCount": 81,
+      "sourceFeatureCount": 81,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.10umxsb",
+      "commonName": "United Republic of Tanzania",
+      "regionCount": 30,
+      "sourceFeatureCount": 30,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.5q931z",
+      "commonName": "Uganda",
+      "regionCount": 111,
+      "sourceFeatureCount": 112,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.8zv92e",
+      "commonName": "Ukraine",
+      "regionCount": 25,
+      "sourceFeatureCount": 25,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.b4be4e13-e987-40e3-9f89-e4b7ad294ab3",
+      "commonName": "United States Minor Outlying Islands",
+      "regionCount": 8,
+      "sourceFeatureCount": 8,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1qeehvj",
+      "commonName": "Uruguay",
+      "regionCount": 19,
+      "sourceFeatureCount": 19,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.u6myyj",
+      "commonName": "United States of America",
+      "regionCount": 51,
+      "sourceFeatureCount": 51,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.c55i8p",
+      "commonName": "Uzbekistan",
+      "regionCount": 14,
+      "sourceFeatureCount": 14,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.15794b34-37b2-4053-964a-2dfea1e18400",
+      "commonName": "Saint Vincent and the Grenadines",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.opradj",
+      "commonName": "Viet Nam",
+      "regionCount": 63,
+      "sourceFeatureCount": 63,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.1hnoduz",
+      "commonName": "Vanuatu",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.04352166-79c8-4cee-8bd8-4a7eb810c8ba",
+      "commonName": "Wallis and Futuna Islands",
+      "regionCount": 3,
+      "sourceFeatureCount": 3,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.b6fde5b8-cf15-4377-94fd-cef6d5af956b",
+      "commonName": "Samoa",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.8zgnf1",
+      "commonName": "Yemen",
+      "regionCount": 21,
+      "sourceFeatureCount": 21,
+      "ambiguousRegionCount": 0
+    },
+    {
+      "countryId": "country.9cg02n",
+      "commonName": "Zambia",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 0
+    }
+  ],
+  "fallbackRegions": [
+    {
+      "countryId": "country.rvhaqt",
+      "commonName": "Western Sahara",
+      "regionId": "region.8cf72e77-32d8-4bd2-a1f2-accc5b3da570",
+      "geographyStatus": "fallback_admin0",
+      "reason": "No reliable first-order subdivision set is present in the pinned Admin-1 snapshot; the existing Admin-0 territory is used as one playable region."
+    },
+    {
+      "countryId": "country.c7ig3n",
+      "commonName": "Falkland Islands (Malvinas)",
+      "regionId": "region.ea5c6a9c-904c-43e7-9772-c62ea9f1ea3e",
+      "geographyStatus": "fallback_admin0",
+      "reason": "No reliable first-order subdivision set is present in the pinned Admin-1 snapshot; the existing Admin-0 territory is used as one playable region."
+    },
+    {
+      "countryId": "country.1b9pd3r",
+      "commonName": "Puerto Rico",
+      "regionId": "region.963d1b81-ee2a-4c5f-aeb4-5b2c2a98c51c",
+      "geographyStatus": "fallback_admin0",
+      "reason": "No reliable first-order subdivision set is present in the pinned Admin-1 snapshot; the existing Admin-0 territory is used as one playable region."
+    },
+    {
+      "countryId": "country.1ffxfif",
+      "commonName": "Northern Cyprus",
+      "regionId": "region.583bccad-9262-4208-9836-9aa987d53228",
+      "geographyStatus": "fallback_admin0",
+      "reason": "No reliable first-order subdivision set is present in the pinned Admin-1 snapshot; the existing Admin-0 territory is used as one playable region."
+    },
+    {
+      "countryId": "country.fn8xdv",
+      "commonName": "Somaliland",
+      "regionId": "region.1c1b10e1-daf7-4fa6-b139-7ac79c4834cd",
+      "geographyStatus": "fallback_admin0",
+      "reason": "No reliable first-order subdivision set is present in the pinned Admin-1 snapshot; the existing Admin-0 territory is used as one playable region."
+    },
+    {
+      "countryId": "country.8407a8d8-70de-4f9f-b22e-029c8312b476",
+      "commonName": "British Indian Ocean Territory",
+      "regionId": "region.cfed363c-4408-4a2c-9fed-05a23a6bb928",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.ff993996-0239-4e2c-8fae-234d3985f9b5",
+      "commonName": "Mayotte",
+      "regionId": "region.41e00069-91c8-4afa-ab84-e2ef8634b2d4",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.58c98914-d491-401e-b681-40a699a6e3c5",
+      "commonName": "R&#233;union",
+      "regionId": "region.f1ab54f9-9153-4b2c-b88d-17ee9b868060",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.4267c600-c365-46b7-8a45-019fae158ae5",
+      "commonName": "Aruba",
+      "regionId": "region.71c8a16d-e8b8-4c9a-8164-83f6b6a4b543",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.fb028d5c-e50f-413d-a54a-f7c16bc4a40b",
+      "commonName": "Bonaire, Sint Eustatius and Saba",
+      "regionId": "region.5b029a48-21e0-4ae6-bd35-e9f2cc1e3e4f",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.cf8c6db8-4864-45c8-bec3-97f778d234f3",
+      "commonName": "British Virgin Islands",
+      "regionId": "region.728b08d4-1f69-49ab-91c4-9bedbf7cbd82",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.6fea45ff-6dc6-468a-a4c7-00b07dcde242",
+      "commonName": "Cayman Islands",
+      "regionId": "region.76aebd74-a560-4f86-86f0-3b59744a8195",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.e51e585f-84c6-430b-ae14-163905e3a241",
+      "commonName": "Cura&#231;ao",
+      "regionId": "region.7d9e6a36-1cbb-4797-8440-1988898c1ce9",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.ec0f2089-48e2-4c74-bcf8-4ce52b58bc71",
+      "commonName": "Guadeloupe",
+      "regionId": "region.b562d61f-b0d6-4857-a2b9-13baf9f262b3",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.d9a0b532-0785-4fdb-8e0e-dd5a97dee8b1",
+      "commonName": "Martinique",
+      "regionId": "region.269a0a60-dde4-4265-835e-f5e6f9996dc0",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.18835158-28ca-4c62-88c0-824a08092b27",
+      "commonName": "Saint Barth&#233;lemy",
+      "regionId": "region.c2bd639e-98b0-4dec-9021-b051234eb612",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.e19c605e-802b-4844-b3b6-21e0d33be36d",
+      "commonName": "Saint Martin (French Part)",
+      "regionId": "region.e76e9481-3f11-4cc4-a2ae-569e0aecdb28",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.278c58e4-229a-4a7a-8e16-51e0abfebd45",
+      "commonName": "Sint Maarten (Dutch part)",
+      "regionId": "region.9ab76a7d-60cb-40d1-8946-c33c8293c0ad",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.b603f5b4-6bae-4964-aa27-7f805b4a149b",
+      "commonName": "Bouvet Island",
+      "regionId": "region.0740a6c7-e17b-4a52-b242-77b39dc0a737",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.897e7a46-935e-44af-a7df-806dbd257f18",
+      "commonName": "French Guiana",
+      "regionId": "region.7d047568-0515-44e2-996a-1e00b7053911",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.f9d11b4c-74d3-4103-8cc0-7c81d8023cc3",
+      "commonName": "South Georgia and the South Sandwich Islands",
+      "regionId": "region.f7d1d07e-73ae-4784-a7f8-d3c3ff77b5a6",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.9b3d3149-891f-4f40-a9cf-dfd31e15fbd0",
+      "commonName": "China, Macao Special Administrative Region",
+      "regionId": "region.ebff0d2f-c8c4-444b-b2e5-ab241b207c49",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.74f6fa04-b347-461a-9de9-b129d0cf8964",
+      "commonName": "Faroe Islands",
+      "regionId": "region.2606bd31-e90f-4104-899f-3368cd80f2d7",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.8d08fbf0-b991-4a80-87d2-f39a7ba6046e",
+      "commonName": "Guernsey",
+      "regionId": "region.46fd5896-b4ed-463f-9c5a-37c887012f0f",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.cd70257e-3801-4640-88b9-ebcecc88b0dd",
+      "commonName": "Isle of Man",
+      "regionId": "region.ce252440-65e3-4c20-b575-b8f8e67c6d69",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.7df323f9-c786-4db9-a8fc-568d3ba3e521",
+      "commonName": "Jersey",
+      "regionId": "region.f4c28812-fa00-4359-bf04-50505ae8159f",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.ef509eaf-8e5e-4b35-b3e3-8cfdb3d3f8fb",
+      "commonName": "Svalbard and Jan Mayen Islands",
+      "regionId": "region.3f9728c6-9ae8-4a68-9cea-583d9b2c7401",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.af7ed2b9-bee5-42cb-8494-f2e1bbbdae05",
+      "commonName": "Gibraltar",
+      "regionId": "region.db878f3d-8008-4051-9615-253474e0c3d2",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.69f3c77b-79f8-4f74-b523-6b82bf404d68",
+      "commonName": "Holy See",
+      "regionId": "region.1c8ec000-705a-4bf6-bd8e-cf10a7f01d3c",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.656241b3-385a-416c-86a1-6512d294a685",
+      "commonName": "Monaco",
+      "regionId": "region.d5b255d6-e97f-472c-b130-0fea7e64264f",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.69fe9c66-74ba-44ed-96a0-9038aaa569c5",
+      "commonName": "Christmas Island",
+      "regionId": "region.ff5cc8ff-dc5b-48a6-b92c-597106cfb579",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.43f77294-1d5a-4495-a4bb-afc7f1a9caa1",
+      "commonName": "Cocos (Keeling) Islands",
+      "regionId": "region.3a5c28c2-1f50-42e6-87ae-362ef2dee867",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.0347fd43-fbf9-48cb-933a-e966f52a32c7",
+      "commonName": "Heard Island and McDonald Islands",
+      "regionId": "region.ce5f8563-336a-471b-9a0f-96fd84fe8e41",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.a0834483-9834-4b4c-a58e-d773480028b4",
+      "commonName": "Norfolk Island",
+      "regionId": "region.12e04cb1-11af-4205-bd3d-6633040547a1",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.6fba350d-54a6-4141-9357-dbb86eee3d87",
+      "commonName": "Guam",
+      "regionId": "region.8f362a0e-1398-49c5-8e88-0830ba1cb2f6",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.d7d86522-66aa-4d61-91bb-39638018b9dc",
+      "commonName": "Niue",
+      "regionId": "region.089057f8-37d3-468e-9fa4-b79ca38e78f0",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.c6270d38-e150-4780-98bd-a6d01df06f20",
+      "commonName": "Pitcairn",
+      "regionId": "region.9325c1b6-8e30-4aa3-b578-04465879ba3d",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.90d3394a-c3d8-415d-8c79-8151ec2d258f",
+      "commonName": "Tokelau",
+      "regionId": "region.265ef9d1-8629-419e-aff5-6a15ea4ce146",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    },
+    {
+      "countryId": "country.17a684c6-aac3-4f9a-8908-86e91c0a097d",
+      "commonName": "Tuvalu",
+      "regionId": "region.573b81a3-e5fe-495f-9c8b-cc5710211403",
+      "geographyStatus": "unavailable",
+      "reason": "No reliable first-order subdivision set or bundled Admin-0 geometry is available; the gameplay region exists without display geometry."
+    }
+  ],
+  "potentiallyIncompleteOrAmbiguous": [
+    {
+      "countryId": "country.c826fd7f-d7a1-43da-96df-b6d4569ef38a",
+      "commonName": "Anguilla",
+      "regionCount": 15,
+      "sourceFeatureCount": 15,
+      "ambiguousRegionCount": 15,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.15febdb5-6025-49d0-9318-d737d6bf6ee1",
+      "commonName": "&#197;land Islands",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 11,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.xjfx2m",
+      "commonName": "United Arab Emirates",
+      "regionCount": 8,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.feb9ab4a-93bc-49fa-b4aa-282b2cf5b8b5",
+      "commonName": "American Samoa",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 5,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.ucqeq5",
+      "commonName": "Antarctica",
+      "regionCount": 2,
+      "sourceFeatureCount": 2,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1gxtyz9",
+      "commonName": "Australia",
+      "regionCount": 13,
+      "sourceFeatureCount": 13,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.11efhcg",
+      "commonName": "French Southern Territories",
+      "regionCount": 4,
+      "sourceFeatureCount": 4,
+      "ambiguousRegionCount": 4,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.n2i2m0",
+      "commonName": "Azerbaijan",
+      "regionCount": 76,
+      "sourceFeatureCount": 78,
+      "ambiguousRegionCount": 15,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.bk8phe",
+      "commonName": "Belgium",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.6sun05",
+      "commonName": "Bahamas",
+      "regionCount": 30,
+      "sourceFeatureCount": 30,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.mbt8ni",
+      "commonName": "Bosnia and Herzegovina",
+      "regionCount": 18,
+      "sourceFeatureCount": 18,
+      "ambiguousRegionCount": 17,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.j4e5mk",
+      "commonName": "China",
+      "regionCount": 32,
+      "sourceFeatureCount": 32,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.ukura0",
+      "commonName": "C&#244;te d’Ivoire",
+      "regionCount": 19,
+      "sourceFeatureCount": 19,
+      "ambiguousRegionCount": 19,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.97e14s",
+      "commonName": "France",
+      "regionCount": 97,
+      "sourceFeatureCount": 97,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1w9qxht",
+      "commonName": "Cameroon",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 4,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.8606462a-5750-456d-8472-ba3c5cafd087",
+      "commonName": "Cook Islands",
+      "regionCount": 11,
+      "sourceFeatureCount": 11,
+      "ambiguousRegionCount": 11,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.ckoh6f",
+      "commonName": "Colombia",
+      "regionCount": 34,
+      "sourceFeatureCount": 34,
+      "ambiguousRegionCount": 3,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1slft1c",
+      "commonName": "Cuba",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1rbe765",
+      "commonName": "Eritrea",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.zwicjl",
+      "commonName": "United Kingdom of Great Britain and Northern Ireland",
+      "regionCount": 234,
+      "sourceFeatureCount": 234,
+      "ambiguousRegionCount": 8,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.14jkmlh",
+      "commonName": "Greenland",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.ad423c13-233a-4e60-9502-1e34755b8c13",
+      "commonName": "China, Hong Kong Special Administrative Region",
+      "regionCount": 18,
+      "sourceFeatureCount": 18,
+      "ambiguousRegionCount": 18,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.3f7ydp",
+      "commonName": "Honduras",
+      "regionCount": 18,
+      "sourceFeatureCount": 18,
+      "ambiguousRegionCount": 8,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1t8wy2p",
+      "commonName": "Hungary",
+      "regionCount": 43,
+      "sourceFeatureCount": 43,
+      "ambiguousRegionCount": 4,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1gtbljd",
+      "commonName": "Indonesia",
+      "regionCount": 33,
+      "sourceFeatureCount": 33,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.s93ito",
+      "commonName": "Ireland",
+      "regionCount": 30,
+      "sourceFeatureCount": 34,
+      "ambiguousRegionCount": 7,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.yc1r8r",
+      "commonName": "Iran (Islamic Republic of)",
+      "regionCount": 31,
+      "sourceFeatureCount": 31,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1dsqes5",
+      "commonName": "Israel",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1onsv24",
+      "commonName": "Italy",
+      "regionCount": 110,
+      "sourceFeatureCount": 110,
+      "ambiguousRegionCount": 106,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1y9w9xr",
+      "commonName": "Kazakhstan",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 3,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1y5kvsv",
+      "commonName": "Kenya",
+      "regionCount": 8,
+      "sourceFeatureCount": 8,
+      "ambiguousRegionCount": 8,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.7zmt7h",
+      "commonName": "Kyrgyzstan",
+      "regionCount": 8,
+      "sourceFeatureCount": 8,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.133c7481-f1fb-49a2-a220-d585495c33c5",
+      "commonName": "Kiribati",
+      "regionCount": 2,
+      "sourceFeatureCount": 2,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1jzfv40",
+      "commonName": "Republic of Korea",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 16,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.xso2dg",
+      "commonName": "Kosovo",
+      "regionCount": 30,
+      "sourceFeatureCount": 30,
+      "ambiguousRegionCount": 30,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.18zobjo",
+      "commonName": "Lao People's Democratic Republic",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.13si2qd",
+      "commonName": "Liberia",
+      "regionCount": 15,
+      "sourceFeatureCount": 15,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.xs7zo4",
+      "commonName": "Sri Lanka",
+      "regionCount": 25,
+      "sourceFeatureCount": 25,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1abe1vk",
+      "commonName": "Lithuania",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 10,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.nusos0",
+      "commonName": "Latvia",
+      "regionCount": 115,
+      "sourceFeatureCount": 119,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.6mdobv",
+      "commonName": "Republic of Moldova",
+      "regionCount": 39,
+      "sourceFeatureCount": 40,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.snc7v9",
+      "commonName": "Madagascar",
+      "regionCount": 22,
+      "sourceFeatureCount": 22,
+      "ambiguousRegionCount": 22,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.2aded07b-a46c-4e6b-8b87-ad5e4f973d52",
+      "commonName": "Maldives",
+      "regionCount": 21,
+      "sourceFeatureCount": 21,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1i4b92q",
+      "commonName": "Mexico",
+      "regionCount": 33,
+      "sourceFeatureCount": 33,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.5805152e-6b76-4319-a310-703e8e668877",
+      "commonName": "Northern Mariana Islands",
+      "regionCount": 4,
+      "sourceFeatureCount": 4,
+      "ambiguousRegionCount": 4,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.589767fd-d38e-45be-933c-e243cd22ec04",
+      "commonName": "Mauritius",
+      "regionCount": 16,
+      "sourceFeatureCount": 16,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.13ie6ly",
+      "commonName": "Namibia",
+      "regionCount": 13,
+      "sourceFeatureCount": 13,
+      "ambiguousRegionCount": 13,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.5lwy1g",
+      "commonName": "New Caledonia",
+      "regionCount": 3,
+      "sourceFeatureCount": 3,
+      "ambiguousRegionCount": 3,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1bryr1g",
+      "commonName": "New Zealand",
+      "regionCount": 23,
+      "sourceFeatureCount": 23,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.f5u1ei",
+      "commonName": "Pakistan",
+      "regionCount": 8,
+      "sourceFeatureCount": 8,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.8cy639",
+      "commonName": "Peru",
+      "regionCount": 26,
+      "sourceFeatureCount": 26,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1ckv6i4",
+      "commonName": "Philippines",
+      "regionCount": 115,
+      "sourceFeatureCount": 118,
+      "ambiguousRegionCount": 48,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.2991edff-bec4-4423-825e-8196fca18992",
+      "commonName": "French Polynesia",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 5,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.zsxuo0",
+      "commonName": "Romania",
+      "regionCount": 42,
+      "sourceFeatureCount": 42,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.h03oz0",
+      "commonName": "Russian Federation",
+      "regionCount": 86,
+      "sourceFeatureCount": 86,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.17se0x",
+      "commonName": "Saudi Arabia",
+      "regionCount": 13,
+      "sourceFeatureCount": 13,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.jg9ci8",
+      "commonName": "Sudan",
+      "regionCount": 17,
+      "sourceFeatureCount": 17,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1629o6e",
+      "commonName": "Solomon Islands",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.2e4582fa-4432-4e61-bfc3-2083336428b4",
+      "commonName": "Saint Pierre and Miquelon",
+      "regionCount": 2,
+      "sourceFeatureCount": 2,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.54732cb4-6064-445b-a3c2-461d752e4305",
+      "commonName": "Seychelles",
+      "regionCount": 26,
+      "sourceFeatureCount": 26,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.19iew1b",
+      "commonName": "Syrian Arab Republic",
+      "regionCount": 15,
+      "sourceFeatureCount": 15,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.56c8424f-4640-4fb6-8584-1655d6feb9db",
+      "commonName": "Turks and Caicos Islands",
+      "regionCount": 6,
+      "sourceFeatureCount": 6,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.e55nqx",
+      "commonName": "Chad",
+      "regionCount": 22,
+      "sourceFeatureCount": 22,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.1pajyhp",
+      "commonName": "Tajikistan",
+      "regionCount": 5,
+      "sourceFeatureCount": 5,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.113l9xv",
+      "commonName": "Taiwan",
+      "regionCount": 21,
+      "sourceFeatureCount": 21,
+      "ambiguousRegionCount": 6,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.qdlh80",
+      "commonName": "Venezuela (Bolivarian Republic of)",
+      "regionCount": 26,
+      "sourceFeatureCount": 26,
+      "ambiguousRegionCount": 1,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.3d22be69-b741-4de3-a8ee-4abf889e77d0",
+      "commonName": "United States Virgin Islands",
+      "regionCount": 3,
+      "sourceFeatureCount": 3,
+      "ambiguousRegionCount": 3,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.t3667i",
+      "commonName": "South Africa",
+      "regionCount": 9,
+      "sourceFeatureCount": 9,
+      "ambiguousRegionCount": 8,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    },
+    {
+      "countryId": "country.6th7vw",
+      "commonName": "Zimbabwe",
+      "regionCount": 10,
+      "sourceFeatureCount": 10,
+      "ambiguousRegionCount": 2,
+      "reason": "One or more source regions have missing/ambiguous ISO 3166-2 codes or Natural Earth notes. Geometry remains usable but coverage requires review."
+    }
+  ],
+  "excludedSourceFeatures": [
+    {
+      "sourceId": "1159315669",
+      "sourceCountryCode": "KAS",
+      "name": "Kashmir",
+      "reason": "Siachen Glacier is disputed and the country registry has no neutral entity to own this source feature."
+    },
+    {
+      "sourceId": "1159315761",
+      "sourceCountryCode": "PGA",
+      "name": "Spratly Islands",
+      "reason": "The Spratly Islands are disputed and the country registry has no neutral entity to own this source feature."
+    },
+    {
+      "sourceId": "1159315531",
+      "sourceCountryCode": "ABW",
+      "name": "Aruba",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315649",
+      "sourceCountryCode": "BLM",
+      "name": "Saint Barthélemy",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315469",
+      "sourceCountryCode": "NOR",
+      "name": "Bouvet Island",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315529",
+      "sourceCountryCode": "CUW",
+      "name": "Curaçao",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315563",
+      "sourceCountryCode": "CYM",
+      "name": "Cayman Islands",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315789",
+      "sourceCountryCode": "CYN",
+      "name": "Northern Cyprus",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315471",
+      "sourceCountryCode": "FLK",
+      "name": "Falkland Islands",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159311599",
+      "sourceCountryCode": "FRA",
+      "name": "Martinique",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159311355",
+      "sourceCountryCode": "FRA",
+      "name": "Guyane française",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315617",
+      "sourceCountryCode": "FRA",
+      "name": "La Réunion",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315621",
+      "sourceCountryCode": "FRA",
+      "name": "Mayotte",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315647",
+      "sourceCountryCode": "FRA",
+      "name": "Guadeloupe",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159313105",
+      "sourceCountryCode": "FRO",
+      "name": "Eysturoyar",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315595",
+      "sourceCountryCode": "GGY",
+      "name": "Sark",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315683",
+      "sourceCountryCode": "GIB",
+      "name": "Gibraltar",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315535",
+      "sourceCountryCode": "GUM",
+      "name": "Guam",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315607",
+      "sourceCountryCode": "HMD",
+      "name": "Heard Island and McDonald Islands",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315475",
+      "sourceCountryCode": "IMN",
+      "name": "Isle of Man",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159311167",
+      "sourceCountryCode": "IOA",
+      "name": "Cocos (Keeling) Islands",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159313303",
+      "sourceCountryCode": "IOA",
+      "name": "Christmas Island",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315473",
+      "sourceCountryCode": "IOT",
+      "name": "British Indian Ocean Territory",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315593",
+      "sourceCountryCode": "JEY",
+      "name": "Jersey",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315653",
+      "sourceCountryCode": "MAC",
+      "name": "Macau",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315651",
+      "sourceCountryCode": "MAF",
+      "name": "St. Martin",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315589",
+      "sourceCountryCode": "MCO",
+      "name": "Monaco",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315615",
+      "sourceCountryCode": "NFK",
+      "name": "Norfolk Island",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315491",
+      "sourceCountryCode": "NIU",
+      "name": "Niue",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315503",
+      "sourceCountryCode": "NZL",
+      "name": "Tokelau",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315485",
+      "sourceCountryCode": "PCN",
+      "name": "Pitcairn Islands",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315553",
+      "sourceCountryCode": "PRI",
+      "name": "Puerto Rico",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315575",
+      "sourceCountryCode": "SAH",
+      "name": "Western Sahara",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315467",
+      "sourceCountryCode": "SGS",
+      "name": "South Georgia and the South Sandwich Islands",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315525",
+      "sourceCountryCode": "SOL",
+      "name": "Somaliland",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315549",
+      "sourceCountryCode": "SXM",
+      "name": "Sint Maarten",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315501",
+      "sourceCountryCode": "TUV",
+      "name": "Tuvalu",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159308479",
+      "sourceCountryCode": "VAT",
+      "name": "Vatican",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    },
+    {
+      "sourceId": "1159315557",
+      "sourceCountryCode": "VGB",
+      "name": "British Virgin Islands",
+      "reason": "A single source feature does not establish a reliable subnational division; ProjectAtlas uses an explicit national fallback region."
+    }
+  ],
+  "limitations": [
+    "Natural Earth labels the 10m Admin-1 layer beta and does not guarantee complete or current global coverage.",
+    "Boundaries are cartographic source data and do not express a ProjectAtlas legal position."
+  ]
+}

@@ -15,4 +15,27 @@ export interface Territory {
   kind: EntityKind; sourceFeatureId: string; sourceDatasetId: string;
   sourceMetadata: Record<string, unknown>;
 }
-export interface SimulationState { date: string; paused: boolean; speed: 1 | 2 | 5; territoryOwnership: Record<string, string | undefined> }
+export interface RegionEntity {
+  id: string;
+  parentCountryId: string;
+  initialOwnerCountryId: string;
+  macroTerritoryId?: string;
+  commonName: string;
+  localAdministrativeType?: string;
+  administrativeLevel: number;
+  iso31662?: string;
+  externalIds: Record<string, string | string[]>;
+  geographyMapping:
+    | { status: 'mapped'; datasetId: string; sourceFeatureIds: string[] }
+    | { status: 'fallback_admin0'; territoryId: string; reason: string; checkedAt: string; source: DataSource }
+    | { status: 'unavailable'; reason: string; checkedAt: string; source: DataSource };
+  sourceMetadata?: Record<string, unknown>;
+}
+export interface SimulationState {
+  schemaVersion: 2;
+  date: string;
+  paused: boolean;
+  speed: 1 | 2 | 5;
+  territoryOwnership: Record<string, string | undefined>;
+  regionOwnership: Record<string, string | undefined>;
+}
