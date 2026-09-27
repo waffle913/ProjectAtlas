@@ -62,8 +62,38 @@ export interface ExplicitCasusBelli {
   reason?: string;
   originatingEventId?: string;
 }
+export interface WarDeclarationCasusBelliSnapshot {
+  id: string;
+  issuerCountryId: string;
+  targetCountryId: string;
+  type: CasusBelliType;
+  source: 'claim' | 'explicit';
+  creationDate: string;
+  targetRegionIds?: string[];
+  claimId?: string;
+  reason?: string;
+  originatingEventId?: string;
+}
+export interface LimitedWar {
+  id: string;
+  attackerCountryId: string;
+  defenderCountryId: string;
+  status: 'active' | 'ended';
+  startDate: string;
+  endDate?: string;
+  warGoal: 'take_region';
+  targetRegionId: string;
+  declarationCasusBelli: WarDeclarationCasusBelliSnapshot;
+  outcome?: 'attacker_victory' | 'defender_victory' | 'white_peace';
+}
+export interface RegionOccupation {
+  regionId: string;
+  warId: string;
+  occupierCountryId: string;
+  startDate: string;
+}
 export interface SimulationState {
-  schemaVersion: 5;
+  schemaVersion: 6;
   date: string;
   paused: boolean;
   speed: 1 | 2 | 5;
@@ -74,4 +104,6 @@ export interface SimulationState {
   bilateralRelations: Record<string, BilateralRelation>;
   claims: TerritorialClaim[];
   explicitCasusBelli: ExplicitCasusBelli[];
+  wars: LimitedWar[];
+  occupationByRegion: Record<string, RegionOccupation>;
 }

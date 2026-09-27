@@ -1,4 +1,4 @@
-import type { DataSource, RegionEntity } from '../types';
+import type { DataSource, LimitedWar, RegionEntity, RegionOccupation } from '../types';
 import type { RegionDemographicRecord } from '../data/populationData';
 import type { EconomicBaselineRecord } from '../data/economicData';
 import type { TerritorialClaim } from '../types';
@@ -7,7 +7,7 @@ const row = (label: string, value?: string | number) => (
   <div className="field" key={label}><span>{label}</span><b>{value ?? 'Unavailable'}</b></div>
 );
 const usd = (value?: number) => value === undefined ? undefined : new Intl.NumberFormat('en', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
-export function RegionPanel({ region, currentOwner, parentCountry, source, onBack, demographic, currentPopulation, economic, currentEconomicOutput, activeClaims = [] }: {
+export function RegionPanel({ region, currentOwner, parentCountry, source, onBack, demographic, currentPopulation, economic, currentEconomicOutput, activeClaims = [], occupation, objectiveWars = [] }: {
   region: RegionEntity;
   currentOwner?: { commonName: string };
   parentCountry?: { commonName: string };
@@ -18,6 +18,8 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
   economic?: EconomicBaselineRecord;
   currentEconomicOutput?: number;
   activeClaims?: Array<{ claim: TerritorialClaim; claimantName: string }>;
+  occupation?: RegionOccupation & { occupierName: string; war?: LimitedWar };
+  objectiveWars?: Array<{ war: LimitedWar; attackerName: string; defenderName: string }>;
 }) {
   return (
     <aside className="panel">
@@ -34,6 +36,13 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
         {row('Initial country', parentCountry?.commonName)}
         {row('ISO 3166-2', region.iso31662)}
         {row('Geometry', region.geographyMapping.status.replaceAll('_', ' '))}
+      </section>
+      <section>
+        <h2>War status</h2>
+        {row('Sovereign owner', currentOwner?.commonName)}
+        {row('Occupier', occupation?.occupierName)}
+        {occupation && <small>Occupation under {occupation.war?.id ?? occupation.warId} · since {occupation.startDate}. Sovereignty, population and economic output are unchanged.</small>}
+        {objectiveWars.length ? objectiveWars.map(({ war, attackerName, defenderName }) => <small key={war.id}><br />Objective of {war.id}: {attackerName} → {defenderName}</small>) : <small><br />Not a current war objective.</small>}
       </section>
       <section>
         <h2>Territorial claims</h2>

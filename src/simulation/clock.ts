@@ -19,6 +19,7 @@ export class SimulationClock {
   setPopulationByRegion = (populationByRegion: Record<string, number | undefined>) => { this.current = {...this.current, populationByRegion: {...populationByRegion}}; };
   setEconomicOutputByRegion = (economicOutputByRegion: Record<string, number | undefined>) => { this.current = {...this.current, economicOutputByRegion: {...economicOutputByRegion}}; };
   setDiplomacy = (diplomacy: Pick<SimulationState, 'bilateralRelations' | 'claims' | 'explicitCasusBelli'>) => { this.current = cloneState({ ...this.current, ...diplomacy }); };
+  setWars = (warState: Pick<SimulationState, 'wars' | 'occupationByRegion'>) => { this.current = cloneState({ ...this.current, ...warState }); };
   advance = (realElapsedMs: number) => {
     if (this.current.paused || realElapsedMs <= 0) return this.snapshot();
     this.elapsed += realElapsedMs * this.current.speed;
@@ -28,4 +29,4 @@ export class SimulationClock {
   };
 }
 
-const cloneState = (state: SimulationState): SimulationState => ({ ...state, territoryOwnership: { ...state.territoryOwnership }, regionOwnership: { ...state.regionOwnership }, populationByRegion: { ...state.populationByRegion }, economicOutputByRegion: { ...state.economicOutputByRegion }, bilateralRelations: Object.fromEntries(Object.entries(state.bilateralRelations).map(([key, relation]) => [key, { ...relation }])), claims: state.claims.map(claim => ({ ...claim })), explicitCasusBelli: state.explicitCasusBelli.map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined })) });
+const cloneState = (state: SimulationState): SimulationState => ({ ...state, territoryOwnership: { ...state.territoryOwnership }, regionOwnership: { ...state.regionOwnership }, populationByRegion: { ...state.populationByRegion }, economicOutputByRegion: { ...state.economicOutputByRegion }, bilateralRelations: Object.fromEntries(Object.entries(state.bilateralRelations).map(([key, relation]) => [key, { ...relation }])), claims: state.claims.map(claim => ({ ...claim })), explicitCasusBelli: state.explicitCasusBelli.map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined })), wars: state.wars.map(war => ({ ...war, declarationCasusBelli: { ...war.declarationCasusBelli, targetRegionIds: war.declarationCasusBelli.targetRegionIds ? [...war.declarationCasusBelli.targetRegionIds] : undefined } })), occupationByRegion: Object.fromEntries(Object.entries(state.occupationByRegion).map(([regionId, occupation]) => [regionId, { ...occupation }])) });

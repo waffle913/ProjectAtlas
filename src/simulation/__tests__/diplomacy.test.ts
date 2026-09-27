@@ -5,7 +5,7 @@ import { adjustRelation, countryPairKey, createClaim, createExplicitCasusBelli, 
 import { restoreSimulationState, serializeSimulationState } from '../save';
 
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.x']) };
-const initial = (): SimulationState => ({ schemaVersion: 5, date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.x': 'country.b' }, populationByRegion: { 'region.x': 5_000_000 }, economicOutputByRegion: { 'region.x': 200_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [] });
+const initial = (): SimulationState => ({ schemaVersion: 6, date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.x': 'country.b' }, populationByRegion: { 'region.x': 5_000_000 }, economicOutputByRegion: { 'region.x': 200_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {} });
 const claim = { id: 'claim.001', claimantCountryId: 'country.a', regionId: 'region.x', type: 'territorial' as const, creationDate: '2026-01-01', reason: 'Reviewed test claim' };
 
 describe('diplomacy foundation', () => {
@@ -71,7 +71,7 @@ describe('diplomacy foundation', () => {
     expect(() => validateDiplomacyState(invalid, context)).toThrow(/Malformed bilateral relation.*Duplicate active claim/s);
     expect(() => createExplicitCasusBelli(initial(), { id: 'cb.bad', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'retaliation', creationDate: '2026-02-01', expiryDate: '2026-01-01' }, context)).toThrow(/Malformed/);
   });
-  it('round-trips v5 diplomacy without aliasing mutable arrays', () => {
+  it('round-trips v6 diplomacy without aliasing mutable arrays', () => {
     const state = createExplicitCasusBelli(createClaim(initial(), claim, context), { id: 'cb.001', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'retaliation', creationDate: '2026-01-01', targetRegionIds: ['region.x'] }, context);
     const region = { id: 'region.x', parentCountryId: 'country.b', initialOwnerCountryId: 'country.b', commonName: 'X', administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped' as const, datasetId: 'test', sourceFeatureIds: ['x'] } };
     const restored = restoreSimulationState(serializeSimulationState(state), [region], {}, {}, context);

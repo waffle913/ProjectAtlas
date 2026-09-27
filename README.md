@@ -1,4 +1,4 @@
-# ProjectAtlas — Milestone 0.6
+# ProjectAtlas — Milestone 0.7
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
 
@@ -36,6 +36,14 @@ Territorial-claim casus belli are derived at query time from active claims and t
 
 Admin-0 polygons remain a navigation and overview layer, not authoritative political ownership. Their overview fill is derived from child Region owners and becomes neutral when ownership is mixed. Detailed Region rendering already colours each Region by its current owner, allowing partial control without changing source geometry.
 
+## Limited war, occupation and peace
+
+Wars are persistent bilateral records keyed only by opaque ProjectAtlas IDs. Milestone 0.7 supports one objective, `take_region`, authorized by a currently available territorial CB. Declaration snapshots that CB permanently; later claim renunciation or CB expiry cannot invalidate the war. Explicit CBs are marked `used`, while derived claim CBs have no redundant persistent record to consume. Ended wars remain in save history.
+
+Occupation is stored separately in `occupationByRegion`. It never changes sovereign `regionOwnership`, population, economic output, claims, identity or legacy macro ownership. Only opposing belligerents in an active war may occupy one another's Regions, and one Region can have at most one occupation. The map preserves the sovereign owner fill and adds a dashed red occupation boundary.
+
+The attacker objective is satisfied only when it occupies the declared target under that war. Attacker victory then transfers exactly that one Region through `regionOwnership`; every other occupied Region remains with its sovereign owner. Defender victory and white peace transfer nothing. Every peace outcome records the result, retains the ended war, and clears that war's occupations. There is deliberately no war score, army, combat, pathfinding, alliance or military-economy model yet.
+
 ## Model
 
 The map is explicitly not the game state. `Country` holds stable political identity, `Region` is the primary gameplay ownership unit, and the existing macro `Territory` remains for compatibility and source mapping. `SimulationState.regionOwnership` changes independently from identity and geometry. The model is Country → Region → replaceable source feature(s); replacing, reordering or simplifying geometry does not replace a Region.
@@ -72,7 +80,7 @@ Tests cover the 193-member invariant, registry/map decoupling, exact feature map
 
 `SimulationClock` is UI-independent. It starts from 2026-01-01, measures real elapsed time, progresses one game day per second at ×1 (with ×2 / ×5 multipliers), and is separately tested along with pure territory transfers.
 
-Save schema version 2 adds `regionOwnership`, version 3 adds Region population, version 4 adds mutable Region economic output, and version 5 adds bilateral relations, historical claims and explicit casus belli. The explicit v4 → v5 migration initializes all three diplomatic collections empty while preserving every earlier field exactly. Restoring v5 requires Country/Region registry context and validates every reference, ID, status, type, score and date. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity, population, economic output, claim or geometry. Country-controlled population and output are complete-only sums of currently owned Regions, so a transfer changes control without moving or rewriting the Region's people or economy.
+Save schema version 2 adds `regionOwnership`, version 3 adds Region population, version 4 adds mutable Region economic output, version 5 adds diplomacy, and version 6 adds persistent wars plus Region occupations. The explicit v5 → v6 migration initializes war and occupation state empty while preserving every earlier field exactly. Restoring v6 requires Country/Region registry context and validates diplomacy, wars, CB snapshots, belligerents, objectives, dates and occupations. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity, population, economic output, claim or geometry. Country-controlled population and output are complete-only sums of sovereignly owned Regions; occupation alone changes neither aggregate.
 
 Natural Earth admin-0 country geometry, plus its 110m physical land, lakes, and river centreline datasets, are stored in `public/data/`. They are public domain. The map uses no runtime tile service or remotely loaded map asset, and remains usable while disconnected. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
 

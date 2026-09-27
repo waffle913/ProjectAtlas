@@ -13,10 +13,11 @@ import { CountryPanel } from "./components/CountryPanel";
 import { RegionPanel } from "./components/RegionPanel";
 import { SimulationClock } from "./simulation/clock";
 import { getAvailableCasusBelli, validateDiplomacyState, type AvailableCasusBelli } from "./simulation/diplomacy";
+import { isWarGoalSatisfied, validateWarState } from "./simulation/war";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 5,
+  schemaVersion: 6,
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -27,6 +28,8 @@ const initialState: SimulationState = {
   bilateralRelations: {},
   claims: [],
   explicitCasusBelli: [],
+  wars: [],
+  occupationByRegion: {},
 };
 function FitWorld() {
   const map = useMap();
@@ -106,7 +109,9 @@ export default function App() {
         ));
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
-        validateDiplomacyState(clock.current.snapshot(), { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) });
+        const registryContext = { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
+        validateDiplomacyState(clock.current.snapshot(), registryContext);
+        validateWarState(clock.current.snapshot(), registryContext);
         setSim(clock.current.snapshot());
         setWorld(nextWorld);
         setCountryData(data);
@@ -222,6 +227,10 @@ export default function App() {
   const foreignClaims = selected ? sim.claims.filter(claim => claim.status === 'active' && claim.claimantCountryId !== selected && sim.regionOwnership[claim.regionId] === selected).map(claim => ({ claim, claimantName: countryName(claim.claimantCountryId), regionName: regionName(claim.regionId) })) : [];
   const availableCasusBelli: Array<{ cb: AvailableCasusBelli; targetName: string }> = selected ? countryData!.registry.countries.filter(country => country.id !== selected).flatMap(country => getAvailableCasusBelli(sim, selected, country.id, diplomacyContext).map(cb => ({ cb, targetName: country.commonName }))) : [];
   const selectedRegionClaims = selectedRegionEntity ? sim.claims.filter(claim => claim.status === 'active' && claim.regionId === selectedRegionEntity.id).map(claim => ({ claim, claimantName: countryName(claim.claimantCountryId) })) : [];
+  const activeWars = selected ? sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).map(war => ({ war, attackerName: countryName(war.attackerCountryId), defenderName: countryName(war.defenderCountryId), targetRegionName: regionName(war.targetRegionId), objectiveSatisfied: isWarGoalSatisfied(sim, war.id) })) : [];
+  const selectedOccupation = selectedRegionEntity ? sim.occupationByRegion[selectedRegionEntity.id] : undefined;
+  const selectedOccupationWar = selectedOccupation ? sim.wars.find(war => war.id === selectedOccupation.warId) : undefined;
+  const selectedObjectiveWars = selectedRegionEntity ? sim.wars.filter(war => war.status === 'active' && war.targetRegionId === selectedRegionEntity.id).map(war => ({ war, attackerName: countryName(war.attackerCountryId), defenderName: countryName(war.defenderCountryId) })) : [];
   return (
     <main>
       <header>
@@ -230,7 +239,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.6 · DIPLOMACY &amp; TERRITORIAL CLAIMS</small>
+          <small>MILESTONE 0.7 · LIMITED WAR &amp; PEACE</small>
         </div>
         <Clock state={sim} onChange={changeClock} />
       </header>
@@ -320,14 +329,16 @@ export default function App() {
             )}
             {regionGeometry && mapZoom >= 4 && (
               <GeoJSON
-                key={`${selected}-${selectedRegion ?? "none"}-${mapZoom >= 5 ? "near" : "far"}`}
+                key={`${selected}-${selectedRegion ?? "none"}-${mapZoom >= 5 ? "near" : "far"}-${Object.keys(sim.occupationByRegion).sort().join(',')}`}
                 data={regionGeometry}
                 style={(feature) => {
                   const regionId = feature?.properties?.regionId as string;
                   const owner = sim.regionOwnership[regionId] ?? selected;
+                  const occupation = sim.occupationByRegion[regionId];
                   return {
-                    color: selectedRegion === regionId ? "#efc781" : "#46545a",
-                    weight: selectedRegion === regionId ? 2 : mapZoom >= 5 ? 0.9 : 0.55,
+                    color: selectedRegion === regionId ? "#efc781" : occupation ? "#d66f62" : "#46545a",
+                    weight: selectedRegion === regionId ? 2.2 : occupation ? 1.8 : mapZoom >= 5 ? 0.9 : 0.55,
+                    dashArray: occupation ? "6 3" : undefined,
                     fillColor: countryColour(owner),
                     fillOpacity: selectedRegion === regionId ? 0.82 : 0.56,
                   };
@@ -364,6 +375,8 @@ export default function App() {
             economic={economicData.byRegionId.get(selectedRegionEntity.id)}
             currentEconomicOutput={sim.economicOutputByRegion[selectedRegionEntity.id]}
             activeClaims={selectedRegionClaims}
+            occupation={selectedOccupation ? { ...selectedOccupation, occupierName: countryName(selectedOccupation.occupierCountryId), war: selectedOccupationWar } : undefined}
+            objectiveWars={selectedObjectiveWars}
           />
         ) : (
           <CountryPanel
@@ -378,6 +391,7 @@ export default function App() {
             activeClaimsMade={activeClaimsMade}
             foreignClaims={foreignClaims}
             availableCasusBelli={availableCasusBelli}
+            activeWars={activeWars}
           />
         )}
       </div>

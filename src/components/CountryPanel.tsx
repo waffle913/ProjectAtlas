@@ -1,4 +1,4 @@
-import type { Country, TerritorialClaim } from "../types";
+import type { Country, LimitedWar, TerritorialClaim } from "../types";
 import type { AvailableCasusBelli } from "../simulation/diplomacy";
 import type { CountryFactsRecord, FactValue, Officeholder, PoliticalOffice } from "../data/countryData";
 import type { PopulationObservation } from "../data/populationData";
@@ -50,7 +50,7 @@ const fact = (name: string, observation?: FactValue) => (
   </div>
 );
 const formatUsd = (value?: number) => value === undefined ? undefined : new Intl.NumberFormat("en", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
-export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation, controlledPopulationComplete = false, controlledEconomicOutput, controlledEconomicOutputComplete = false, activeClaimsMade = [], foreignClaims = [], availableCasusBelli = [] }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number; controlledPopulationComplete?: boolean; controlledEconomicOutput?: number; controlledEconomicOutputComplete?: boolean; activeClaimsMade?: Array<{claim: TerritorialClaim; regionName: string}>; foreignClaims?: Array<{claim: TerritorialClaim; claimantName: string; regionName: string}>; availableCasusBelli?: Array<{cb: AvailableCasusBelli; targetName: string}> }) {
+export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation, controlledPopulationComplete = false, controlledEconomicOutput, controlledEconomicOutputComplete = false, activeClaimsMade = [], foreignClaims = [], availableCasusBelli = [], activeWars = [] }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number; controlledPopulationComplete?: boolean; controlledEconomicOutput?: number; controlledEconomicOutputComplete?: boolean; activeClaimsMade?: Array<{claim: TerritorialClaim; regionName: string}>; foreignClaims?: Array<{claim: TerritorialClaim; claimantName: string; regionName: string}>; availableCasusBelli?: Array<{cb: AvailableCasusBelli; targetName: string}>; activeWars?: Array<{war: LimitedWar; attackerName: string; defenderName: string; targetRegionName: string; objectiveSatisfied: boolean}> }) {
   if (!country)
     return (
       <aside className="panel empty">
@@ -84,6 +84,10 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
         {label("Capital", country.capital)}
         {label("Continent", country.continent)}
         {label("UN subregion", country.unSubregion)}
+      </section>
+      <section>
+        <h2>Wars</h2>
+        {activeWars.length ? activeWars.map(({ war, attackerName, defenderName, targetRegionName, objectiveSatisfied }) => <div className="fact" key={war.id}>{label('Belligerents', `${attackerName} → ${defenderName}`)}<small>Target: {targetRegionName} · since {war.startDate} · objective {objectiveSatisfied ? 'satisfied' : 'not satisfied'}</small></div>) : <small>No active bilateral wars.</small>}
       </section>
       <section>
         <h2>Diplomacy</h2>
