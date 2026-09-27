@@ -5,6 +5,8 @@ import type { Country, SimulationState, Territory } from "./types";
 import { buildWorld } from "./data/geography";
 import { loadCountryData, type LoadedCountryData } from "./data/countryData";
 import { loadRegionData, type LoadedRegionData } from "./data/regionData";
+import { loadPopulationData, populationBaselineState, type LoadedPopulationData } from "./data/populationData";
+import { controlledPopulation } from "./simulation/region";
 import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
 import { RegionPanel } from "./components/RegionPanel";
@@ -12,12 +14,13 @@ import { SimulationClock } from "./simulation/clock";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   date: "2026-01-01",
   paused: true,
   speed: 1,
   territoryOwnership: {},
   regionOwnership: {},
+  populationByRegion: {},
 };
 function FitWorld() {
   const map = useMap();
@@ -52,6 +55,7 @@ export default function App() {
   const [selectedRegion, setSelectedRegion] = useState<string>();
   const [countryData, setCountryData] = useState<LoadedCountryData>();
   const [regionData, setRegionData] = useState<LoadedRegionData>();
+  const [populationData, setPopulationData] = useState<LoadedPopulationData>();
   const [regionGeometry, setRegionGeometry] = useState<GeoJSON.FeatureCollection>();
   const [mapZoom, setMapZoom] = useState(2);
   const [sim, setSim] = useState(initialState);
@@ -76,9 +80,10 @@ export default function App() {
           loadRegionData(data.registry),
           ...responses.map((response) => response.json()),
         ]);
-        return [data, regions, ...geography] as const;
+        const population = await loadPopulationData(regions.registry.regions);
+        return [data, regions, population, ...geography] as const;
       })
-      .then(([data, regions, admin0, land, lakes, rivers, admin1Overview]) => {
+      .then(([data, regions, population, admin0, land, lakes, rivers, admin1Overview]) => {
         if (!active) return;
         const nextWorld = buildWorld(admin0, data.mapping, data.registry);
         const ownership = Object.fromEntries(
@@ -91,10 +96,12 @@ export default function App() {
         clock.current.setRegionOwnership(Object.fromEntries(
           regions.registry.regions.map((region) => [region.id, region.initialOwnerCountryId]),
         ));
+        clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         setSim(clock.current.snapshot());
         setWorld(nextWorld);
         setCountryData(data);
         setRegionData(regions);
+        setPopulationData(population);
         setPhysical({ land, lakes, rivers, admin1Overview });
       })
       .catch(
@@ -182,7 +189,7 @@ export default function App() {
         </button>
       </main>
     );
-  if (!world || !regionData)
+  if (!world || !regionData || !populationData)
     return (
       <main className="load-state">
         <p>Loading local country and Region assets…</p>
@@ -196,7 +203,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.3 · GLOBAL ADMIN-1 REGIONS</small>
+          <small>MILESTONE 0.4 · DEMOGRAPHIC BASELINE</small>
         </div>
         <Clock state={sim} onChange={changeClock} />
       </header>
@@ -325,12 +332,16 @@ export default function App() {
               retrievedAt: regionData.registry.sourceSnapshot.retrievedAt,
             } : selectedRegionEntity.geographyMapping.source}
             onBack={() => setSelectedRegion(undefined)}
+            demographic={populationData.byRegionId.get(selectedRegionEntity.id)}
+            currentPopulation={sim.populationByRegion[selectedRegionEntity.id]}
           />
         ) : (
           <CountryPanel
             country={selectedCountry}
             factsRecord={selected ? countryData?.factsByCountryId.get(selected) : undefined}
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
+            nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
+            controlledPopulation={selected ? controlledPopulation(sim, selected) : undefined}
           />
         )}
       </div>

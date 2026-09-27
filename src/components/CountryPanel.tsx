@@ -1,5 +1,6 @@
 import type { Country } from "../types";
 import type { CountryFactsRecord, FactValue, Officeholder, PoliticalOffice } from "../data/countryData";
+import type { PopulationObservation } from "../data/populationData";
 const label = (name: string, value?: string | number) => (
   <div className="field" key={name}>
     <span>{name}</span>
@@ -47,7 +48,7 @@ const fact = (name: string, observation?: FactValue) => (
     {observation?.status === "unavailable" && <small title={observation.reason}><a href={observation.source.url} target="_blank">{observation.source.name}</a> · checked {observation.checkedAt}</small>}
   </div>
 );
-export function CountryPanel({ country, factsRecord, officeholders = [] }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}> }) {
+export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number }) {
   if (!country)
     return (
       <aside className="panel empty">
@@ -84,7 +85,14 @@ export function CountryPanel({ country, factsRecord, officeholders = [] }: { cou
       </section>
       <section>
         <h2>Initial indicators</h2>
-        {fact("Population", facts.population)}
+        <div className="fact">
+          {label("Current population controlled", controlledPopulation?.toLocaleString("en"))}
+          <small>Simulation state · sum of currently owned Regions with available baselines</small>
+        </div>
+        <div className="fact">
+          {label("National baseline", nationalPopulation?.value.toLocaleString("en"))}
+          {nationalPopulation && <small><a href={nationalPopulation.source.url} target="_blank">{nationalPopulation.source.name}</a> · {nationalPopulation.referenceDate} · projection</small>}
+        </div>
         {fact("Total area (km²)", facts.totalAreaKm2)}
         {fact("Land area (km²)", facts.landAreaKm2)}
         {fact("Nominal GDP (USD)", facts.nominalGdpUsd)}

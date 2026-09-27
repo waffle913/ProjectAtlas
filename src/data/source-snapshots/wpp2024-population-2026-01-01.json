@@ -1,0 +1,3022 @@
+{
+  "schemaVersion": 1,
+  "sourceSnapshot": "projectatlas-population-sources@2026-09-26",
+  "records": [
+    {
+      "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+      "value": 83352,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.04352166-79c8-4cee-8bd8-4a7eb810c8ba",
+      "value": 11153,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.04362960-a7d3-4b19-8f76-6572995728e9",
+      "value": 35650,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.10o3gxv",
+      "value": 17951445,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.10umxsb",
+      "value": 71549625,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.12na4wl",
+      "value": 1191581,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.12rbtu0",
+      "value": 1470295711,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.133c7481-f1fb-49a2-a220-d585495c33c5",
+      "value": 137468,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.13gf39o",
+      "value": 25562798,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.13ie6ly",
+      "value": 3123524,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.13l0w18",
+      "value": 18366994,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.13si2qd",
+      "value": 5790170,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.14jkmlh",
+      "value": 55693,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.14nagci",
+      "value": 5605434,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.14p3bj2",
+      "value": 5872709,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.14vdqsc",
+      "value": 24337514,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.15217la",
+      "value": 28363276,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.15794b34-37b2-4053-964a-2dfea1e18400",
+      "value": 99583,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.159s948",
+      "value": 1334598,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1629o6e",
+      "value": 848434,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.17a684c6-aac3-4f9a-8908-86e91c0a097d",
+      "value": 9420,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.17se0x",
+      "value": 34868384,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.18835158-28ca-4c62-88c0-824a08092b27",
+      "value": 11489,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.18echaw",
+      "value": 5067283,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.18zkp24",
+      "value": 5164155,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.18zobjo",
+      "value": 7924127,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.19420d8c-93e0-40af-afbe-4ca4d8c4de9e",
+      "value": 5889187,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.19iew1b",
+      "value": 26069962,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1a1ajo",
+      "value": 36184571,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1abe1vk",
+      "value": 2808883,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1aj872z",
+      "value": 40307070,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1akiyqe",
+      "value": 9825136,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1b9pd3r",
+      "value": 3230204,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1bf4760",
+      "value": 19148038,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1bqmiqj",
+      "value": 3805841,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1br72am",
+      "value": 6663980,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1bryr1g",
+      "value": 5270225,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1bwwirt",
+      "value": 12310612,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1bxt04r",
+      "value": 935285,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1cf3s0n",
+      "value": 627936,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1cin176",
+      "value": 45928215,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1ckv6i4",
+      "value": 117257633,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1ddp0cj",
+      "value": 18401709,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1dg1asq",
+      "value": 3835005,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1dsqes5",
+      "value": 9582136,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1dtcx1v",
+      "value": 1376781,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1ena0me",
+      "value": 22497799,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1fog5xu",
+      "value": 12383188,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1g4p5xi",
+      "value": 2582518,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1ga7ffb",
+      "value": 10680346,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1ge48fm",
+      "value": 9918577,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1gtbljd",
+      "value": 286820254,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1gxtyz9",
+      "value": 27103088,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1hnoduz",
+      "value": 338868,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1i4b92q",
+      "value": 132480185,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1jpkbk",
+      "value": 2620218,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1jzfv40",
+      "value": 51636965,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1k431t",
+      "value": 19977002,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1knbk6o",
+      "value": 15271424,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1lye27d",
+      "value": 799420,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1mkrhod",
+      "value": 2376252,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1mxwn59",
+      "value": 213202121,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1nths69",
+      "value": 5455816,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1nz4j7w",
+      "value": 35382175,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1oit02h",
+      "value": 39621234,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1onsv24",
+      "value": 59041927,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1orw7jp",
+      "value": 38600478,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1p0y3nd",
+      "value": 1427484,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1pajyhp",
+      "value": 10883318,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1powv0y",
+      "value": 5387859,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1pvjhz6",
+      "value": 3147383,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1qeehvj",
+      "value": 3383680,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1qt08wm",
+      "value": 14731895,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1r1l1cm",
+      "value": 11972272,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1rbe765",
+      "value": 3644580,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1rdien2",
+      "value": 176756539,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1rdws0z",
+      "value": 2761147,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1rzzy0l",
+      "value": 2835627,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1s29x2y",
+      "value": 8988922,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1slft1c",
+      "value": 10915434,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1t8wy2p",
+      "value": 9602027,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1tac25k",
+      "value": 468087,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1us5oyp",
+      "value": 44437893,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1vrmp4h",
+      "value": 5642601,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1w9qxht",
+      "value": 30258728,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1wszh7v",
+      "value": 12665879,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1wvxlzg",
+      "value": 239967749,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1x9bk5g",
+      "value": 2941486,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1xyn8u3",
+      "value": 122772055,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1y3qxos",
+      "value": 47515421,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1y5kvsv",
+      "value": 58083590,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1y9w9xr",
+      "value": 20966575,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1yl9unk",
+      "value": 2115975,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.1yyv1wz",
+      "value": 37915155,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.278c58e4-229a-4a7a-8e16-51e0abfebd45",
+      "value": 44201,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.2991edff-bec4-4423-825e-8196fca18992",
+      "value": 282783,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.2aded07b-a46c-4e6b-8b87-ad5e4f973d52",
+      "value": 530598,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.2e4582fa-4432-4e61-bfc3-2083336428b4",
+      "value": 5545,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.2f7f4233-514c-485b-b289-248f71b3c562",
+      "value": 40252,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.2r4kh5",
+      "value": 400481,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.3d22be69-b741-4de3-a8ee-4abf889e77d0",
+      "value": 83770,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.3f7ydp",
+      "value": 11095684,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.4267c600-c365-46b7-8a45-019fae158ae5",
+      "value": 108173,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.4449fa36-e713-4df2-9651-ae5850828346",
+      "value": 5177,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.46088230-c32b-4e3f-a816-fa6daf9737c4",
+      "value": 528511,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.4b67c337-52f1-4fbe-bb69-f51e8f67fc03",
+      "value": 1660370,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.4c29f8cf-400e-4d36-ac63-b9fd94058944",
+      "value": 46960,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.50z1vg",
+      "value": 55021595,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.5472bc14-36bc-4d4a-a088-d270a3bb1347",
+      "value": 547990,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.54732cb4-6064-445b-a3c2-461d752e4305",
+      "value": 133927,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.56c8424f-4640-4fb6-8584-1655d6feb9db",
+      "value": 47010,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.5805152e-6b76-4319-a310-703e8e668877",
+      "value": 43194,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.589767fd-d38e-45be-933c-e243cd22ec04",
+      "value": 1266738,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.58c98914-d491-401e-b681-40a699a6e3c5",
+      "value": 884305,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.5d8b54a9-8886-4e50-ac35-dfdbac3cdcff",
+      "value": 282688,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.5lwy1g",
+      "value": 296656,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.5q931z",
+      "value": 52071696,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.656241b3-385a-416c-86a1-6512d294a685",
+      "value": 38197,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.69f3c77b-79f8-4f74-b523-6b82bf404d68",
+      "value": 503,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.6fba350d-54a6-4141-9357-dbb86eee3d87",
+      "value": 169598,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.6fea45ff-6dc6-468a-a4c7-00b07dcde242",
+      "value": 76528,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.6mdobv",
+      "value": 2975706,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.6sun05",
+      "value": 403865,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.6th7vw",
+      "value": 17111229,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.7215346f-26f3-4d15-bc2a-e04350b1acc0",
+      "value": 103512,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.72e2lh",
+      "value": 1961447,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.74f6fa04-b347-461a-9de9-b129d0cf8964",
+      "value": 56281,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.75cd3e08-1b7e-45c4-95d0-9f87779537d0",
+      "value": 64508,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.78ys5y",
+      "value": 114628568,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.79df96d6-6b58-4696-b486-ed62877ef5e8",
+      "value": 113938,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.7df323f9-c786-4db9-a8fc-568d3ba3e521",
+      "value": 104052,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.7zmt7h",
+      "value": 7348645,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.82nqba",
+      "value": 14559334,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8554a20a-f004-46eb-a49c-b26c269c127c",
+      "value": 180334,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8606462a-5750-456d-8472-ba3c5cafd087",
+      "value": 13035,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.88o7pu",
+      "value": 7679401,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.897e7a46-935e-44af-a7df-806dbd257f18",
+      "value": 316247,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8a7dbb03-20f0-4679-858f-e8afad2bfdaa",
+      "value": 4346,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8c79c739-2c80-452e-88cf-10db55637921",
+      "value": 33590,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8cy639",
+      "value": 34752525,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8d08fbf0-b991-4a80-87d2-f39a7ba6046e",
+      "value": 64562,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8thyov",
+      "value": 4598712,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8zgnf1",
+      "value": 42368687,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.8zv92e",
+      "value": 39681570,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.90d3394a-c3d8-415d-8c79-8151ec2d258f",
+      "value": 2656,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.91355bcb-0475-45e6-8a22-9425ff14ef5a",
+      "value": 17641,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.97e14s",
+      "value": 66700707,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.9cg02n",
+      "value": 22215385,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.9j09vn",
+      "value": 3537390,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.abcbf2de-3898-4bff-9a00-899fcadcc32a",
+      "value": 65686,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.af7ed2b9-bee5-42cb-8494-f2e1bbbdae05",
+      "value": 40513,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.aheews",
+      "value": 838431,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.alucm0",
+      "value": 9110277,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.ao8edp",
+      "value": 1512502,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.awshmp",
+      "value": 11466560,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.b4jfbk",
+      "value": 119233883,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.b6fde5b8-cf15-4377-94fd-cef6d5af956b",
+      "value": 219916,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.b8da38ac-b364-44d1-82ea-fc39ff807e0b",
+      "value": 242620,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.bk8phe",
+      "value": 11767361,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.c55i8p",
+      "value": 37393592,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.c7ig3n",
+      "value": 3467,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.c826fd7f-d7a1-43da-96df-b6d4569ef38a",
+      "value": 14782,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.cd70257e-3801-4640-88b9-ebcecc88b0dd",
+      "value": 84089,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.cf8c6db8-4864-45c8-bec3-97f778d234f3",
+      "value": 39849,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.ckoh6f",
+      "value": 53688245,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.d0e7yk",
+      "value": 137179590,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.d772x9",
+      "value": 11565848,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.d7d86522-66aa-4d61-91bb-39638018b9dc",
+      "value": 1819,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.d9a0b532-0785-4fdb-8e0e-dd5a97dee8b1",
+      "value": 339065,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.e06wze",
+      "value": 47874678,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.e19c605e-802b-4844-b3b6-21e0d33be36d",
+      "value": 24395,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.e51e585f-84c6-430b-ae14-163905e3a241",
+      "value": 185471,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.e55nqx",
+      "value": 21279608,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.ec0f2089-48e2-4c74-bcf8-4ce52b58bc71",
+      "value": 373126,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.eno4h9",
+      "value": 1809076,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.f3a9acdf-e608-4c67-9f5c-aab01b6ac91f",
+      "value": 890946,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.f5u1ei",
+      "value": 257236371,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.f8c2068a-5e07-4e6a-bc75-4cb20c9fd1e6",
+      "value": 12063,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.fb52b2fd-95f8-4731-a50a-e7e0f6fbeb26",
+      "value": 117347,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.fbc079c5-7b73-4476-a6c0-f9cf0aa983f5",
+      "value": 94423,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.feb9ab4a-93bc-49fa-b4aa-282b2cf5b8b5",
+      "value": 45668,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.ff993996-0239-4e2c-8fae-234d3985f9b5",
+      "value": 342263,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.gddwz0",
+      "value": 71592912,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.h03oz0",
+      "value": 143559521,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.hs6fyh",
+      "value": 29608076,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.hw7u0k",
+      "value": 47739103,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.i9fek6",
+      "value": 10538315,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.ieqa5v",
+      "value": 642582,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.j4e5mk",
+      "value": 1414458552,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.jg9ci8",
+      "value": 52474943,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.jm8gea",
+      "value": 26604741,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.jmri14",
+      "value": 2853116,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.joydxr",
+      "value": 8967712,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.jvmcgx",
+      "value": 87794917,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.kb8qjm",
+      "value": 6691964,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.mbt8ni",
+      "value": 3127365,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.mce667",
+      "value": 6560580,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.mgrohe",
+      "value": 6378605,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.mqcp0q",
+      "value": 8908448,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.n2i2m0",
+      "value": 10427060,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.n7hxdt",
+      "value": 14991374,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.nusos0",
+      "value": 1843068,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.opradj",
+      "value": 101896973,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.pauqcg",
+      "value": 10403733,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.pqqumd",
+      "value": 6014093,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.qdlh80",
+      "value": 28573631,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.qo855j",
+      "value": 684039,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.qw8j9b",
+      "value": 7054615,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.rvhaqt",
+      "value": 605978,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.s93ito",
+      "value": 5333468,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.sadyi7",
+      "value": 5624082,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.snc7v9",
+      "value": 33129834,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.sq8sl2",
+      "value": 5591450,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.sxojze",
+      "value": 83741228,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.t3667i",
+      "value": 65108150,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.td9ldb",
+      "value": 1263011,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.tyezxm",
+      "value": 2273714,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.u4ua72",
+      "value": 425802,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.u6myyj",
+      "value": 348178045,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.ukura0",
+      "value": 33102421,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.wkwrv6",
+      "value": 18828237,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.wxv6tu",
+      "value": 7497603,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.x4ahyj",
+      "value": 5638786,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.xjfx2m",
+      "value": 11476873,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.xs7zo4",
+      "value": 23290249,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.yc1r8r",
+      "value": 92814664,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.yhajqy",
+      "value": 19904730,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.z7gp3s",
+      "value": 7052795,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.zaf4y3",
+      "value": 36129468,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.zsxuo0",
+      "value": 18854963,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.zvvq7v",
+      "value": 10855692,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    },
+    {
+      "countryId": "country.zwicjl",
+      "value": 69749323,
+      "referenceDate": "2026-01-01",
+      "isEstimate": true,
+      "isProjection": true,
+      "source": {
+        "name": "United Nations World Population Prospects 2024",
+        "url": "https://population.un.org/wpp/",
+        "datasetId": "WPP2024-Medium@286ac36b",
+        "retrievedAt": "2026-09-26"
+      }
+    }
+  ]
+}

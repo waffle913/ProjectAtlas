@@ -1,4 +1,4 @@
-# ProjectAtlas — Milestone 0.3
+# ProjectAtlas — Milestone 0.4
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
 
@@ -7,6 +7,16 @@ An original political-map foundation for a future geopolitical simulation, with 
 `npm install` then `npm run dev`. Run `npm run verify` for country and Region reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate` and `npm run data:regions:generate` regenerate derived data offline from checked-in snapshots.
 
 Source updates are deliberately separate from generation. `npm run data:sources:update` refreshes country sources. `npm run data:regions:sources:update` downloads the pinned Admin-1 version, then `npm run data:regions:reconcile` matches it against existing permanent identities without allocating IDs. Any unmatched, ambiguous, split or missing identity fails and requires review before regeneration.
+
+## Population baseline
+
+Population identity is keyed only by permanent ProjectAtlas Region IDs. The committed `region-demographics.json` keeps published observations and immutable baseline metadata separate from mutable `SimulationState.populationByRegion`. Country population under control is calculated from current Region owners; transferring a Region never rewrites its inhabitants.
+
+The compact national snapshot is reproducibly extracted from the UN World Population Prospects 2024 Medium variant. Its `TPopulation1Jan` value for 2026 remains explicitly a UN projection dated 2026-01-01. The checksum-verified compressed CSV belongs in `.cache/population/` and is not committed. `npm run data:population:sources:extract` rebuilds the compact snapshot.
+
+WorldPop R2025A 1 km population-count data is the designated spatial source. Large rasters belong in the ignored cache and never become a runtime dependency. Until the pinned raster is acquired and its spatial audit passes, only a country represented by one gameplay Region can receive the national WPP baseline without inventing a distribution. All other Regions remain explicitly unavailable; zero is never shorthand for unknown. `population-coverage-report.json` records this limitation and the required overlap, double-counting, gap, empty-Region and parent-country checks.
+
+`npm run data:population:generate` regenerates compact artifacts, `npm run data:population:verify` checks byte-for-byte offline reproducibility, and `npm run data:population:rebuild` is the deliberate full-raster entry point. Ordinary `npm run verify` remains offline and practical.
 
 ## Model
 

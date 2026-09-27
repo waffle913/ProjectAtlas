@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Country, RegionEntity, SimulationState } from '../../types';
-import { transferRegion } from '../region';
+import { controlledPopulation, transferRegion } from '../region';
 import { migrateSimulationState, restoreSimulationState, serializeSimulationState } from '../save';
 
 const region: RegionEntity = {
@@ -9,9 +9,10 @@ const region: RegionEntity = {
   externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'source', sourceFeatureIds: ['feature-a'] },
 };
 const state: SimulationState = {
-  schemaVersion: 2, date: '2026-01-01', paused: true, speed: 1,
+  schemaVersion: 3, date: '2026-01-01', paused: true, speed: 1,
   territoryOwnership: { 'territory.alpha': 'country.alpha' },
   regionOwnership: { 'region.permanent': 'country.alpha' },
+  populationByRegion: { 'region.permanent': 12345 },
 };
 
 describe('Region ownership and saves', () => {
@@ -27,14 +28,24 @@ describe('Region ownership and saves', () => {
     const transferred = transferRegion(state, region.id, 'country.alpha', 'country.beta');
     const restored = restoreSimulationState(serializeSimulationState(transferred), [region]);
     expect(restored.regionOwnership[region.id]).toBe('country.beta');
-    expect(restored.schemaVersion).toBe(2);
+    expect(restored.schemaVersion).toBe(3);
+    expect(restored.populationByRegion[region.id]).toBe(12345);
   });
   it('migrates territory-only saves without discarding their IDs or ownership', () => {
-    const migrated = migrateSimulationState({ date: '2026-01-03', paused: false, speed: 2, territoryOwnership: { 'territory.alpha': 'country.beta' } }, [region]);
+    const migrated = migrateSimulationState({ date: '2026-01-03', paused: false, speed: 2, territoryOwnership: { 'territory.alpha': 'country.beta' } }, [region], { [region.id]: 500 });
     expect(migrated.territoryOwnership['territory.alpha']).toBe('country.beta');
     expect(migrated.regionOwnership[region.id]).toBe('country.beta');
+    expect(migrated.populationByRegion[region.id]).toBe(500);
+  });
+  it('migrates v2 population deterministically and transfers control without changing inhabitants', () => {
+    const v2 = { schemaVersion: 2, date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { 'territory.alpha': 'country.alpha' }, regionOwnership: { [region.id]: 'country.alpha' } };
+    const migrated = migrateSimulationState(v2, [region], { [region.id]: 900 });
+    const transferred = transferRegion(migrated, region.id, 'country.alpha', 'country.beta');
+    expect(transferred.populationByRegion[region.id]).toBe(900);
+    expect(controlledPopulation(transferred, 'country.beta')).toBe(900);
+    expect(controlledPopulation(transferred, 'country.alpha')).toBeUndefined();
   });
   it('rejects unsupported future save schemas instead of treating them as v1', () => {
-    expect(() => migrateSimulationState({ schemaVersion: 3, date: '2030-01-01', paused: true, speed: 1, territoryOwnership: {} }, [region])).toThrow(/Unsupported simulation save schema version: 3/);
+    expect(() => migrateSimulationState({ schemaVersion: 4, date: '2030-01-01', paused: true, speed: 1, territoryOwnership: {} }, [region])).toThrow(/Unsupported simulation save schema version: 4/);
   });
 });

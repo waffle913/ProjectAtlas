@@ -1,0 +1,8 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+import { buildPopulationArtifacts, stableJson } from './population-model.mjs';
+const read = path => JSON.parse(readFileSync(path, 'utf8'));
+const registry = read('src/data/entity-registry.json'); const regionRegistry = read('src/data/region-registry.json');
+const national = read('src/data/source-snapshots/wpp2024-population-2026-01-01.json'); const spatial = read('src/data/population-spatial-weights.json'); const manifest = read('src/data/population-source-manifest.json');
+const result = buildPopulationArtifacts({ countries: registry.countries, regions: regionRegistry.regions, nationalObservations: national.records, spatialWeights: spatial.weights, manifest });
+writeFileSync('src/data/region-demographics.json', stableJson(result.demographics)); writeFileSync('src/data/population-coverage-report.json', stableJson(result.audit));
+console.log(`Generated ${result.demographics.records.length} Region demographic records.`);

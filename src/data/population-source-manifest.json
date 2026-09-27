@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "projectatlas-population-sources@2026-09-26",
+  "retrievedAt": "2026-09-26",
+  "wppSource": {
+    "productId": "UN-WPP2024-Demographic-Indicators-Medium",
+    "canonicalUrl": "https://population.un.org/wpp/Download/Standard/Population/",
+    "sourceUrl": "https://population.un.org/wpp/assets/Excel%20Files/1_Indicator%20(Standard)/CSV_FILES/WPP2024_Demographic_Indicators_Medium.csv.gz",
+    "version": "2024 Revision, Medium variant",
+    "sha256": "286ac36bb1415e2e1ade03acfef0a29f0e4c087e2f78e38c48f50c5df89082bc",
+    "license": "United Nations data terms; attribution required",
+    "publicationSource": { "name": "United Nations World Population Prospects 2024", "url": "https://population.un.org/wpp/", "datasetId": "WPP2024-Medium@286ac36b", "retrievedAt": "2026-09-26" }
+  },
+  "worldPopSource": { "productId": "WorldPop-R2025A-1km-population-count", "canonicalUrl": "https://hub.worldpop.org/", "version": "R2025A", "retrievedAt": null, "sha256": null, "license": "Creative Commons Attribution 4.0", "status": "not_acquired", "processingTools": { "gdal": "required and recorded by full rebuild", "node": "recorded at rebuild" } }
+}

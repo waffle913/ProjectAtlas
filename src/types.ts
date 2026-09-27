@@ -32,10 +32,11 @@ export interface RegionEntity {
   sourceMetadata?: Record<string, unknown>;
 }
 export interface SimulationState {
-  schemaVersion: 2;
+  schemaVersion: 3;
   date: string;
   paused: boolean;
   speed: 1 | 2 | 5;
   territoryOwnership: Record<string, string | undefined>;
   regionOwnership: Record<string, string | undefined>;
+  populationByRegion: Record<string, number | undefined>;
 }

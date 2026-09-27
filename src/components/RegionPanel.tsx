@@ -1,14 +1,17 @@
 import type { DataSource, RegionEntity } from '../types';
+import type { RegionDemographicRecord } from '../data/populationData';
 
 const row = (label: string, value?: string | number) => (
   <div className="field" key={label}><span>{label}</span><b>{value ?? 'Unavailable'}</b></div>
 );
-export function RegionPanel({ region, currentOwner, parentCountry, source, onBack }: {
+export function RegionPanel({ region, currentOwner, parentCountry, source, onBack, demographic, currentPopulation }: {
   region: RegionEntity;
   currentOwner?: { commonName: string };
   parentCountry?: { commonName: string };
   source: DataSource;
   onBack: () => void;
+  demographic?: RegionDemographicRecord;
+  currentPopulation?: number;
 }) {
   return (
     <aside className="panel">
@@ -25,6 +28,16 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
         {row('Initial country', parentCountry?.commonName)}
         {row('ISO 3166-2', region.iso31662)}
         {row('Geometry', region.geographyMapping.status.replaceAll('_', ' '))}
+      </section>
+      <section>
+        <h2>Population</h2>
+        {row('Current simulated', currentPopulation?.toLocaleString('en'))}
+        {row('Baseline', demographic?.status === 'unavailable' ? undefined : demographic?.baselinePopulation.toLocaleString('en'))}
+        {demographic?.status === 'unavailable' ? (
+          <small title={demographic.reason}><a href={demographic.source.url} target="_blank">{demographic.source.name}</a> · unavailable, checked {demographic.checkedAt}</small>
+        ) : demographic ? (
+          <small><a href={demographic.sourceObservations[0].source.url} target="_blank">{demographic.sourceObservations[0].source.name}</a> · {demographic.baselineDate} · {demographic.isProjection ? 'projection' : 'estimate'}{demographic.isDerived ? ' · spatially derived' : ''}<br />{demographic.allocationMethod}</small>
+        ) : <small>No demographic record loaded.</small>}
       </section>
       <section>
         <h2>Source and identity</h2>

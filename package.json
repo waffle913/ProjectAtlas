@@ -16,8 +16,12 @@
     "data:regions:confirm-new": "node scripts/confirm-new-region-identity.mjs",
     "data:regions:generate": "node scripts/generate-region-data.mjs",
     "data:regions:verify": "node scripts/verify-region-data.mjs",
+    "data:population:sources:extract": "node scripts/extract-wpp-population.mjs",
+    "data:population:generate": "node scripts/generate-population-data.mjs",
+    "data:population:rebuild": "node scripts/rebuild-population-spatial.mjs",
+    "data:population:verify": "node scripts/verify-population-data.mjs",
     "test": "vitest run",
-    "verify": "npm run data:verify && npm run data:regions:verify && npm run build && npm test"
+    "verify": "npm run data:verify && npm run data:regions:verify && npm run data:population:verify && npm run build && npm test"
   },
   "repository": {
     "type": "git",

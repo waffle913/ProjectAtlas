@@ -10,12 +10,13 @@ const dateAfterDays = (isoDate: string, days: number) => {
 export class SimulationClock {
   private elapsed = 0;
   private current: SimulationState;
-  constructor(initial: SimulationState) { this.current = {...initial, territoryOwnership: {...initial.territoryOwnership}, regionOwnership: {...initial.regionOwnership}}; }
-  snapshot = () => ({...this.current, territoryOwnership: {...this.current.territoryOwnership}, regionOwnership: {...this.current.regionOwnership}});
+  constructor(initial: SimulationState) { this.current = {...initial, territoryOwnership: {...initial.territoryOwnership}, regionOwnership: {...initial.regionOwnership}, populationByRegion: {...initial.populationByRegion}}; }
+  snapshot = () => ({...this.current, territoryOwnership: {...this.current.territoryOwnership}, regionOwnership: {...this.current.regionOwnership}, populationByRegion: {...this.current.populationByRegion}});
   setPaused = (paused: boolean) => { this.current = {...this.current, paused}; };
   setSpeed = (speed: 1 | 2 | 5) => { this.current = {...this.current, speed}; };
   setTerritoryOwnership = (territoryOwnership: Record<string, string | undefined>) => { this.current = {...this.current, territoryOwnership: {...territoryOwnership}}; };
   setRegionOwnership = (regionOwnership: Record<string, string | undefined>) => { this.current = {...this.current, regionOwnership: {...regionOwnership}}; };
+  setPopulationByRegion = (populationByRegion: Record<string, number | undefined>) => { this.current = {...this.current, populationByRegion: {...populationByRegion}}; };
   advance = (realElapsedMs: number) => {
     if (this.current.paused || realElapsedMs <= 0) return this.snapshot();
     this.elapsed += realElapsedMs * this.current.speed;
