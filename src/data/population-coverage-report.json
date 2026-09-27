@@ -2,16 +2,23 @@
   "schemaVersion": 1,
   "generatedFrom": "projectatlas-population-sources@2026-09-26",
   "spatialAudit": {
-    "status": "required_on_rebuild",
-    "authoritativeGeometry": "src/data/source-snapshots/natural-earth-admin1-v5.1.2.geojson",
-    "checks": [
-      "overlapping gameplay Regions",
-      "cells counted into multiple Regions",
-      "suspicious gaps",
-      "expected inhabited Regions with no raster population",
-      "allocation outside parent country"
-    ],
-    "note": "No spatial result is accepted without the full audited rebuild. Countries lacking complete reviewed weights remain explicitly unavailable."
+    "status": "accepted",
+    "sha256": "e25b5664acfbf18d67da936c19f5246c04c590c05f3ffd270e8f0dbd10f69ba6",
+    "acceptedCountries": 80,
+    "rejectedCountries": 97,
+    "preprocessingRejectedCountries": 75,
+    "acceptedWeights": 1746,
+    "authoritativeGeometry": "natural-earth-admin1-5.1.2@f1890d9f152c896d250a77557a5751a93d494776",
+    "processingEngine": "projectatlas-rasterio-zonal-v1",
+    "processingToolVersions": {
+      "python": "3.10.11",
+      "rasterio": "1.4.3",
+      "gdal": "3.9.3",
+      "shapely": "2.1.2",
+      "numpy": "2.2.6",
+      "engine": "projectatlas-rasterio-zonal-v1"
+    },
+    "note": "Only countries passing the committed WorldPop audit receive spatially derived baselines. Rejected and unprocessed countries remain explicitly unavailable."
   },
   "summary": {
     "regions": 4574,

@@ -9,6 +9,8 @@ import weightsJson from '../population-spatial-weights.json';
 import manifestJson from '../population-source-manifest.json';
 import regionsJson from '../region-registry.json';
 import countriesJson from '../entity-registry.json';
+import coverageJson from '../population-coverage-report.json';
+import auditJson from '../population-spatial-audit.json';
 import type { RegionRegistry } from '../regionData';
 
 const rectangle = (x0: number, y0: number, x1: number, y1: number) => ({ type: 'Polygon', coordinates: [[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]] });
@@ -44,5 +46,17 @@ describe('population source pipeline', () => {
     expect((weightsJson.weights as Array<{ countryId: string }>).every(item => knownCountries.has(item.countryId))).toBe(true);
     const broken = structuredClone(weightsJson); broken.weights.pop();
     expect(() => validateSpatialWeightsArtifact(broken, (regionsJson as unknown as RegionRegistry).regions, manifestJson)).toThrow(/incomplete/);
+  });
+  it('reports the committed accepted spatial audit instead of requiring another rebuild', () => {
+    expect(coverageJson.spatialAudit.status).toBe('accepted');
+    expect(coverageJson.spatialAudit.status).not.toBe('required_on_rebuild');
+    expect(coverageJson.spatialAudit.sha256).toBe(weightsJson.audit.sha256);
+    expect(coverageJson.spatialAudit.sha256).toBe(auditJson.sha256);
+    expect(coverageJson.spatialAudit).toMatchObject({
+      acceptedCountries: auditJson.summary.acceptedCountries,
+      rejectedCountries: auditJson.summary.rejectedCountries,
+      preprocessingRejectedCountries: auditJson.summary.preprocessingRejectedCountries,
+      processingEngine: auditJson.processingTools.engine,
+    });
   });
 });

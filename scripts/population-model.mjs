@@ -12,12 +12,12 @@ export function allocateIntegerPopulation(total, weightedRegions) {
   return rows.sort((a, b) => a.regionId.localeCompare(b.regionId)).map(({ remainder, ...item }) => item);
 }
 
-export function buildPopulationArtifacts({ countries, regions, nationalObservations, spatialWeights, manifest }) {
+export function buildPopulationArtifacts({ countries, regions, nationalObservations, spatialWeights, spatialAudit, manifest }) {
   const observations = new Map(nationalObservations.map(item => [item.countryId, item]));
   const weightsByCountry = new Map();
   for (const item of spatialWeights) { const list = weightsByCountry.get(item.countryId) ?? []; list.push(item); weightsByCountry.set(item.countryId, list); }
   const baselines = [];
-  const audit = { schemaVersion: 1, generatedFrom: manifest.snapshotId, spatialAudit: { status: manifest.worldPopSource.status === 'acquired' ? 'required_on_rebuild' : 'not_run_source_unavailable', authoritativeGeometry: 'src/data/source-snapshots/natural-earth-admin1-v5.1.2.geojson', checks: ['overlapping gameplay Regions', 'cells counted into multiple Regions', 'suspicious gaps', 'expected inhabited Regions with no raster population', 'allocation outside parent country'], note: 'No spatial result is accepted without the full audited rebuild. Countries lacking complete reviewed weights remain explicitly unavailable.' }, summary: { regions: regions.length, available: 0, derived: 0, unavailable: 0, countriesExactlyNormalized: 0 }, countries: [] };
+  const audit = { schemaVersion: 1, generatedFrom: manifest.snapshotId, spatialAudit: spatialAudit ? { status: 'accepted', sha256: spatialAudit.sha256, acceptedCountries: spatialAudit.summary.acceptedCountries, rejectedCountries: spatialAudit.summary.rejectedCountries, preprocessingRejectedCountries: spatialAudit.summary.preprocessingRejectedCountries, acceptedWeights: spatialAudit.summary.acceptedWeights, authoritativeGeometry: spatialAudit.authoritativeRegionGeometry, processingEngine: spatialAudit.processingTools.engine, processingToolVersions: spatialAudit.processingTools, note: 'Only countries passing the committed WorldPop audit receive spatially derived baselines. Rejected and unprocessed countries remain explicitly unavailable.' } : { status: 'required_on_rebuild', authoritativeGeometry: 'src/data/source-snapshots/natural-earth-admin1-v5.1.2.geojson', note: 'No verified accepted spatial audit was supplied.' }, summary: { regions: regions.length, available: 0, derived: 0, unavailable: 0, countriesExactlyNormalized: 0 }, countries: [] };
   for (const country of countries) {
     const countryRegions = regions.filter(region => region.parentCountryId === country.id);
     const observation = observations.get(country.id);

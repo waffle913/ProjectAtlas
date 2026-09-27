@@ -1,10 +1,12 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { buildPopulationArtifacts, stableJson } from './population-model.mjs';
-import { validateSpatialWeightsArtifact } from './worldpop-zonal.mjs';
+import { hashJson, validateSpatialWeightsArtifact } from './worldpop-zonal.mjs';
 const read = path => JSON.parse(readFileSync(path, 'utf8'));
 const registry = read('src/data/entity-registry.json'); const regionRegistry = read('src/data/region-registry.json');
-const national = read('src/data/source-snapshots/wpp2024-population-2026-01-01.json'); const spatial = read('src/data/population-spatial-weights.json'); const manifest = read('src/data/population-source-manifest.json');
+const national = read('src/data/source-snapshots/wpp2024-population-2026-01-01.json'); const spatial = read('src/data/population-spatial-weights.json'); const spatialAudit = read('src/data/population-spatial-audit.json'); const manifest = read('src/data/population-source-manifest.json');
 if (spatial.schemaVersion === 2) validateSpatialWeightsArtifact(spatial, regionRegistry.regions, manifest);
-const result = buildPopulationArtifacts({ countries: registry.countries, regions: regionRegistry.regions, nationalObservations: national.records, spatialWeights: spatial.weights, manifest });
+const { sha256: auditSha256, ...auditBody } = spatialAudit;
+if (hashJson(auditBody) !== auditSha256 || spatial.audit?.status !== 'accepted' || spatial.audit?.sha256 !== auditSha256) throw new Error('Committed WorldPop weights do not reference the verified accepted spatial audit.');
+const result = buildPopulationArtifacts({ countries: registry.countries, regions: regionRegistry.regions, nationalObservations: national.records, spatialWeights: spatial.weights, spatialAudit, manifest });
 writeFileSync('src/data/region-demographics.json', stableJson(result.demographics)); writeFileSync('src/data/population-coverage-report.json', stableJson(result.audit));
 console.log(`Generated ${result.demographics.records.length} Region demographic records.`);
