@@ -12,10 +12,11 @@ import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
 import { RegionPanel } from "./components/RegionPanel";
 import { SimulationClock } from "./simulation/clock";
+import { getAvailableCasusBelli, validateDiplomacyState, type AvailableCasusBelli } from "./simulation/diplomacy";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -23,6 +24,9 @@ const initialState: SimulationState = {
   regionOwnership: {},
   populationByRegion: {},
   economicOutputByRegion: {},
+  bilateralRelations: {},
+  claims: [],
+  explicitCasusBelli: [],
 };
 function FitWorld() {
   const map = useMap();
@@ -102,6 +106,7 @@ export default function App() {
         ));
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
+        validateDiplomacyState(clock.current.snapshot(), { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) });
         setSim(clock.current.snapshot());
         setWorld(nextWorld);
         setCountryData(data);
@@ -164,21 +169,30 @@ export default function App() {
   const selectedRegionOwner = selectedRegionOwnerId
     ? world?.countries.get(selectedRegionOwnerId) ?? countryData?.registry.countries.find(country => country.id === selectedRegionOwnerId)
     : undefined;
+  const regionIdsByMacroTerritory = useMemo(() => {
+    const index = new Map<string, string[]>();
+    for (const region of regionData?.registry.regions ?? []) {
+      if (!region.macroTerritoryId) continue;
+      const ids = index.get(region.macroTerritoryId) ?? []; ids.push(region.id); index.set(region.macroTerritoryId, ids);
+    }
+    return index;
+  }, [regionData]);
   const collection = useMemo(
     () =>
-      world &&
+      world && regionData &&
       ({
         type: "FeatureCollection",
         features: world.territories.map((t) => ({
           type: "Feature",
           properties: {
             territoryId: t.id,
-            owner: sim.territoryOwnership[t.id] ?? t.ownerCountryId,
+            navigationCountryId: t.ownerCountryId,
+            regionOwners: [...new Set((regionIdsByMacroTerritory.get(t.id) ?? []).map(regionId => sim.regionOwnership[regionId]).filter(Boolean))],
           },
           geometry: t.geometry,
         })),
       } as GeoJSON.FeatureCollection),
-    [world, sim.territoryOwnership],
+    [world, regionData, regionIdsByMacroTerritory, sim.regionOwnership],
   );
   const changeClock = (next: SimulationState) => {
     clock.current.setPaused(next.paused);
@@ -201,6 +215,13 @@ export default function App() {
         <p>Loading local country and Region assets…</p>
       </main>
     );
+  const countryName = (countryId: string) => world.countries.get(countryId)?.commonName ?? countryData?.registry.countries.find(country => country.id === countryId)?.commonName ?? countryId;
+  const regionName = (regionId: string) => regionData.regionsById.get(regionId)?.commonName ?? regionId;
+  const diplomacyContext = { countryIds: new Set(countryData!.registry.countries.map(country => country.id)), regionIds: new Set(regionData.registry.regions.map(region => region.id)) };
+  const activeClaimsMade = selected ? sim.claims.filter(claim => claim.status === 'active' && claim.claimantCountryId === selected).map(claim => ({ claim, regionName: regionName(claim.regionId) })) : [];
+  const foreignClaims = selected ? sim.claims.filter(claim => claim.status === 'active' && claim.claimantCountryId !== selected && sim.regionOwnership[claim.regionId] === selected).map(claim => ({ claim, claimantName: countryName(claim.claimantCountryId), regionName: regionName(claim.regionId) })) : [];
+  const availableCasusBelli: Array<{ cb: AvailableCasusBelli; targetName: string }> = selected ? countryData!.registry.countries.filter(country => country.id !== selected).flatMap(country => getAvailableCasusBelli(sim, selected, country.id, diplomacyContext).map(cb => ({ cb, targetName: country.commonName }))) : [];
+  const selectedRegionClaims = selectedRegionEntity ? sim.claims.filter(claim => claim.status === 'active' && claim.regionId === selectedRegionEntity.id).map(claim => ({ claim, claimantName: countryName(claim.claimantCountryId) })) : [];
   return (
     <main>
       <header>
@@ -209,7 +230,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.5 · REGIONAL ECONOMIC OUTPUT</small>
+          <small>MILESTONE 0.6 · DIPLOMACY &amp; TERRITORIAL CLAIMS</small>
         </div>
         <Clock state={sim} onChange={changeClock} />
       </header>
@@ -262,7 +283,7 @@ export default function App() {
                 style={(f) => ({
                   color: "#202c32",
                   weight: 1.05,
-                  fillColor: countryColour(f?.properties?.owner),
+                  fillColor: f?.properties?.regionOwners?.length === 1 ? countryColour(f.properties.regionOwners[0]) : f?.properties?.regionOwners?.length > 1 ? "#6f6d68" : countryColour(f?.properties?.navigationCountryId),
                   fillOpacity: 0.68,
                 })}
                 onEachFeature={(feature, layer) => {
@@ -278,7 +299,7 @@ export default function App() {
                         fillOpacity: 0.68,
                       }),
                     click: () => {
-                      setSelected(feature.properties?.owner);
+                      setSelected(feature.properties?.navigationCountryId);
                       setSelectedRegion(undefined);
                     },
                   });
@@ -342,6 +363,7 @@ export default function App() {
             currentPopulation={sim.populationByRegion[selectedRegionEntity.id]}
             economic={economicData.byRegionId.get(selectedRegionEntity.id)}
             currentEconomicOutput={sim.economicOutputByRegion[selectedRegionEntity.id]}
+            activeClaims={selectedRegionClaims}
           />
         ) : (
           <CountryPanel
@@ -353,6 +375,9 @@ export default function App() {
             controlledPopulationComplete={selected ? controlledPopulation(sim, selected) !== undefined : false}
             controlledEconomicOutput={selected ? controlledEconomicOutput(sim, selected) : undefined}
             controlledEconomicOutputComplete={selected ? controlledEconomicOutput(sim, selected) !== undefined : false}
+            activeClaimsMade={activeClaimsMade}
+            foreignClaims={foreignClaims}
+            availableCasusBelli={availableCasusBelli}
           />
         )}
       </div>

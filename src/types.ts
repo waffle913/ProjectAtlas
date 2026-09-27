@@ -31,8 +31,39 @@ export interface RegionEntity {
     | { status: 'unavailable'; reason: string; checkedAt: string; source: DataSource };
   sourceMetadata?: Record<string, unknown>;
 }
+export type DiplomaticStatus = 'neutral' | 'friendly' | 'hostile';
+export interface BilateralRelation {
+  countryAId: string;
+  countryBId: string;
+  score: number;
+  status: DiplomaticStatus;
+}
+export type ClaimType = 'territorial' | 'core';
+export interface TerritorialClaim {
+  id: string;
+  claimantCountryId: string;
+  regionId: string;
+  type: ClaimType;
+  creationDate: string;
+  status: 'active' | 'renounced';
+  reason?: string;
+  provenance?: string;
+}
+export type CasusBelliType = 'territorial_claim' | 'retaliation' | 'containment';
+export interface ExplicitCasusBelli {
+  id: string;
+  issuerCountryId: string;
+  targetCountryId: string;
+  type: CasusBelliType;
+  creationDate: string;
+  expiryDate?: string;
+  targetRegionIds?: string[];
+  status: 'active' | 'used' | 'expired' | 'revoked';
+  reason?: string;
+  originatingEventId?: string;
+}
 export interface SimulationState {
-  schemaVersion: 4;
+  schemaVersion: 5;
   date: string;
   paused: boolean;
   speed: 1 | 2 | 5;
@@ -40,4 +71,7 @@ export interface SimulationState {
   regionOwnership: Record<string, string | undefined>;
   populationByRegion: Record<string, number | undefined>;
   economicOutputByRegion: Record<string, number | undefined>;
+  bilateralRelations: Record<string, BilateralRelation>;
+  claims: TerritorialClaim[];
+  explicitCasusBelli: ExplicitCasusBelli[];
 }

@@ -1,12 +1,13 @@
 import type { DataSource, RegionEntity } from '../types';
 import type { RegionDemographicRecord } from '../data/populationData';
 import type { EconomicBaselineRecord } from '../data/economicData';
+import type { TerritorialClaim } from '../types';
 
 const row = (label: string, value?: string | number) => (
   <div className="field" key={label}><span>{label}</span><b>{value ?? 'Unavailable'}</b></div>
 );
 const usd = (value?: number) => value === undefined ? undefined : new Intl.NumberFormat('en', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
-export function RegionPanel({ region, currentOwner, parentCountry, source, onBack, demographic, currentPopulation, economic, currentEconomicOutput }: {
+export function RegionPanel({ region, currentOwner, parentCountry, source, onBack, demographic, currentPopulation, economic, currentEconomicOutput, activeClaims = [] }: {
   region: RegionEntity;
   currentOwner?: { commonName: string };
   parentCountry?: { commonName: string };
@@ -16,6 +17,7 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
   currentPopulation?: number;
   economic?: EconomicBaselineRecord;
   currentEconomicOutput?: number;
+  activeClaims?: Array<{ claim: TerritorialClaim; claimantName: string }>;
 }) {
   return (
     <aside className="panel">
@@ -32,6 +34,10 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
         {row('Initial country', parentCountry?.commonName)}
         {row('ISO 3166-2', region.iso31662)}
         {row('Geometry', region.geographyMapping.status.replaceAll('_', ' '))}
+      </section>
+      <section>
+        <h2>Territorial claims</h2>
+        {activeClaims.length ? activeClaims.map(({ claim, claimantName }) => <div className="fact" key={claim.id}>{row('Claimant', claimantName)}<small>{claim.type.replace('_', ' ')} · active since {claim.creationDate}{claim.reason ? ` · ${claim.reason}` : ''}</small></div>) : <small>No active claims on this Region.</small>}
       </section>
       <section>
         <h2>Annual economic output</h2>

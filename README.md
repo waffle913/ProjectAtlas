@@ -1,4 +1,4 @@
-# ProjectAtlas — Milestone 0.5
+# ProjectAtlas — Milestone 0.6
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
 
@@ -25,6 +25,16 @@ WorldPop Global2 R2025A v1 constrained population counts for 2026 at 1 km are th
 Economic baselines use integer whole US dollars per year (`USD_PER_YEAR`). A one-Region country receives its rounded whole-dollar national observation directly. A multi-Region country is allocated only when every Region has a usable demographic baseline. Allocation uses baseline population weights and an exact BigInt largest-remainder calculation, with permanent Region ID as the tie-breaker, so the Region sum equals the selected whole-dollar national total exactly. These values are modelled allocations, not observed regional GDP. Incomplete demographic coverage or a missing national GDP keeps every affected Region explicitly unavailable; zero is never used as a substitute for unknown.
 
 `npm run data:economy:generate` rebuilds the baselines and coverage report from committed country facts, Region identities and demographic records. `npm run data:economy:verify` regenerates them and requires byte-for-byte equality. No network access or duplicate economic source snapshot is involved.
+
+## Diplomacy, claims and casus belli
+
+Diplomacy is sparse simulation state keyed only by permanent ProjectAtlas Country IDs. Bilateral pair keys are canonical and order-independent; a missing pair means score `0` and `neutral`. Scores are bounded to −100…+100, and all update helpers are immutable.
+
+Territorial claims target permanent Region IDs, never Natural Earth geometry, Admin-0 features or legacy macro Territories. The reviewed 2026 baseline is deliberately empty: ProjectAtlas does not infer claims from borders, history, ethnicity, language, proximity or source-map dispute labels. Renounced claims remain in save history. A claim is not rewritten when ownership changes.
+
+Territorial-claim casus belli are derived at query time from active claims and the authoritative `SimulationState.regionOwnership`. If a claimed Region changes owner, the same claim automatically targets its new owner; a claimant controlling the Region receives no self-CB. Persistent explicit CB records support future event-created `territorial_claim`, `retaliation` and `containment` reasons, but this milestone creates none automatically. Used, revoked and expired records are excluded from availability queries.
+
+Admin-0 polygons remain a navigation and overview layer, not authoritative political ownership. Their overview fill is derived from child Region owners and becomes neutral when ownership is mixed. Detailed Region rendering already colours each Region by its current owner, allowing partial control without changing source geometry.
 
 ## Model
 
@@ -62,7 +72,7 @@ Tests cover the 193-member invariant, registry/map decoupling, exact feature map
 
 `SimulationClock` is UI-independent. It starts from 2026-01-01, measures real elapsed time, progresses one game day per second at ×1 (with ×2 / ×5 multipliers), and is separately tested along with pure territory transfers.
 
-Save schema version 2 adds `regionOwnership`, version 3 adds Region population, and version 4 adds mutable Region economic output. The explicit v3 → v4 migration initializes economic output from the committed baseline while preserving date, clock state, ownership, population and permanent IDs. The v1 migration applies each legacy macro Territory owner to its child Regions and preserves every old Territory ID. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity, population, economic output or geometry. Country-controlled population and output are complete-only sums of currently owned Regions, so a transfer changes control without moving or rewriting the Region's people or economy.
+Save schema version 2 adds `regionOwnership`, version 3 adds Region population, version 4 adds mutable Region economic output, and version 5 adds bilateral relations, historical claims and explicit casus belli. The explicit v4 → v5 migration initializes all three diplomatic collections empty while preserving every earlier field exactly. Restoring v5 requires Country/Region registry context and validates every reference, ID, status, type, score and date. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity, population, economic output, claim or geometry. Country-controlled population and output are complete-only sums of currently owned Regions, so a transfer changes control without moving or rewriting the Region's people or economy.
 
 Natural Earth admin-0 country geometry, plus its 110m physical land, lakes, and river centreline datasets, are stored in `public/data/`. They are public domain. The map uses no runtime tile service or remotely loaded map asset, and remains usable while disconnected. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
 

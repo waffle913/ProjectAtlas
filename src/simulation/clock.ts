@@ -10,14 +10,15 @@ const dateAfterDays = (isoDate: string, days: number) => {
 export class SimulationClock {
   private elapsed = 0;
   private current: SimulationState;
-  constructor(initial: SimulationState) { this.current = {...initial, territoryOwnership: {...initial.territoryOwnership}, regionOwnership: {...initial.regionOwnership}, populationByRegion: {...initial.populationByRegion}, economicOutputByRegion: {...initial.economicOutputByRegion}}; }
-  snapshot = () => ({...this.current, territoryOwnership: {...this.current.territoryOwnership}, regionOwnership: {...this.current.regionOwnership}, populationByRegion: {...this.current.populationByRegion}, economicOutputByRegion: {...this.current.economicOutputByRegion}});
+  constructor(initial: SimulationState) { this.current = cloneState(initial); }
+  snapshot = () => cloneState(this.current);
   setPaused = (paused: boolean) => { this.current = {...this.current, paused}; };
   setSpeed = (speed: 1 | 2 | 5) => { this.current = {...this.current, speed}; };
   setTerritoryOwnership = (territoryOwnership: Record<string, string | undefined>) => { this.current = {...this.current, territoryOwnership: {...territoryOwnership}}; };
   setRegionOwnership = (regionOwnership: Record<string, string | undefined>) => { this.current = {...this.current, regionOwnership: {...regionOwnership}}; };
   setPopulationByRegion = (populationByRegion: Record<string, number | undefined>) => { this.current = {...this.current, populationByRegion: {...populationByRegion}}; };
   setEconomicOutputByRegion = (economicOutputByRegion: Record<string, number | undefined>) => { this.current = {...this.current, economicOutputByRegion: {...economicOutputByRegion}}; };
+  setDiplomacy = (diplomacy: Pick<SimulationState, 'bilateralRelations' | 'claims' | 'explicitCasusBelli'>) => { this.current = cloneState({ ...this.current, ...diplomacy }); };
   advance = (realElapsedMs: number) => {
     if (this.current.paused || realElapsedMs <= 0) return this.snapshot();
     this.elapsed += realElapsedMs * this.current.speed;
@@ -26,3 +27,5 @@ export class SimulationClock {
     return this.snapshot();
   };
 }
+
+const cloneState = (state: SimulationState): SimulationState => ({ ...state, territoryOwnership: { ...state.territoryOwnership }, regionOwnership: { ...state.regionOwnership }, populationByRegion: { ...state.populationByRegion }, economicOutputByRegion: { ...state.economicOutputByRegion }, bilateralRelations: Object.fromEntries(Object.entries(state.bilateralRelations).map(([key, relation]) => [key, { ...relation }])), claims: state.claims.map(claim => ({ ...claim })), explicitCasusBelli: state.explicitCasusBelli.map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined })) });
