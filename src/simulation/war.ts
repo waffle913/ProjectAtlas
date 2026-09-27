@@ -88,11 +88,12 @@ export function endWar(state: SimulationState, warId: string, outcome: WarOutcom
 
 export function validateWarState(state: SimulationState, context: WarContext) {
   const errors: string[] = [], warIds = new Set<string>(), activePairs = new Set<string>();
+  if (!validDate(state.date)) errors.push(`Malformed simulation date: ${String(state.date)}`);
   for (const war of state.wars) {
     if (!war.id || warIds.has(war.id)) errors.push(`Duplicate or missing war ID: ${war.id}`); warIds.add(war.id);
     if (!context.countryIds.has(war.attackerCountryId) || !context.countryIds.has(war.defenderCountryId) || war.attackerCountryId === war.defenderCountryId) errors.push(`War has invalid belligerents: ${war.id}`);
     if (!context.regionIds.has(war.targetRegionId) || war.warGoal !== 'take_region') errors.push(`War has invalid target Region or goal: ${war.id}`);
-    if (!validDate(war.startDate) || (war.endDate !== undefined && (!validDate(war.endDate) || war.endDate < war.startDate))) errors.push(`War has malformed dates: ${war.id}`);
+    if (!validDate(war.startDate) || war.startDate > state.date || (war.endDate !== undefined && (!validDate(war.endDate) || war.endDate < war.startDate || war.endDate > state.date))) errors.push(`War has malformed or future dates: ${war.id}`);
     if (war.status === 'active') {
       if (war.endDate !== undefined || war.outcome !== undefined) errors.push(`Active war contains an end state: ${war.id}`);
       const pair = pairKey(war.attackerCountryId, war.defenderCountryId); if (activePairs.has(pair)) errors.push(`Duplicate active war pair: ${pair}`); activePairs.add(pair);
@@ -102,7 +103,7 @@ export function validateWarState(state: SimulationState, context: WarContext) {
     if (!cb || !cb.id || cb.issuerCountryId !== war.attackerCountryId || cb.targetCountryId !== war.defenderCountryId || cb.type !== 'territorial_claim' || !['claim', 'explicit'].includes(cb.source) || !validDate(cb.creationDate) || cb.creationDate > war.startDate || !cb.targetRegionIds?.includes(war.targetRegionId) || (cb.source === 'claim' && !cb.claimId)) errors.push(`War has malformed declaration CB snapshot: ${war.id}`);
   }
   for (const [regionId, occupation] of Object.entries(state.occupationByRegion)) {
-    if (regionId !== occupation.regionId || !context.regionIds.has(regionId) || !validDate(occupation.startDate)) errors.push(`Malformed Region occupation: ${regionId}`);
+    if (regionId !== occupation.regionId || !context.regionIds.has(regionId) || !validDate(occupation.startDate) || occupation.startDate > state.date) errors.push(`Malformed or future Region occupation: ${regionId}`);
     const war = state.wars.find(item => item.id === occupation.warId);
     if (!war || war.status !== 'active') { errors.push(`Occupation references a missing or ended war: ${regionId}`); continue; }
     const opponent = occupation.occupierCountryId === war.attackerCountryId ? war.defenderCountryId : occupation.occupierCountryId === war.defenderCountryId ? war.attackerCountryId : undefined;

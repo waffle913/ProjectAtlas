@@ -75,4 +75,17 @@ describe('limited bilateral war', () => {
     const thirdParty = structuredClone(occupied); thirdParty.occupationByRegion['region.target'].occupierCountryId = 'country.c';
     expect(() => validateWarState(thirdParty, context)).toThrow(/belligerent or sovereignty/);
   });
+  it('rejects restored wars and occupations dated after the simulation date', () => {
+    const active = declareClaimWar();
+    const futureStart = structuredClone(active); futureStart.wars[0].startDate = '2030-01-01';
+    expect(() => restoreSimulationState(serializeSimulationState(futureStart), regions, {}, {}, context)).toThrow(/future dates/);
+
+    const ended = endWar(active, 'war.001', 'white_peace', context);
+    const futureEnd = structuredClone(ended); futureEnd.wars[0].endDate = '2030-01-01';
+    expect(() => restoreSimulationState(serializeSimulationState(futureEnd), regions, {}, {}, context)).toThrow(/future dates/);
+
+    const occupied = occupyRegion(active, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context);
+    const futureOccupation = structuredClone(occupied); futureOccupation.occupationByRegion['region.target'].startDate = '2030-01-01';
+    expect(() => restoreSimulationState(serializeSimulationState(futureOccupation), regions, {}, {}, context)).toThrow(/future Region occupation/);
+  });
 });
