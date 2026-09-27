@@ -79,7 +79,14 @@ export function getAvailableCasusBelli(state: SimulationState, attackerCountryId
     if (!owner || owner === attackerCountryId || owner !== targetCountryId || (context && !context.countryIds.has(owner))) return [];
     return [{ id: `claim-derived:${claim.id}:${owner}`, issuerCountryId: attackerCountryId, targetCountryId: owner, type: 'territorial_claim' as const, creationDate: claim.creationDate, targetRegionIds: [claim.regionId], source: 'claim' as const, claimId: claim.id, reason: claim.reason }];
   });
-  const explicit = state.explicitCasusBelli.filter(cb => cb.status === 'active' && cb.issuerCountryId === attackerCountryId && cb.targetCountryId === targetCountryId && (!cb.expiryDate || cb.expiryDate >= state.date) && (!context || (context.countryIds.has(cb.issuerCountryId) && context.countryIds.has(cb.targetCountryId) && !(cb.targetRegionIds ?? []).some(regionId => !context.regionIds.has(regionId))))).map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined, source: 'explicit' as const }));
+  const explicit = state.explicitCasusBelli
+    .filter(cb => cb.status === 'active'
+      && cb.issuerCountryId === attackerCountryId
+      && cb.targetCountryId === targetCountryId
+      && cb.creationDate <= state.date
+      && (!cb.expiryDate || state.date <= cb.expiryDate)
+      && (!context || (context.countryIds.has(cb.issuerCountryId) && context.countryIds.has(cb.targetCountryId) && !(cb.targetRegionIds ?? []).some(regionId => !context.regionIds.has(regionId)))))
+    .map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined, source: 'explicit' as const }));
   return [...derived, ...explicit].sort((a, b) => a.id.localeCompare(b.id));
 }
 

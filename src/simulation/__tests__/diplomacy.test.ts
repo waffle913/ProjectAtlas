@@ -48,6 +48,13 @@ describe('diplomacy foundation', () => {
     expect(getAvailableCasusBelli({ ...withRetaliation, explicitCasusBelli: withRetaliation.explicitCasusBelli.map(cb => ({ ...cb, status: 'used' as const })) }, 'country.a', 'country.b', context)).toHaveLength(1);
     expect(getAvailableCasusBelli({ ...withRetaliation, date: '2026-02-02' }, 'country.a', 'country.b', context)).toHaveLength(1);
   });
+  it('returns an explicit CB only inside its inclusive creation-to-expiry window', () => {
+    const future = createExplicitCasusBelli(initial(), { id: 'cb.future', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'containment', creationDate: '2030-01-05', expiryDate: '2030-01-10' }, context);
+    expect(getAvailableCasusBelli(future, 'country.a', 'country.b', context)).toEqual([]);
+    expect(getAvailableCasusBelli({ ...future, date: '2030-01-05' }, 'country.a', 'country.b', context).map(cb => cb.id)).toEqual(['cb.future']);
+    expect(getAvailableCasusBelli({ ...future, date: '2030-01-10' }, 'country.a', 'country.b', context).map(cb => cb.id)).toEqual(['cb.future']);
+    expect(getAvailableCasusBelli({ ...future, date: '2030-01-11' }, 'country.a', 'country.b', context)).toEqual([]);
+  });
   it('validates references, duplicates, dates, statuses and score ranges', () => {
     const valid = createExplicitCasusBelli(createClaim(setRelation(initial(), 'country.a', 'country.b', 10, 'neutral', context), claim, context), { id: 'cb.001', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'containment', creationDate: '2026-01-01', targetRegionIds: ['region.x'] }, context);
     expect(validateDiplomacyState(valid, context)).toBe(true);
