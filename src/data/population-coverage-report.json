@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedFrom": "projectatlas-population-sources@2026-09-26",
   "spatialAudit": {
-    "status": "not_run_source_unavailable",
+    "status": "required_on_rebuild",
     "authoritativeGeometry": "src/data/source-snapshots/natural-earth-admin1-v5.1.2.geojson",
     "checks": [
       "overlapping gameplay Regions",
@@ -15,10 +15,10 @@
   },
   "summary": {
     "regions": 4574,
-    "available": 26,
-    "derived": 0,
-    "unavailable": 4548,
-    "countriesExactlyNormalized": 26
+    "available": 28,
+    "derived": 1711,
+    "unavailable": 2835,
+    "countriesExactlyNormalized": 102
   },
   "countries": [
     {
@@ -42,26 +42,30 @@
     },
     {
       "countryId": "country.1aj872z",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 40307070,
+      "regionalTotal": 40307070,
       "regionCount": 13
     },
     {
       "countryId": "country.u6myyj",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 348178045,
+      "regionalTotal": 348178045,
       "regionCount": 51
     },
     {
       "countryId": "country.1y9w9xr",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 20966575,
+      "regionalTotal": 20966575,
       "regionCount": 17
     },
     {
       "countryId": "country.c55i8p",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 37393592,
+      "regionalTotal": 37393592,
       "regionCount": 14
     },
     {
@@ -78,8 +82,9 @@
     },
     {
       "countryId": "country.1cin176",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 45928215,
+      "regionalTotal": 45928215,
       "regionCount": 24
     },
     {
@@ -90,32 +95,37 @@
     },
     {
       "countryId": "country.78ys5y",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 114628568,
+      "regionalTotal": 114628568,
       "regionCount": 11
     },
     {
       "countryId": "country.1k431t",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 19977002,
+      "regionalTotal": 19977002,
       "regionCount": 13
     },
     {
       "countryId": "country.1y5kvsv",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 58083590,
+      "regionalTotal": 58083590,
       "regionCount": 8
     },
     {
       "countryId": "country.jg9ci8",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 52474943,
+      "regionalTotal": 52474943,
       "regionCount": 17
     },
     {
       "countryId": "country.e55nqx",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 21279608,
+      "regionalTotal": 21279608,
       "regionCount": 22
     },
     {
@@ -126,8 +136,9 @@
     },
     {
       "countryId": "country.d772x9",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 11565848,
+      "regionalTotal": 11565848,
       "regionCount": 32
     },
     {
@@ -199,20 +210,23 @@
     },
     {
       "countryId": "country.1mxwn59",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 213202121,
+      "regionalTotal": 213202121,
       "regionCount": 27
     },
     {
       "countryId": "country.1wszh7v",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 12665879,
+      "regionalTotal": 12665879,
       "regionCount": 9
     },
     {
       "countryId": "country.8cy639",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 34752525,
+      "regionalTotal": 34752525,
       "regionCount": 26
     },
     {
@@ -223,20 +237,23 @@
     },
     {
       "countryId": "country.8thyov",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 4598712,
+      "regionalTotal": 4598712,
       "regionCount": 12
     },
     {
       "countryId": "country.18zkp24",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 5164155,
+      "regionalTotal": 5164155,
       "regionCount": 7
     },
     {
       "countryId": "country.z7gp3s",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 7052795,
+      "regionalTotal": 7052795,
       "regionCount": 17
     },
     {
@@ -247,14 +264,16 @@
     },
     {
       "countryId": "country.mgrohe",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 6378605,
+      "regionalTotal": 6378605,
       "regionCount": 14
     },
     {
       "countryId": "country.wkwrv6",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 18828237,
+      "regionalTotal": 18828237,
       "regionCount": 22
     },
     {
@@ -302,8 +321,9 @@
     },
     {
       "countryId": "country.1rzzy0l",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 2835627,
+      "regionalTotal": 2835627,
       "regionCount": 14
     },
     {
@@ -314,14 +334,16 @@
     },
     {
       "countryId": "country.6th7vw",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 17111229,
+      "regionalTotal": 17111229,
       "regionCount": 10
     },
     {
       "countryId": "country.1g4p5xi",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 2582518,
+      "regionalTotal": 2582518,
       "regionCount": 15
     },
     {
@@ -332,14 +354,16 @@
     },
     {
       "countryId": "country.1bf4760",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 19148038,
+      "regionalTotal": 19148038,
       "regionCount": 14
     },
     {
       "countryId": "country.13gf39o",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 25562798,
+      "regionalTotal": 25562798,
       "regionCount": 9
     },
     {
@@ -350,26 +374,30 @@
     },
     {
       "countryId": "country.n7hxdt",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 14991374,
+      "regionalTotal": 14991374,
       "regionCount": 12
     },
     {
       "countryId": "country.15217la",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 28363276,
+      "regionalTotal": 28363276,
       "regionCount": 8
     },
     {
       "countryId": "country.1wvxlzg",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 239967749,
+      "regionalTotal": 239967749,
       "regionCount": 37
     },
     {
       "countryId": "country.1w9qxht",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 30258728,
+      "regionalTotal": 30258728,
       "regionCount": 10
     },
     {
@@ -380,20 +408,23 @@
     },
     {
       "countryId": "country.1nz4j7w",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 35382175,
+      "regionalTotal": 35382175,
       "regionCount": 10
     },
     {
       "countryId": "country.ukura0",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 33102421,
+      "regionalTotal": 33102421,
       "regionCount": 19
     },
     {
       "countryId": "country.1knbk6o",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 15271424,
+      "regionalTotal": 15271424,
       "regionCount": 34
     },
     {
@@ -416,8 +447,9 @@
     },
     {
       "countryId": "country.14vdqsc",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 24337514,
+      "regionalTotal": 24337514,
       "regionCount": 45
     },
     {
@@ -446,8 +478,9 @@
     },
     {
       "countryId": "country.9cg02n",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 22215385,
+      "regionalTotal": 22215385,
       "regionCount": 10
     },
     {
@@ -470,8 +503,9 @@
     },
     {
       "countryId": "country.1oit02h",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 39621234,
+      "regionalTotal": 39621234,
       "regionCount": 18
     },
     {
@@ -518,14 +552,16 @@
     },
     {
       "countryId": "country.hw7u0k",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 47739103,
+      "regionalTotal": 47739103,
       "regionCount": 48
     },
     {
       "countryId": "country.awshmp",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 11466560,
+      "regionalTotal": 11466560,
       "regionCount": 12
     },
     {
@@ -536,20 +572,23 @@
     },
     {
       "countryId": "country.1pvjhz6",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 3147383,
+      "regionalTotal": 3147383,
       "regionCount": 7
     },
     {
       "countryId": "country.18echaw",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 5067283,
+      "regionalTotal": 5067283,
       "regionCount": 6
     },
     {
       "countryId": "country.1y3qxos",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 47515421,
+      "regionalTotal": 47515421,
       "regionCount": 18
     },
     {
@@ -566,14 +605,16 @@
     },
     {
       "countryId": "country.10o3gxv",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 17951445,
+      "regionalTotal": 17951445,
       "regionCount": 24
     },
     {
       "countryId": "country.gddwz0",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 71592912,
+      "regionalTotal": 71592912,
       "regionCount": 77
     },
     {
@@ -584,20 +625,23 @@
     },
     {
       "countryId": "country.50z1vg",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 55021595,
+      "regionalTotal": 55021595,
       "regionCount": 14
     },
     {
       "countryId": "country.opradj",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 101896973,
+      "regionalTotal": 101896973,
       "regionCount": 63
     },
     {
       "countryId": "country.jm8gea",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 26604741,
+      "regionalTotal": 26604741,
       "regionCount": 11
     },
     {
@@ -608,8 +652,9 @@
     },
     {
       "countryId": "country.9j09vn",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 3537390,
+      "regionalTotal": 3537390,
       "regionCount": 22
     },
     {
@@ -638,14 +683,16 @@
     },
     {
       "countryId": "country.f5u1ei",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 257236371,
+      "regionalTotal": 257236371,
       "regionCount": 8
     },
     {
       "countryId": "country.1us5oyp",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 44437893,
+      "regionalTotal": 44437893,
       "regionCount": 32
     },
     {
@@ -668,8 +715,9 @@
     },
     {
       "countryId": "country.yc1r8r",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 92814664,
+      "regionalTotal": 92814664,
       "regionCount": 31
     },
     {
@@ -680,8 +728,9 @@
     },
     {
       "countryId": "country.1x9bk5g",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 2941486,
+      "regionalTotal": 2941486,
       "regionCount": 11
     },
     {
@@ -692,32 +741,37 @@
     },
     {
       "countryId": "country.joydxr",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 8967712,
+      "regionalTotal": 8967712,
       "regionCount": 7
     },
     {
       "countryId": "country.8zv92e",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 39681570,
+      "regionalTotal": 39681570,
       "regionCount": 25
     },
     {
       "countryId": "country.1yyv1wz",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 37915155,
+      "regionalTotal": 37915155,
       "regionCount": 16
     },
     {
       "countryId": "country.alucm0",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 9110277,
+      "regionalTotal": 9110277,
       "regionCount": 9
     },
     {
       "countryId": "country.1t8wy2p",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 9602027,
+      "regionalTotal": 9602027,
       "regionCount": 43
     },
     {
@@ -728,14 +782,16 @@
     },
     {
       "countryId": "country.zsxuo0",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 18854963,
+      "regionalTotal": 18854963,
       "regionCount": 42
     },
     {
       "countryId": "country.1abe1vk",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 2808883,
+      "regionalTotal": 2808883,
       "regionCount": 10
     },
     {
@@ -752,14 +808,16 @@
     },
     {
       "countryId": "country.sxojze",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 83741228,
+      "regionalTotal": 83741228,
       "regionCount": 16
     },
     {
       "countryId": "country.kb8qjm",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 6691964,
+      "regionalTotal": 6691964,
       "regionCount": 28
     },
     {
@@ -776,8 +834,9 @@
     },
     {
       "countryId": "country.1rdws0z",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 2761147,
+      "regionalTotal": 2761147,
       "regionCount": 12
     },
     {
@@ -867,13 +926,14 @@
     {
       "countryId": "country.113l9xv",
       "status": "unavailable",
-      "reason": "No defensible national observation in the pinned WPP snapshot or reviewed alternate source.",
+      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
       "regionCount": 21
     },
     {
       "countryId": "country.1onsv24",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 59041927,
+      "regionalTotal": 59041927,
       "regionCount": 110
     },
     {
@@ -902,8 +962,9 @@
     },
     {
       "countryId": "country.1bqmiqj",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 3805841,
+      "regionalTotal": 3805841,
       "regionCount": 12
     },
     {
@@ -932,20 +993,23 @@
     },
     {
       "countryId": "country.sadyi7",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 5624082,
+      "regionalTotal": 5624082,
       "regionCount": 18
     },
     {
       "countryId": "country.1nths69",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 5455816,
+      "regionalTotal": 5455816,
       "regionCount": 8
     },
     {
       "countryId": "country.i9fek6",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 10538315,
+      "regionalTotal": 10538315,
       "regionCount": 14
     },
     {
@@ -968,14 +1032,16 @@
     },
     {
       "countryId": "country.8zgnf1",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 42368687,
+      "regionalTotal": 42368687,
       "regionCount": 21
     },
     {
       "countryId": "country.17se0x",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 34868384,
+      "regionalTotal": 34868384,
       "regionCount": 13
     },
     {
@@ -998,14 +1064,16 @@
     },
     {
       "countryId": "country.1orw7jp",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 38600478,
+      "regionalTotal": 38600478,
       "regionCount": 16
     },
     {
       "countryId": "country.b4jfbk",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 119233883,
+      "regionalTotal": 119233883,
       "regionCount": 27
     },
     {
@@ -1016,8 +1084,9 @@
     },
     {
       "countryId": "country.d0e7yk",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 137179590,
+      "regionalTotal": 137179590,
       "regionCount": 11
     },
     {
@@ -1034,8 +1103,9 @@
     },
     {
       "countryId": "country.5q931z",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 52071696,
+      "regionalTotal": 52071696,
       "regionCount": 111
     },
     {
@@ -1046,20 +1116,23 @@
     },
     {
       "countryId": "country.mbt8ni",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 3127365,
+      "regionalTotal": 3127365,
       "regionCount": 18
     },
     {
       "countryId": "country.eno4h9",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 1809076,
+      "regionalTotal": 1809076,
       "regionCount": 84
     },
     {
       "countryId": "country.1br72am",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 6663980,
+      "regionalTotal": 6663980,
       "regionCount": 25
     },
     {
@@ -1082,8 +1155,9 @@
     },
     {
       "countryId": "country.1bwwirt",
-      "status": "unavailable",
-      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
+      "status": "allocated",
+      "nationalTotal": 12310612,
+      "regionalTotal": 12310612,
       "regionCount": 10
     },
     {
@@ -1169,8 +1243,9 @@
     },
     {
       "countryId": "country.fb028d5c-e50f-413d-a54a-f7c16bc4a40b",
-      "status": "unavailable",
-      "reason": "No defensible national observation in the pinned WPP snapshot or reviewed alternate source.",
+      "status": "allocated",
+      "nationalTotal": 31650,
+      "regionalTotal": 31650,
       "regionCount": 1
     },
     {
@@ -1311,13 +1386,14 @@
     {
       "countryId": "country.ad423c13-233a-4e60-9502-1e34755b8c13",
       "status": "unavailable",
-      "reason": "No defensible national observation in the pinned WPP snapshot or reviewed alternate source.",
+      "reason": "Pinned WorldPop spatial weights are not available for every gameplay Region in this country.",
       "regionCount": 18
     },
     {
       "countryId": "country.9b3d3149-891f-4f40-a9cf-dfd31e15fbd0",
-      "status": "unavailable",
-      "reason": "No defensible national observation in the pinned WPP snapshot or reviewed alternate source.",
+      "status": "allocated",
+      "nationalTotal": 722357,
+      "regionalTotal": 722357,
       "regionCount": 1
     },
     {

@@ -26,6 +26,18 @@ describe('population baseline data', () => {
     expect(first).toEqual(second); expect(first.reduce((sum: number, row: { population: number }) => sum + row.population, 0)).toBe(10);
     expect(first.find((row: { regionId: string }) => row.regionId === 'region.a')?.population).toBe(4);
   });
+  it('normalizes every completely covered country to its exact pinned national total', () => {
+    const regionById = new Map(registry.regions.map(region => [region.id, region]));
+    const recordsByCountry = new Map<string, typeof demographics.records>();
+    for (const record of demographics.records) { const countryId = regionById.get(record.regionId)!.parentCountryId; const records = recordsByCountry.get(countryId) ?? []; records.push(record); recordsByCountry.set(countryId, records); }
+    let checked = 0;
+    for (const observation of national.records) {
+      const records = recordsByCountry.get(observation.countryId) ?? [];
+      if (!records.length || records.some(record => record.status === 'unavailable')) continue;
+      expect(records.reduce((total, record) => total + (record.status === 'unavailable' ? 0 : record.baselinePopulation), 0)).toBe(observation.value); checked += 1;
+    }
+    expect(checked).toBeGreaterThan(50);
+  });
   it('rejects negative, non-finite, duplicate and unsourced records', () => {
     const available = demographics.records.find(record => record.status !== 'unavailable')!;
     const invalid = structuredClone(demographics); invalid.records.push({ ...available, baselinePopulation: -1 } as typeof available);

@@ -45,6 +45,10 @@ describe('Region ownership and saves', () => {
     expect(controlledPopulation(transferred, 'country.beta')).toBe(900);
     expect(controlledPopulation(transferred, 'country.alpha')).toBeUndefined();
   });
+  it('never reports a partial controlled population when one owned Region is unavailable', () => {
+    const incomplete = { ...state, regionOwnership: { 'region.one': 'country.alpha', 'region.two': 'country.alpha' }, populationByRegion: { 'region.one': 100, 'region.two': undefined } };
+    expect(controlledPopulation(incomplete, 'country.alpha')).toBeUndefined();
+  });
   it('rejects unsupported future save schemas instead of treating them as v1', () => {
     expect(() => migrateSimulationState({ schemaVersion: 4, date: '2030-01-01', paused: true, speed: 1, territoryOwnership: {} }, [region])).toThrow(/Unsupported simulation save schema version: 4/);
   });

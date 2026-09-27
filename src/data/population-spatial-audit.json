@@ -1,0 +1,3751 @@
+{
+  "schemaVersion": 2,
+  "raster": {
+    "productId": "WorldPop-G2-R2025A-v1-2026-CN-1km",
+    "version": "Global2 R2025A v1, constrained population count, 2026, 1 km, WGS84",
+    "sha256": "61c487e765ef904caf3239d66d635465f5871d3ee6684ffe604d82e25bff0aa8",
+    "sourceUrl": "https://worldpop-public-data.soton.ac.uk/GIS/Population/Global_2015_2030/R2025A/2026/0_Mosaicked/v1/1km/constrained/global_pop_2026_CN_1km_R2025A_v1.tif",
+    "retrievedAt": "2026-09-27",
+    "license": "Creative Commons Attribution 4.0 International"
+  },
+  "authoritativeRegionGeometry": "natural-earth-admin1-5.1.2@f1890d9f152c896d250a77557a5751a93d494776",
+  "processingTools": {
+    "python": "3.10.11",
+    "rasterio": "1.4.3",
+    "gdal": "3.9.3",
+    "shapely": "2.1.2",
+    "numpy": "2.2.6",
+    "engine": "projectatlas-rasterio-zonal-v1"
+  },
+  "parameters": {
+    "pixelInclusion": "cell centre inside polygon",
+    "overlapPolicy": "reject countries with overlapping positive-population cells",
+    "suspiciousGapPopulationFraction": 0.05,
+    "suspiciousOutsideParentPopulationFraction": 0.05,
+    "rationale": "Natural Earth Admin-0 and Admin-1 coastlines differ; all discrepancies are measured, and countries exceeding 5% of parent raster population are rejected.",
+    "raster": {
+      "width": 43200,
+      "height": 17280,
+      "crs": "EPSG:4326",
+      "nodata": -99999,
+      "transform": [
+        0.0083333333,
+        0,
+        -180,
+        0,
+        -0.0083333333,
+        84
+      ]
+    }
+  },
+  "preprocessingIssues": [
+    {
+      "countryId": "country.0347fd43-fbf9-48cb-933a-e966f52a32c7",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 7,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.04352166-79c8-4cee-8bd8-4a7eb810c8ba",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 3,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.04362960-a7d3-4b19-8f76-6572995728e9",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 2,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.133c7481-f1fb-49a2-a220-d585495c33c5",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 2,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.15794b34-37b2-4053-964a-2dfea1e18400",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 6,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.15febdb5-6025-49d0-9318-d737d6bf6ee1",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 11,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.17a684c6-aac3-4f9a-8908-86e91c0a097d",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.18835158-28ca-4c62-88c0-824a08092b27",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.19420d8c-93e0-40af-afbe-4ca4d8c4de9e",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 5,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.278c58e4-229a-4a7a-8e16-51e0abfebd45",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.2991edff-bec4-4423-825e-8196fca18992",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 5,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.2aded07b-a46c-4e6b-8b87-ad5e4f973d52",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 21,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.2e4582fa-4432-4e61-bfc3-2083336428b4",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 2,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.2f7f4233-514c-485b-b289-248f71b3c562",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 11,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.3d22be69-b741-4de3-a8ee-4abf889e77d0",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 3,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.4267c600-c365-46b7-8a45-019fae158ae5",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.43f77294-1d5a-4495-a4bb-afc7f1a9caa1",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.4449fa36-e713-4df2-9651-ae5850828346",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 3,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.46088230-c32b-4e3f-a816-fa6daf9737c4",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 22,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.4b67c337-52f1-4fbe-bb69-f51e8f67fc03",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 5,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.4c29f8cf-400e-4d36-ac63-b9fd94058944",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 14,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.5472bc14-36bc-4d4a-a088-d270a3bb1347",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 68,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.54732cb4-6064-445b-a3c2-461d752e4305",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 26,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.56c8424f-4640-4fb6-8584-1655d6feb9db",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 6,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.5805152e-6b76-4319-a310-703e8e668877",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 4,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.589767fd-d38e-45be-933c-e243cd22ec04",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 16,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.58c98914-d491-401e-b681-40a699a6e3c5",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.5d8b54a9-8886-4e50-ac35-dfdbac3cdcff",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 11,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.656241b3-385a-416c-86a1-6512d294a685",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.69f3c77b-79f8-4f74-b523-6b82bf404d68",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.69fe9c66-74ba-44ed-96a0-9038aaa569c5",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.6fba350d-54a6-4141-9357-dbb86eee3d87",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.6fea45ff-6dc6-468a-a4c7-00b07dcde242",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.7215346f-26f3-4d15-bc2a-e04350b1acc0",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 5,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.74f6fa04-b347-461a-9de9-b129d0cf8964",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.75cd3e08-1b7e-45c4-95d0-9f87779537d0",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 11,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.79df96d6-6b58-4696-b486-ed62877ef5e8",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 4,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.7df323f9-c786-4db9-a8fc-568d3ba3e521",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.8407a8d8-70de-4f9f-b22e-029c8312b476",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.8554a20a-f004-46eb-a49c-b26c269c127c",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 11,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.8606462a-5750-456d-8472-ba3c5cafd087",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 11,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.897e7a46-935e-44af-a7df-806dbd257f18",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.8a7dbb03-20f0-4679-858f-e8afad2bfdaa",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 3,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.8c79c739-2c80-452e-88cf-10db55637921",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 9,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.8d08fbf0-b991-4a80-87d2-f39a7ba6046e",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.90d3394a-c3d8-415d-8c79-8151ec2d258f",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.91355bcb-0475-45e6-8a22-9425ff14ef5a",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 16,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.9b3d3149-891f-4f40-a9cf-dfd31e15fbd0",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.a0834483-9834-4b4c-a58e-d773480028b4",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.abcbf2de-3898-4bff-9a00-899fcadcc32a",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 10,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.ad423c13-233a-4e60-9502-1e34755b8c13",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 18,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.af7ed2b9-bee5-42cb-8494-f2e1bbbdae05",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.b4be4e13-e987-40e3-9f89-e4b7ad294ab3",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 8,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.b603f5b4-6bae-4964-aa27-7f805b4a149b",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.b6fde5b8-cf15-4377-94fd-cef6d5af956b",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 11,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.b8da38ac-b364-44d1-82ea-fc39ff807e0b",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 2,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.c6270d38-e150-4780-98bd-a6d01df06f20",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.c826fd7f-d7a1-43da-96df-b6d4569ef38a",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 15,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.cd70257e-3801-4640-88b9-ebcecc88b0dd",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.cf8c6db8-4864-45c8-bec3-97f778d234f3",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.d7d86522-66aa-4d61-91bb-39638018b9dc",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.d9a0b532-0785-4fdb-8e0e-dd5a97dee8b1",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.e19c605e-802b-4844-b3b6-21e0d33be36d",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.e51e585f-84c6-430b-ae14-163905e3a241",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.ec0f2089-48e2-4c74-bcf8-4ce52b58bc71",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.ef509eaf-8e5e-4b35-b3e3-8cfdb3d3f8fb",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.f3a9acdf-e608-4c67-9f5c-aab01b6ac91f",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 3,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.f8c2068a-5e07-4e6a-bc75-4cb20c9fd1e6",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 14,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.f9d11b4c-74d3-4103-8cc0-7c81d8023cc3",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.fb028d5c-e50f-413d-a54a-f7c16bc4a40b",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.fb52b2fd-95f8-4731-a50a-e7e0f6fbeb26",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 7,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.fbc079c5-7b73-4476-a6c0-f9cf0aa983f5",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 8,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.feb9ab4a-93bc-49fa-b4aa-282b2cf5b8b5",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 5,
+      "preparedRegions": 0
+    },
+    {
+      "countryId": "country.ff993996-0239-4e2c-8fae-234d3985f9b5",
+      "issue": "missing_parent_country_geometry",
+      "expectedRegions": 1,
+      "preparedRegions": 0
+    }
+  ],
+  "summary": {
+    "candidateCountries": 177,
+    "acceptedCountries": 80,
+    "rejectedCountries": 97,
+    "preprocessingRejectedCountries": 75,
+    "acceptedWeights": 1746
+  },
+  "countries": [
+    {
+      "countryId": "country.10o3gxv",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 24,
+      "countryRasterPopulation": 17837177.534081336,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3936,
+      "gapPopulation": 410730.6334667972,
+      "gapPopulationFraction": 0.023026660618363965,
+      "outsideParentCells": 3999,
+      "outsideParentPopulation": 463001.4897672797,
+      "outsideParentPopulationFraction": 0.025957104978219053,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.10umxsb",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 30,
+      "countryRasterPopulation": 67058312.08307302,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2613,
+      "gapPopulation": 642079.4840524218,
+      "gapPopulationFraction": 0.009574942525499335,
+      "outsideParentCells": 18318,
+      "outsideParentPopulation": 4866837.576194497,
+      "outsideParentPopulationFraction": 0.0725762015925091,
+      "zeroPopulationRegions": [
+        "region.0bc788bd-a2b9-4447-bad8-56c7bf1b52fc",
+        "region.14593153-8359-4b59-b50f-fd509a7e549c",
+        "region.1ae98085-6dca-4199-8b12-3c5c5d56fe31",
+        "region.1fd38f54-fe5a-4c00-b894-cdedcfb3e276",
+        "region.94c6fb20-f592-4db0-b54b-9a58e33fd002"
+      ]
+    },
+    {
+      "countryId": "country.113l9xv",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 21,
+      "countryRasterPopulation": 20319064.58158708,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 301,
+      "gapPopulation": 80914.88108718596,
+      "gapPopulationFraction": 0.003982214868321752,
+      "outsideParentCells": 2781,
+      "outsideParentPopulation": 2502575.6752631785,
+      "outsideParentPopulationFraction": 0.12316392150901405,
+      "zeroPopulationRegions": [
+        "region.15c9fbcd-65e2-46e5-bb6b-72950c43ae2d",
+        "region.6864baeb-a3eb-4c64-a5f0-23cbc092876e"
+      ]
+    },
+    {
+      "countryId": "country.11efhcg",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 4,
+      "countryRasterPopulation": 0,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 0,
+      "gapPopulation": 0,
+      "gapPopulationFraction": 0,
+      "outsideParentCells": 0,
+      "outsideParentPopulation": 0,
+      "outsideParentPopulationFraction": 0,
+      "zeroPopulationRegions": [
+        "region.01808a2d-55c3-49a4-bf98-bd0547abc837",
+        "region.06f798f7-4072-46a3-95b5-26b252fa2880",
+        "region.324b8a43-219a-477e-8d81-a2f10b3d57b9",
+        "region.d70b5be9-73ad-475e-ba3d-2e13049d0152"
+      ]
+    },
+    {
+      "countryId": "country.12na4wl",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 379108.2734733073,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 866,
+      "gapPopulation": 13813.340437579996,
+      "gapPopulationFraction": 0.0364363993194482,
+      "outsideParentCells": 1207,
+      "outsideParentPopulation": 760817.8635877036,
+      "outsideParentPopulationFraction": 2.0068616720422803,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.12rbtu0",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 36,
+      "countryRasterPopulation": 1453110935.0658379,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 24370,
+      "gapPopulation": 13189669.203045337,
+      "gapPopulationFraction": 0.009076849457779172,
+      "outsideParentCells": 40982,
+      "outsideParentPopulation": 27372003.07998432,
+      "outsideParentPopulationFraction": 0.018836829604302815,
+      "zeroPopulationRegions": [
+        "region.719f8a74-aa2f-4575-8da2-d19dd4b22d83",
+        "region.dbf46d2d-076d-42ee-abb1-c4a026ae7248"
+      ]
+    },
+    {
+      "countryId": "country.13gf39o",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 9,
+      "countryRasterPopulation": 25519789.97592228,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 10172,
+      "gapPopulation": 442538.5028644957,
+      "gapPopulationFraction": 0.017340993138345858,
+      "outsideParentCells": 7843,
+      "outsideParentPopulation": 556940.2813181534,
+      "outsideParentPopulationFraction": 0.021823858340669033,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.13ie6ly",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 13,
+      "countryRasterPopulation": 3364097.2782811318,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5356,
+      "gapPopulation": 257884.95143895881,
+      "gapPopulationFraction": 0.07665799473275749,
+      "outsideParentCells": 3774,
+      "outsideParentPopulation": 43201.24629729694,
+      "outsideParentPopulationFraction": 0.01284185406177386,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.13l0w18",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 24,
+      "countryRasterPopulation": 17952253.83285036,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1579,
+      "gapPopulation": 483858.59891389764,
+      "gapPopulationFraction": 0.02695252659744023,
+      "outsideParentCells": 3683,
+      "outsideParentPopulation": 412329.58699850633,
+      "outsideParentPopulationFraction": 0.02296812371514017,
+      "zeroPopulationRegions": [
+        "region.3400e9b1-66ab-4903-b873-6f5b1b4710dd"
+      ]
+    },
+    {
+      "countryId": "country.13si2qd",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 15,
+      "countryRasterPopulation": 5583853.083243536,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1927,
+      "gapPopulation": 382172.88678612385,
+      "gapPopulationFraction": 0.06844250396432854,
+      "outsideParentCells": 3438,
+      "outsideParentPopulation": 338462.7381363994,
+      "outsideParentPopulationFraction": 0.06061454932474584,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.14jkmlh",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 24893.5808417074,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 92,
+      "gapPopulation": 19846.913078994803,
+      "gapPopulationFraction": 0.7972703166007652,
+      "outsideParentCells": 78,
+      "outsideParentPopulation": 9322.7998696482,
+      "outsideParentPopulationFraction": 0.374506180084326,
+      "zeroPopulationRegions": [
+        "region.6260a526-7b99-4abf-bf24-e39fb3f45978"
+      ]
+    },
+    {
+      "countryId": "country.14nagci",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 17,
+      "countryRasterPopulation": 6172313.065235032,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 6695,
+      "gapPopulation": 687927.1008933419,
+      "gapPopulationFraction": 0.11145369549837421,
+      "outsideParentCells": 2069,
+      "outsideParentPopulation": 113123.23601158668,
+      "outsideParentPopulationFraction": 0.01832752726830118,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.14p3bj2",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 5299470.727807886,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 450,
+      "gapPopulation": 43835.86832019658,
+      "gapPopulationFraction": 0.008271744589544924,
+      "outsideParentCells": 673,
+      "outsideParentPopulation": 525679.1146930981,
+      "outsideParentPopulationFraction": 0.09919464446415464,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.14vdqsc",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 45,
+      "countryRasterPopulation": 24686645.97835889,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7583,
+      "gapPopulation": 594761.8285454296,
+      "gapPopulationFraction": 0.024092451808431854,
+      "outsideParentCells": 7410,
+      "outsideParentPopulation": 329460.9088534062,
+      "outsideParentPopulationFraction": 0.01334571367622083,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.15217la",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 8,
+      "countryRasterPopulation": 28640074.433810513,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 10021,
+      "gapPopulation": 1024251.8266201558,
+      "gapPopulationFraction": 0.03576288982723432,
+      "outsideParentCells": 6963,
+      "outsideParentPopulation": 720348.5796420185,
+      "outsideParentPopulationFraction": 0.025151770513264598,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.159s948",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 15,
+      "countryRasterPopulation": 1233547.9350546354,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2974,
+      "gapPopulation": 21243.04163888656,
+      "gapPopulationFraction": 0.017221091321388885,
+      "outsideParentCells": 6042,
+      "outsideParentPopulation": 92264.04158556841,
+      "outsideParentPopulationFraction": 0.0747956678160885,
+      "zeroPopulationRegions": [
+        "region.327a074b-7917-4168-8dbc-5f1a13a3cade",
+        "region.673e5951-96e9-4754-8461-91a491866ac5"
+      ]
+    },
+    {
+      "countryId": "country.1629o6e",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 10,
+      "countryRasterPopulation": 551613.283108281,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 657,
+      "gapPopulation": 92636.34102624704,
+      "gapPopulationFraction": 0.16793711076762205,
+      "outsideParentCells": 2077,
+      "outsideParentPopulation": 151031.8352610471,
+      "outsideParentPopulationFraction": 0.27380021454523196,
+      "zeroPopulationRegions": [
+        "region.409b8045-8514-4771-b64d-1a937fa05d25",
+        "region.864fc1ec-251e-4acc-b037-7c4edb8d57d8",
+        "region.9097a198-cb0e-4f70-9546-7d2c56ed0152",
+        "region.f9d8cbb3-4333-42ee-a375-e75a963def07"
+      ]
+    },
+    {
+      "countryId": "country.17se0x",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 13,
+      "countryRasterPopulation": 34166194.59304635,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1438,
+      "gapPopulation": 475367.93479437847,
+      "gapPopulationFraction": 0.01391340008615204,
+      "outsideParentCells": 1949,
+      "outsideParentPopulation": 490140.88797454076,
+      "outsideParentPopulationFraction": 0.014345785177793733,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.18echaw",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 6,
+      "countryRasterPopulation": 4970432.758075856,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 103,
+      "gapPopulation": 39803.233340531035,
+      "gapPopulationFraction": 0.008008001572068262,
+      "outsideParentCells": 527,
+      "outsideParentPopulation": 73826.30125351467,
+      "outsideParentPopulationFraction": 0.014853093250997759,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.18zkp24",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 7,
+      "countryRasterPopulation": 5130865.212516121,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1085,
+      "gapPopulation": 42874.38250326956,
+      "gapPopulationFraction": 0.00835617010532312,
+      "outsideParentCells": 739,
+      "outsideParentPopulation": 58138.03298935869,
+      "outsideParentPopulationFraction": 0.01133103883679073,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.18zobjo",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 17,
+      "countryRasterPopulation": 7870979.446122172,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7355,
+      "gapPopulation": 468931.91851966816,
+      "gapPopulationFraction": 0.059577327285576735,
+      "outsideParentCells": 5979,
+      "outsideParentPopulation": 430432.8197577195,
+      "outsideParentPopulationFraction": 0.05468605561786629,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.19iew1b",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 15,
+      "countryRasterPopulation": 24183079.993382707,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2392,
+      "gapPopulation": 441376.9327821193,
+      "gapPopulationFraction": 0.018251477185821437,
+      "outsideParentCells": 4970,
+      "outsideParentPopulation": 1945479.6510123336,
+      "outsideParentPopulationFraction": 0.08044796823004685,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1a1ajo",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 16,
+      "countryRasterPopulation": 39830123.200187504,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 6129,
+      "gapPopulation": 6808781.118181462,
+      "gapPopulationFraction": 0.17094551990111367,
+      "outsideParentCells": 8421,
+      "outsideParentPopulation": 2183422.6045262846,
+      "outsideParentPopulationFraction": 0.05481837436335135,
+      "zeroPopulationRegions": [
+        "region.4440bdfe-f3a5-4947-97b6-f588ec3755ba"
+      ]
+    },
+    {
+      "countryId": "country.1abe1vk",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 10,
+      "countryRasterPopulation": 2742426.246056149,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2170,
+      "gapPopulation": 30648.700275519783,
+      "gapPopulationFraction": 0.011175760996159996,
+      "outsideParentCells": 4208,
+      "outsideParentPopulation": 91147.72489302274,
+      "outsideParentPopulationFraction": 0.03323616269502278,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1aj872z",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 13,
+      "countryRasterPopulation": 38911624.55042527,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 13135,
+      "gapPopulation": 1291286.0169655893,
+      "gapPopulationFraction": 0.03318509653309956,
+      "outsideParentCells": 23401,
+      "outsideParentPopulation": 1471827.7507039837,
+      "outsideParentPopulationFraction": 0.03782488569184907,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1akiyqe",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 5,
+      "countryRasterPopulation": 10368684.972836358,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4824,
+      "gapPopulation": 758508.3847745565,
+      "gapPopulationFraction": 0.07315376894579007,
+      "outsideParentCells": 1724,
+      "outsideParentPopulation": 242734.37988370963,
+      "outsideParentPopulationFraction": 0.023410334147446813,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1b9pd3r",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 1,
+      "countryRasterPopulation": 3123572.3626454026,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 0,
+      "gapPopulation": 0,
+      "gapPopulationFraction": 0,
+      "outsideParentCells": 0,
+      "outsideParentPopulation": 0,
+      "outsideParentPopulationFraction": 0,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1bf4760",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 14,
+      "countryRasterPopulation": 18687599.881816845,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2942,
+      "gapPopulation": 590302.1260771395,
+      "gapPopulationFraction": 0.03158790480373605,
+      "outsideParentCells": 7284,
+      "outsideParentPopulation": 844182.0378001049,
+      "outsideParentPopulationFraction": 0.04517337930707193,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1bqmiqj",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 12,
+      "countryRasterPopulation": 3856385.65870529,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 705,
+      "gapPopulation": 96968.60747459003,
+      "gapPopulationFraction": 0.02514494556728163,
+      "outsideParentCells": 1290,
+      "outsideParentPopulation": 21788.638596237804,
+      "outsideParentPopulationFraction": 0.005650015461252632,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1br72am",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 25,
+      "countryRasterPopulation": 6613264.437007526,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1291,
+      "gapPopulation": 35350.11042553222,
+      "gapPopulationFraction": 0.005345334480761818,
+      "outsideParentCells": 3284,
+      "outsideParentPopulation": 146708.71884255877,
+      "outsideParentPopulationFraction": 0.02218400915916555,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1bryr1g",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 23,
+      "countryRasterPopulation": 5162860.647601943,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3880,
+      "gapPopulation": 426239.7719272589,
+      "gapPopulationFraction": 0.08255883724563429,
+      "outsideParentCells": 3233,
+      "outsideParentPopulation": 77865.55651223776,
+      "outsideParentPopulationFraction": 0.015081862910323741,
+      "zeroPopulationRegions": [
+        "region.2725fb24-9f3a-4941-8a16-3a37123e1c37",
+        "region.5aac5653-80af-427a-b714-579d6ab58aad",
+        "region.abe73a90-3fbd-4f10-9530-e23b5f890239",
+        "region.b4d9f6b8-e267-4707-8881-6e9772662c41",
+        "region.d6564d77-118c-40a1-b297-89f6a005c211",
+        "region.eac47335-a5be-414e-860e-1a9f15c9e891",
+        "region.fba6fc88-2b0e-4193-bb91-d26c709d3fe2"
+      ]
+    },
+    {
+      "countryId": "country.1bwwirt",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 10,
+      "countryRasterPopulation": 12136898.775598004,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2629,
+      "gapPopulation": 292530.4373954206,
+      "gapPopulationFraction": 0.02410256877016816,
+      "outsideParentCells": 2369,
+      "outsideParentPopulation": 357070.6225262372,
+      "outsideParentPopulationFraction": 0.029420252168877777,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1bxt04r",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 5,
+      "countryRasterPopulation": 809854.8842620534,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 472,
+      "gapPopulation": 69656.60171056072,
+      "gapPopulationFraction": 0.08601121393992998,
+      "outsideParentCells": 2179,
+      "outsideParentPopulation": 90795.05909928534,
+      "outsideParentPopulationFraction": 0.1121127511406177,
+      "zeroPopulationRegions": [
+        "region.67f4ea64-128c-4a2e-b66a-6fa97eb74a6c",
+        "region.821d4e7f-46a2-4c1a-8929-a5bd258d8f41"
+      ]
+    },
+    {
+      "countryId": "country.1cf3s0n",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 21,
+      "countryRasterPopulation": 585847.3197249328,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 715,
+      "gapPopulation": 18089.49082055336,
+      "gapPopulationFraction": 0.03087748328190141,
+      "outsideParentCells": 963,
+      "outsideParentPopulation": 31899.60991106273,
+      "outsideParentPopulationFraction": 0.054450381246158544,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1cin176",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 24,
+      "countryRasterPopulation": 44639847.66583419,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8811,
+      "gapPopulation": 320925.64577930805,
+      "gapPopulationFraction": 0.007189219107146138,
+      "outsideParentCells": 11203,
+      "outsideParentPopulation": 1546999.2416988758,
+      "outsideParentPopulationFraction": 0.034655119194837575,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1ckv6i4",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 115,
+      "countryRasterPopulation": 100772040.84120601,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 6220,
+      "gapPopulation": 3555786.1006708327,
+      "gapPopulationFraction": 0.03528544297593366,
+      "outsideParentCells": 37839,
+      "outsideParentPopulation": 11548284.884385793,
+      "outsideParentPopulationFraction": 0.11459810467253792,
+      "zeroPopulationRegions": [
+        "region.10e865b2-47f5-4c8e-9013-1cd89a2189f8",
+        "region.29430723-da08-4ea1-ae36-ec0470812cca",
+        "region.4d4083ff-5963-49d7-9e83-fd195c64e6cc",
+        "region.592fcc01-d989-48c1-856f-423f3d129ac5",
+        "region.79901942-718f-4c4e-abaa-919a905f2220",
+        "region.7d64ce2b-ee6c-4af1-93f1-839d1def422d",
+        "region.8c40f419-cf70-4cb6-892e-13368db60747",
+        "region.9e5b665f-e6bf-4a17-8f94-a6be45fe0027",
+        "region.a88d88e3-70ef-4d71-8037-46d858cb56aa",
+        "region.b11500aa-8055-42a7-9a73-bf5a3ecbbf48",
+        "region.bb784092-0d2e-4861-939c-9e309a1fb15e",
+        "region.c0acc91f-c88b-4fc3-8d56-46f1676ba7ce",
+        "region.ec3255cc-ebb5-43a6-8949-b3597856a09a"
+      ]
+    },
+    {
+      "countryId": "country.1ddp0cj",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 15,
+      "countryRasterPopulation": 17943387.882413562,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3455,
+      "gapPopulation": 547641.6545117116,
+      "gapPopulationFraction": 0.03052052700975488,
+      "outsideParentCells": 4880,
+      "outsideParentPopulation": 888867.1999097421,
+      "outsideParentPopulationFraction": 0.04953731177939518,
+      "zeroPopulationRegions": [
+        "region.636c5f7b-3403-481e-835a-5b1da531cdde",
+        "region.8707887a-3157-4eec-a382-fca8ef5f059d",
+        "region.98c67d3b-1355-4ed9-b422-bae757ada162"
+      ]
+    },
+    {
+      "countryId": "country.1dg1asq",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 20,
+      "countryRasterPopulation": 3668666.904633919,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5929,
+      "gapPopulation": 354969.6459888372,
+      "gapPopulationFraction": 0.09675712056073353,
+      "outsideParentCells": 6042,
+      "outsideParentPopulation": 299011.9297872657,
+      "outsideParentPopulationFraction": 0.0815042459727215,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1dsqes5",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 8673162.475211043,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1628,
+      "gapPopulation": 626752.1965408335,
+      "gapPopulationFraction": 0.07226339853913354,
+      "outsideParentCells": 695,
+      "outsideParentPopulation": 838343.8593988699,
+      "outsideParentPopulationFraction": 0.096659535872291,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1dtcx1v",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 5,
+      "countryRasterPopulation": 796491.1714608887,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 407,
+      "gapPopulation": 31636.43412891075,
+      "gapPopulationFraction": 0.03971975492318968,
+      "outsideParentCells": 474,
+      "outsideParentPopulation": 125228.60189311349,
+      "outsideParentPopulationFraction": 0.15722534835310825,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1ena0me",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 27,
+      "countryRasterPopulation": 21861503.305966765,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8200,
+      "gapPopulation": 731257.950366475,
+      "gapPopulationFraction": 0.033449572983706446,
+      "outsideParentCells": 6602,
+      "outsideParentPopulation": 1422486.9603129167,
+      "outsideParentPopulationFraction": 0.06506812182146095,
+      "zeroPopulationRegions": [
+        "region.b546845c-63aa-495a-9da2-67c27887a195"
+      ]
+    },
+    {
+      "countryId": "country.1ffxfif",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 1,
+      "countryRasterPopulation": 490951.7999588691,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 0,
+      "gapPopulation": 0,
+      "gapPopulationFraction": 0,
+      "outsideParentCells": 0,
+      "outsideParentPopulation": 0,
+      "outsideParentPopulationFraction": 0,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1fog5xu",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 23,
+      "countryRasterPopulation": 10057905.83281835,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2145,
+      "gapPopulation": 235577.10058923028,
+      "gapPopulationFraction": 0.023422082539344937,
+      "outsideParentCells": 5390,
+      "outsideParentPopulation": 2358420.8687242456,
+      "outsideParentPopulationFraction": 0.2344842860855645,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1g4p5xi",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 15,
+      "countryRasterPopulation": 2598935.944748327,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5294,
+      "gapPopulation": 78702.56506832756,
+      "gapPopulationFraction": 0.030282610553508223,
+      "outsideParentCells": 3175,
+      "outsideParentPopulation": 41412.07986592121,
+      "outsideParentPopulationFraction": 0.01593424414695662,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1ga7ffb",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 21,
+      "countryRasterPopulation": 9639528.718832163,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8587,
+      "gapPopulation": 288359.2589654855,
+      "gapPopulationFraction": 0.029914248650158123,
+      "outsideParentCells": 21591,
+      "outsideParentPopulation": 913172.7798301788,
+      "outsideParentPopulationFraction": 0.09473209805850451,
+      "zeroPopulationRegions": [
+        "region.1f27d76a-f986-45f4-9383-6cf83f25b35a"
+      ]
+    },
+    {
+      "countryId": "country.1ge48fm",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 14,
+      "countryRasterPopulation": 8944193.829815542,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4004,
+      "gapPopulation": 393088.15189656994,
+      "gapPopulationFraction": 0.04394897509781233,
+      "outsideParentCells": 23482,
+      "outsideParentPopulation": 930379.6409622162,
+      "outsideParentPopulationFraction": 0.10402051416426018,
+      "zeroPopulationRegions": [
+        "region.2e722930-7a28-443a-821b-344b7ff25ebc",
+        "region.3df54e69-c3b5-492d-866b-ba61f608b724"
+      ]
+    },
+    {
+      "countryId": "country.1gtbljd",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 33,
+      "countryRasterPopulation": 256176700.55893067,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 14371,
+      "gapPopulation": 2927022.427655161,
+      "gapPopulationFraction": 0.011425794856709973,
+      "outsideParentCells": 106370,
+      "outsideParentPopulation": 26747734.58156072,
+      "outsideParentPopulationFraction": 0.10441126973375041,
+      "zeroPopulationRegions": [
+        "region.0dff77db-7b08-4fb9-b333-d40e391b1016",
+        "region.139f42fe-afff-488a-aaec-df5f334c5b95"
+      ]
+    },
+    {
+      "countryId": "country.1gxtyz9",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 13,
+      "countryRasterPopulation": 25944011.134468965,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4256,
+      "gapPopulation": 319593.12870206527,
+      "gapPopulationFraction": 0.0123185704417717,
+      "outsideParentCells": 17736,
+      "outsideParentPopulation": 1034866.9716753783,
+      "outsideParentPopulationFraction": 0.03988847238430544,
+      "zeroPopulationRegions": [
+        "region.3071d2cd-f03e-4a20-bcb5-1646481846ea",
+        "region.5189a323-5737-479f-88d7-1d3a9fdd95dc",
+        "region.b1ee5940-b46a-43ca-a3da-fa99cf541ee2",
+        "region.f59fcf78-4522-47c5-8be3-9b57e989aefb"
+      ]
+    },
+    {
+      "countryId": "country.1hnoduz",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 73552.57804874677,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 291,
+      "gapPopulation": 15072.874263147343,
+      "gapPopulationFraction": 0.20492652552787255,
+      "outsideParentCells": 2196,
+      "outsideParentPopulation": 206567.64835186937,
+      "outsideParentPopulationFraction": 2.8084351878865106,
+      "zeroPopulationRegions": [
+        "region.7d0350a4-46f2-4946-9523-ed8ecda9fb02",
+        "region.973ad4d5-be41-4584-8a90-3846bc51365c",
+        "region.a68fc5aa-c089-4ddc-8391-1fc3c8e1194f",
+        "region.a81e2b4a-f593-4d9b-b6b3-c9dab7ffcf6a"
+      ]
+    },
+    {
+      "countryId": "country.1i4b92q",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 33,
+      "countryRasterPopulation": 129688580.07157028,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3916,
+      "gapPopulation": 410536.0863562641,
+      "gapPopulationFraction": 0.0031655530975025293,
+      "outsideParentCells": 10831,
+      "outsideParentPopulation": 2636229.422338129,
+      "outsideParentPopulationFraction": 0.020327382880460966,
+      "zeroPopulationRegions": [
+        "region.e7f81283-2550-4239-ae7e-a0ea0a89ef88"
+      ]
+    },
+    {
+      "countryId": "country.1jpkbk",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 9,
+      "countryRasterPopulation": 2633959.496206555,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1207,
+      "gapPopulation": 266761.5895145517,
+      "gapPopulationFraction": 0.10127778726238706,
+      "outsideParentCells": 508,
+      "outsideParentPopulation": 174497.68010703512,
+      "outsideParentPopulationFraction": 0.06624918885743983,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1jzfv40",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 17,
+      "countryRasterPopulation": 49518635.15159079,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3907,
+      "gapPopulation": 435156.17805185716,
+      "gapPopulationFraction": 0.008787725605112477,
+      "outsideParentCells": 8638,
+      "outsideParentPopulation": 1897072.7030735484,
+      "outsideParentPopulationFraction": 0.03831027848942248,
+      "zeroPopulationRegions": [
+        "region.f7c5f2b4-3d1c-4c0a-b7b7-5adf5163dfbf"
+      ]
+    },
+    {
+      "countryId": "country.1k431t",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 13,
+      "countryRasterPopulation": 16127871.089851767,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3268,
+      "gapPopulation": 276696.5567223024,
+      "gapPopulationFraction": 0.017156421649253493,
+      "outsideParentCells": 1474,
+      "outsideParentPopulation": 174866.24617850172,
+      "outsideParentPopulationFraction": 0.010842487840105185,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1knbk6o",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 34,
+      "countryRasterPopulation": 15107894.098143362,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3451,
+      "gapPopulation": 295396.47140187764,
+      "gapPopulationFraction": 0.01955245843549959,
+      "outsideParentCells": 9296,
+      "outsideParentPopulation": 383476.6063256978,
+      "outsideParentPopulationFraction": 0.025382532061356187,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1lye27d",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 20,
+      "countryRasterPopulation": 783325.339948005,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 922,
+      "gapPopulation": 50718.57345125784,
+      "gapPopulationFraction": 0.0647477757512918,
+      "outsideParentCells": 1171,
+      "outsideParentPopulation": 211623.7873206352,
+      "outsideParentPopulationFraction": 0.2701607831743094,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1mkrhod",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 10,
+      "countryRasterPopulation": 2067503.8246231114,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 574,
+      "gapPopulation": 11553.79211091904,
+      "gapPopulationFraction": 0.005588280888924207,
+      "outsideParentCells": 2955,
+      "outsideParentPopulation": 307961.4066940001,
+      "outsideParentPopulationFraction": 0.14895324643481078,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1mxwn59",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 27,
+      "countryRasterPopulation": 208448812.2792861,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 14434,
+      "gapPopulation": 2460378.284264348,
+      "gapPopulationFraction": 0.011803273222626273,
+      "outsideParentCells": 15641,
+      "outsideParentPopulation": 4573169.3754394,
+      "outsideParentPopulationFraction": 0.02193905220871265,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1nths69",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 8,
+      "countryRasterPopulation": 5281521.729158428,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1085,
+      "gapPopulation": 42410.93137095653,
+      "gapPopulationFraction": 0.00803005905226379,
+      "outsideParentCells": 2922,
+      "outsideParentPopulation": 197979.28454805198,
+      "outsideParentPopulationFraction": 0.03748527312782609,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1nz4j7w",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 10,
+      "countryRasterPopulation": 34628152.20223851,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4590,
+      "gapPopulation": 427790.7039574199,
+      "gapPopulationFraction": 0.012353841506153648,
+      "outsideParentCells": 4519,
+      "outsideParentPopulation": 887933.139796,
+      "outsideParentPopulationFraction": 0.025641944005854296,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1oit02h",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 18,
+      "countryRasterPopulation": 39265013.03438714,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3086,
+      "gapPopulation": 240322.51358224291,
+      "gapPopulationFraction": 0.006120525501208303,
+      "outsideParentCells": 6191,
+      "outsideParentPopulation": 440828.606809434,
+      "outsideParentPopulationFraction": 0.01122700777975979,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1onsv24",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 110,
+      "countryRasterPopulation": 56649225.50524327,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 6967,
+      "gapPopulation": 925186.7947908271,
+      "gapPopulationFraction": 0.016331852492938226,
+      "outsideParentCells": 11696,
+      "outsideParentPopulation": 2526033.4579591453,
+      "outsideParentPopulationFraction": 0.04459078540668387,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1orw7jp",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 16,
+      "countryRasterPopulation": 38256868.91100464,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 920,
+      "gapPopulation": 388803.2299473992,
+      "gapPopulationFraction": 0.010162965266495173,
+      "outsideParentCells": 2905,
+      "outsideParentPopulation": 788731.6518091004,
+      "outsideParentPopulationFraction": 0.020616733001435482,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1p0y3nd",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 13,
+      "countryRasterPopulation": 1317049.3180458636,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 387,
+      "gapPopulation": 65779.62991465854,
+      "gapPopulationFraction": 0.04994469760043404,
+      "outsideParentCells": 1608,
+      "outsideParentPopulation": 128920.3921340498,
+      "outsideParentPopulationFraction": 0.09788577418295312,
+      "zeroPopulationRegions": [
+        "region.cc7a352d-2dee-45ca-9636-1307d575cf3e"
+      ]
+    },
+    {
+      "countryId": "country.1pajyhp",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 5,
+      "countryRasterPopulation": 10635222.935068008,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2632,
+      "gapPopulation": 486358.54515398026,
+      "gapPopulationFraction": 0.04573092149768558,
+      "outsideParentCells": 4149,
+      "outsideParentPopulation": 925818.1987783246,
+      "outsideParentPopulationFraction": 0.08705207257344666,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1powv0y",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 13,
+      "countryRasterPopulation": 5744661.87201228,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4647,
+      "gapPopulation": 657179.8736321806,
+      "gapPopulationFraction": 0.11439835594744571,
+      "outsideParentCells": 1262,
+      "outsideParentPopulation": 274996.9333294,
+      "outsideParentPopulationFraction": 0.047869994693538365,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1pvjhz6",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 7,
+      "countryRasterPopulation": 2986969.4866873305,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 204,
+      "gapPopulation": 42027.3260576891,
+      "gapPopulationFraction": 0.014070222760895725,
+      "outsideParentCells": 578,
+      "outsideParentPopulation": 144647.49752109346,
+      "outsideParentPopulationFraction": 0.04842617179913457,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1qeehvj",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 19,
+      "countryRasterPopulation": 2280050.39499471,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2047,
+      "gapPopulation": 48321.74248767222,
+      "gapPopulationFraction": 0.021193278268651746,
+      "outsideParentCells": 2798,
+      "outsideParentPopulation": 1142027.360322681,
+      "outsideParentPopulationFraction": 0.5008781221808611,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1qt08wm",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 5,
+      "countryRasterPopulation": 13785931.842629338,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1767,
+      "gapPopulation": 860192.8810252094,
+      "gapPopulationFraction": 0.062396426360189244,
+      "outsideParentCells": 2905,
+      "outsideParentPopulation": 2091626.9707910954,
+      "outsideParentPopulationFraction": 0.15172184185063892,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1r1l1cm",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 10,
+      "countryRasterPopulation": 11150826.68740439,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1450,
+      "gapPopulation": 423869.0654391207,
+      "gapPopulationFraction": 0.03801234449441397,
+      "outsideParentCells": 2307,
+      "outsideParentPopulation": 778591.3711799998,
+      "outsideParentPopulationFraction": 0.06982364563691687,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1rbe765",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 3558432.7774819634,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2546,
+      "gapPopulation": 130797.92119476199,
+      "gapPopulationFraction": 0.03675717074731925,
+      "outsideParentCells": 4025,
+      "outsideParentPopulation": 210775.23962583108,
+      "outsideParentPopulationFraction": 0.05923260401591201,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1rdien2",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 7,
+      "countryRasterPopulation": 169523810.1386435,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7651,
+      "gapPopulation": 5027552.45757944,
+      "gapPopulationFraction": 0.02965691045681254,
+      "outsideParentCells": 11506,
+      "outsideParentPopulation": 9402811.926233634,
+      "outsideParentPopulationFraction": 0.05546602520639213,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1rdws0z",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 12,
+      "countryRasterPopulation": 2743782.8275558725,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 648,
+      "gapPopulation": 17718.59246750309,
+      "gapPopulationFraction": 0.006457724091555231,
+      "outsideParentCells": 589,
+      "outsideParentPopulation": 17295.145900803927,
+      "outsideParentPopulationFraction": 0.006303394615312987,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1rzzy0l",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 14,
+      "countryRasterPopulation": 2754254.540255908,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 254,
+      "gapPopulation": 53454.30583287121,
+      "gapPopulationFraction": 0.019407903318879368,
+      "outsideParentCells": 251,
+      "outsideParentPopulation": 64432.93900593881,
+      "outsideParentPopulationFraction": 0.02339396670285678,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1s29x2y",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 26,
+      "countryRasterPopulation": 8894174.484236091,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7375,
+      "gapPopulation": 633754.1825380892,
+      "gapPopulationFraction": 0.07125497522691354,
+      "outsideParentCells": 1859,
+      "outsideParentPopulation": 799024.5336399301,
+      "outsideParentPopulationFraction": 0.08983684040110859,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1slft1c",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 17,
+      "countryRasterPopulation": 10619119.291570775,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 748,
+      "gapPopulation": 30676.116842051324,
+      "gapPopulationFraction": 0.0028887628060079665,
+      "outsideParentCells": 2273,
+      "outsideParentPopulation": 288050.51788570173,
+      "outsideParentPopulationFraction": 0.02712565044017821,
+      "zeroPopulationRegions": [
+        "region.613d5958-fe5f-4f00-aa21-11573034a5e7"
+      ]
+    },
+    {
+      "countryId": "country.1t8wy2p",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 43,
+      "countryRasterPopulation": 9646015.365855098,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3302,
+      "gapPopulation": 185887.89216747956,
+      "gapPopulationFraction": 0.019270951280617312,
+      "outsideParentCells": 3463,
+      "outsideParentPopulation": 148773.12136560216,
+      "outsideParentPopulationFraction": 0.015423272275952232,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1tac25k",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 4,
+      "countryRasterPopulation": 560544.0373270358,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1934,
+      "gapPopulation": 153180.37666139536,
+      "gapPopulationFraction": 0.27327090551500416,
+      "outsideParentCells": 208,
+      "outsideParentPopulation": 29241.867125709738,
+      "outsideParentPopulationFraction": 0.0521669399341934,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1us5oyp",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 32,
+      "countryRasterPopulation": 45122390.6415886,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5843,
+      "gapPopulation": 957669.1060998335,
+      "gapPopulationFraction": 0.021223811338071368,
+      "outsideParentCells": 2284,
+      "outsideParentPopulation": 207394.22633038313,
+      "outsideParentPopulationFraction": 0.004596259714555796,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1vrmp4h",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 20,
+      "countryRasterPopulation": 4760023.550234832,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 18235,
+      "gapPopulation": 541469.6479481437,
+      "gapPopulationFraction": 0.1137535649212136,
+      "outsideParentCells": 20076,
+      "outsideParentPopulation": 627031.0071031683,
+      "outsideParentPopulationFraction": 0.13172855144219492,
+      "zeroPopulationRegions": [
+        "region.e37d1739-06bb-4915-839f-389d54ffbb91"
+      ]
+    },
+    {
+      "countryId": "country.1w9qxht",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 10,
+      "countryRasterPopulation": 29747174.730201844,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5840,
+      "gapPopulation": 937972.3138372664,
+      "gapPopulationFraction": 0.0315314755886702,
+      "outsideParentCells": 9109,
+      "outsideParentPopulation": 1292008.1949946024,
+      "outsideParentPopulationFraction": 0.04343297159184823,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1wszh7v",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 9,
+      "countryRasterPopulation": 12558445.214907346,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2665,
+      "gapPopulation": 73686.14325492906,
+      "gapPopulationFraction": 0.00586745747534582,
+      "outsideParentCells": 3492,
+      "outsideParentPopulation": 110075.48712124415,
+      "outsideParentPopulationFraction": 0.008765056918875627,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1wvxlzg",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 37,
+      "countryRasterPopulation": 238946133.96575117,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7310,
+      "gapPopulation": 1643374.939642029,
+      "gapPopulationFraction": 0.006877595851279095,
+      "outsideParentCells": 11930,
+      "outsideParentPopulation": 1827758.7612053608,
+      "outsideParentPopulationFraction": 0.007649250192377411,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1x9bk5g",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 11,
+      "countryRasterPopulation": 2871710.0740824547,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 533,
+      "gapPopulation": 31304.03233778205,
+      "gapPopulationFraction": 0.010900833137824353,
+      "outsideParentCells": 1799,
+      "outsideParentPopulation": 88171.81480856221,
+      "outsideParentPopulationFraction": 0.03070359212245134,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1xyn8u3",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 47,
+      "countryRasterPopulation": 118324480.33455592,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7399,
+      "gapPopulation": 983565.2197798692,
+      "gapPopulationFraction": 0.008312440646254207,
+      "outsideParentCells": 23668,
+      "outsideParentPopulation": 4069494.78454745,
+      "outsideParentPopulationFraction": 0.03439266982657501,
+      "zeroPopulationRegions": [
+        "region.ce90f4af-382c-4273-acfb-6331b3cfcf43"
+      ]
+    },
+    {
+      "countryId": "country.1y3qxos",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 18,
+      "countryRasterPopulation": 47690604.182058685,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2660,
+      "gapPopulation": 282052.7952968132,
+      "gapPopulationFraction": 0.005914221472642238,
+      "outsideParentCells": 2219,
+      "outsideParentPopulation": 84127.99067546734,
+      "outsideParentPopulationFraction": 0.001764037007254282,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1y5kvsv",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 8,
+      "countryRasterPopulation": 57028097.12760225,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2711,
+      "gapPopulation": 585859.4048223738,
+      "gapPopulationFraction": 0.010273171196848705,
+      "outsideParentCells": 3049,
+      "outsideParentPopulation": 1212432.371798261,
+      "outsideParentPopulationFraction": 0.02126026349933093,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1y9w9xr",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 17,
+      "countryRasterPopulation": 21007073.93318751,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 6385,
+      "gapPopulation": 392902.74650736107,
+      "gapPopulationFraction": 0.018703354296604024,
+      "outsideParentCells": 5741,
+      "outsideParentPopulation": 364226.4501959203,
+      "outsideParentPopulationFraction": 0.017338276208972925,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.1yl9unk",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 192,
+      "countryRasterPopulation": 1969414.423730543,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1557,
+      "gapPopulation": 50612.23316646179,
+      "gapPopulationFraction": 0.025699127901475445,
+      "outsideParentCells": 2823,
+      "outsideParentPopulation": 205175.26339058278,
+      "outsideParentPopulationFraction": 0.10418084732106898,
+      "zeroPopulationRegions": [
+        "region.0601d377-5795-4712-ae6d-615355c4679f",
+        "region.2e59ecd8-dd2f-411d-858a-1fa5e4629193",
+        "region.667f65b7-469f-465d-a15b-72ab138f5317",
+        "region.84a721b1-a564-4f74-ad81-262852c632da",
+        "region.8758847a-dd89-4e73-9c0b-564b7fa8c720",
+        "region.a90b8e4c-0c13-4859-a522-141bb23f7b45",
+        "region.c60385f1-71fc-46ed-a308-cdca74d29dce",
+        "region.ec2253c6-75eb-4e11-8f65-ee041d8ec723"
+      ]
+    },
+    {
+      "countryId": "country.1yyv1wz",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 16,
+      "countryRasterPopulation": 37806100.5800361,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3551,
+      "gapPopulation": 221889.1177325984,
+      "gapPopulationFraction": 0.005869135254053925,
+      "outsideParentCells": 9208,
+      "outsideParentPopulation": 404246.7868220655,
+      "outsideParentPopulationFraction": 0.010692633744817687,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.2r4kh5",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 9,
+      "countryRasterPopulation": 371899.5030221947,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1130,
+      "gapPopulation": 38330.775755309354,
+      "gapPopulationFraction": 0.10306756380102448,
+      "outsideParentCells": 2453,
+      "outsideParentPopulation": 21444.36614703075,
+      "outsideParentPopulationFraction": 0.05766172305358247,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.3f7ydp",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 18,
+      "countryRasterPopulation": 10817665.539766481,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1124,
+      "gapPopulation": 81111.78451408392,
+      "gapPopulationFraction": 0.00749808581305379,
+      "outsideParentCells": 1383,
+      "outsideParentPopulation": 314968.9628415507,
+      "outsideParentPopulationFraction": 0.029116167594912524,
+      "zeroPopulationRegions": [
+        "region.5746da38-efe7-43fa-b97b-89284376c7a0"
+      ]
+    },
+    {
+      "countryId": "country.50z1vg",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 14,
+      "countryRasterPopulation": 54376305.914156444,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 11645,
+      "gapPopulation": 1686614.44710539,
+      "gapPopulationFraction": 0.031017451788064424,
+      "outsideParentCells": 5552,
+      "outsideParentPopulation": 1039807.2607721008,
+      "outsideParentPopulationFraction": 0.019122432892253446,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.5lwy1g",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 3,
+      "countryRasterPopulation": 219424.5043710343,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 399,
+      "gapPopulation": 7858.12990792902,
+      "gapPopulationFraction": 0.03581245372048954,
+      "outsideParentCells": 1490,
+      "outsideParentPopulation": 58197.57694995321,
+      "outsideParentPopulationFraction": 0.2652282483981116,
+      "zeroPopulationRegions": [
+        "region.511a8003-bce5-40a1-8e0a-163169e51060"
+      ]
+    },
+    {
+      "countryId": "country.5q931z",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 111,
+      "countryRasterPopulation": 53037527.74628098,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4336,
+      "gapPopulation": 1418524.8727272502,
+      "gapPopulationFraction": 0.026745682406486563,
+      "outsideParentCells": 2616,
+      "outsideParentPopulation": 756417.6744982128,
+      "outsideParentPopulationFraction": 0.014261933137546237,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.6mdobv",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 39,
+      "countryRasterPopulation": 2841224.7980844816,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1358,
+      "gapPopulation": 69938.27793191449,
+      "gapPopulationFraction": 0.024615538333702426,
+      "outsideParentCells": 2392,
+      "outsideParentPopulation": 173074.7408819225,
+      "outsideParentPopulationFraction": 0.060915539311992256,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.6sun05",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 30,
+      "countryRasterPopulation": 60558.49497700603,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 311,
+      "gapPopulation": 7519.734512119078,
+      "gapPopulationFraction": 0.12417307456161701,
+      "outsideParentCells": 1779,
+      "outsideParentPopulation": 269675.8679597066,
+      "outsideParentPopulationFraction": 4.453146797358523,
+      "zeroPopulationRegions": [
+        "region.089b38ae-9466-4a2a-9789-edd6190263ec",
+        "region.115d0f83-d097-469f-9a13-a20e0888891a",
+        "region.168aee06-9b18-443d-bb63-a5895b403701",
+        "region.1c142df9-cab5-405e-aa83-922ffdc26e35",
+        "region.4169b8de-1dea-47cb-aafa-541c7aad55ff",
+        "region.423a51fb-42ff-469b-a944-734694020893",
+        "region.5c574724-5bdd-474d-9670-a110aa028583",
+        "region.853a2814-0c15-4b23-b3ed-bcef498b6da3",
+        "region.93b3e4ab-ea4c-4cd6-81c6-d4df0c55a959",
+        "region.957af4dc-057b-48ac-af66-4b617ec18912",
+        "region.97614cfe-28be-4725-9d66-a02c71ce36a8",
+        "region.a7ad7e1f-c438-499b-9123-fab1cdc218b5",
+        "region.aa0859e9-40f9-4a9c-b722-75e02fe39639",
+        "region.ad9232e9-a3ec-4ccd-8a59-ab39d13121bf",
+        "region.b5f4da67-c37f-4f17-adfa-3b4946b0495d",
+        "region.ba4ba17e-fc37-486a-95b3-d13f7af35118",
+        "region.baeb2b47-d535-4af9-99f8-0935cdac9846",
+        "region.e24041c2-7730-40a2-bd23-3baad74806e0",
+        "region.f76c2a11-f820-4103-afc4-f043a8876062",
+        "region.f8de0dbb-39e6-497b-ac49-edad8a3ee6f3"
+      ]
+    },
+    {
+      "countryId": "country.6th7vw",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 10,
+      "countryRasterPopulation": 16673077.999652185,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3913,
+      "gapPopulation": 344772.16730818286,
+      "gapPopulationFraction": 0.020678375481442305,
+      "outsideParentCells": 12117,
+      "outsideParentPopulation": 712277.2662916991,
+      "outsideParentPopulationFraction": 0.04272020237094542,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.72e2lh",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 7,
+      "countryRasterPopulation": 1211054.371137681,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 367,
+      "gapPopulation": 43468.94465792102,
+      "gapPopulationFraction": 0.03589347075894347,
+      "outsideParentCells": 1055,
+      "outsideParentPopulation": 643459.662690923,
+      "outsideParentPopulationFraction": 0.5313218613681632,
+      "zeroPopulationRegions": [
+        "region.90ce30ae-4a9c-4cf7-a536-b020ed559b53",
+        "region.b6d9e204-b610-4a49-9228-7dbc287af8ce",
+        "region.da2d758c-d9e4-4196-855d-45b4e6c88b5b"
+      ]
+    },
+    {
+      "countryId": "country.78ys5y",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 11,
+      "countryRasterPopulation": 114863625.1990606,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 11461,
+      "gapPopulation": 3144136.5764358747,
+      "gapPopulationFraction": 0.027372778553585025,
+      "outsideParentCells": 12437,
+      "outsideParentPopulation": 2017282.7710700668,
+      "outsideParentPopulationFraction": 0.0175624160179002,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.7zmt7h",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 8,
+      "countryRasterPopulation": 7470599.334990743,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3164,
+      "gapPopulation": 805272.9133517965,
+      "gapPopulationFraction": 0.10779227706404554,
+      "outsideParentCells": 4119,
+      "outsideParentPopulation": 610992.8724504579,
+      "outsideParentPopulationFraction": 0.08178632597637697,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.82nqba",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 17,
+      "countryRasterPopulation": 13991027.070456585,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1694,
+      "gapPopulation": 513701.5087312421,
+      "gapPopulationFraction": 0.03671649737680608,
+      "outsideParentCells": 2149,
+      "outsideParentPopulation": 1047105.4681550872,
+      "outsideParentPopulationFraction": 0.07484121522187262,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.88o7pu",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 5,
+      "countryRasterPopulation": 8041307.17552616,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4957,
+      "gapPopulation": 654180.5957580295,
+      "gapPopulationFraction": 0.08135251912139833,
+      "outsideParentCells": 2192,
+      "outsideParentPopulation": 308685.26912856277,
+      "outsideParentPopulationFraction": 0.03838744900431749,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.8cy639",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 26,
+      "countryRasterPopulation": 34219431.09605421,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3245,
+      "gapPopulation": 78987.95853735194,
+      "gapPopulationFraction": 0.0023082779580885526,
+      "outsideParentCells": 1718,
+      "outsideParentPopulation": 93528.8673405114,
+      "outsideParentPopulationFraction": 0.0027332093008202015,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.8thyov",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 12,
+      "countryRasterPopulation": 4481205.888585789,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 758,
+      "gapPopulation": 48715.46604772305,
+      "gapPopulationFraction": 0.010871061776431126,
+      "outsideParentCells": 1420,
+      "outsideParentPopulation": 73276.11466527135,
+      "outsideParentPopulationFraction": 0.016351874135467664,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.8zgnf1",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 21,
+      "countryRasterPopulation": 42121337.12502695,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 598,
+      "gapPopulation": 294018.3810320082,
+      "gapPopulationFraction": 0.00698027178385354,
+      "outsideParentCells": 635,
+      "outsideParentPopulation": 225724.6927884392,
+      "outsideParentPopulationFraction": 0.005358915651666763,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.8zv92e",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 25,
+      "countryRasterPopulation": 36602846.74017399,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 6473,
+      "gapPopulation": 365905.9159695464,
+      "gapPopulationFraction": 0.009996651860630857,
+      "outsideParentCells": 6238,
+      "outsideParentPopulation": 1034830.5885401517,
+      "outsideParentPopulationFraction": 0.028271860816889916,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.97e14s",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 97,
+      "countryRasterPopulation": 65414974.26844421,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 12359,
+      "gapPopulation": 1579250.964554712,
+      "gapPopulationFraction": 0.024142040598746105,
+      "outsideParentCells": 14053,
+      "outsideParentPopulation": 2065989.9646612545,
+      "outsideParentPopulationFraction": 0.031582829279776625,
+      "zeroPopulationRegions": [
+        "region.5f6117df-66a2-4a6e-a761-e03e968a98da"
+      ]
+    },
+    {
+      "countryId": "country.9cg02n",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 10,
+      "countryRasterPopulation": 22233232.494833004,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7925,
+      "gapPopulation": 1052438.8302309648,
+      "gapPopulationFraction": 0.047336294012827476,
+      "outsideParentCells": 13103,
+      "outsideParentPopulation": 881672.9562787523,
+      "outsideParentPopulationFraction": 0.03965563516162811,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.9j09vn",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 22,
+      "countryRasterPopulation": 3522015.7000751984,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 354,
+      "gapPopulation": 11696.27684136078,
+      "gapPopulationFraction": 0.00332090423137837,
+      "outsideParentCells": 758,
+      "outsideParentPopulation": 34322.07025556968,
+      "outsideParentPopulationFraction": 0.009745007739413787,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.aheews",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 10,
+      "countryRasterPopulation": 535294.1068540073,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 480,
+      "gapPopulation": 10651.59996597223,
+      "gapPopulationFraction": 0.019898593744237275,
+      "outsideParentCells": 1150,
+      "outsideParentPopulation": 299288.44349602464,
+      "outsideParentPopulationFraction": 0.5591102903317609,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.alucm0",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 9,
+      "countryRasterPopulation": 9353527.269194866,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5950,
+      "gapPopulation": 369151.1696152868,
+      "gapPopulationFraction": 0.03946651984765771,
+      "outsideParentCells": 3801,
+      "outsideParentPopulation": 174850.19426702205,
+      "outsideParentPopulationFraction": 0.018693503449001312,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.ao8edp",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 16,
+      "countryRasterPopulation": 1442533.3489480463,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 202,
+      "gapPopulation": 23863.04469415696,
+      "gapPopulationFraction": 0.01654245616682544,
+      "outsideParentCells": 249,
+      "outsideParentPopulation": 53889.80389745151,
+      "outsideParentPopulationFraction": 0.03735775255161354,
+      "zeroPopulationRegions": [
+        "region.663c36e2-6d37-4cc8-baee-07d9cc7c824b",
+        "region.ecc1713b-b507-46a6-b213-b5300142f3b0"
+      ]
+    },
+    {
+      "countryId": "country.awshmp",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 12,
+      "countryRasterPopulation": 11291846.525841936,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 525,
+      "gapPopulation": 52765.71322401153,
+      "gapPopulationFraction": 0.004672903860609037,
+      "outsideParentCells": 777,
+      "outsideParentPopulation": 211880.73407829835,
+      "outsideParentPopulationFraction": 0.01876404657054088,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.b4jfbk",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 27,
+      "countryRasterPopulation": 115200032.58722216,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1287,
+      "gapPopulation": 163560.9538325483,
+      "gapPopulationFraction": 0.0014197995448370234,
+      "outsideParentCells": 7908,
+      "outsideParentPopulation": 3486519.316610066,
+      "outsideParentPopulationFraction": 0.030264916062157317,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.bk8phe",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 11,
+      "countryRasterPopulation": 12134026.807924286,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3569,
+      "gapPopulation": 801969.9217986827,
+      "gapPopulationFraction": 0.06609264463425658,
+      "outsideParentCells": 4348,
+      "outsideParentPopulation": 494431.17324154894,
+      "outsideParentPopulationFraction": 0.040747493067895164,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.c55i8p",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 14,
+      "countryRasterPopulation": 37148010.80347343,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7756,
+      "gapPopulation": 1574401.151056064,
+      "gapPopulationFraction": 0.04238184271521892,
+      "outsideParentCells": 5221,
+      "outsideParentPopulation": 1687680.1952195999,
+      "outsideParentPopulationFraction": 0.04543124002380762,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.c7ig3n",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 1,
+      "countryRasterPopulation": 1325.7282771608523,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 0,
+      "gapPopulation": 0,
+      "gapPopulationFraction": 0,
+      "outsideParentCells": 0,
+      "outsideParentPopulation": 0,
+      "outsideParentPopulationFraction": 0,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.ckoh6f",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 34,
+      "countryRasterPopulation": 53518604.00944149,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4272,
+      "gapPopulation": 523342.466480243,
+      "gapPopulationFraction": 0.00977870174618003,
+      "outsideParentCells": 2215,
+      "outsideParentPopulation": 334282.1404594604,
+      "outsideParentPopulationFraction": 0.006246092300921899,
+      "zeroPopulationRegions": [
+        "region.8d81c609-9e00-43d9-ad5a-2153fae27fb3",
+        "region.a428d19e-dcae-4f40-94ff-7852f725439d"
+      ]
+    },
+    {
+      "countryId": "country.d0e7yk",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 11,
+      "countryRasterPopulation": 137306162.4165837,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8229,
+      "gapPopulation": 829249.027483362,
+      "gapPopulationFraction": 0.006039415951102325,
+      "outsideParentCells": 5627,
+      "outsideParentPopulation": 210684.52438884563,
+      "outsideParentPopulationFraction": 0.00153441419293064,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.d772x9",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 32,
+      "countryRasterPopulation": 11256478.556724556,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 507,
+      "gapPopulation": 292525.6233076151,
+      "gapPopulationFraction": 0.025987312269418573,
+      "outsideParentCells": 2020,
+      "outsideParentPopulation": 348448.62038446945,
+      "outsideParentPopulationFraction": 0.030955384370746058,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.e06wze",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 52,
+      "countryRasterPopulation": 43108196.63283338,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5504,
+      "gapPopulation": 693418.9334205149,
+      "gapPopulationFraction": 0.01608554724120313,
+      "outsideParentCells": 22640,
+      "outsideParentPopulation": 4511851.419857293,
+      "outsideParentPopulationFraction": 0.10466342302106045,
+      "zeroPopulationRegions": [
+        "region.34fd8539-6e12-4ce6-a151-7b41eea701d8",
+        "region.43659a7f-f100-4dbd-ae00-e304d7a7a234",
+        "region.975b46a8-fed9-4794-94ef-0bb433e9eb0a",
+        "region.f08fc992-22bb-493c-a76d-5d3bfac5adb1",
+        "region.f8a1eeef-5b78-4112-8f7a-0747f3c4cae8"
+      ]
+    },
+    {
+      "countryId": "country.e55nqx",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 22,
+      "countryRasterPopulation": 21976765.242612775,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8008,
+      "gapPopulation": 973863.8211893598,
+      "gapPopulationFraction": 0.044313337765516346,
+      "outsideParentCells": 5958,
+      "outsideParentPopulation": 322520.2403218624,
+      "outsideParentPopulationFraction": 0.01467551010175502,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.eno4h9",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 84,
+      "countryRasterPopulation": 1822159.610526784,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 355,
+      "gapPopulation": 12246.102939230146,
+      "gapPopulationFraction": 0.006720653266861629,
+      "outsideParentCells": 453,
+      "outsideParentPopulation": 5678.381037498777,
+      "outsideParentPopulationFraction": 0.003116291791725734,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.f5u1ei",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 8,
+      "countryRasterPopulation": 252154184.2776021,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7475,
+      "gapPopulation": 1133003.0304979053,
+      "gapPopulationFraction": 0.004493294583803366,
+      "outsideParentCells": 12754,
+      "outsideParentPopulation": 5357429.734169639,
+      "outsideParentPopulationFraction": 0.02124664220630789,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.fn8xdv",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 1,
+      "countryRasterPopulation": 4189513.2272460232,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 0,
+      "gapPopulation": 0,
+      "gapPopulationFraction": 0,
+      "outsideParentCells": 0,
+      "outsideParentPopulation": 0,
+      "outsideParentPopulationFraction": 0,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.gddwz0",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 77,
+      "countryRasterPopulation": 69714351.40149143,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 5772,
+      "gapPopulation": 821057.6676601155,
+      "gapPopulationFraction": 0.011777455447179994,
+      "outsideParentCells": 15614,
+      "outsideParentPopulation": 2360035.9737280267,
+      "outsideParentPopulationFraction": 0.03385294313557276,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.h03oz0",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 86,
+      "countryRasterPopulation": 144799304.17845303,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 16611,
+      "gapPopulation": 774711.0048643139,
+      "gapPopulationFraction": 0.005350239832019823,
+      "outsideParentCells": 18124,
+      "outsideParentPopulation": 1320254.7607504264,
+      "outsideParentPopulationFraction": 0.009117825311669474,
+      "zeroPopulationRegions": [
+        "region.6f56bae6-8ca2-4614-926d-fb248ad249a4"
+      ]
+    },
+    {
+      "countryId": "country.hs6fyh",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 14,
+      "countryRasterPopulation": 30544019.00162669,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3164,
+      "gapPopulation": 2097841.6349658147,
+      "gapPopulationFraction": 0.06868256711253648,
+      "outsideParentCells": 4391,
+      "outsideParentPopulation": 2483574.2030664776,
+      "outsideParentPopulationFraction": 0.08131131017611695,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.hw7u0k",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 48,
+      "countryRasterPopulation": 46548936.66280498,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1926,
+      "gapPopulation": 456141.4311425183,
+      "gapPopulationFraction": 0.009799180472085821,
+      "outsideParentCells": 5416,
+      "outsideParentPopulation": 1324650.3932924054,
+      "outsideParentPopulationFraction": 0.028457156881756866,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.i9fek6",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 14,
+      "countryRasterPopulation": 10715965.26372366,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 6270,
+      "gapPopulation": 366849.3263495887,
+      "gapPopulationFraction": 0.034233904022764,
+      "outsideParentCells": 2583,
+      "outsideParentPopulation": 150630.47254885783,
+      "outsideParentPopulationFraction": 0.014056640614428016,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.ieqa5v",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 10,
+      "countryRasterPopulation": 670672.1265344205,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 293,
+      "gapPopulation": 42696.69168371486,
+      "gapPopulationFraction": 0.06366254089661137,
+      "outsideParentCells": 272,
+      "outsideParentPopulation": 7833.11814307453,
+      "outsideParentPopulationFraction": 0.011679504534579036,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.j4e5mk",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 32,
+      "countryRasterPopulation": 1406248041.4795873,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 24448,
+      "gapPopulation": 16036817.490152879,
+      "gapPopulationFraction": 0.011403974986716926,
+      "outsideParentCells": 30201,
+      "outsideParentPopulation": 14635026.64049193,
+      "outsideParentPopulationFraction": 0.010407144549757845,
+      "zeroPopulationRegions": [
+        "region.9a1072c9-7a50-490a-aabf-8b022cd4cdf7"
+      ]
+    },
+    {
+      "countryId": "country.jg9ci8",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 17,
+      "countryRasterPopulation": 51323411.71687588,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2970,
+      "gapPopulation": 136600.24365187908,
+      "gapPopulationFraction": 0.0026615581287820532,
+      "outsideParentCells": 8176,
+      "outsideParentPopulation": 1390982.5591038226,
+      "outsideParentPopulationFraction": 0.02710230112481878,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.jm8gea",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 11,
+      "countryRasterPopulation": 25708301.72287012,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2293,
+      "gapPopulation": 322838.2404834924,
+      "gapPopulationFraction": 0.012557742785331297,
+      "outsideParentCells": 2213,
+      "outsideParentPopulation": 952570.111152011,
+      "outsideParentPopulationFraction": 0.0370530158475853,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.jmri14",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 2884631.96470318,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3398,
+      "gapPopulation": 355808.7446430393,
+      "gapPopulationFraction": 0.12334632251073005,
+      "outsideParentCells": 927,
+      "outsideParentPopulation": 235499.74160058916,
+      "outsideParentPopulationFraction": 0.08163944117731545,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.joydxr",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 7,
+      "countryRasterPopulation": 8993762.293014478,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4190,
+      "gapPopulation": 63423.10284983568,
+      "gapPopulationFraction": 0.007051898947684761,
+      "outsideParentCells": 3057,
+      "outsideParentPopulation": 40111.74769181919,
+      "outsideParentPopulationFraction": 0.004459951951695931,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.jvmcgx",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 81,
+      "countryRasterPopulation": 76128709.00669055,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8300,
+      "gapPopulation": 1537237.7771409417,
+      "gapPopulationFraction": 0.02019261586329859,
+      "outsideParentCells": 13163,
+      "outsideParentPopulation": 11600944.680371372,
+      "outsideParentPopulationFraction": 0.15238593733872233,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.kb8qjm",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 28,
+      "countryRasterPopulation": 6620654.869559942,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1657,
+      "gapPopulation": 86734.24388381938,
+      "gapPopulationFraction": 0.013100553584600973,
+      "outsideParentCells": 3317,
+      "outsideParentPopulation": 161233.40108823503,
+      "outsideParentPopulationFraction": 0.024353089575707153,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.mbt8ni",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 18,
+      "countryRasterPopulation": 3052499.524321884,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1804,
+      "gapPopulation": 48663.6099115549,
+      "gapPopulationFraction": 0.015942217033552388,
+      "outsideParentCells": 3322,
+      "outsideParentPopulation": 146968.6698255207,
+      "outsideParentPopulationFraction": 0.048146991884681765,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.mce667",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 12,
+      "countryRasterPopulation": 5963173.25852362,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2367,
+      "gapPopulation": 226443.5352970933,
+      "gapPopulationFraction": 0.03797366359822268,
+      "outsideParentCells": 5274,
+      "outsideParentPopulation": 898712.522864354,
+      "outsideParentPopulationFraction": 0.15071044960495747,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.mgrohe",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 14,
+      "countryRasterPopulation": 6345020.233968594,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 595,
+      "gapPopulation": 76709.11822637368,
+      "gapPopulationFraction": 0.012089656990486024,
+      "outsideParentCells": 591,
+      "outsideParentPopulation": 50349.76837931044,
+      "outsideParentPopulationFraction": 0.007935320380817505,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.mqcp0q",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 4,
+      "countryRasterPopulation": 8088466.234820607,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3121,
+      "gapPopulation": 259461.8693488201,
+      "gapPopulationFraction": 0.03207800611589926,
+      "outsideParentCells": 1975,
+      "outsideParentPopulation": 829429.1700472096,
+      "outsideParentPopulationFraction": 0.10254467855432735,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.n2i2m0",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 76,
+      "countryRasterPopulation": 10206377.678945092,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3635,
+      "gapPopulation": 533511.9169813565,
+      "gapPopulationFraction": 0.05227240591752225,
+      "outsideParentCells": 1587,
+      "outsideParentPopulation": 704992.3171020774,
+      "outsideParentPopulationFraction": 0.0690737046265119,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.n7hxdt",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 12,
+      "countryRasterPopulation": 14676901.487159196,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2865,
+      "gapPopulation": 159301.70111950082,
+      "gapPopulationFraction": 0.010853905455376511,
+      "outsideParentCells": 5042,
+      "outsideParentPopulation": 580795.9816980518,
+      "outsideParentPopulationFraction": 0.03957211147095247,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.nusos0",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 115,
+      "countryRasterPopulation": 1736054.8179924649,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3444,
+      "gapPopulation": 41802.650211954824,
+      "gapPopulationFraction": 0.024079107283198856,
+      "outsideParentCells": 4921,
+      "outsideParentPopulation": 128040.9254991589,
+      "outsideParentPopulationFraction": 0.07375396454774542,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.opradj",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 63,
+      "countryRasterPopulation": 99023014.4421984,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 11240,
+      "gapPopulation": 1873669.8407230778,
+      "gapPopulationFraction": 0.01892155930899048,
+      "outsideParentCells": 12654,
+      "outsideParentPopulation": 3094824.3961462686,
+      "outsideParentPopulationFraction": 0.031253586992676094,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.pauqcg",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 20,
+      "countryRasterPopulation": 9947042.372998547,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2891,
+      "gapPopulation": 319402.4713467754,
+      "gapPopulationFraction": 0.03211029564062179,
+      "outsideParentCells": 6901,
+      "outsideParentPopulation": 518546.54754734423,
+      "outsideParentPopulationFraction": 0.052130726712791495,
+      "zeroPopulationRegions": [
+        "region.00adf9a6-aff4-4b5d-bd33-3a31bdc1ffb2",
+        "region.4b57b60b-b119-4f35-a22b-56c047a38147"
+      ]
+    },
+    {
+      "countryId": "country.pqqumd",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 5,
+      "countryRasterPopulation": 5098527.304064572,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2628,
+      "gapPopulation": 180371.6002937622,
+      "gapPopulationFraction": 0.035377196107191394,
+      "outsideParentCells": 13773,
+      "outsideParentPopulation": 825230.1795562155,
+      "outsideParentPopulationFraction": 0.16185657746666138,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.qdlh80",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 26,
+      "countryRasterPopulation": 26359392.64701914,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1737,
+      "gapPopulation": 208226.8546137897,
+      "gapPopulationFraction": 0.00789953157882555,
+      "outsideParentCells": 6579,
+      "outsideParentPopulation": 2169547.575470195,
+      "outsideParentPopulationFraction": 0.0823064326451975,
+      "zeroPopulationRegions": [
+        "region.4b65a546-1844-4483-8acf-0b06cdcf5250",
+        "region.d10337c5-a671-4311-b319-77a94dc562f5",
+        "region.f60263f0-24af-4553-bc5a-7b9a1dd2d855"
+      ]
+    },
+    {
+      "countryId": "country.qo855j",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 3,
+      "countryRasterPopulation": 720371.4704811423,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 774,
+      "gapPopulation": 128021.8809118228,
+      "gapPopulationFraction": 0.17771647845286806,
+      "outsideParentCells": 1073,
+      "outsideParentPopulation": 89568.0181872669,
+      "outsideParentPopulationFraction": 0.12433587649916737,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.qw8j9b",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 18,
+      "countryRasterPopulation": 7687163.679680192,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2683,
+      "gapPopulation": 752913.1315752906,
+      "gapPopulationFraction": 0.09794420451401314,
+      "outsideParentCells": 1721,
+      "outsideParentPopulation": 38692.73765709553,
+      "outsideParentPopulationFraction": 0.005033421853547063,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.rvhaqt",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 1,
+      "countryRasterPopulation": 80260.9433893792,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 0,
+      "gapPopulation": 0,
+      "gapPopulationFraction": 0,
+      "outsideParentCells": 0,
+      "outsideParentPopulation": 0,
+      "outsideParentPopulationFraction": 0,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.s93ito",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 30,
+      "countryRasterPopulation": 4769919.553741072,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4591,
+      "gapPopulation": 183113.68656766578,
+      "gapPopulationFraction": 0.03838926097276604,
+      "outsideParentCells": 23864,
+      "outsideParentPopulation": 615512.7981451656,
+      "outsideParentPopulationFraction": 0.12904049873596207,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.sadyi7",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 18,
+      "countryRasterPopulation": 5456020.3757395735,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8179,
+      "gapPopulation": 119237.6347308491,
+      "gapPopulationFraction": 0.021854323576400908,
+      "outsideParentCells": 5925,
+      "outsideParentPopulation": 96034.14208689358,
+      "outsideParentPopulationFraction": 0.017601499897968394,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.snc7v9",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 22,
+      "countryRasterPopulation": 31069092.41206991,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1204,
+      "gapPopulation": 87390.79197632747,
+      "gapPopulationFraction": 0.0028127886974380163,
+      "outsideParentCells": 7761,
+      "outsideParentPopulation": 1830719.1630471286,
+      "outsideParentPopulationFraction": 0.05892412751445291,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.sq8sl2",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 11,
+      "countryRasterPopulation": 5623115.3108997345,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 992,
+      "gapPopulation": 283931.3099452018,
+      "gapPopulationFraction": 0.0504935954976479,
+      "outsideParentCells": 2123,
+      "outsideParentPopulation": 293019.6740455265,
+      "outsideParentPopulationFraction": 0.052109846205277525,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.sxojze",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 16,
+      "countryRasterPopulation": 83311362.79660147,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 9549,
+      "gapPopulation": 1132961.2453210452,
+      "gapPopulationFraction": 0.013599120303518335,
+      "outsideParentCells": 15571,
+      "outsideParentPopulation": 1502686.0051541992,
+      "outsideParentPopulationFraction": 0.01803698744939386,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.t3667i",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 9,
+      "countryRasterPopulation": 60923573.45069459,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 9261,
+      "gapPopulation": 611891.6931612212,
+      "gapPopulationFraction": 0.010043594925639495,
+      "outsideParentCells": 19834,
+      "outsideParentPopulation": 4433507.066605314,
+      "outsideParentPopulationFraction": 0.07277161885773736,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.td9ldb",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 4,
+      "countryRasterPopulation": 1440203.1846315525,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 2015,
+      "gapPopulation": 230238.5184597708,
+      "gapPopulationFraction": 0.159865302977144,
+      "outsideParentCells": 1265,
+      "outsideParentPopulation": 52995.2447439037,
+      "outsideParentPopulationFraction": 0.03679706121290204,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.tyezxm",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 9,
+      "countryRasterPopulation": 2244642.525432967,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1526,
+      "gapPopulation": 137878.1991888016,
+      "gapPopulationFraction": 0.061425459789953146,
+      "outsideParentCells": 1644,
+      "outsideParentPopulation": 105196.77076908645,
+      "outsideParentPopulationFraction": 0.04686571228030848,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.u4ua72",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 6,
+      "countryRasterPopulation": 380252.8374352989,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 109,
+      "gapPopulation": 11272.13230617881,
+      "gapPopulationFraction": 0.029643782232385826,
+      "outsideParentCells": 212,
+      "outsideParentPopulation": 34454.69421995833,
+      "outsideParentPopulationFraction": 0.09060995955308523,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.u6myyj",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 51,
+      "countryRasterPopulation": 345260186.7194596,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 22016,
+      "gapPopulation": 3145261.2385047874,
+      "gapPopulationFraction": 0.009109828933332712,
+      "outsideParentCells": 19722,
+      "outsideParentPopulation": 4170711.990100928,
+      "outsideParentPopulationFraction": 0.012079910023016442,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.ucqeq5",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 2,
+      "countryRasterPopulation": 0,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 0,
+      "gapPopulation": 0,
+      "gapPopulationFraction": 0,
+      "outsideParentCells": 0,
+      "outsideParentPopulation": 0,
+      "outsideParentPopulationFraction": 0,
+      "zeroPopulationRegions": [
+        "region.758c15f9-9f21-44b4-a6d6-6dcc7fcf5658",
+        "region.bacfbad7-e78f-4aa5-aa96-4b126f89eb16"
+      ]
+    },
+    {
+      "countryId": "country.ukura0",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 19,
+      "countryRasterPopulation": 33214254.65474525,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8286,
+      "gapPopulation": 1186985.8231246634,
+      "gapPopulationFraction": 0.035737240996768276,
+      "outsideParentCells": 5712,
+      "outsideParentPopulation": 340739.36701231514,
+      "outsideParentPopulationFraction": 0.010258829245281119,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.wkwrv6",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 22,
+      "countryRasterPopulation": 18862338.503380187,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 949,
+      "gapPopulation": 82864.1962939999,
+      "gapPopulationFraction": 0.004393103022679314,
+      "outsideParentCells": 560,
+      "outsideParentPopulation": 67981.9346568773,
+      "outsideParentPopulationFraction": 0.003604109567045186,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.wxv6tu",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 22,
+      "countryRasterPopulation": 6072013.829673866,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1836,
+      "gapPopulation": 11417.142740081574,
+      "gapPopulationFraction": 0.0018802893175713996,
+      "outsideParentCells": 6480,
+      "outsideParentPopulation": 1404010.6651133196,
+      "outsideParentPopulationFraction": 0.23122652623943885,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.x4ahyj",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 2,
+      "countryRasterPopulation": 3370485.3442183505,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 265,
+      "gapPopulation": 768296.6981848007,
+      "gapPopulationFraction": 0.22794838716706434,
+      "outsideParentCells": 1475,
+      "outsideParentPopulation": 2815715.1796845584,
+      "outsideParentPopulationFraction": 0.8354034781710499,
+      "zeroPopulationRegions": [
+        "region.12081bd0-b795-4ba3-9527-9e9f639cc0a6"
+      ]
+    },
+    {
+      "countryId": "country.xjfx2m",
+      "accepted": false,
+      "issues": [
+        "suspicious_population_gap"
+      ],
+      "regionCount": 8,
+      "countryRasterPopulation": 10941158.535837412,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1989,
+      "gapPopulation": 702610.0212349186,
+      "gapPopulationFraction": 0.06421715021618069,
+      "outsideParentCells": 1238,
+      "outsideParentPopulation": 523110.9973501682,
+      "outsideParentPopulationFraction": 0.047811298560087125,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.xs7zo4",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 25,
+      "countryRasterPopulation": 20155698.26730251,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 500,
+      "gapPopulation": 114611.15568620224,
+      "gapPopulationFraction": 0.0056862905053569725,
+      "outsideParentCells": 3791,
+      "outsideParentPopulation": 2835997.1518939957,
+      "outsideParentPopulationFraction": 0.1407044853660406,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.xso2dg",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 30,
+      "countryRasterPopulation": 1663042.8063609926,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 520,
+      "gapPopulation": 6200.046379229852,
+      "gapPopulationFraction": 0.0037281339695618295,
+      "outsideParentCells": 144,
+      "outsideParentPopulation": 6915.729340582296,
+      "outsideParentPopulationFraction": 0.004158479453523528,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.yc1r8r",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 31,
+      "countryRasterPopulation": 91729670.42964436,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 3964,
+      "gapPopulation": 493141.58459979546,
+      "gapPopulationFraction": 0.005376031357029998,
+      "outsideParentCells": 10363,
+      "outsideParentPopulation": 1133078.1820670855,
+      "outsideParentPopulationFraction": 0.01235236294603439,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.yhajqy",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country"
+      ],
+      "regionCount": 16,
+      "countryRasterPopulation": 18780544.045109518,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 7699,
+      "gapPopulation": 182018.33635781097,
+      "gapPopulationFraction": 0.009691856419101384,
+      "outsideParentCells": 8994,
+      "outsideParentPopulation": 1044129.0021117039,
+      "outsideParentPopulationFraction": 0.05559631284396133,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.z7gp3s",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 17,
+      "countryRasterPopulation": 6989395.0002762135,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 508,
+      "gapPopulation": 36476.31447285313,
+      "gapPopulationFraction": 0.005218808562316428,
+      "outsideParentCells": 1072,
+      "outsideParentPopulation": 54713.97933192101,
+      "outsideParentPopulationFraction": 0.007828142397125756,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.zaf4y3",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "suspicious_population_gap"
+      ],
+      "regionCount": 10,
+      "countryRasterPopulation": 36158924.48094609,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 26795,
+      "gapPopulation": 2844952.6953073232,
+      "gapPopulationFraction": 0.07867912931996826,
+      "outsideParentCells": 13788,
+      "outsideParentPopulation": 2661028.9617941543,
+      "outsideParentPopulationFraction": 0.0735925915937124,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.zsxuo0",
+      "accepted": true,
+      "issues": [],
+      "regionCount": 42,
+      "countryRasterPopulation": 19033597.45892654,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 4298,
+      "gapPopulation": 436062.98928095883,
+      "gapPopulationFraction": 0.022910171880116667,
+      "outsideParentCells": 2176,
+      "outsideParentPopulation": 144002.87869510727,
+      "outsideParentPopulationFraction": 0.0075657205111045135,
+      "zeroPopulationRegions": []
+    },
+    {
+      "countryId": "country.zvvq7v",
+      "accepted": false,
+      "issues": [
+        "population_outside_parent_country",
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 20,
+      "countryRasterPopulation": 9752410.311898228,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 1797,
+      "gapPopulation": 234268.34637875087,
+      "gapPopulationFraction": 0.02402158429418588,
+      "outsideParentCells": 6321,
+      "outsideParentPopulation": 732430.4768095947,
+      "outsideParentPopulationFraction": 0.07510250834257946,
+      "zeroPopulationRegions": [
+        "region.1e3ebd09-7537-4723-b056-a479700057e6"
+      ]
+    },
+    {
+      "countryId": "country.zwicjl",
+      "accepted": false,
+      "issues": [
+        "expected_inhabited_region_has_no_raster_population"
+      ],
+      "regionCount": 234,
+      "countryRasterPopulation": 67758246.04390086,
+      "overlapCells": 0,
+      "overlapPopulation": 0,
+      "gapCells": 8820,
+      "gapPopulation": 734587.0634477271,
+      "gapPopulationFraction": 0.010841293958107843,
+      "outsideParentCells": 26225,
+      "outsideParentPopulation": 2000453.8590908581,
+      "outsideParentPopulationFraction": 0.02952340085359877,
+      "zeroPopulationRegions": [
+        "region.200035c7-ed08-4cf6-a7d7-318bc9236704",
+        "region.41dfac90-42d0-41c1-992a-945e2e306485",
+        "region.4f9e5e86-f847-4324-923f-642c0120c1ea",
+        "region.70340477-c3fd-4222-bc5f-2b3de848d8cf",
+        "region.806d4691-f5f9-4c0f-b873-950743d90262",
+        "region.90da1c55-a657-4b12-ae21-03ef8fdbd8aa",
+        "region.91aecc0d-03c8-4934-8b15-61ed009dd7c2",
+        "region.af8d27e8-3763-4188-9e38-26bcf3229d5b",
+        "region.e32165dd-0710-4814-ad9d-14ae484b1d6c"
+      ]
+    }
+  ],
+  "sha256": "e25b5664acfbf18d67da936c19f5246c04c590c05f3ffd270e8f0dbd10f69ba6"
+}

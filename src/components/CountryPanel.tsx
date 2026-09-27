@@ -48,7 +48,7 @@ const fact = (name: string, observation?: FactValue) => (
     {observation?.status === "unavailable" && <small title={observation.reason}><a href={observation.source.url} target="_blank">{observation.source.name}</a> · checked {observation.checkedAt}</small>}
   </div>
 );
-export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number }) {
+export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation, controlledPopulationComplete = false }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number; controlledPopulationComplete?: boolean }) {
   if (!country)
     return (
       <aside className="panel empty">
@@ -86,12 +86,12 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
       <section>
         <h2>Initial indicators</h2>
         <div className="fact">
-          {label("Current population controlled", controlledPopulation?.toLocaleString("en"))}
-          <small>Simulation state · sum of currently owned Regions with available baselines</small>
+          {label("Current population controlled", controlledPopulationComplete ? controlledPopulation?.toLocaleString("en") : "Unavailable — incomplete Region data")}
+          <small>{controlledPopulationComplete ? "Simulation state · complete sum of all currently controlled Regions" : "One or more currently controlled Regions lacks a demographic baseline; no partial total is shown."}</small>
         </div>
         <div className="fact">
           {label("National baseline", nationalPopulation?.value.toLocaleString("en"))}
-          {nationalPopulation && <small><a href={nationalPopulation.source.url} target="_blank">{nationalPopulation.source.name}</a> · {nationalPopulation.referenceDate} · projection</small>}
+          {nationalPopulation && <small><a href={nationalPopulation.source.url} target="_blank">{nationalPopulation.source.name}</a> · {nationalPopulation.referenceDate}{nationalPopulation.isEstimate ? " · estimate" : ""}{nationalPopulation.isProjection ? " · projection" : ""}</small>}
         </div>
         {fact("Total area (km²)", facts.totalAreaKm2)}
         {fact("Land area (km²)", facts.landAreaKm2)}

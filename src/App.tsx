@@ -80,7 +80,7 @@ export default function App() {
           loadRegionData(data.registry),
           ...responses.map((response) => response.json()),
         ]);
-        const population = await loadPopulationData(regions.registry.regions);
+        const population = await loadPopulationData(regions.registry.regions, new Set(data.registry.countries.map(country => country.id)));
         return [data, regions, population, ...geography] as const;
       })
       .then(([data, regions, population, admin0, land, lakes, rivers, admin1Overview]) => {
@@ -342,6 +342,7 @@ export default function App() {
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
             controlledPopulation={selected ? controlledPopulation(sim, selected) : undefined}
+            controlledPopulationComplete={selected ? Object.entries(sim.regionOwnership).filter(([, owner]) => owner === selected).every(([regionId]) => sim.populationByRegion[regionId] !== undefined) : false}
           />
         )}
       </div>
