@@ -34,6 +34,15 @@ describe('diplomacy foundation', () => {
     expect(transferred.claims).toEqual(claimed.claims); expect(transferred.populationByRegion['region.x']).toBe(5_000_000); expect(transferred.economicOutputByRegion['region.x']).toBe(200_000_000_000);
     expect(transferred.territoryOwnership.legacy).toBe('country.b');
   });
+  it('activates a future-dated claim on its creation date and still retargets afterward', () => {
+    const futureClaim = createClaim(initial(), { ...claim, id: 'claim.future', creationDate: '2030-01-05' }, context);
+    expect(getAvailableCasusBelli(futureClaim, 'country.a', 'country.b', context)).toEqual([]);
+    const activated = { ...futureClaim, date: '2030-01-05' };
+    expect(getAvailableCasusBelli(activated, 'country.a', 'country.b', context)).toEqual([expect.objectContaining({ claimId: 'claim.future' })]);
+    const transferred = transferRegion(activated, 'region.x', 'country.b', 'country.c');
+    expect(getAvailableCasusBelli(transferred, 'country.a', 'country.b', context)).toEqual([]);
+    expect(getAvailableCasusBelli(transferred, 'country.a', 'country.c', context)[0]).toMatchObject({ claimId: 'claim.future', targetCountryId: 'country.c' });
+  });
   it('never produces a self-CB when the claimant owns the Region', () => {
     const owned = { ...initial(), regionOwnership: { 'region.x': 'country.a' } }, claimed = createClaim(owned, claim, context);
     expect(getAvailableCasusBelli(claimed, 'country.a', 'country.a', context)).toEqual([]);

@@ -73,7 +73,7 @@ export function getAvailableCasusBelli(state: SimulationState, attackerCountryId
   if (attackerCountryId === targetCountryId) return [];
   if (context) { requireCountry(context, attackerCountryId); requireCountry(context, targetCountryId); }
   const derived: AvailableCasusBelli[] = state.claims.flatMap(claim => {
-    if (claim.status !== 'active' || claim.claimantCountryId !== attackerCountryId) return [];
+    if (claim.status !== 'active' || claim.claimantCountryId !== attackerCountryId || claim.creationDate > state.date) return [];
     if (context && (!context.countryIds.has(claim.claimantCountryId) || !context.regionIds.has(claim.regionId))) return [];
     const owner = state.regionOwnership[claim.regionId];
     if (!owner || owner === attackerCountryId || owner !== targetCountryId || (context && !context.countryIds.has(owner))) return [];
