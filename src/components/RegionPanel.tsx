@@ -1,10 +1,12 @@
 import type { DataSource, RegionEntity } from '../types';
 import type { RegionDemographicRecord } from '../data/populationData';
+import type { EconomicBaselineRecord } from '../data/economicData';
 
 const row = (label: string, value?: string | number) => (
   <div className="field" key={label}><span>{label}</span><b>{value ?? 'Unavailable'}</b></div>
 );
-export function RegionPanel({ region, currentOwner, parentCountry, source, onBack, demographic, currentPopulation }: {
+const usd = (value?: number) => value === undefined ? undefined : new Intl.NumberFormat('en', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+export function RegionPanel({ region, currentOwner, parentCountry, source, onBack, demographic, currentPopulation, economic, currentEconomicOutput }: {
   region: RegionEntity;
   currentOwner?: { commonName: string };
   parentCountry?: { commonName: string };
@@ -12,6 +14,8 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
   onBack: () => void;
   demographic?: RegionDemographicRecord;
   currentPopulation?: number;
+  economic?: EconomicBaselineRecord;
+  currentEconomicOutput?: number;
 }) {
   return (
     <aside className="panel">
@@ -28,6 +32,16 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
         {row('Initial country', parentCountry?.commonName)}
         {row('ISO 3166-2', region.iso31662)}
         {row('Geometry', region.geographyMapping.status.replaceAll('_', ' '))}
+      </section>
+      <section>
+        <h2>Annual economic output</h2>
+        {row('Current simulated', usd(currentEconomicOutput))}
+        {row('Baseline', economic?.status === 'unavailable' ? undefined : usd(economic?.baselineAnnualOutputUsd))}
+        {economic?.status === 'unavailable' ? (
+          <small title={economic.reason}><a href={economic.source.url} target="_blank">{economic.source.name}</a> · unavailable, checked {economic.checkedAt}</small>
+        ) : economic ? (
+          <small><a href={economic.nationalSourceObservation.source.url} target="_blank">National GDP source</a> · {economic.nationalSourceObservation.referenceDate}{economic.nationalSourceObservation.isEstimate ? ' · estimate' : ''}{economic.isDerived ? ' · modelled regional allocation' : ' · direct single-Region baseline'}<br />{economic.allocationMethod}</small>
+        ) : <small>No economic record loaded.</small>}
       </section>
       <section>
         <h2>Population</h2>
@@ -47,7 +61,7 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
           <a href={source.url} target="_blank">{source.name}</a> · {source.datasetId} · retrieved {source.retrievedAt}
         </small>
       </section>
-      <footer>Region ownership is simulation state. Changing it does not alter the country profile, permanent Region identity, or source geometry.</footer>
+      <footer>Region ownership is simulation state. A transfer changes who controls this population and output without changing either value, identity, or source geometry.</footer>
     </aside>
   );
 }

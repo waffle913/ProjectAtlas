@@ -48,7 +48,8 @@ const fact = (name: string, observation?: FactValue) => (
     {observation?.status === "unavailable" && <small title={observation.reason}><a href={observation.source.url} target="_blank">{observation.source.name}</a> · checked {observation.checkedAt}</small>}
   </div>
 );
-export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation, controlledPopulationComplete = false }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number; controlledPopulationComplete?: boolean }) {
+const formatUsd = (value?: number) => value === undefined ? undefined : new Intl.NumberFormat("en", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation, controlledPopulationComplete = false, controlledEconomicOutput, controlledEconomicOutputComplete = false }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number; controlledPopulationComplete?: boolean; controlledEconomicOutput?: number; controlledEconomicOutputComplete?: boolean }) {
   if (!country)
     return (
       <aside className="panel empty">
@@ -84,6 +85,14 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
         {label("UN subregion", country.unSubregion)}
       </section>
       <section>
+        <h2>Economic output</h2>
+        <div className="fact">
+          {label("Current output controlled", controlledEconomicOutputComplete ? formatUsd(controlledEconomicOutput) : "Unavailable — incomplete Region data")}
+          <small>{controlledEconomicOutputComplete ? "Simulation state · complete sum of all currently controlled Regions" : "One or more currently controlled Regions lacks an economic baseline; no partial total is shown."}</small>
+        </div>
+        {fact("Statistical national GDP (USD)", facts.nominalGdpUsd)}
+      </section>
+      <section>
         <h2>Initial indicators</h2>
         <div className="fact">
           {label("Current population controlled", controlledPopulationComplete ? controlledPopulation?.toLocaleString("en") : "Unavailable — incomplete Region data")}
@@ -95,7 +104,6 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
         </div>
         {fact("Total area (km²)", facts.totalAreaKm2)}
         {fact("Land area (km²)", facts.landAreaKm2)}
-        {fact("Nominal GDP (USD)", facts.nominalGdpUsd)}
         {fact("GDP per capita (USD)", facts.gdpPerCapitaUsd)}
         {fact("Currencies", facts.currencies)}
         {fact("Languages", facts.languages)}

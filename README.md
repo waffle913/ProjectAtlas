@@ -1,10 +1,10 @@
-# ProjectAtlas — Milestone 0.4
+# ProjectAtlas — Milestone 0.5
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
 
 ## Run
 
-`npm install` then `npm run dev`. Run `npm run verify` for country and Region reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate` and `npm run data:regions:generate` regenerate derived data offline from checked-in snapshots.
+`npm install` then `npm run dev`. Run `npm run verify` for country, Region, demographic and economic reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate`, `npm run data:regions:generate`, `npm run data:population:generate` and `npm run data:economy:generate` regenerate derived data offline from checked-in inputs.
 
 Source updates are deliberately separate from generation. `npm run data:sources:update` refreshes country sources. `npm run data:regions:sources:update` downloads the pinned Admin-1 version, then `npm run data:regions:reconcile` matches it against existing permanent identities without allocating IDs. Any unmatched, ambiguous, split or missing identity fails and requires review before regeneration.
 
@@ -17,6 +17,14 @@ The compact national snapshot is reproducibly extracted from the UN World Popula
 WorldPop Global2 R2025A v1 constrained population counts for 2026 at 1 km are the pinned spatial source (DOI `10.5258/SOTON/WP00845`). The 289 MB GeoTIFF stays in the ignored cache and is verified by SHA-256 before processing. `scripts/worldpop_zonal.py` uses the authoritative source Admin-1 geometry with Rasterio/GDAL and Shapely to detect overlaps, double-counting, suspicious gaps, zero-population Regions and population outside parent boundaries. Exact tool versions, thresholds and every rejected country are recorded in `population-spatial-audit.json`. Only accepted complete country weight sets enter `population-spatial-weights.json`; zero is never shorthand for unknown.
 
 `npm run data:population:generate` regenerates compact artifacts, `npm run data:population:verify` checks byte-for-byte offline reproducibility, and `npm run data:population:rebuild` performs the deliberate full-raster audit. The rebuild requires Python 3 with the exact versions `rasterio==1.4.3`, `shapely==2.1.2` and `numpy==2.2.6`; it fails with a setup command when unavailable. Ordinary `npm run verify` remains offline and practical.
+
+## Regional economic baseline
+
+`src/data/country-facts.json` remains the sole source of national nominal-GDP observations. Each observation retains its actual reference date, estimate flag and source provenance; it is never relabelled as a 2026 statistic. `src/data/region-economic-baselines.json` is a separate generated model layer keyed only by permanent ProjectAtlas Region IDs, while mutable values live in `SimulationState.economicOutputByRegion`.
+
+Economic baselines use integer whole US dollars per year (`USD_PER_YEAR`). A one-Region country receives its rounded whole-dollar national observation directly. A multi-Region country is allocated only when every Region has a usable demographic baseline. Allocation uses baseline population weights and an exact BigInt largest-remainder calculation, with permanent Region ID as the tie-breaker, so the Region sum equals the selected whole-dollar national total exactly. These values are modelled allocations, not observed regional GDP. Incomplete demographic coverage or a missing national GDP keeps every affected Region explicitly unavailable; zero is never used as a substitute for unknown.
+
+`npm run data:economy:generate` rebuilds the baselines and coverage report from committed country facts, Region identities and demographic records. `npm run data:economy:verify` regenerates them and requires byte-for-byte equality. No network access or duplicate economic source snapshot is involved.
 
 ## Model
 
@@ -54,7 +62,7 @@ Tests cover the 193-member invariant, registry/map decoupling, exact feature map
 
 `SimulationClock` is UI-independent. It starts from 2026-01-01, measures real elapsed time, progresses one game day per second at ×1 (with ×2 / ×5 multipliers), and is separately tested along with pure territory transfers.
 
-Save schema version 2 adds `regionOwnership` while retaining `territoryOwnership`. The explicit v1 migration applies each legacy macro Territory owner to its child Regions and preserves every old Territory ID. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity or geometry.
+Save schema version 2 adds `regionOwnership`, version 3 adds Region population, and version 4 adds mutable Region economic output. The explicit v3 → v4 migration initializes economic output from the committed baseline while preserving date, clock state, ownership, population and permanent IDs. The v1 migration applies each legacy macro Territory owner to its child Regions and preserves every old Territory ID. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity, population, economic output or geometry. Country-controlled population and output are complete-only sums of currently owned Regions, so a transfer changes control without moving or rewriting the Region's people or economy.
 
 Natural Earth admin-0 country geometry, plus its 110m physical land, lakes, and river centreline datasets, are stored in `public/data/`. They are public domain. The map uses no runtime tile service or remotely loaded map asset, and remains usable while disconnected. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
 

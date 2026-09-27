@@ -6,7 +6,8 @@ import { buildWorld } from "./data/geography";
 import { loadCountryData, type LoadedCountryData } from "./data/countryData";
 import { loadRegionData, type LoadedRegionData } from "./data/regionData";
 import { loadPopulationData, populationBaselineState, type LoadedPopulationData } from "./data/populationData";
-import { controlledPopulation } from "./simulation/region";
+import { controlledEconomicOutput, controlledPopulation } from "./simulation/region";
+import { loadEconomicData, economicBaselineState, type LoadedEconomicData } from "./data/economicData";
 import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
 import { RegionPanel } from "./components/RegionPanel";
@@ -14,13 +15,14 @@ import { SimulationClock } from "./simulation/clock";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   date: "2026-01-01",
   paused: true,
   speed: 1,
   territoryOwnership: {},
   regionOwnership: {},
   populationByRegion: {},
+  economicOutputByRegion: {},
 };
 function FitWorld() {
   const map = useMap();
@@ -56,6 +58,7 @@ export default function App() {
   const [countryData, setCountryData] = useState<LoadedCountryData>();
   const [regionData, setRegionData] = useState<LoadedRegionData>();
   const [populationData, setPopulationData] = useState<LoadedPopulationData>();
+  const [economicData, setEconomicData] = useState<LoadedEconomicData>();
   const [regionGeometry, setRegionGeometry] = useState<GeoJSON.FeatureCollection>();
   const [mapZoom, setMapZoom] = useState(2);
   const [sim, setSim] = useState(initialState);
@@ -81,9 +84,10 @@ export default function App() {
           ...responses.map((response) => response.json()),
         ]);
         const population = await loadPopulationData(regions.registry.regions, new Set(data.registry.countries.map(country => country.id)));
-        return [data, regions, population, ...geography] as const;
+        const economy = await loadEconomicData(regions.registry.regions);
+        return [data, regions, population, economy, ...geography] as const;
       })
-      .then(([data, regions, population, admin0, land, lakes, rivers, admin1Overview]) => {
+      .then(([data, regions, population, economy, admin0, land, lakes, rivers, admin1Overview]) => {
         if (!active) return;
         const nextWorld = buildWorld(admin0, data.mapping, data.registry);
         const ownership = Object.fromEntries(
@@ -97,11 +101,13 @@ export default function App() {
           regions.registry.regions.map((region) => [region.id, region.initialOwnerCountryId]),
         ));
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
+        clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
         setSim(clock.current.snapshot());
         setWorld(nextWorld);
         setCountryData(data);
         setRegionData(regions);
         setPopulationData(population);
+        setEconomicData(economy);
         setPhysical({ land, lakes, rivers, admin1Overview });
       })
       .catch(
@@ -189,7 +195,7 @@ export default function App() {
         </button>
       </main>
     );
-  if (!world || !regionData || !populationData)
+  if (!world || !regionData || !populationData || !economicData)
     return (
       <main className="load-state">
         <p>Loading local country and Region assets…</p>
@@ -203,7 +209,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.4 · DEMOGRAPHIC BASELINE</small>
+          <small>MILESTONE 0.5 · REGIONAL ECONOMIC OUTPUT</small>
         </div>
         <Clock state={sim} onChange={changeClock} />
       </header>
@@ -334,6 +340,8 @@ export default function App() {
             onBack={() => setSelectedRegion(undefined)}
             demographic={populationData.byRegionId.get(selectedRegionEntity.id)}
             currentPopulation={sim.populationByRegion[selectedRegionEntity.id]}
+            economic={economicData.byRegionId.get(selectedRegionEntity.id)}
+            currentEconomicOutput={sim.economicOutputByRegion[selectedRegionEntity.id]}
           />
         ) : (
           <CountryPanel
@@ -342,7 +350,9 @@ export default function App() {
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
             controlledPopulation={selected ? controlledPopulation(sim, selected) : undefined}
-            controlledPopulationComplete={selected ? Object.entries(sim.regionOwnership).filter(([, owner]) => owner === selected).every(([regionId]) => sim.populationByRegion[regionId] !== undefined) : false}
+            controlledPopulationComplete={selected ? controlledPopulation(sim, selected) !== undefined : false}
+            controlledEconomicOutput={selected ? controlledEconomicOutput(sim, selected) : undefined}
+            controlledEconomicOutputComplete={selected ? controlledEconomicOutput(sim, selected) !== undefined : false}
           />
         )}
       </div>
