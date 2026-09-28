@@ -1,4 +1,4 @@
-# ProjectAtlas — Milestone 0.8
+# ProjectAtlas — Milestone 0.9
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
 
@@ -7,6 +7,8 @@ An original political-map foundation for a future geopolitical simulation, with 
 `npm install` then `npm run dev`. Run `npm run verify` for country, Region, demographic and economic reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate`, `npm run data:regions:generate`, `npm run data:population:generate` and `npm run data:economy:generate` regenerate derived data offline from checked-in inputs.
 
 Milestone 0.8 adds the shared deterministic engine contract used by future simulation systems: canonical state access, a daily multi-cadence scheduler, keyed RNG, dirty domains, persistent adaptive fidelity, shared invariant validation and explicit reality/information/perception types. See [`docs/engine-contract.md`](docs/engine-contract.md). Run `npm run benchmark:world` to produce the reproducible full-world performance baseline.
+
+Milestone 0.9 audits the actual V1 data without changing permanent identities or inventing missing values. Run `npm run data:audit` for the aggregate reproducibility and structural audit. The human summary is [`docs/data-audit.md`](docs/data-audit.md), and [`src/data/data-audit-report.json`](src/data/data-audit-report.json) contains normalized coverage for every Country and Region.
 
 Source updates are deliberately separate from generation. `npm run data:sources:update` refreshes country sources. `npm run data:regions:sources:update` downloads the pinned Admin-1 version, then `npm run data:regions:reconcile` matches it against existing permanent identities without allocating IDs. Any unmatched, ambiguous, split or missing identity fails and requires review before regeneration.
 
