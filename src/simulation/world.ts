@@ -1,0 +1,35 @@
+import type { Country, RegionEntity, SimulationState } from '../types';
+import { cloneSimulationState } from './state';
+
+/** Coherent access to canonical simulation state and immutable identity registries. */
+export interface CanonicalWorld {
+  readonly state: SimulationState;
+  readonly countriesById: ReadonlyMap<string, Country>;
+  readonly regionsById: ReadonlyMap<string, RegionEntity>;
+  snapshot(): SimulationState;
+  ownerOfRegion(regionId: string): string | undefined;
+  occupierOfRegion(regionId: string): string | undefined;
+}
+
+export function canonicalWorld(state: SimulationState, countriesById: ReadonlyMap<string, Country>, regionsById: ReadonlyMap<string, RegionEntity>): CanonicalWorld {
+  return {
+    state, countriesById, regionsById,
+    snapshot: () => cloneSimulationState(state),
+    ownerOfRegion: regionId => state.regionOwnership[regionId],
+    occupierOfRegion: regionId => state.occupationByRegion[regionId]?.occupierCountryId,
+  };
+}
+
+export interface SimulationDelta { readonly fromTick: number; readonly toTick: number; readonly date: string; readonly changedDomains: readonly string[] }
+export const simulationDelta = (before: SimulationState, after: SimulationState): SimulationDelta => ({
+  fromTick: before.engine.tick,
+  toTick: after.engine.tick,
+  date: after.date,
+  changedDomains: [
+    before.date === after.date ? undefined : 'time',
+    before.regionOwnership === after.regionOwnership ? undefined : 'sovereignty',
+    before.occupationByRegion === after.occupationByRegion ? undefined : 'occupation',
+    before.wars === after.wars ? undefined : 'war',
+    before.engine.fidelityByCountry === after.engine.fidelityByCountry ? undefined : 'fidelity',
+  ].filter((value): value is string => Boolean(value)),
+});

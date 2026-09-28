@@ -1,0 +1,68 @@
+# ProjectAtlas 0.8 engine contract
+
+This contract is the integration point for simulation systems added after milestone 0.8. It consolidates the existing 0.1–0.7 model; it does not replace the entity or Region registries and does not duplicate the world in a second state object.
+
+## Canonical state and invariants
+
+`SimulationState` in `src/types.ts` is the only mutable, persistent world state. Country and Region registries remain immutable identity metadata. `canonicalWorld()` joins them for coherent reads while retaining references to the original state and registries. Its snapshot is a defensive clone intended for UI, debugging and persistence.
+
+The following concepts are separate:
+
+- `regionOwnership` is legal sovereignty.
+- `occupationByRegion` is temporary military occupation associated with an active war.
+- effective control is a future derived rule and must not overwrite sovereignty.
+- Region identity and geometry live in the permanent registry and dataset mapping; simulation changes never mutate them.
+
+Population and nominal output are quantities attached to permanent Region IDs. Ownership transfer changes who controls their totals and does not rewrite the values. Claims target Region IDs. Wars and occupations retain their existing 0.7 semantics.
+
+`validateSimulationInvariants()` runs registered invariant definitions and returns structured violations. `assertSimulationInvariants()` is the throwing boundary used during validated saves and reloads. New systems should register small checks covering their own references, ranges and conservation rules. A fidelity transition has the stricter `validateFidelityConservation()` rule: it cannot change sovereignty, occupation, wars, population, economic output, claims, CBs or relations.
+
+## Time and scheduler
+
+The canonical step is one game day. `SimulationClock` converts elapsed wall time to whole daily steps; each step passes through `SimulationScheduler`. React only receives cloned snapshots and does not drive system logic.
+
+A task declares a stable ID, cadence (`daily`, `weekly`, `monthly`, `quarterly`, `yearly`), optional numeric priority and pure state transition. Tasks run by priority and then ID. The context supplies the logical date and tick. Calendar boundaries use UTC: Monday, first day of month, first day of Jan/Apr/Jul/Oct and first day of January.
+
+`requestImmediate()` persists a task ID, stable event key, request tick and sequence. The request executes at the next daily boundary in the same global ordering as scheduled work. An immediate request is never executed directly from an event handler or React render.
+
+Future 0.10 and 0.12 systems should register their cadence with the shared scheduler. They should request a keyed immediate update after a major event instead of inventing a timer.
+
+## Deterministic random values
+
+`rng.ts` produces counter-free values from the game seed plus stable keys: system, entity, logical date/tick and event key. A system must supply keys that describe the decision, not its current array index or UI render order. Calling another random decision first does not shift later values. Simulation code must not use `Math.random()`.
+
+The default seed is persisted under `SimulationState.engine.seed`. Same state, seed, decisions and registered scheduler tasks yield the same result across save/reload.
+
+## Dirty state
+
+`markDirty()`, `clearDirty()` and `inspectDirty()` provide a persistent, inspectable recalculation queue. Domains are extensible strings so future systems can introduce names such as `householdIncome`, `consumption` and `governmentRevenue` without a premature global dependency graph. Entity IDs narrow a mark when useful; an empty entity list means the whole domain. Reasons are stable diagnostic labels.
+
+A task that consumes a dirty domain must clear only the domain/entity it recalculated. Dirty state indicates work to perform; it is not an alternative store for computed values.
+
+## Adaptive fidelity
+
+Every registered Country has one persisted level: `Detailed`, `Standard` or `Background`. Migration from schema 6 assigns `Standard`. `requestFidelityTransition()` queues a transition; the core daily scheduler task applies it at the next deterministic boundary and records the last 100 transitions.
+
+Fidelity selects future calculation resolution or frequency. It cannot multiply results or change the laws of the model. A transition alone conserves all 0.1–0.7 state. Future systems that own aggregated representations must convert them at this boundary and declare conservation checks for their quantities.
+
+## Persistence and reproducibility
+
+Save schema 7 adds `engine`: seed, tick, Country fidelity, pending/recent transitions, pending immediate work, sequence counter and dirty domains. The explicit v6→v7 migration preserves every 0.7 field and initializes all Countries at `Standard`, tick zero and the documented default seed. Schemas 1–5 continue through their existing migration path and receive the same engine defaults. Unknown future schemas are rejected.
+
+Task implementations are code and are not serialized. Every runtime loading a save must register the same stable task IDs before advancing it. Pending immediate work deliberately fails if its task is absent, rather than being silently discarded.
+
+## Reality, information and perception
+
+`EpistemicView` and `LayeredValue` reserve three distinct API layers: canonical `reality`, `government-information` and `public-perception`. Milestone 0.8 exposes existing values as reality through `canonicalReality()`. It does not fabricate estimates or hidden information. Debugging and tests may always inspect canonical reality. Future information systems should implement the two other methods without changing the underlying reality value.
+
+## Engine/UI boundary and diagnostics
+
+Simulation modules do not import React, Leaflet or browser timing APIs. `SimulationClock`, scheduler tasks and state transitions produce immutable state snapshots. `simulationDelta()` describes changed top-level simulation domains for a future worker transport. UI components read snapshots and issue explicit commands.
+
+`simulationDiagnostics()` exposes logical date/tick, seed, registered task order, fidelity counts, pending/recent transitions, dirty domains and structured invariant violations. It is a development API, not player-facing state.
+
+Run `npm run benchmark:world` for the reproducible `projectatlas-world-v1` baseline: 3,650 daily ticks over all 252 Countries and 4,574 Regions, with a monthly full-world integrity scan and deterministic checksum. Wall-clock time is reported for comparison but is not a pass/fail threshold.
+
+## Deliberately deferred
+
+Milestone 0.8 does not implement economic dynamics, crises, institutions, government AI, ministers, fog of information, worker execution or different economic/political algorithms per fidelity level. Those systems must use this state, scheduler, RNG, dirty, fidelity and invariant contract rather than introduce parallel infrastructure.

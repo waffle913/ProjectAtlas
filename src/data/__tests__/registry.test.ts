@@ -7,6 +7,7 @@ import type { EntityRegistry, DatasetMapping } from '../registry';
 import registryJson from '../entity-registry.json';
 import mappingJson from '../natural-earth-mapping.json';
 import { transferTerritory } from '../../simulation/territory';
+import { createEngineState } from '../../simulation/state';
 
 const geography: GeoJSON.FeatureCollection = JSON.parse(
   readFileSync('public/data/natural-earth-admin-0.geojson', 'utf8'),
@@ -45,13 +46,13 @@ describe('persistent entity registry', () => {
     const territory = original.territories[0];
     const target = original.territories[1].ownerCountryId!;
     const save = transferTerritory({
-      schemaVersion: 6, date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 7, date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(original.territories.map(t => [t.id, t.ownerCountryId])),
       regionOwnership: {},
       populationByRegion: {},
       economicOutputByRegion: {},
       bilateralRelations: {}, claims: [], explicitCasusBelli: [],
-      wars: [], occupationByRegion: {},
+      wars: [], occupationByRegion: {}, engine: createEngineState(entityRegistry.countries.map(country => country.id)),
     }, territory.id, territory.ownerCountryId!, target);
     const mapping = structuredClone(naturalEarthMapping);
     mapping.datasetId = 'replacement-higher-resolution';

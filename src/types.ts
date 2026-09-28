@@ -92,8 +92,44 @@ export interface RegionOccupation {
   occupierCountryId: string;
   startDate: string;
 }
+export type FidelityLevel = 'Detailed' | 'Standard' | 'Background';
+export type SchedulerCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+export interface ImmediateUpdateRequest {
+  taskId: string;
+  requestedAtTick: number;
+  sequence: number;
+  eventKey: string;
+}
+export interface FidelityTransitionRequest {
+  countryId: string;
+  from: FidelityLevel;
+  to: FidelityLevel;
+  requestedAtTick: number;
+  sequence: number;
+  reason?: string;
+}
+export interface FidelityTransitionRecord extends FidelityTransitionRequest {
+  appliedAtTick: number;
+  appliedOnDate: string;
+}
+export interface DirtyDomainRecord {
+  domain: string;
+  entityIds: string[];
+  markedAtTick: number;
+  reasons: string[];
+}
+export interface SimulationEngineState {
+  seed: string;
+  tick: number;
+  fidelityByCountry: Record<string, FidelityLevel>;
+  pendingFidelityTransitions: FidelityTransitionRequest[];
+  recentFidelityTransitions: FidelityTransitionRecord[];
+  pendingImmediateUpdates: ImmediateUpdateRequest[];
+  nextSequence: number;
+  dirtyDomains: DirtyDomainRecord[];
+}
 export interface SimulationState {
-  schemaVersion: 6;
+  schemaVersion: 7;
   date: string;
   paused: boolean;
   speed: 1 | 2 | 5;
@@ -106,4 +142,5 @@ export interface SimulationState {
   explicitCasusBelli: ExplicitCasusBelli[];
   wars: LimitedWar[];
   occupationByRegion: Record<string, RegionOccupation>;
+  engine: SimulationEngineState;
 }

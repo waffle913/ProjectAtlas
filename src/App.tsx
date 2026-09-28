@@ -12,12 +12,14 @@ import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
 import { RegionPanel } from "./components/RegionPanel";
 import { SimulationClock } from "./simulation/clock";
-import { getAvailableCasusBelli, validateDiplomacyState, type AvailableCasusBelli } from "./simulation/diplomacy";
-import { isWarGoalSatisfied, validateWarState } from "./simulation/war";
+import { getAvailableCasusBelli, type AvailableCasusBelli } from "./simulation/diplomacy";
+import { isWarGoalSatisfied } from "./simulation/war";
+import { createEngineState } from "./simulation/state";
+import { assertSimulationInvariants } from "./simulation/invariants";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 6,
+  schemaVersion: 7,
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -30,6 +32,7 @@ const initialState: SimulationState = {
   explicitCasusBelli: [],
   wars: [],
   occupationByRegion: {},
+  engine: createEngineState(),
 };
 function FitWorld() {
   const map = useMap();
@@ -109,9 +112,9 @@ export default function App() {
         ));
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
+        clock.current.setCountries(data.registry.countries.map(country => country.id));
         const registryContext = { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
-        validateDiplomacyState(clock.current.snapshot(), registryContext);
-        validateWarState(clock.current.snapshot(), registryContext);
+        assertSimulationInvariants(clock.current.snapshot(), { ...registryContext, regions: regions.registry.regions }, 'reload');
         setSim(clock.current.snapshot());
         setWorld(nextWorld);
         setCountryData(data);
@@ -239,7 +242,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.7 · LIMITED WAR &amp; PEACE</small>
+          <small>MILESTONE 0.8 · ENGINE CONTRACTS</small>
         </div>
         <Clock state={sim} onChange={changeClock} />
       </header>

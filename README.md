@@ -1,10 +1,12 @@
-# ProjectAtlas — Milestone 0.7
+# ProjectAtlas — Milestone 0.8
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
 
 ## Run
 
 `npm install` then `npm run dev`. Run `npm run verify` for country, Region, demographic and economic reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate`, `npm run data:regions:generate`, `npm run data:population:generate` and `npm run data:economy:generate` regenerate derived data offline from checked-in inputs.
+
+Milestone 0.8 adds the shared deterministic engine contract used by future simulation systems: canonical state access, a daily multi-cadence scheduler, keyed RNG, dirty domains, persistent adaptive fidelity, shared invariant validation and explicit reality/information/perception types. See [`docs/engine-contract.md`](docs/engine-contract.md). Run `npm run benchmark:world` to produce the reproducible full-world performance baseline.
 
 Source updates are deliberately separate from generation. `npm run data:sources:update` refreshes country sources. `npm run data:regions:sources:update` downloads the pinned Admin-1 version, then `npm run data:regions:reconcile` matches it against existing permanent identities without allocating IDs. Any unmatched, ambiguous, split or missing identity fails and requires review before regeneration.
 
@@ -80,7 +82,7 @@ Tests cover the 193-member invariant, registry/map decoupling, exact feature map
 
 `SimulationClock` is UI-independent. It starts from 2026-01-01, measures real elapsed time, progresses one game day per second at ×1 (with ×2 / ×5 multipliers), and is separately tested along with pure territory transfers.
 
-Save schema version 2 adds `regionOwnership`, version 3 adds Region population, version 4 adds mutable Region economic output, version 5 adds diplomacy, and version 6 adds persistent wars plus Region occupations. The explicit v5 → v6 migration initializes war and occupation state empty while preserving every earlier field exactly. Restoring v6 requires Country/Region registry context and validates diplomacy, wars, CB snapshots, belligerents, objectives, dates and occupations. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity, population, economic output, claim or geometry. Country-controlled population and output are complete-only sums of sovereignly owned Regions; occupation alone changes neither aggregate.
+Save schema version 2 adds `regionOwnership`, version 3 adds Region population, version 4 adds mutable Region economic output, version 5 adds diplomacy, version 6 adds persistent wars plus Region occupations, and version 7 adds deterministic engine state. The explicit v6 → v7 migration preserves the complete world and initializes the seed, tick, scheduler queues, dirty state and every Country at `Standard` fidelity. Restoring v7 requires Country/Region registry context and runs shared invariant validation, including diplomacy and war checks. Unknown future schema versions are rejected rather than guessed to be v1. `transferRegion()` is pure: a transfer produces a new state without mutating the prior save, country profile, Region identity, population, economic output, claim or geometry. Country-controlled population and output are complete-only sums of sovereignly owned Regions; occupation alone changes neither aggregate.
 
 Natural Earth admin-0 country geometry, plus its 110m physical land, lakes, and river centreline datasets, are stored in `public/data/`. They are public domain. The map uses no runtime tile service or remotely loaded map asset, and remains usable while disconnected. Attribution is retained in the application and this document; see [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/).
 
