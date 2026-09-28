@@ -1,5 +1,6 @@
 import type { SimulationState } from '../types';
 import { createCoreScheduler } from './engine';
+import type { SimulationScheduler } from './scheduler';
 import { cloneSimulationState } from './state';
 
 const MS_PER_GAME_DAY = 1_000;
@@ -8,8 +9,11 @@ const MS_PER_GAME_DAY = 1_000;
 export class SimulationClock {
   private elapsed = 0;
   private current: SimulationState;
-  private readonly scheduler = createCoreScheduler();
-  constructor(initial: SimulationState) { this.current = cloneSimulationState(initial); }
+  private readonly scheduler: SimulationScheduler;
+  constructor(initial: SimulationState, scheduler: SimulationScheduler = createCoreScheduler()) {
+    this.current = cloneSimulationState(initial);
+    this.scheduler = scheduler;
+  }
   snapshot = () => cloneSimulationState(this.current);
   setPaused = (paused: boolean) => { this.current = {...this.current, paused}; };
   setSpeed = (speed: 1 | 2 | 5) => { this.current = {...this.current, speed}; };

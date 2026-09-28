@@ -77,15 +77,39 @@ export const coreInvariants: readonly SimulationInvariant[] = [
   { id: 'war-occupation-sovereignty', check: (state, context) => captureError(() => validateWarState(state, context)) },
 ];
 
+/** Small reusable registry for core and system-owned invariant checks. */
+export class InvariantRegistry {
+  private readonly invariants = new Map<string, SimulationInvariant>();
+  constructor(initial: readonly SimulationInvariant[] = []) { for (const invariant of initial) this.register(invariant); }
+  register(invariant: SimulationInvariant) {
+    if (!invariant.id.trim() || this.invariants.has(invariant.id)) throw new Error(`Duplicate or missing invariant ID: ${invariant.id}`);
+    this.invariants.set(invariant.id, invariant);
+    return this;
+  }
+  describe() { return [...this.invariants.keys()]; }
+  validate(state: SimulationState, context: InvariantContext, phase: InvariantPhase) {
+    const violations = [...this.invariants.values()].flatMap(invariant => invariant.check(state, context, phase).map(message => ({ invariantId: invariant.id, phase, message })));
+    return { valid: violations.length === 0, violations };
+  }
+  assert(state: SimulationState, context: InvariantContext, phase: InvariantPhase) {
+    const report = this.validate(state, context, phase);
+    if (!report.valid) throw new Error(report.violations.map(item => `[${item.invariantId}] ${item.message}`).join('\n'));
+    return true;
+  }
+}
+
+export const createCoreInvariantRegistry = () => new InvariantRegistry(coreInvariants);
+
 export function validateSimulationInvariants(state: SimulationState, context: InvariantContext, phase: InvariantPhase, extra: readonly SimulationInvariant[] = []) {
-  const violations = [...coreInvariants, ...extra].flatMap(invariant => invariant.check(state, context, phase).map(message => ({ invariantId: invariant.id, phase, message })));
-  return { valid: violations.length === 0, violations };
+  const registry = createCoreInvariantRegistry();
+  for (const invariant of extra) registry.register(invariant);
+  return registry.validate(state, context, phase);
 }
 
 export function assertSimulationInvariants(state: SimulationState, context: InvariantContext, phase: InvariantPhase, extra: readonly SimulationInvariant[] = []) {
-  const report = validateSimulationInvariants(state, context, phase, extra);
-  if (!report.valid) throw new Error(report.violations.map(item => `[${item.invariantId}] ${item.message}`).join('\n'));
-  return true;
+  const registry = createCoreInvariantRegistry();
+  for (const invariant of extra) registry.register(invariant);
+  return registry.assert(state, context, phase);
 }
 
 const conservedFields = ['territoryOwnership', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'bilateralRelations', 'claims', 'explicitCasusBelli', 'wars', 'occupationByRegion'] as const;

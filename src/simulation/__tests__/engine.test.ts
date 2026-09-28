@@ -5,11 +5,11 @@ import { simulationDiagnostics } from '../diagnostics';
 import { advanceSimulationDays, createCoreScheduler } from '../engine';
 import { canonicalReality, type EpistemicView } from '../epistemic';
 import { getCountryFidelity, requestFidelityTransition } from '../fidelity';
-import { assertSimulationInvariants, validateFidelityConservation, validateSimulationInvariants } from '../invariants';
+import { assertSimulationInvariants, createCoreInvariantRegistry, validateFidelityConservation, validateSimulationInvariants } from '../invariants';
 import { deterministicFloat, deterministicInteger, deterministicUint32 } from '../rng';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { SimulationScheduler } from '../scheduler';
-import { createEngineState } from '../state';
+import { cloneSimulationState, createEngineState } from '../state';
 import { canonicalWorld, simulationDelta } from '../world';
 
 const countries = new Set(['country.a', 'country.b']);
@@ -97,6 +97,17 @@ describe('shared deterministic engine contracts', () => {
     expect(clearDirty(dirty, 'governmentRevenue', 'country.a').engine.dirtyDomains).toEqual([]);
   });
 
+  it('preserves global dirty semantics when local and global marks are combined or cleared', () => {
+    const globalThenEntity = markDirty(markDirty(initial(), { domain: 'consumption', reason: 'global-event' }), { domain: 'consumption', entityId: 'country.a', reason: 'local-event' });
+    expect(inspectDirty(globalThenEntity)[0].entityIds).toEqual([]);
+    expect(clearDirty(globalThenEntity, 'consumption', 'country.a').engine.dirtyDomains).toHaveLength(1);
+    expect(clearDirty(globalThenEntity, 'consumption').engine.dirtyDomains).toEqual([]);
+
+    const entityThenGlobal = markDirty(markDirty(initial(), { domain: 'consumption', entityId: 'country.a', reason: 'local-event' }), { domain: 'consumption', reason: 'global-event' });
+    expect(inspectDirty(entityThenGlobal)[0].entityIds).toEqual([]);
+    expect(inspectDirty(entityThenGlobal)[0].reasons).toEqual(['global-event', 'local-event']);
+  });
+
   it('keeps sovereignty, occupation and geometry as distinct sources of truth', () => {
     const occupied = { ...initial(), occupationByRegion: { [region.id]: { regionId: region.id, warId: 'war.a', occupierCountryId: 'country.b', startDate: '2026-01-01' } } };
     const countryA = { id: 'country.a', commonName: 'A', externalIds: {}, entityType: 'sovereign_state', unMembership: 'member', sources: {}, kind: 'sovereign' } satisfies Country;
@@ -106,8 +117,11 @@ describe('shared deterministic engine contracts', () => {
     expect(world.regionsById.get(region.id)?.geographyMapping).toBe(region.geographyMapping);
     const snapshot = world.snapshot(); snapshot.regionOwnership[region.id] = 'country.b';
     expect(occupied.regionOwnership[region.id]).toBe('country.a');
-    const beforeTick = initial();
-    expect(simulationDelta(beforeTick, advanceSimulationDays(beforeTick, 1)).changedDomains).toEqual(['time']);
+    const beforeTick = cloneSimulationState(initial());
+    const afterTick = cloneSimulationState(beforeTick); afterTick.date = '2026-01-02'; afterTick.engine.tick += 1;
+    expect(simulationDelta(beforeTick, afterTick).changedDomains).toEqual(['time']);
+    const transferred = cloneSimulationState(beforeTick); transferred.regionOwnership[region.id] = 'country.b';
+    expect(simulationDelta(beforeTick, transferred).changedDomains).toEqual(['sovereignty']);
   });
 
   it('reports shared invariant violations and exposes separate epistemic layers', () => {
@@ -117,6 +131,14 @@ describe('shared deterministic engine contracts', () => {
     const view: EpistemicView<number> = { reality: () => canonicalReality(42, '2026-01-01'), governmentInformation: () => undefined, publicPerception: () => undefined };
     expect(view.reality()).toEqual({ layer: 'reality', value: 42, observedAt: '2026-01-01', sourceKey: undefined });
     expect(view.governmentInformation('country.a')).toBeUndefined();
+  });
+
+  it('registers future system invariants in a reusable shared registry', () => {
+    const registry = createCoreInvariantRegistry().register({ id: 'future.minimum-output', check: state => state.economicOutputByRegion[region.id]! >= 5_000 ? [] : ['Output fell below the test floor.'] });
+    expect(registry.describe()).toContain('future.minimum-output');
+    expect(registry.validate(initial(), context, 'tick').valid).toBe(true);
+    const invalid = { ...initial(), economicOutputByRegion: { [region.id]: 4_999 } };
+    expect(registry.validate(invalid, context, 'tick').violations).toContainEqual({ invariantId: 'future.minimum-output', phase: 'tick', message: 'Output fell below the test floor.' });
   });
 
   it('persists fidelity, scheduler queues, dirty state and deterministic seed in schema 7', () => {

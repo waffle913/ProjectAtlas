@@ -3,6 +3,7 @@ import type { Country, RegionEntity, SimulationState } from '../../types';
 import { controlledEconomicOutput, controlledPopulation, transferRegion } from '../region';
 import { migrateSimulationState, restoreSimulationState, serializeSimulationState } from '../save';
 import { createEngineState } from '../state';
+import { validateSimulationInvariants } from '../invariants';
 
 const region: RegionEntity = {
   id: 'region.permanent', parentCountryId: 'country.alpha', initialOwnerCountryId: 'country.alpha',
@@ -48,6 +49,14 @@ describe('Region ownership and saves', () => {
     expect(migrated.regionOwnership[region.id]).toBe('country.beta');
     expect(migrated.populationByRegion[region.id]).toBe(500);
     expect(migrated.economicOutputByRegion[region.id]).toBe(700);
+  });
+  it('assigns fidelity to every Country known through Regions when migrating without a diplomacy context', () => {
+    const secondRegion: RegionEntity = { ...region, id: 'region.second', parentCountryId: 'country.beta', initialOwnerCountryId: 'country.beta', macroTerritoryId: 'territory.beta', commonName: 'Second', geographyMapping: { status: 'mapped', datasetId: 'source', sourceFeatureIds: ['feature-b'] } };
+    const regions = [region, secondRegion];
+    const migrated = migrateSimulationState({ date: '2026-01-03', paused: false, speed: 1, territoryOwnership: { 'territory.alpha': 'country.alpha', 'territory.beta': 'country.beta' } }, regions, { [region.id]: 500, [secondRegion.id]: 700 }, { [region.id]: 800, [secondRegion.id]: 900 });
+    expect(migrated.engine.fidelityByCountry).toEqual({ 'country.alpha': 'Standard', 'country.beta': 'Standard' });
+    const registryContext = { countryIds: new Set(['country.alpha', 'country.beta']), regionIds: new Set(regions.map(item => item.id)), regions };
+    expect(validateSimulationInvariants(migrated, registryContext, 'reload')).toEqual({ valid: true, violations: [] });
   });
   it('migrates v2 population deterministically and transfers control without changing inhabitants', () => {
     const v2 = { schemaVersion: 2, date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { 'territory.alpha': 'country.alpha' }, regionOwnership: { [region.id]: 'country.alpha' } };
