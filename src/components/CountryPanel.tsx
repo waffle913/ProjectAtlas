@@ -102,16 +102,16 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
       <section>
         <h2>Economic output</h2>
         <div className="fact">
-          {label("Current output controlled", controlledEconomicOutputComplete ? formatUsd(controlledEconomicOutput) : "Unavailable — incomplete Region data")}
-          <small>{controlledEconomicOutputComplete ? "Simulation state · complete sum of all currently controlled Regions" : "One or more currently controlled Regions lacks an economic baseline; no partial total is shown."}</small>
+          {label("Annual reference controlled", controlledEconomicOutputComplete ? formatUsd(controlledEconomicOutput) : "Unavailable — incomplete Region data")}
+          <small>{controlledEconomicOutputComplete ? "Saved annual baseline · complete sum of currently controlled Regions; monthly dynamics are in Region diagnostics" : "One or more currently controlled Regions lacks an economic baseline; no partial total is shown."}</small>
         </div>
         {fact("Statistical national GDP (USD)", facts.nominalGdpUsd)}
       </section>
       <section>
         <h2>Initial indicators</h2>
         <div className="fact">
-          {label("Current population controlled", controlledPopulationComplete ? controlledPopulation?.toLocaleString("en") : "Unavailable — incomplete Region data")}
-          <small>{controlledPopulationComplete ? "Simulation state · complete sum of all currently controlled Regions" : "One or more currently controlled Regions lacks a demographic baseline; no partial total is shown."}</small>
+          {label("Baseline population controlled", controlledPopulationComplete ? controlledPopulation?.toLocaleString("en") : "Unavailable — incomplete Region data")}
+          <small>{controlledPopulationComplete ? "Saved population reference · complete sum of currently controlled Regions; modelled initialization is in Region diagnostics" : "One or more currently controlled Regions lacks a demographic baseline; no partial total is shown."}</small>
         </div>
         <div className="fact">
           {label("National baseline", nationalPopulation?.value.toLocaleString("en"))}

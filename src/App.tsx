@@ -1,3 +1,5 @@
+import { emptySocioeconomy, inspectSocioeconomy, NO_SHOCK } from './simulation/socioeconomy/model';
+import { initializeSocioeconomy } from './simulation/socioeconomy/initialization';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
@@ -19,7 +21,7 @@ import { assertSimulationInvariants } from "./simulation/invariants";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 7,
+  schemaVersion: 8, socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -113,6 +115,7 @@ export default function App() {
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
         clock.current.setCountries(data.registry.countries.map(country => country.id));
+        clock.current = new SimulationClock(initializeSocioeconomy(clock.current.snapshot(), regions.registry.regions, { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries }));
         const registryContext = { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
         assertSimulationInvariants(clock.current.snapshot(), { ...registryContext, regions: regions.registry.regions }, 'reload');
         setSim(clock.current.snapshot());
@@ -166,7 +169,8 @@ export default function App() {
     let previous = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
-      setSim(clock.current.advance(now - previous));
+      const next = clock.current.advanceIfChanged(now - previous);
+      if (next) setSim(next);
       previous = now;
     }, 250);
     return () => window.clearInterval(timer);
@@ -242,7 +246,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.8 · ENGINE CONTRACTS</small>
+          <small>MILESTONE 0.10 · SOCIOECONOMIC ENGINE</small>
         </div>
         <Clock state={sim} onChange={changeClock} />
       </header>
@@ -363,6 +367,8 @@ export default function App() {
         </section>
         {selectedRegionEntity ? (
           <RegionPanel
+            socioeconomic={inspectSocioeconomy(sim, selectedRegionEntity.id)}
+            onCapacityShock={capacityBps => { clock.current.setEconomicShock(selectedRegionEntity.id, { ...NO_SHOCK, capacityBps }); setSim(clock.current.snapshot()); }}
             region={selectedRegionEntity}
             currentOwner={selectedRegionOwner}
             parentCountry={selectedCountry}

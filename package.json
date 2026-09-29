@@ -26,7 +26,9 @@
     "data:audit": "npm run data:verify && npm run data:regions:verify && npm run data:population:verify && npm run data:economy:verify && node scripts/audit-data.mjs",
     "test": "vitest run",
     "benchmark:world": "vitest run src/simulation/__tests__/worldBenchmark.test.ts --reporter=verbose",
-    "verify": "npm run data:audit && npm run build && npm test"
+    "verify": "npm run data:audit && npm run build && npm test",
+    "economy:audit": "node scripts/socioeconomic-audit.mjs",
+    "economy:audit:generate": "node scripts/socioeconomic-audit.mjs --write"
   },
   "repository": {
     "type": "git",

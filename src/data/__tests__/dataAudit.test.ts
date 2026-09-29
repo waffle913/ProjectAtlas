@@ -1,3 +1,4 @@
+import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 /// <reference types="node" />
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
@@ -51,11 +52,11 @@ describe('milestone 0.9 global data audit', () => {
     expect(result.stdout).toContain('Audited 252 Countries and 4574 Regions with no blocking anomalies.');
   });
 
-  it('loads the complete initial scenario as schema 7 without invariant violations', () => {
+  it('loads the complete initial scenario as schema 8 without invariant violations', () => {
     const populationByRegion = Object.fromEntries(demographicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselinePopulation]));
     const economicOutputByRegion = Object.fromEntries(economicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselineAnnualOutputUsd]));
     const state: SimulationState = {
-      schemaVersion: 7, date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 8, socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(registry.territories.map(territory => [territory.id, territory.initialOwnerCountryId])),
       regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
       populationByRegion, economicOutputByRegion, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},

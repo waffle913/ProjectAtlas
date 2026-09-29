@@ -1,3 +1,4 @@
+import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import { transferRegion } from '../region';
@@ -6,7 +7,7 @@ import { restoreSimulationState, serializeSimulationState } from '../save';
 import { createEngineState } from '../state';
 
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.x']) };
-const initial = (): SimulationState => ({ schemaVersion: 7, date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.x': 'country.b' }, populationByRegion: { 'region.x': 5_000_000 }, economicOutputByRegion: { 'region.x': 200_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
+const initial = (): SimulationState => ({ schemaVersion: 8, socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.x': 'country.b' }, populationByRegion: { 'region.x': 5_000_000 }, economicOutputByRegion: { 'region.x': 200_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
 const claim = { id: 'claim.001', claimantCountryId: 'country.a', regionId: 'region.x', type: 'territorial' as const, creationDate: '2026-01-01', reason: 'Reviewed test claim' };
 
 describe('diplomacy foundation', () => {

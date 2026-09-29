@@ -1,3 +1,5 @@
+import { requestEconomicShock } from './socioeconomy/runtime';
+import type { Shock } from './socioeconomy/model';
 import type { SimulationState } from '../types';
 import { createCoreScheduler } from './engine';
 import type { SimulationScheduler } from './scheduler';
@@ -15,6 +17,7 @@ export class SimulationClock {
     this.scheduler = scheduler;
   }
   snapshot = () => cloneSimulationState(this.current);
+  setEconomicShock = (regionId: string, shock: Shock) => { this.current = requestEconomicShock(this.current, this.scheduler, regionId, shock); };
   setPaused = (paused: boolean) => { this.current = {...this.current, paused}; };
   setSpeed = (speed: 1 | 2 | 5) => { this.current = {...this.current, speed}; };
   setTerritoryOwnership = (territoryOwnership: Record<string, string | undefined>) => { this.current = {...this.current, territoryOwnership: {...territoryOwnership}}; };
@@ -28,14 +31,17 @@ export class SimulationClock {
     for (const countryId of countryIds) fidelityByCountry[countryId] ??= 'Standard';
     this.current = { ...this.current, engine: { ...this.current.engine, fidelityByCountry } };
   };
-  advance = (realElapsedMs: number) => {
-    if (this.current.paused || realElapsedMs <= 0) return this.snapshot();
+  private advanceTime = (realElapsedMs: number) => {
+    if (!Number.isFinite(realElapsedMs) || this.current.paused || realElapsedMs <= 0) return false;
     this.elapsed += realElapsedMs * this.current.speed;
     const wholeDays = Math.floor(this.elapsed / MS_PER_GAME_DAY);
     if (wholeDays) {
       for (let day = 0; day < wholeDays; day += 1) this.current = this.scheduler.advanceOneDay(this.current).state;
       this.elapsed -= wholeDays * MS_PER_GAME_DAY;
     }
-    return this.snapshot();
+    return wholeDays > 0;
   };
+  advance = (realElapsedMs: number) => { this.advanceTime(realElapsedMs); return this.snapshot(); };
+  /** UI polling need not clone 40,000 cohorts when no logical day elapsed. */
+  advanceIfChanged = (realElapsedMs: number) => this.advanceTime(realElapsedMs) ? this.snapshot() : undefined;
 }

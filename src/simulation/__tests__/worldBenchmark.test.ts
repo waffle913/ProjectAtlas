@@ -1,3 +1,4 @@
+import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 /// <reference types="node" />
 import { performance } from 'node:perf_hooks';
 import { describe, expect, it } from 'vitest';
@@ -14,7 +15,7 @@ const countryIds = entityRegistryJson.countries.map(country => country.id);
 const demographicByRegion = new Map(demographicsJson.records.map(record => [record.regionId, record]));
 const economicByRegion = new Map(economicsJson.records.map(record => [record.regionId, record]));
 const worldState = (): SimulationState => ({
-  schemaVersion: 7, date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
+  schemaVersion: 8, socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
   regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
   populationByRegion: Object.fromEntries(regions.map(region => { const record = demographicByRegion.get(region.id); return [region.id, record?.status === 'available' ? record.baselinePopulation : undefined]; })),
   economicOutputByRegion: Object.fromEntries(regions.map(region => { const record = economicByRegion.get(region.id); return [region.id, record?.status === 'available' ? record.baselineAnnualOutputUsd : undefined]; })),
@@ -38,3 +39,38 @@ describe('reproducible full-world baseline', () => {
     expect(state.regionOwnership).toEqual(worldState().regionOwnership);
   });
 });
+
+// The historical v1 probe above intentionally stays frozen (it excluded derived data).
+// This second workload runs the actual default runtime and the complete 0.10 world.
+import { createHash } from 'node:crypto';
+import { socioeconomicWorld, worldContext } from './worldScenario';
+import { createCoreScheduler } from '../engine';
+import { assertSimulationInvariants } from '../invariants';
+import { serializeSimulationState, restoreSimulationState } from '../save';
+import { cloneSimulationState } from '../state';
+
+it('benchmarks ten years with actual monthly socioeconomic tasks and valid world state', () => {
+  let state = socioeconomicWorld();
+  const initial = state;
+  const scheduler = createCoreScheduler();
+  let monthlyExecutions = 0;
+  const startedAt = performance.now();
+  for (let day = 0; day < 3650; day++) {
+    const result = scheduler.advanceOneDay(state); state = result.state;
+    monthlyExecutions += result.trace.filter(t => t.taskId === 'socioeconomy.monthly').length;
+    if (state.date.endsWith('-01-01')) assertSimulationInvariants(state, worldContext, 'tick');
+  }
+  const elapsedMs = performance.now() - startedAt;
+  expect(assertSimulationInvariants(state, worldContext, 'tick')).toBe(true);
+  expect(state.socioeconomy.regions).toEqual(initial.socioeconomy.regions);
+  expect(monthlyExecutions).toBe(119);
+  const snapshotStart = performance.now();
+  const snapshot = cloneSimulationState(state);
+  const snapshotMs = performance.now() - snapshotStart;
+  const serialized = serializeSimulationState(state, worldContext);
+  const restored = restoreSimulationState(serialized, worldContext.regions, {}, {}, worldContext);
+  expect(restored).toEqual(snapshot);
+  const checksum = createHash('sha256').update(JSON.stringify(state.socioeconomy)).digest('hex');
+  const result = { benchmark: 'projectatlas-socioeconomy-0.10', ticks: state.engine.tick, countries: 252, regions: 4574, activeRegions: Object.values(state.socioeconomy.regions).filter(r => r.economy).length, cohorts: Object.values(state.socioeconomy.regions).reduce((n, r) => n + r.cohorts.length, 0), monthlyExecutions, finalDate: state.date, checksum, elapsedMs: Number(elapsedMs.toFixed(2)), ticksPerSecond: Math.round(3650 * 1000 / elapsedMs), snapshotMs: Number(snapshotMs.toFixed(2)), saveBytes: Buffer.byteLength(serialized) };
+  console.info(`SOCIOECONOMIC_BENCHMARK ${JSON.stringify(result)}`);
+}, 30000);

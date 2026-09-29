@@ -1,3 +1,4 @@
+import { cloneSocioeconomy } from './socioeconomy/model';
 import type { FidelityLevel, SimulationEngineState, SimulationState } from '../types';
 
 export const DEFAULT_SIMULATION_SEED = 'project-atlas-2026';
@@ -18,6 +19,7 @@ export function createEngineState(countryIds: Iterable<string> = [], seed = DEFA
 export function cloneSimulationState(state: SimulationState): SimulationState {
   return {
     ...state,
+    socioeconomy: cloneSocioeconomy(state.socioeconomy),
     territoryOwnership: { ...state.territoryOwnership },
     regionOwnership: { ...state.regionOwnership },
     populationByRegion: { ...state.populationByRegion },

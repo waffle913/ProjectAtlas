@@ -1,4 +1,4 @@
-# ProjectAtlas 0.8 engine contract
+# ProjectAtlas engine contract (0.8 foundation, 0.10 extension)
 
 This contract is the integration point for simulation systems added after milestone 0.8. It consolidates the existing 0.1–0.7 model; it does not replace the entity or Region registries and does not duplicate the world in a second state object.
 
@@ -66,3 +66,7 @@ Run `npm run benchmark:world` for the reproducible `projectatlas-world-v1` basel
 ## Deliberately deferred
 
 Milestone 0.8 does not implement economic dynamics, crises, institutions, government AI, ministers, fog of information, worker execution or different economic/political algorithms per fidelity level. Those systems must use this state, scheduler, RNG, dirty, fidelity and invariant contract rather than introduce parallel infrastructure.
+
+## Milestone 0.10 integration
+
+Schema 8 adds `socioeconomy` to the canonical state. The default scheduler now includes monthly economy and administrative observation tasks. The common invariant registry and fidelity conservation cover this layer. Legacy population and annual output maps are saved initialization references; current monthly flows live in the socioeconomic Region records. See [the 0.10 model contract](socioeconomy-0.10.md) for equations, provenance, v7 migration and performance limits.

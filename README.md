@@ -1,6 +1,10 @@
-# ProjectAtlas — Milestone 0.9
+# ProjectAtlas — Milestone 0.10
 
 An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
+
+## Milestone 0.10
+
+Monthly population/cohort/economy loop, explicit simulation priors separate from audited data, bounded administrative AI, exogenous shock diagnostics and save schema 8. See [the model and migration contract](docs/socioeconomy-0.10.md) and [per-Country coverage](src/data/socioeconomic-coverage-report.json). `npm run economy:audit` verifies the reproducible report; `npm run benchmark:world` measures the actual monthly world runtime alongside the historical probe.
 
 ## Run
 
