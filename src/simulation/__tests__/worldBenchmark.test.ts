@@ -71,6 +71,37 @@ it('benchmarks ten years with actual monthly socioeconomic tasks and valid world
   const restored = restoreSimulationState(serialized, worldContext.regions, {}, {}, worldContext);
   expect(restored).toEqual(snapshot);
   const checksum = createHash('sha256').update(JSON.stringify(state.socioeconomy)).digest('hex');
+  expect(checksum).toBe('212dc47e790b4de352fb30c66289ea279eda2f5d80dfd42531bf67af1a87a415');
   const result = { benchmark: 'projectatlas-socioeconomy-0.10', ticks: state.engine.tick, countries: 252, regions: 4574, activeRegions: Object.values(state.socioeconomy.regions).filter(r => r.economy).length, cohorts: Object.values(state.socioeconomy.regions).reduce((n, r) => n + r.cohorts.length, 0), monthlyExecutions, finalDate: state.date, checksum, elapsedMs: Number(elapsedMs.toFixed(2)), ticksPerSecond: Math.round(3650 * 1000 / elapsedMs), snapshotMs: Number(snapshotMs.toFixed(2)), saveBytes: Buffer.byteLength(serialized) };
   console.info(`SOCIOECONOMIC_BENCHMARK ${JSON.stringify(result)}`);
+}, 30000);
+
+import { SimulationClock } from '../clock';
+import { advanceSimulationDays } from '../engine';
+
+it('measures the real daily UI path with cached defensive snapshots across a full year', () => {
+  const initial = socioeconomicWorld();
+  const clock = new SimulationClock(initial);
+  const coldStart = performance.now();
+  let previous = clock.snapshot();
+  const coldSnapshotMs = performance.now() - coldStart;
+  let reusedDays = 0, changedDays = 0, reusedDayMs = 0, changedDayMs = 0;
+  for (let day = 0; day < 365; day++) {
+    const start = performance.now();
+    const next = clock.advanceIfChanged(1000)!;
+    const elapsed = performance.now() - start;
+    if (next.socioeconomy === previous.socioeconomy) { reusedDays++; reusedDayMs += elapsed; }
+    else { changedDays++; changedDayMs += elapsed; }
+    previous = next;
+  }
+  expect(reusedDays).toBe(353); expect(changedDays).toBe(12);
+  expect(previous).toEqual(advanceSimulationDays(initial, 365));
+  expect(Object.isFrozen(previous.socioeconomy.regions)).toBe(true);
+  const result = { benchmark: 'projectatlas-daily-ui-snapshot-0.10', days: 365, reusedDays, changedDays,
+    coldSnapshotMs: Number(coldSnapshotMs.toFixed(2)),
+    reusedDayMeanMs: Number((reusedDayMs / reusedDays).toFixed(4)),
+    monthlyDayMeanMs: Number((changedDayMs / changedDays).toFixed(2)),
+    dailyPathTotalMs: Number((reusedDayMs + changedDayMs).toFixed(2)),
+    checksum: createHash('sha256').update(JSON.stringify(previous.socioeconomy)).digest('hex') };
+  console.info(`DAILY_UI_BENCHMARK ${JSON.stringify(result)}`);
 }, 30000);

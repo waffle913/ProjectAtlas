@@ -6,26 +6,51 @@ export function transferRegion(state: SimulationState, regionId: string, fromCou
   return { ...state, regionOwnership: { ...state.regionOwnership, [regionId]: toCountryId } };
 }
 
-export function controlledPopulation(state: SimulationState, countryId: string) {
+/** Saved initialization/audit persons under current sovereignty; not simulated population. */
+export function controlledBaselinePopulation(state: SimulationState, countryId: string) {
   const regions = Object.entries(state.regionOwnership).filter(([, owner]) => owner === countryId).map(([regionId]) => regionId);
   if (!regions.length || regions.some(regionId => state.populationByRegion[regionId] === undefined)) return undefined;
   return regions.reduce((total, regionId) => total + state.populationByRegion[regionId]!, 0);
 }
 
-export function originalPopulation(state: SimulationState, countryId: string, initialOwners: Record<string, string>) {
+export function originalBaselinePopulation(state: SimulationState, countryId: string, initialOwners: Record<string, string>) {
   const regions = Object.entries(initialOwners).filter(([, owner]) => owner === countryId).map(([regionId]) => regionId);
   if (!regions.length || regions.some(regionId => state.populationByRegion[regionId] === undefined)) return undefined;
   return regions.reduce((total, regionId) => total + state.populationByRegion[regionId]!, 0);
 }
 
-export function controlledEconomicOutput(state: SimulationState, countryId: string) {
+/** Saved initialization/audit USD/year under current sovereignty; not monthly output. */
+export function controlledBaselineAnnualOutput(state: SimulationState, countryId: string) {
   const regions = Object.entries(state.regionOwnership).filter(([, owner]) => owner === countryId).map(([regionId]) => regionId);
   if (!regions.length || regions.some(regionId => state.economicOutputByRegion[regionId] === undefined)) return undefined;
   return regions.reduce((total, regionId) => total + state.economicOutputByRegion[regionId]!, 0);
 }
 
-export function originalEconomicOutput(state: SimulationState, countryId: string, initialOwners: Record<string, string>) {
+export function originalBaselineAnnualOutput(state: SimulationState, countryId: string, initialOwners: Record<string, string>) {
   const regions = Object.entries(initialOwners).filter(([, owner]) => owner === countryId).map(([regionId]) => regionId);
   if (!regions.length || regions.some(regionId => state.economicOutputByRegion[regionId] === undefined)) return undefined;
   return regions.reduce((total, regionId) => total + state.economicOutputByRegion[regionId]!, 0);
+}
+
+/** Current person stock under sovereignty; unknown or empty coverage is unavailable. */
+export function simulatedPopulationByCountry(state: SimulationState, countryId: string) {
+  return currentCountryTotal(state, countryId, id => state.socioeconomy.regions[id]?.population);
+}
+
+/** Current booked output in USD/month, not the saved annual GDP reference. */
+export function simulatedMonthlyOutputByCountry(state: SimulationState, countryId: string) {
+  return currentCountryTotal(state, countryId, id => state.socioeconomy.regions[id]?.economy?.output);
+}
+
+function currentCountryTotal(state: SimulationState, countryId: string, value: (regionId: string) => number | undefined): number | undefined {
+  const ids = Object.keys(state.regionOwnership).filter(id => state.regionOwnership[id] === countryId).sort();
+  if (!ids.length) return undefined;
+  let total = 0;
+  for (const id of ids) {
+    const amount = value(id);
+    if (amount === undefined) return undefined;
+    if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(total + amount)) throw new Error('Invalid simulated Country aggregate.');
+    total += amount;
+  }
+  return total;
 }

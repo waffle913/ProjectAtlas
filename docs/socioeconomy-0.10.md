@@ -108,7 +108,7 @@ Tests cover tiny/zero populations, huge integer allocations, unknowns, political
 
 `npm run benchmark:world` retains the historical 0.8 `projectatlas-world-v1` probe **unchanged**, including its omission of `derived` baselines, solely for an honest historical comparison. It is an integrity summation probe, not an economic simulation benchmark. The added `projectatlas-socioeconomy-0.10` workload initializes all accepted/derived/modelled data, runs 3,650 ticks with 119 monthly updates and records active Regions, cohorts, SHA-256 checksum, runtime, tick rate, snapshot cost and save size. Tick throughput is a batch measure, not browser FPS; elapsed timings are machine-dependent.
 
-Snapshots explicitly copy nested data rather than serializing the whole world via structuredClone. UI polling uses `advanceIfChanged` to skip copies and renders during pause and fractional days. React renders only the selected Region's diagnostic, never one component per cohort. The persistent world remains about 13–15 MB as JSON; compression and worker/delta transport optimization are deferred.
+UI snapshots use a per-clock identity cache of deeply frozen defensive copies. Unchanged socioeconomic branches are reused across days, and unchanged cohorts/provenance remain shared even across monthly flow updates; the first snapshot and genuinely changed branches incur copying/freezing. The explicit mutable clone API remains available for saves and working copies. UI polling uses `advanceIfChanged` to skip copies and renders during pause and fractional days. React renders only the selected Region's diagnostic, never one component per cohort. The persistent world remains about 13–15 MB as JSON; compression and worker/delta transport optimization are deferred.
 
 ## Manual validation
 
@@ -124,3 +124,5 @@ Snapshots explicitly copy nested data rather than serializing the whole world vi
 No taxes, fiscal rates, spending budgets, debt, banking, trade, inflation, detailed industries, political/electoral consequences, unrest/crises, endogenous demography, capital investment or wealth accounting. There are no new 0.11 policy choices. Equal regional population fallback, uniform GDP allocation, common labour/income priors, proportional rationing and relative needs remain substantive modelling limitations for later calibration. None is labelled as an observed fact.
 
 The exact final command results and browser observations are recorded in [the validation report](milestone-0.10-validation.md).
+
+Country API: `controlledBaselinePopulation` and `controlledBaselineAnnualOutput` read saved references; `simulatedPopulationByCountry` and `simulatedMonthlyOutputByCountry` read the current socioeconomic layer under current sovereignty. The clock rejects reference setter calls after socioeconomic initialization. See the [corrective engine contract](engine-contract.md#010-corrective-snapshot-and-reference-boundary).

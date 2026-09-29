@@ -39,3 +39,26 @@ export function cloneSimulationState(state: SimulationState): SimulationState {
     },
   };
 }
+
+/**
+ * Per-consumer defensive snapshot cache for the engine's pure, copy-on-write state.
+ * Only JSON-like state is supported. Unchanged source objects retain identity in
+ * the UI snapshot, including nested cohorts across monthly economic updates.
+ * Copies are deeply frozen: neither the engine nor another UI reader can be
+ * changed through a snapshot. Use cloneSimulationState for an editable copy.
+ */
+export function createSimulationSnapshotCache() {
+  const copies = new WeakMap<object, object>();
+  const copy = <T>(value: T): T => {
+    if (value === null || typeof value !== 'object') return value;
+    const cached = copies.get(value);
+    if (cached) return cached as T;
+    const result = Array.isArray(value)
+      ? value.map(item => copy(item))
+      : Object.fromEntries(Object.entries(value).map(([key, item]) => [key, copy(item)]));
+    Object.freeze(result);
+    copies.set(value, result);
+    return result as T;
+  };
+  return (state: SimulationState): SimulationState => copy(state);
+}

@@ -1,7 +1,7 @@
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 import { describe, expect, it } from 'vitest';
 import type { Country, RegionEntity, SimulationState } from '../../types';
-import { controlledEconomicOutput, controlledPopulation, transferRegion } from '../region';
+import { controlledBaselineAnnualOutput, controlledBaselinePopulation, transferRegion } from '../region';
 import { migrateSimulationState, restoreSimulationState, serializeSimulationState } from '../save';
 import { createEngineState } from '../state';
 import { validateSimulationInvariants } from '../invariants';
@@ -30,10 +30,10 @@ describe('Region ownership and saves', () => {
     expect(state.regionOwnership[region.id]).toBe('country.alpha');
     expect(next.populationByRegion[region.id]).toBe(12_345);
     expect(next.economicOutputByRegion[region.id]).toBe(200_000_000_000);
-    expect(controlledPopulation(next, 'country.alpha')).toBeUndefined();
-    expect(controlledPopulation(next, 'country.beta')).toBe(12_345);
-    expect(controlledEconomicOutput(next, 'country.alpha')).toBeUndefined();
-    expect(controlledEconomicOutput(next, 'country.beta')).toBe(200_000_000_000);
+    expect(controlledBaselinePopulation(next, 'country.alpha')).toBeUndefined();
+    expect(controlledBaselinePopulation(next, 'country.beta')).toBe(12_345);
+    expect(controlledBaselineAnnualOutput(next, 'country.alpha')).toBeUndefined();
+    expect(controlledBaselineAnnualOutput(next, 'country.beta')).toBe(200_000_000_000);
     expect(country).toEqual(frozenCountry);
   });
   it('preserves transferred ownership through save serialization and restoration', () => {
@@ -64,15 +64,15 @@ describe('Region ownership and saves', () => {
     const migrated = migrateSimulationState(v2, [region], { [region.id]: 900 }, { [region.id]: 800 });
     const transferred = transferRegion(migrated, region.id, 'country.alpha', 'country.beta');
     expect(transferred.populationByRegion[region.id]).toBe(900);
-    expect(controlledPopulation(transferred, 'country.beta')).toBe(900);
-    expect(controlledPopulation(transferred, 'country.alpha')).toBeUndefined();
+    expect(controlledBaselinePopulation(transferred, 'country.beta')).toBe(900);
+    expect(controlledBaselinePopulation(transferred, 'country.alpha')).toBeUndefined();
     expect(transferred.economicOutputByRegion[region.id]).toBe(800);
-    expect(controlledEconomicOutput(transferred, 'country.beta')).toBe(800);
+    expect(controlledBaselineAnnualOutput(transferred, 'country.beta')).toBe(800);
   });
   it('never reports a partial controlled population when one owned Region is unavailable', () => {
     const incomplete = { ...state, regionOwnership: { 'region.one': 'country.alpha', 'region.two': 'country.alpha' }, populationByRegion: { 'region.one': 100, 'region.two': undefined }, economicOutputByRegion: { 'region.one': 500, 'region.two': undefined } };
-    expect(controlledPopulation(incomplete, 'country.alpha')).toBeUndefined();
-    expect(controlledEconomicOutput(incomplete, 'country.alpha')).toBeUndefined();
+    expect(controlledBaselinePopulation(incomplete, 'country.alpha')).toBeUndefined();
+    expect(controlledBaselineAnnualOutput(incomplete, 'country.alpha')).toBeUndefined();
   });
   it('migrates v3 saves deterministically without altering population or ownership', () => {
     const v3 = { schemaVersion: 3, date: '2026-02-03', paused: false, speed: 5, territoryOwnership: { 'territory.alpha': 'country.beta' }, regionOwnership: { [region.id]: 'country.beta' }, populationByRegion: { [region.id]: 456 } };

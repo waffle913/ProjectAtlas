@@ -70,3 +70,15 @@ Milestone 0.8 does not implement economic dynamics, crises, institutions, govern
 ## Milestone 0.10 integration
 
 Schema 8 adds `socioeconomy` to the canonical state. The default scheduler now includes monthly economy and administrative observation tasks. The common invariant registry and fidelity conservation cover this layer. Legacy population and annual output maps are saved initialization references; current monthly flows live in the socioeconomic Region records. See [the 0.10 model contract](socioeconomy-0.10.md) for equations, provenance, v7 migration and performance limits.
+
+## 0.10 corrective snapshot and reference boundary
+
+`SimulationClock.snapshot()`, `advance()` and `advanceIfChanged()` expose deeply frozen defensive copies. A per-clock WeakMap caches each JSON-like source object by identity, so unchanged branches are reused across logical days. A monthly update replaces the socioeconomic branch and changed flow records, while unchanged cohort arrays and provenance can still be reused. No canonical reference is exposed, and neither an old snapshot nor a different UI consumer can mutate the cached copies. Snapshot construction must not run a full clone before consulting this cache. `cloneSimulationState()` remains the explicit mutable, uncached copy for save/migration/editable working copies.
+
+Cache correctness follows the existing pure transition contract: runtime tasks replace changed objects and their ancestors, never mutate canonical branches in place. The cache is local to its clock, not a persisted state/version field. Its weak keys allow retired engine branches to be collected. Diplomacy/war setters copy only their incoming branches, preserving unrelated socioeconomic identity.
+
+Country readers use `controlledBaselinePopulation()` / `controlledBaselineAnnualOutput()` for saved references and `simulatedPopulationByCountry()` / `simulatedMonthlyOutputByCountry()` for current persons / USD per month. The current helpers aggregate `socioeconomy.regions` through current `regionOwnership`, return undefined for empty or incomplete coverage, and preserve known zero values. Historical original-owner helpers are also renamed to `originalBaselinePopulation()` / `originalBaselineAnnualOutput()`. Ambiguous old names are removed from internal callers/exports. Reference setters on the clock are initialization-only and throw once `socioeconomy.initializedOn` is present, including after save reload.
+
+The additional `projectatlas-daily-ui-snapshot-0.10` benchmark runs the actual clock and defensive snapshot path for 365 consecutive days, including 12 monthly transitions. It reports cold construction, mean unchanged-day time, monthly-day time, branch reuse counts, and total daily-path time separately from the unchanged economic benchmark. No timing threshold is treated as a correctness assertion.
+
+Exact measurements and checks for this correction: [0.10 corrective validation](milestone-0.10-corrective-validation.md).

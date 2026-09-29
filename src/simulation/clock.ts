@@ -3,29 +3,35 @@ import type { Shock } from './socioeconomy/model';
 import type { SimulationState } from '../types';
 import { createCoreScheduler } from './engine';
 import type { SimulationScheduler } from './scheduler';
-import { cloneSimulationState } from './state';
+import { cloneSimulationState, createSimulationSnapshotCache } from './state';
 
 const MS_PER_GAME_DAY = 1_000;
 
 /** UI-agnostic simulation time. Call advance with measured real elapsed milliseconds. */
 export class SimulationClock {
   private elapsed = 0;
+  private readonly snapshotCache = createSimulationSnapshotCache();
   private current: SimulationState;
   private readonly scheduler: SimulationScheduler;
   constructor(initial: SimulationState, scheduler: SimulationScheduler = createCoreScheduler()) {
     this.current = cloneSimulationState(initial);
     this.scheduler = scheduler;
   }
-  snapshot = () => cloneSimulationState(this.current);
+  snapshot = () => this.snapshotCache(this.current);
   setEconomicShock = (regionId: string, shock: Shock) => { this.current = requestEconomicShock(this.current, this.scheduler, regionId, shock); };
   setPaused = (paused: boolean) => { this.current = {...this.current, paused}; };
   setSpeed = (speed: 1 | 2 | 5) => { this.current = {...this.current, speed}; };
   setTerritoryOwnership = (territoryOwnership: Record<string, string | undefined>) => { this.current = {...this.current, territoryOwnership: {...territoryOwnership}}; };
   setRegionOwnership = (regionOwnership: Record<string, string | undefined>) => { this.current = {...this.current, regionOwnership: {...regionOwnership}}; };
-  setPopulationByRegion = (populationByRegion: Record<string, number | undefined>) => { this.current = {...this.current, populationByRegion: {...populationByRegion}}; };
-  setEconomicOutputByRegion = (economicOutputByRegion: Record<string, number | undefined>) => { this.current = {...this.current, economicOutputByRegion: {...economicOutputByRegion}}; };
-  setDiplomacy = (diplomacy: Pick<SimulationState, 'bilateralRelations' | 'claims' | 'explicitCasusBelli'>) => { this.current = cloneSimulationState({ ...this.current, ...diplomacy }); };
-  setWars = (warState: Pick<SimulationState, 'wars' | 'occupationByRegion'>) => { this.current = cloneSimulationState({ ...this.current, ...warState }); };
+  private requireInitialization = () => {
+    if (this.current.socioeconomy.initializedOn) throw new Error('Baseline references are initialization-only after socioeconomic initialization.');
+  };
+  /** Initialization-only population reference, never current simulated population. */
+  setPopulationByRegion = (populationByRegion: Record<string, number | undefined>) => { this.requireInitialization(); this.current = {...this.current, populationByRegion: {...populationByRegion}}; };
+  /** Initialization-only annual output reference, never monthly simulated output. */
+  setEconomicOutputByRegion = (economicOutputByRegion: Record<string, number | undefined>) => { this.requireInitialization(); this.current = {...this.current, economicOutputByRegion: {...economicOutputByRegion}}; };
+  setDiplomacy = (diplomacy: Pick<SimulationState, 'bilateralRelations' | 'claims' | 'explicitCasusBelli'>) => { this.current = { ...this.current, ...structuredClone(diplomacy) }; };
+  setWars = (warState: Pick<SimulationState, 'wars' | 'occupationByRegion'>) => { this.current = { ...this.current, ...structuredClone(warState) }; };
   setCountries = (countryIds: Iterable<string>) => {
     const fidelityByCountry = { ...this.current.engine.fidelityByCountry };
     for (const countryId of countryIds) fidelityByCountry[countryId] ??= 'Standard';

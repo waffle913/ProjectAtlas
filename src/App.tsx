@@ -8,7 +8,7 @@ import { buildWorld } from "./data/geography";
 import { loadCountryData, type LoadedCountryData } from "./data/countryData";
 import { loadRegionData, type LoadedRegionData } from "./data/regionData";
 import { loadPopulationData, populationBaselineState, type LoadedPopulationData } from "./data/populationData";
-import { controlledEconomicOutput, controlledPopulation } from "./simulation/region";
+import { controlledBaselineAnnualOutput, controlledBaselinePopulation, simulatedPopulationByCountry, simulatedMonthlyOutputByCountry } from "./simulation/region";
 import { loadEconomicData, economicBaselineState, type LoadedEconomicData } from "./data/economicData";
 import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
@@ -393,10 +393,12 @@ export default function App() {
             factsRecord={selected ? countryData?.factsByCountryId.get(selected) : undefined}
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
-            controlledPopulation={selected ? controlledPopulation(sim, selected) : undefined}
-            controlledPopulationComplete={selected ? controlledPopulation(sim, selected) !== undefined : false}
-            controlledEconomicOutput={selected ? controlledEconomicOutput(sim, selected) : undefined}
-            controlledEconomicOutputComplete={selected ? controlledEconomicOutput(sim, selected) !== undefined : false}
+            simulatedPopulation={selected ? simulatedPopulationByCountry(sim, selected) : undefined}
+            simulatedMonthlyOutput={selected ? simulatedMonthlyOutputByCountry(sim, selected) : undefined}
+            controlledBaselinePopulation={selected ? controlledBaselinePopulation(sim, selected) : undefined}
+            controlledBaselinePopulationComplete={selected ? controlledBaselinePopulation(sim, selected) !== undefined : false}
+            controlledBaselineAnnualOutput={selected ? controlledBaselineAnnualOutput(sim, selected) : undefined}
+            controlledBaselineAnnualOutputComplete={selected ? controlledBaselineAnnualOutput(sim, selected) !== undefined : false}
             activeClaimsMade={activeClaimsMade}
             foreignClaims={foreignClaims}
             availableCasusBelli={availableCasusBelli}

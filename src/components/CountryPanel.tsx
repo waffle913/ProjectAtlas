@@ -50,7 +50,7 @@ const fact = (name: string, observation?: FactValue) => (
   </div>
 );
 const formatUsd = (value?: number) => value === undefined ? undefined : new Intl.NumberFormat("en", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
-export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, controlledPopulation, controlledPopulationComplete = false, controlledEconomicOutput, controlledEconomicOutputComplete = false, activeClaimsMade = [], foreignClaims = [], availableCasusBelli = [], activeWars = [] }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; controlledPopulation?: number; controlledPopulationComplete?: boolean; controlledEconomicOutput?: number; controlledEconomicOutputComplete?: boolean; activeClaimsMade?: Array<{claim: TerritorialClaim; regionName: string}>; foreignClaims?: Array<{claim: TerritorialClaim; claimantName: string; regionName: string}>; availableCasusBelli?: Array<{cb: AvailableCasusBelli; targetName: string}>; activeWars?: Array<{war: LimitedWar; attackerName: string; defenderName: string; targetRegionName: string; objectiveSatisfied: boolean}> }) {
+export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, simulatedPopulation, simulatedMonthlyOutput, controlledBaselinePopulation, controlledBaselinePopulationComplete = false, controlledBaselineAnnualOutput, controlledBaselineAnnualOutputComplete = false, activeClaimsMade = [], foreignClaims = [], availableCasusBelli = [], activeWars = [] }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; simulatedPopulation?: number; simulatedMonthlyOutput?: number; controlledBaselinePopulation?: number; controlledBaselinePopulationComplete?: boolean; controlledBaselineAnnualOutput?: number; controlledBaselineAnnualOutputComplete?: boolean; activeClaimsMade?: Array<{claim: TerritorialClaim; regionName: string}>; foreignClaims?: Array<{claim: TerritorialClaim; claimantName: string; regionName: string}>; availableCasusBelli?: Array<{cb: AvailableCasusBelli; targetName: string}>; activeWars?: Array<{war: LimitedWar; attackerName: string; defenderName: string; targetRegionName: string; objectiveSatisfied: boolean}> }) {
   if (!country)
     return (
       <aside className="panel empty">
@@ -100,18 +100,21 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
         {!activeClaimsMade.length && !foreignClaims.length && !availableCasusBelli.length && <small>No active claims or available casus belli. The reviewed baseline is intentionally empty.</small>}
       </section>
       <section>
-        <h2>Economic output</h2>
+        <h2>Current socioeconomic simulation</h2>
+        {label("Simulated population controlled", simulatedPopulation === undefined ? "Unavailable — incomplete simulation data" : simulatedPopulation.toLocaleString("en"))}
+        {label("Simulated output / month", simulatedMonthlyOutput === undefined ? "Unavailable — incomplete simulation data" : formatUsd(simulatedMonthlyOutput))}
+        <h2>Economic references</h2>
         <div className="fact">
-          {label("Annual reference controlled", controlledEconomicOutputComplete ? formatUsd(controlledEconomicOutput) : "Unavailable — incomplete Region data")}
-          <small>{controlledEconomicOutputComplete ? "Saved annual baseline · complete sum of currently controlled Regions; monthly dynamics are in Region diagnostics" : "One or more currently controlled Regions lacks an economic baseline; no partial total is shown."}</small>
+          {label("Annual reference controlled", controlledBaselineAnnualOutputComplete ? formatUsd(controlledBaselineAnnualOutput) : "Unavailable — incomplete Region data")}
+          <small>{controlledBaselineAnnualOutputComplete ? "Saved annual baseline · complete sum of currently controlled Regions; monthly dynamics are in Region diagnostics" : "One or more currently controlled Regions lacks an economic baseline; no partial total is shown."}</small>
         </div>
         {fact("Statistical national GDP (USD)", facts.nominalGdpUsd)}
       </section>
       <section>
         <h2>Initial indicators</h2>
         <div className="fact">
-          {label("Baseline population controlled", controlledPopulationComplete ? controlledPopulation?.toLocaleString("en") : "Unavailable — incomplete Region data")}
-          <small>{controlledPopulationComplete ? "Saved population reference · complete sum of currently controlled Regions; modelled initialization is in Region diagnostics" : "One or more currently controlled Regions lacks a demographic baseline; no partial total is shown."}</small>
+          {label("Baseline population controlled", controlledBaselinePopulationComplete ? controlledBaselinePopulation?.toLocaleString("en") : "Unavailable — incomplete Region data")}
+          <small>{controlledBaselinePopulationComplete ? "Saved population reference · complete sum of currently controlled Regions; modelled initialization is in Region diagnostics" : "One or more currently controlled Regions lacks a demographic baseline; no partial total is shown."}</small>
         </div>
         <div className="fact">
           {label("National baseline", nationalPopulation?.value.toLocaleString("en"))}

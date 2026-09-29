@@ -4,7 +4,7 @@ import type { RegionEntity, SimulationState } from '../../types';
 import { createClaim, createExplicitCasusBelli, getAvailableCasusBelli, renounceClaim, type DiplomacyContext } from '../diplomacy';
 import { declareLimitedWar, endWar, getRegionOccupation, getWarOccupations, isWarGoalSatisfied, liberateRegion, occupyRegion, validateWarState } from '../war';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { controlledEconomicOutput, controlledPopulation } from '../region';
+import { controlledBaselineAnnualOutput, controlledBaselinePopulation } from '../region';
 import { createEngineState } from '../state';
 
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.target', 'region.other', 'region.attacker']) };
@@ -49,8 +49,8 @@ describe('limited bilateral war', () => {
     expect(ended.regionOwnership['region.target']).toBe('country.a'); expect(ended.regionOwnership['region.other']).toBe('country.b'); expect(ended.occupationByRegion).toEqual({});
     expect(ended.wars).toHaveLength(1); expect(ended.wars[0]).toMatchObject({ status: 'ended', outcome: 'attacker_victory', endDate: '2026-01-01' });
     expect(ended.populationByRegion).toEqual(declared.populationByRegion); expect(ended.economicOutputByRegion).toEqual(declared.economicOutputByRegion); expect(ended.territoryOwnership).toEqual({ legacy: 'country.b' });
-    expect(controlledPopulation(ended, 'country.a')).toBe(8_000_000); expect(controlledEconomicOutput(ended, 'country.a')).toBe(300_000_000_000);
-    expect(controlledPopulation(ended, 'country.b')).toBe(2_000_000); expect(controlledEconomicOutput(ended, 'country.b')).toBe(80_000_000_000);
+    expect(controlledBaselinePopulation(ended, 'country.a')).toBe(8_000_000); expect(controlledBaselineAnnualOutput(ended, 'country.a')).toBe(300_000_000_000);
+    expect(controlledBaselinePopulation(ended, 'country.b')).toBe(2_000_000); expect(controlledBaselineAnnualOutput(ended, 'country.b')).toBe(80_000_000_000);
     expect(getAvailableCasusBelli(ended, 'country.a', 'country.b', context)).toEqual([]);
     const laterLost = { ...ended, regionOwnership: { ...ended.regionOwnership, 'region.target': 'country.c' } };
     expect(getAvailableCasusBelli(laterLost, 'country.a', 'country.c', context)[0]).toMatchObject({ claimId: 'claim.target', targetCountryId: 'country.c' });
