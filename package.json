@@ -28,7 +28,9 @@
     "benchmark:world": "vitest run src/simulation/__tests__/worldBenchmark.test.ts --reporter=verbose",
     "verify": "npm run data:audit && npm run build && npm test",
     "economy:audit": "node scripts/socioeconomic-audit.mjs",
-    "economy:audit:generate": "node scripts/socioeconomic-audit.mjs --write"
+    "economy:audit:generate": "node scripts/socioeconomic-audit.mjs --write",
+    "fiscal:audit": "node scripts/fiscal-audit.mjs",
+    "fiscal:audit:generate": "node scripts/fiscal-audit.mjs --write"
   },
   "repository": {
     "type": "git",

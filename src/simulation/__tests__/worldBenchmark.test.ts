@@ -1,3 +1,4 @@
+import { emptyFiscal } from '../fiscal/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 /// <reference types="node" />
 import { performance } from 'node:perf_hooks';
@@ -15,7 +16,7 @@ const countryIds = entityRegistryJson.countries.map(country => country.id);
 const demographicByRegion = new Map(demographicsJson.records.map(record => [record.regionId, record]));
 const economicByRegion = new Map(economicsJson.records.map(record => [record.regionId, record]));
 const worldState = (): SimulationState => ({
-  schemaVersion: 8, socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
+  schemaVersion: 9, fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
   regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
   populationByRegion: Object.fromEntries(regions.map(region => { const record = demographicByRegion.get(region.id); return [region.id, record?.status === 'available' ? record.baselinePopulation : undefined]; })),
   economicOutputByRegion: Object.fromEntries(regions.map(region => { const record = economicByRegion.get(region.id); return [region.id, record?.status === 'available' ? record.baselineAnnualOutputUsd : undefined]; })),
@@ -105,3 +106,40 @@ it('measures the real daily UI path with cached defensive snapshots across a ful
     checksum: createHash('sha256').update(JSON.stringify(previous.socioeconomy)).digest('hex') };
   console.info(`DAILY_UI_BENCHMARK ${JSON.stringify(result)}`);
 }, 30000);
+import { initializeFiscal } from '../fiscal/runtime';
+
+it('benchmarks ten fiscal years, accounting invariants and the real daily snapshot path', () => {
+  const initial = initializeFiscal(socioeconomicWorld());
+  const scheduler = createCoreScheduler();
+  let state = initial, months = 0;
+  const started = performance.now();
+  for (let day = 0; day < 3650; day++) {
+    const result = scheduler.advanceOneDay(state); state = result.state;
+    if (result.trace.some(t => t.taskId === 'fiscal.monthly')) { months++; assertSimulationInvariants(state, worldContext, 'tick'); }
+  }
+  const elapsedMs = performance.now() - started;
+  expect(months).toBe(119);
+  expect(Object.keys(state.fiscal.countries).sort()).toEqual([...worldContext.countryIds].sort());
+  expect(state.regionOwnership).toEqual(initial.regionOwnership);
+  const saved = serializeSimulationState(state, worldContext);
+  const restored = restoreSimulationState(saved, worldContext.regions, {}, {}, worldContext);
+  expect(restored).toEqual(state);
+  expect(advanceSimulationDays(restored, 35)).toEqual(advanceSimulationDays(state, 35));
+  const clock = new SimulationClock(initial);
+  let previous = clock.snapshot(), reusedDays = 0, changedDays = 0, dailyMs = 0, monthlyMs = 0;
+  for (let d = 0; d < 365; d++) {
+    const start = performance.now(), next = clock.advanceIfChanged(1000)!;
+    const elapsed = performance.now() - start;
+    if (next.fiscal === previous.fiscal && next.socioeconomy === previous.socioeconomy) { reusedDays++; dailyMs += elapsed; }
+    else { changedDays++; monthlyMs += elapsed; }
+    previous = next;
+  }
+  expect(reusedDays).toBe(353); expect(changedDays).toBe(12);
+  expect(previous).toEqual(advanceSimulationDays(initial, 365));
+  const result = { benchmark: 'projectatlas-fiscal-0.11', countries: Object.keys(state.fiscal.countries).length, regions: Object.keys(state.fiscal.regions).length, ticks: state.engine.tick, months, finalDate: state.date,
+    elapsedMs: Number(elapsedMs.toFixed(2)), ticksPerSecond: Math.round(3650000 / elapsedMs), saveBytes: Buffer.byteLength(saved),
+    fiscalSha256: createHash('sha256').update(JSON.stringify(state.fiscal)).digest('hex'), reusedDays, changedDays,
+    reusedDayMeanMs: Number((dailyMs / reusedDays).toFixed(4)), monthlySnapshotDayMeanMs: Number((monthlyMs / changedDays).toFixed(2)),
+    countriesWithArrears: Object.values(state.fiscal.countries).filter(c => c.account!.stress.unpaidCommitments > 0).length };
+  console.info(`FISCAL_WORLD_BENCHMARK ${JSON.stringify(result)}`);
+}, 60000);

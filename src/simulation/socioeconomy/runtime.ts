@@ -1,3 +1,4 @@
+import { fiscalDemand } from '../fiscal/runtime';
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import { clearDirty, markDirty } from '../dirty';
@@ -16,7 +17,7 @@ export function registerSocioeconomicTasks(scheduler: SimulationScheduler): Simu
     for (const id of ids) {
       const region = regions[id];
       if (!region) throw new Error(`Unknown socioeconomic region: ${id}`);
-      regions[id] = monthly ? evolve(region) : region.economy ? { ...region, economy: projectCapacity(region.economy) } : region;
+      regions[id] = monthly ? evolve(region, fiscalDemand(state, id)) : region.economy ? { ...region, economy: projectCapacity(region.economy) } : region;
     }
     return clearDirty({ ...state, socioeconomy: { ...socio, regions, lastMonthlyDate: monthly ? state.date : socio.lastMonthlyDate } }, 'socioeconomy');
   } }).register({ id: 'administration.monthly', cadence: 'monthly', priority: 200, run: state => {
@@ -31,7 +32,7 @@ export function registerSocioeconomicTasks(scheduler: SimulationScheduler): Simu
     }
     const entries = Object.keys(state.engine.fidelityByCountry).sort().filter(id => !state.socioeconomy.playerCountryIds.includes(id)).map(countryId => ({
       countryId, date: state.date, action: 'maintain_parameters' as const,
-      reason: 'No fiscal or policy lever in 0.10; observe shared canonical economy without intervention.',
+      reason: state.fiscal.initializedOn ? 'Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.' : 'No fiscal or policy lever in 0.10; observe shared canonical economy without intervention.',
       observedRegions: totals.get(countryId)?.count ?? 0,
       outputUsdMonthly: totals.get(countryId)?.count ? totals.get(countryId)!.output : undefined,
       outputCoverage: !totals.get(countryId)?.count ? 'unavailable' as const : totals.get(countryId)!.count === totals.get(countryId)!.total ? 'complete' as const : 'partial' as const,

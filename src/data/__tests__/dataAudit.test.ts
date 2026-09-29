@@ -1,3 +1,4 @@
+import { emptyFiscal } from '../../simulation/fiscal/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 /// <reference types="node" />
 import { spawnSync } from 'node:child_process';
@@ -56,7 +57,7 @@ describe('milestone 0.9 global data audit', () => {
     const populationByRegion = Object.fromEntries(demographicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselinePopulation]));
     const economicOutputByRegion = Object.fromEntries(economicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselineAnnualOutputUsd]));
     const state: SimulationState = {
-      schemaVersion: 8, socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 9, fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(registry.territories.map(territory => [territory.id, territory.initialOwnerCountryId])),
       regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
       populationByRegion, economicOutputByRegion, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},

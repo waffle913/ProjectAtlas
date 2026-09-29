@@ -111,3 +111,9 @@ Some disputed or partially recognized entities have no assigned ISO or M49 code;
 The pinned source is Natural Earth **10m Admin-1 States and Provinces 5.1.2**, Git commit `f1890d9f152c896d250a77557a5751a93d494776`, retrieved 2026-09-26 and verified by the SHA-256 stored in `natural-earth-admin1-metadata.json`. Natural Earth data are public domain; see [Natural Earth terms of use](https://www.naturalearthdata.com/about/terms-of-use/).
 
 Natural Earth describes this global Admin-1 layer as beta. It can be incomplete, generalized, inconsistent in administrative level, or geopolitically ambiguous. ProjectAtlas therefore does not equate source coverage with a legal or exhaustive administrative claim. The coverage report, fallback Regions, candidate-code metadata and explicit excluded-feature records preserve these limitations instead of hiding them.
+
+## National fiscal simulation (0.11)
+
+The monthly economy now feeds national tax liabilities, collected revenue, annual dollar budgets, household transfers, bounded financing, debt interest and progressive public-service capacity. Household disposable income drives the next month's consumption. Country inspection includes a fiscal debug panel and an explicit dated JSON reform API. Save schema 9 migrates schema 8 without replacing saved socioeconomic values.
+
+Legal coverage is intentionally incomplete: five partial US/Canadian federal rule extracts; other laws are unavailable, never world-average substitutes. Fiscal initialization and service parameters are modelled, not observed national accounts. Read [the fiscal contract](docs/fiscal-0.11.md), [source audit](docs/fiscal-data-0.11.md) and [validation report](docs/milestone-0.11-validation.md) before interpreting outputs. `npm run fiscal:audit` verifies legal and actual simulation coverage; `npm run benchmark:world` includes ten fiscal years and the cached daily UI path.

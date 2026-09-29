@@ -99,10 +99,10 @@ export function projectCapacity(e: Economy): Economy {
   const capacity = Math.min(infrastructure, ratio(productivity, labour, e.baseEmployed));
   return { ...e, capacity, productivity: { outputUsd: productivity, workers: e.baseEmployed } };
 }
-export function evolve(region: SocioRegion): SocioRegion {
+export function evolve(region: SocioRegion, fiscal?: { householdRequests: number[]; otherDemand: number }): SocioRegion {
   if (!region.economy) return region;
-  const e = projectCapacity(region.economy);
-  const householdRequests = demandByGroup(e.incomeByGroup);
+  const e = { ...projectCapacity(region.economy), otherDemandResidual: fiscal?.otherDemand ?? region.economy.otherDemandResidual };
+  const householdRequests = fiscal?.householdRequests ?? demandByGroup(e.incomeByGroup);
   const householdDemand = householdRequests.reduce((a, b) => a + b, 0);
   const demand = integer(householdDemand + e.otherDemandResidual);
   // Bounded hiring responds to demand; actual employed workers constrain production.

@@ -1,3 +1,6 @@
+import { FiscalDebug } from './components/FiscalDebug';
+import { initializeFiscal } from './simulation/fiscal/runtime';
+import { emptyFiscal } from './simulation/fiscal/model';
 import { emptySocioeconomy, inspectSocioeconomy, NO_SHOCK } from './simulation/socioeconomy/model';
 import { initializeSocioeconomy } from './simulation/socioeconomy/initialization';
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -21,7 +24,7 @@ import { assertSimulationInvariants } from "./simulation/invariants";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 8, socioeconomy: emptySocioeconomy(),
+  schemaVersion: 9, fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -115,7 +118,7 @@ export default function App() {
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
         clock.current.setCountries(data.registry.countries.map(country => country.id));
-        clock.current = new SimulationClock(initializeSocioeconomy(clock.current.snapshot(), regions.registry.regions, { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries }));
+        clock.current = new SimulationClock(initializeFiscal(initializeSocioeconomy(clock.current.snapshot(), regions.registry.regions, { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries })));
         const registryContext = { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
         assertSimulationInvariants(clock.current.snapshot(), { ...registryContext, regions: regions.registry.regions }, 'reload');
         setSim(clock.current.snapshot());
@@ -389,6 +392,7 @@ export default function App() {
           />
         ) : (
           <CountryPanel
+            fiscalDebug={selected ? <FiscalDebug key={selected} state={sim} countryId={selected} onReform={r => { clock.current.reformFiscal(r); setSim(clock.current.snapshot()); }} /> : undefined}
             country={selectedCountry}
             factsRecord={selected ? countryData?.factsByCountryId.get(selected) : undefined}
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}

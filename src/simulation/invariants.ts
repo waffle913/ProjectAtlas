@@ -1,3 +1,4 @@
+import { fiscalInvariant } from './fiscal/invariants';
 import { socioeconomicInvariant } from './socioeconomy/invariants';
 import type { RegionEntity, SimulationState } from '../types';
 import { validateDiplomacyState, type DiplomacyContext } from './diplomacy';
@@ -23,11 +24,12 @@ const validFidelity = new Set(['Detailed', 'Standard', 'Background']);
 
 export const coreInvariants: readonly SimulationInvariant[] = [
   socioeconomicInvariant,
+  fiscalInvariant,
   {
     id: 'canonical-state-shape',
     check: state => {
       const errors: string[] = [];
-      if (state.schemaVersion !== 8) errors.push(`Expected schema 8, received ${state.schemaVersion}.`);
+      if (state.schemaVersion !== 9) errors.push(`Expected schema 9, received ${state.schemaVersion}.`);
       if (!validDate(state.date) || !Number.isSafeInteger(state.engine.tick) || state.engine.tick < 0 || !state.engine.seed) errors.push('Simulation date, tick or seed is malformed.');
       if (Object.values(state.populationByRegion).some(value => value !== undefined && (!Number.isSafeInteger(value) || value < 0))) errors.push('Region population contains an invalid quantity.');
       if (Object.values(state.economicOutputByRegion).some(value => value !== undefined && (!Number.isSafeInteger(value) || value < 0))) errors.push('Region economic output contains an invalid quantity.');
@@ -114,7 +116,7 @@ export function assertSimulationInvariants(state: SimulationState, context: Inva
   return registry.assert(state, context, phase);
 }
 
-const conservedFields = ['socioeconomy', 'territoryOwnership', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'bilateralRelations', 'claims', 'explicitCasusBelli', 'wars', 'occupationByRegion'] as const;
+const conservedFields = ['fiscal', 'socioeconomy', 'territoryOwnership', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'bilateralRelations', 'claims', 'explicitCasusBelli', 'wars', 'occupationByRegion'] as const;
 export function validateFidelityConservation(before: SimulationState, after: SimulationState): InvariantViolation[] {
   return conservedFields.flatMap(field => JSON.stringify(before[field]) === JSON.stringify(after[field]) ? [] : [{ invariantId: `fidelity-conserves-${field}`, phase: 'fidelity-transition' as const, message: `${field} changed during a fidelity-only transition.` }]);
 }

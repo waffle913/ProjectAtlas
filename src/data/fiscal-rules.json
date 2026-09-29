@@ -1,0 +1,140 @@
+{
+  "version": "fiscal-legal-2026-v1",
+  "scenarioDate": "2026-01-01",
+  "redistribution": "Factual numeric extracts and original summaries only; source documents are linked, not redistributed.",
+  "rules": [
+    {
+      "id": "us-pit-2026",
+      "countryId": "country.u6myyj",
+      "kind": "personal",
+      "status": "partial",
+      "scope": "federal",
+      "currency": "USD",
+      "unit": "annual_currency_units_and_basis_points",
+      "effectiveDate": "2026-01-01",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-09-29",
+      "source": "https://www.irs.gov/irb/2025-45_IRB",
+      "document": "Rev. Proc. 2025-32, section 4, tax year 2026",
+      "limitations": "Single filer standard deduction only; credits, itemized deductions, age adjustments, AMT and state taxes excluded.",
+      "allowance": 16100,
+      "bands": [
+        {
+          "lower": 0,
+          "rateBps": 1000
+        },
+        {
+          "lower": 12400,
+          "rateBps": 1200
+        },
+        {
+          "lower": 50400,
+          "rateBps": 2200
+        },
+        {
+          "lower": 105700,
+          "rateBps": 2400
+        },
+        {
+          "lower": 201775,
+          "rateBps": 3200
+        },
+        {
+          "lower": 256225,
+          "rateBps": 3500
+        },
+        {
+          "lower": 640600,
+          "rateBps": 3700
+        }
+      ]
+    },
+    {
+      "id": "us-payroll-2026",
+      "countryId": "country.u6myyj",
+      "kind": "payroll",
+      "status": "partial",
+      "scope": "federal",
+      "currency": "USD",
+      "unit": "annual_currency_units_and_basis_points",
+      "effectiveDate": "2026-01-01",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-09-29",
+      "source": "https://www.irs.gov/publications/p15",
+      "document": "Publication 15 (2026), Social security and Medicare taxes",
+      "limitations": "Employees only; additional Medicare uses single-filer threshold. Self employment, FUTA and state schemes excluded.",
+      "employee": [
+        {
+          "rateBps": 620,
+          "cap": 184500
+        },
+        {
+          "rateBps": 145
+        },
+        {
+          "rateBps": 90,
+          "threshold": 200000
+        }
+      ],
+      "employer": [
+        {
+          "rateBps": 620,
+          "cap": 184500
+        },
+        {
+          "rateBps": 145
+        }
+      ]
+    },
+    {
+      "id": "us-corporate",
+      "countryId": "country.u6myyj",
+      "kind": "corporate",
+      "status": "partial",
+      "scope": "federal",
+      "currency": "USD",
+      "unit": "annual_currency_units_and_basis_points",
+      "effectiveDate": "2018-01-01",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-09-29",
+      "source": "https://uscode.house.gov/view.xhtml?req=(title:26+section:11+edition:prelim)",
+      "document": "26 USC 11(b), 2017 amendment effective tax years after 2017",
+      "limitations": "General federal corporation rate; credits, alternative minimum tax and special entities excluded.",
+      "rateBps": 2100
+    },
+    {
+      "id": "ca-gst",
+      "countryId": "country.1aj872z",
+      "kind": "consumption",
+      "status": "partial",
+      "scope": "federal",
+      "currency": "CAD",
+      "unit": "annual_currency_units_and_basis_points",
+      "effectiveDate": "2008-01-01",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-09-29",
+      "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html",
+      "document": "CRA GST/HST rate table, with historical federal GST reduction effective 2008",
+      "limitations": "Federal GST only. Provincial portions excluded. Basic groceries zero-rated; exempt supplies not itemized. Taxable share must be modelled.",
+      "rateBps": 500,
+      "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2007/12/prime-minister-rings-new-year-gst-cut.html"
+    },
+    {
+      "id": "ca-corporate",
+      "countryId": "country.1aj872z",
+      "kind": "corporate",
+      "status": "partial",
+      "scope": "federal",
+      "currency": "CAD",
+      "unit": "annual_currency_units_and_basis_points",
+      "effectiveDate": "2012-01-01",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-09-29",
+      "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/corporations/corporation-tax-rates.html",
+      "document": "CRA corporation tax rates, page dated 2025-05-30",
+      "limitations": "General federal net rate only. Provincial rates, small business 9%, manufacturing reductions and financial-sector surcharge excluded.",
+      "rateBps": 1500,
+      "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2011/12/harper-government-highlights-tax-relief-2012.html"
+    }
+  ]
+}

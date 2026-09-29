@@ -1,3 +1,4 @@
+import { emptyFiscal } from '../../simulation/fiscal/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
@@ -47,7 +48,7 @@ describe('persistent entity registry', () => {
     const territory = original.territories[0];
     const target = original.territories[1].ownerCountryId!;
     const save = transferTerritory({
-      schemaVersion: 8, socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 9, fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(original.territories.map(t => [t.id, t.ownerCountryId])),
       regionOwnership: {},
       populationByRegion: {},

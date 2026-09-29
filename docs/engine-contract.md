@@ -1,4 +1,4 @@
-# ProjectAtlas engine contract (0.8 foundation, 0.10 extension)
+# ProjectAtlas engine contract (0.8 foundation, 0.11 extension)
 
 This contract is the integration point for simulation systems added after milestone 0.8. It consolidates the existing 0.1–0.7 model; it does not replace the entity or Region registries and does not duplicate the world in a second state object.
 
@@ -82,3 +82,7 @@ Country readers use `controlledBaselinePopulation()` / `controlledBaselineAnnual
 The additional `projectatlas-daily-ui-snapshot-0.10` benchmark runs the actual clock and defensive snapshot path for 365 consecutive days, including 12 monthly transitions. It reports cold construction, mean unchanged-day time, monthly-day time, branch reuse counts, and total daily-path time separately from the unchanged economic benchmark. No timing threshold is treated as a correctness assertion.
 
 Exact measurements and checks for this correction: [0.10 corrective validation](milestone-0.10-corrective-validation.md).
+
+## Fiscal extension (0.11)
+
+Schema 9 adds `fiscal`, with national accounts, household fiscal ledgers, dated policy reforms and service stocks. The default scheduler runs `fiscal.reforms` daily (priority 50) and `fiscal.monthly` after the economy (priority 150). The existing administration task reports execution without choosing policies. Fiscal state is included in core invariant and fidelity-conservation checks and structural UI deltas. The snapshot cache reuses it on ordinary days. See [fiscal-0.11.md](fiscal-0.11.md) for exact accounting, source coverage and timing semantics. Historical schema 8 saves preserve their full economic branch on upgrade. Same-date debug reforms update policy while paused; they do not execute monthly flows or bypass scheduler accounting.

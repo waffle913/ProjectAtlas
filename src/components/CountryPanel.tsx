@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Country, LimitedWar, TerritorialClaim } from "../types";
 import type { AvailableCasusBelli } from "../simulation/diplomacy";
 import type { CountryFactsRecord, FactValue, Officeholder, PoliticalOffice } from "../data/countryData";
@@ -50,7 +51,7 @@ const fact = (name: string, observation?: FactValue) => (
   </div>
 );
 const formatUsd = (value?: number) => value === undefined ? undefined : new Intl.NumberFormat("en", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
-export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, simulatedPopulation, simulatedMonthlyOutput, controlledBaselinePopulation, controlledBaselinePopulationComplete = false, controlledBaselineAnnualOutput, controlledBaselineAnnualOutputComplete = false, activeClaimsMade = [], foreignClaims = [], availableCasusBelli = [], activeWars = [] }: { country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; simulatedPopulation?: number; simulatedMonthlyOutput?: number; controlledBaselinePopulation?: number; controlledBaselinePopulationComplete?: boolean; controlledBaselineAnnualOutput?: number; controlledBaselineAnnualOutputComplete?: boolean; activeClaimsMade?: Array<{claim: TerritorialClaim; regionName: string}>; foreignClaims?: Array<{claim: TerritorialClaim; claimantName: string; regionName: string}>; availableCasusBelli?: Array<{cb: AvailableCasusBelli; targetName: string}>; activeWars?: Array<{war: LimitedWar; attackerName: string; defenderName: string; targetRegionName: string; objectiveSatisfied: boolean}> }) {
+export function CountryPanel({ fiscalDebug, country, factsRecord, officeholders = [], nationalPopulation, simulatedPopulation, simulatedMonthlyOutput, controlledBaselinePopulation, controlledBaselinePopulationComplete = false, controlledBaselineAnnualOutput, controlledBaselineAnnualOutputComplete = false, activeClaimsMade = [], foreignClaims = [], availableCasusBelli = [], activeWars = [] }: { fiscalDebug?: ReactNode; country?: Country; factsRecord?: CountryFactsRecord; officeholders?: Array<{office:PoliticalOffice;holder:Officeholder}>; nationalPopulation?: PopulationObservation; simulatedPopulation?: number; simulatedMonthlyOutput?: number; controlledBaselinePopulation?: number; controlledBaselinePopulationComplete?: boolean; controlledBaselineAnnualOutput?: number; controlledBaselineAnnualOutputComplete?: boolean; activeClaimsMade?: Array<{claim: TerritorialClaim; regionName: string}>; foreignClaims?: Array<{claim: TerritorialClaim; claimantName: string; regionName: string}>; availableCasusBelli?: Array<{cb: AvailableCasusBelli; targetName: string}>; activeWars?: Array<{war: LimitedWar; attackerName: string; defenderName: string; targetRegionName: string; objectiveSatisfied: boolean}> }) {
   if (!country)
     return (
       <aside className="panel empty">
@@ -64,6 +65,7 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
   const facts = factsRecord?.facts ?? {};
   return (
     <aside className="panel">
+      {fiscalDebug}
       <div className="title">
         <span className="flag" aria-label={`${country.commonName} flag`}>
           {flagEmoji(country.externalIds.isoAlpha2)}

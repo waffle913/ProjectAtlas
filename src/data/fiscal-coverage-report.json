@@ -1,0 +1,5822 @@
+{
+  "version": "fiscal-legal-2026-v1",
+  "referenceDate": "2026-01-01",
+  "extractSha256": "ebaeddebe2e71838a6beab063bc73f985faf07b7ef5a0d4cfe418c47f373f248",
+  "stage": "legal-data-reviewed; actual-engine-coverage-in-fiscal-initialization-report.json",
+  "totals": {
+    "personal": {
+      "partial": 1,
+      "unavailable": 251
+    },
+    "consumption": {
+      "partial": 1,
+      "unavailable": 251
+    },
+    "payroll": {
+      "partial": 1,
+      "unavailable": 251
+    },
+    "corporate": {
+      "partial": 2,
+      "unavailable": 250
+    }
+  },
+  "countries": [
+    {
+      "countryId": "country.1bxt04r",
+      "name": "Fiji",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.10umxsb",
+      "name": "United Republic of Tanzania",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.rvhaqt",
+      "name": "Western Sahara",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1aj872z",
+      "name": "Canada",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "partial",
+        "payroll": "unavailable",
+        "corporate": "partial"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.u6myyj",
+      "name": "United States of America",
+      "legal": {
+        "personal": "partial",
+        "consumption": "unavailable",
+        "payroll": "partial",
+        "corporate": "partial"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1y9w9xr",
+      "name": "Kazakhstan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.c55i8p",
+      "name": "Uzbekistan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.zvvq7v",
+      "name": "Papua New Guinea",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1gtbljd",
+      "name": "Indonesia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1cin176",
+      "name": "Argentina",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.yhajqy",
+      "name": "Chile",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.78ys5y",
+      "name": "Democratic Republic of the Congo",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1k431t",
+      "name": "Somalia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1y5kvsv",
+      "name": "Kenya",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.jg9ci8",
+      "name": "Sudan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.e55nqx",
+      "name": "Chad",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1r1l1cm",
+      "name": "Haiti",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.d772x9",
+      "name": "Dominican Republic",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.h03oz0",
+      "name": "Russian Federation",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.6sun05",
+      "name": "Bahamas",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.c7ig3n",
+      "name": "Falkland Islands (Malvinas)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1vrmp4h",
+      "name": "Norway",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.14jkmlh",
+      "name": "Greenland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.11efhcg",
+      "name": "French Southern Territories",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1p0y3nd",
+      "name": "Timor-Leste",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.t3667i",
+      "name": "South Africa",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1mkrhod",
+      "name": "Lesotho",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1i4b92q",
+      "name": "Mexico",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1qeehvj",
+      "name": "Uruguay",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1mxwn59",
+      "name": "Brazil",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1wszh7v",
+      "name": "Bolivia (Plurinational State of)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8cy639",
+      "name": "Peru",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ckoh6f",
+      "name": "Colombia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8thyov",
+      "name": "Panama",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.18zkp24",
+      "name": "Costa Rica",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.z7gp3s",
+      "name": "Nicaragua",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.3f7ydp",
+      "name": "Honduras",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.mgrohe",
+      "name": "El Salvador",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.wkwrv6",
+      "name": "Guatemala",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.u4ua72",
+      "name": "Belize",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.qdlh80",
+      "name": "Venezuela (Bolivarian Republic of)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.aheews",
+      "name": "Guyana",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ieqa5v",
+      "name": "Suriname",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.97e14s",
+      "name": "France",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.13l0w18",
+      "name": "Ecuador",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1b9pd3r",
+      "name": "Puerto Rico",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1rzzy0l",
+      "name": "Jamaica",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1slft1c",
+      "name": "Cuba",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.6th7vw",
+      "name": "Zimbabwe",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1g4p5xi",
+      "name": "Botswana",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.13ie6ly",
+      "name": "Namibia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1bf4760",
+      "name": "Senegal",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.13gf39o",
+      "name": "Mali",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1powv0y",
+      "name": "Mauritania",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.n7hxdt",
+      "name": "Benin",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.15217la",
+      "name": "Niger",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1wvxlzg",
+      "name": "Nigeria",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1w9qxht",
+      "name": "Cameroon",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1akiyqe",
+      "name": "Togo",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1nz4j7w",
+      "name": "Ghana",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ukura0",
+      "name": "C&#244;te d’Ivoire",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1knbk6o",
+      "name": "Guinea",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.tyezxm",
+      "name": "Guinea-Bissau",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.13si2qd",
+      "name": "Liberia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.mqcp0q",
+      "name": "Sierra Leone",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.14vdqsc",
+      "name": "Burkina Faso",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.14nagci",
+      "name": "Central African Republic",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.mce667",
+      "name": "Congo",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1jpkbk",
+      "name": "Gabon",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.72e2lh",
+      "name": "Equatorial Guinea",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.9cg02n",
+      "name": "Zambia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1ena0me",
+      "name": "Malawi",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.zaf4y3",
+      "name": "Mozambique",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.td9ldb",
+      "name": "Eswatini",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1oit02h",
+      "name": "Angola",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.82nqba",
+      "name": "Burundi",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1dsqes5",
+      "name": "Israel",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.14p3bj2",
+      "name": "Lebanon",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.snc7v9",
+      "name": "Madagascar",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.x4ahyj",
+      "name": "State of Palestine",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.jmri14",
+      "name": "Gambia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1fog5xu",
+      "name": "Tunisia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.hw7u0k",
+      "name": "Algeria",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.awshmp",
+      "name": "Jordan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.xjfx2m",
+      "name": "United Arab Emirates",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1pvjhz6",
+      "name": "Qatar",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.18echaw",
+      "name": "Kuwait",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1y3qxos",
+      "name": "Iraq",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.sq8sl2",
+      "name": "Oman",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1hnoduz",
+      "name": "Vanuatu",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.10o3gxv",
+      "name": "Cambodia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.gddwz0",
+      "name": "Thailand",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.18zobjo",
+      "name": "Lao People's Democratic Republic",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.50z1vg",
+      "name": "Myanmar",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.opradj",
+      "name": "Viet Nam",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.jm8gea",
+      "name": "Democratic People's Republic of Korea",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1jzfv40",
+      "name": "Republic of Korea",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.9j09vn",
+      "name": "Mongolia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.12rbtu0",
+      "name": "India",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1rdien2",
+      "name": "Bangladesh",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1lye27d",
+      "name": "Bhutan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.hs6fyh",
+      "name": "Nepal",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.f5u1ei",
+      "name": "Pakistan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1us5oyp",
+      "name": "Afghanistan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1pajyhp",
+      "name": "Tajikistan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.7zmt7h",
+      "name": "Kyrgyzstan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.88o7pu",
+      "name": "Turkmenistan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.yc1r8r",
+      "name": "Iran (Islamic Republic of)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.19iew1b",
+      "name": "Syrian Arab Republic",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1x9bk5g",
+      "name": "Armenia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1ga7ffb",
+      "name": "Sweden",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.joydxr",
+      "name": "Belarus",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8zv92e",
+      "name": "Ukraine",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1yyv1wz",
+      "name": "Poland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.alucm0",
+      "name": "Austria",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1t8wy2p",
+      "name": "Hungary",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.6mdobv",
+      "name": "Republic of Moldova",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.zsxuo0",
+      "name": "Romania",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1abe1vk",
+      "name": "Lithuania",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.nusos0",
+      "name": "Latvia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.159s948",
+      "name": "Estonia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.sxojze",
+      "name": "Germany",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.kb8qjm",
+      "name": "Bulgaria",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1ge48fm",
+      "name": "Greece",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.jvmcgx",
+      "name": "T&#252;rkiye",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1rdws0z",
+      "name": "Albania",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1dg1asq",
+      "name": "Croatia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1s29x2y",
+      "name": "Switzerland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.qo855j",
+      "name": "Luxembourg",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.bk8phe",
+      "name": "Belgium",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1ddp0cj",
+      "name": "Netherlands (Kingdom of the)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.pauqcg",
+      "name": "Portugal",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.e06wze",
+      "name": "Spain",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.s93ito",
+      "name": "Ireland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.5lwy1g",
+      "name": "New Caledonia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1629o6e",
+      "name": "Solomon Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1bryr1g",
+      "name": "New Zealand",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1gxtyz9",
+      "name": "Australia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.xs7zo4",
+      "name": "Sri Lanka",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.j4e5mk",
+      "name": "China",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.113l9xv",
+      "name": "Taiwan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1onsv24",
+      "name": "Italy",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.pqqumd",
+      "name": "Denmark",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.zwicjl",
+      "name": "United Kingdom of Great Britain and Northern Ireland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.2r4kh5",
+      "name": "Iceland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.n2i2m0",
+      "name": "Azerbaijan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1bqmiqj",
+      "name": "Georgia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1ckv6i4",
+      "name": "Philippines",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1a1ajo",
+      "name": "Malaysia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1tac25k",
+      "name": "Brunei Darussalam",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1yl9unk",
+      "name": "Slovenia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.sadyi7",
+      "name": "Finland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1nths69",
+      "name": "Slovakia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.i9fek6",
+      "name": "Czechia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1rbe765",
+      "name": "Eritrea",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1xyn8u3",
+      "name": "Japan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.qw8j9b",
+      "name": "Paraguay",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8zgnf1",
+      "name": "Yemen",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.17se0x",
+      "name": "Saudi Arabia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ucqeq5",
+      "name": "Antarctica",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1ffxfif",
+      "name": "Northern Cyprus",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1dtcx1v",
+      "name": "Cyprus",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1orw7jp",
+      "name": "Morocco",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.b4jfbk",
+      "name": "Egypt",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.wxv6tu",
+      "name": "Libya",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.d0e7yk",
+      "name": "Ethiopia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.12na4wl",
+      "name": "Djibouti",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.fn8xdv",
+      "name": "Somaliland",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.5q931z",
+      "name": "Uganda",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1qt08wm",
+      "name": "Rwanda",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.mbt8ni",
+      "name": "Bosnia and Herzegovina",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.eno4h9",
+      "name": "North Macedonia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1br72am",
+      "name": "Serbia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1cf3s0n",
+      "name": "Montenegro",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.xso2dg",
+      "name": "Kosovo",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ao8edp",
+      "name": "Trinidad and Tobago",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.1bwwirt",
+      "name": "South Sudan",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8407a8d8-70de-4f9f-b22e-029c8312b476",
+      "name": "British Indian Ocean Territory",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.f3a9acdf-e608-4c67-9f5c-aab01b6ac91f",
+      "name": "Comoros",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.589767fd-d38e-45be-933c-e243cd22ec04",
+      "name": "Mauritius",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ff993996-0239-4e2c-8fae-234d3985f9b5",
+      "name": "Mayotte",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.58c98914-d491-401e-b681-40a699a6e3c5",
+      "name": "R&#233;union",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.54732cb4-6064-445b-a3c2-461d752e4305",
+      "name": "Seychelles",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.b8da38ac-b364-44d1-82ea-fc39ff807e0b",
+      "name": "Sao Tome and Principe",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.46088230-c32b-4e3f-a816-fa6daf9737c4",
+      "name": "Cabo Verde",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.4449fa36-e713-4df2-9651-ae5850828346",
+      "name": "Saint Helena",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.c826fd7f-d7a1-43da-96df-b6d4569ef38a",
+      "name": "Anguilla",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.fbc079c5-7b73-4476-a6c0-f9cf0aa983f5",
+      "name": "Antigua and Barbuda",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.4267c600-c365-46b7-8a45-019fae158ae5",
+      "name": "Aruba",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.5d8b54a9-8886-4e50-ac35-dfdbac3cdcff",
+      "name": "Barbados",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.fb028d5c-e50f-413d-a54a-f7c16bc4a40b",
+      "name": "Bonaire, Sint Eustatius and Saba",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.cf8c6db8-4864-45c8-bec3-97f778d234f3",
+      "name": "British Virgin Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.6fea45ff-6dc6-468a-a4c7-00b07dcde242",
+      "name": "Cayman Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.e51e585f-84c6-430b-ae14-163905e3a241",
+      "name": "Cura&#231;ao",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.abcbf2de-3898-4bff-9a00-899fcadcc32a",
+      "name": "Dominica",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.fb52b2fd-95f8-4731-a50a-e7e0f6fbeb26",
+      "name": "Grenada",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ec0f2089-48e2-4c74-bcf8-4ce52b58bc71",
+      "name": "Guadeloupe",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.d9a0b532-0785-4fdb-8e0e-dd5a97dee8b1",
+      "name": "Martinique",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8a7dbb03-20f0-4679-858f-e8afad2bfdaa",
+      "name": "Montserrat",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.18835158-28ca-4c62-88c0-824a08092b27",
+      "name": "Saint Barth&#233;lemy",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.4c29f8cf-400e-4d36-ac63-b9fd94058944",
+      "name": "Saint Kitts and Nevis",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8554a20a-f004-46eb-a49c-b26c269c127c",
+      "name": "Saint Lucia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.e19c605e-802b-4844-b3b6-21e0d33be36d",
+      "name": "Saint Martin (French Part)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.15794b34-37b2-4053-964a-2dfea1e18400",
+      "name": "Saint Vincent and the Grenadines",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.278c58e4-229a-4a7a-8e16-51e0abfebd45",
+      "name": "Sint Maarten (Dutch part)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.56c8424f-4640-4fb6-8584-1655d6feb9db",
+      "name": "Turks and Caicos Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.3d22be69-b741-4de3-a8ee-4abf889e77d0",
+      "name": "United States Virgin Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.b603f5b4-6bae-4964-aa27-7f805b4a149b",
+      "name": "Bouvet Island",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.897e7a46-935e-44af-a7df-806dbd257f18",
+      "name": "French Guiana",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.f9d11b4c-74d3-4103-8cc0-7c81d8023cc3",
+      "name": "South Georgia and the South Sandwich Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.75cd3e08-1b7e-45c4-95d0-9f87779537d0",
+      "name": "Bermuda",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.2e4582fa-4432-4e61-bfc3-2083336428b4",
+      "name": "Saint Pierre and Miquelon",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ad423c13-233a-4e60-9502-1e34755b8c13",
+      "name": "China, Hong Kong Special Administrative Region",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.9b3d3149-891f-4f40-a9cf-dfd31e15fbd0",
+      "name": "China, Macao Special Administrative Region",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.19420d8c-93e0-40af-afbe-4ca4d8c4de9e",
+      "name": "Singapore",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.2aded07b-a46c-4e6b-8b87-ad5e4f973d52",
+      "name": "Maldives",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.4b67c337-52f1-4fbe-bb69-f51e8f67fc03",
+      "name": "Bahrain",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.15febdb5-6025-49d0-9318-d737d6bf6ee1",
+      "name": "&#197;land Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.74f6fa04-b347-461a-9de9-b129d0cf8964",
+      "name": "Faroe Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8d08fbf0-b991-4a80-87d2-f39a7ba6046e",
+      "name": "Guernsey",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.cd70257e-3801-4640-88b9-ebcecc88b0dd",
+      "name": "Isle of Man",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.7df323f9-c786-4db9-a8fc-568d3ba3e521",
+      "name": "Jersey",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.ef509eaf-8e5e-4b35-b3e3-8cfdb3d3f8fb",
+      "name": "Svalbard and Jan Mayen Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+      "name": "Andorra",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.af7ed2b9-bee5-42cb-8494-f2e1bbbdae05",
+      "name": "Gibraltar",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.69f3c77b-79f8-4f74-b523-6b82bf404d68",
+      "name": "Holy See",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.5472bc14-36bc-4d4a-a088-d270a3bb1347",
+      "name": "Malta",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8c79c739-2c80-452e-88cf-10db55637921",
+      "name": "San Marino",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.2f7f4233-514c-485b-b289-248f71b3c562",
+      "name": "Liechtenstein",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.656241b3-385a-416c-86a1-6512d294a685",
+      "name": "Monaco",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.69fe9c66-74ba-44ed-96a0-9038aaa569c5",
+      "name": "Christmas Island",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.43f77294-1d5a-4495-a4bb-afc7f1a9caa1",
+      "name": "Cocos (Keeling) Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.0347fd43-fbf9-48cb-933a-e966f52a32c7",
+      "name": "Heard Island and McDonald Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.a0834483-9834-4b4c-a58e-d773480028b4",
+      "name": "Norfolk Island",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.6fba350d-54a6-4141-9357-dbb86eee3d87",
+      "name": "Guam",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.133c7481-f1fb-49a2-a220-d585495c33c5",
+      "name": "Kiribati",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.04362960-a7d3-4b19-8f76-6572995728e9",
+      "name": "Marshall Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.79df96d6-6b58-4696-b486-ed62877ef5e8",
+      "name": "Micronesia (Federated States of)",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.f8c2068a-5e07-4e6a-bc75-4cb20c9fd1e6",
+      "name": "Naoero",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.5805152e-6b76-4319-a310-703e8e668877",
+      "name": "Northern Mariana Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.91355bcb-0475-45e6-8a22-9425ff14ef5a",
+      "name": "Palau",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.b4be4e13-e987-40e3-9f89-e4b7ad294ab3",
+      "name": "United States Minor Outlying Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.feb9ab4a-93bc-49fa-b4aa-282b2cf5b8b5",
+      "name": "American Samoa",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.8606462a-5750-456d-8472-ba3c5cafd087",
+      "name": "Cook Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.2991edff-bec4-4423-825e-8196fca18992",
+      "name": "French Polynesia",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.d7d86522-66aa-4d61-91bb-39638018b9dc",
+      "name": "Niue",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.c6270d38-e150-4780-98bd-a6d01df06f20",
+      "name": "Pitcairn",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.b6fde5b8-cf15-4377-94fd-cef6d5af956b",
+      "name": "Samoa",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.90d3394a-c3d8-415d-8c79-8151ec2d258f",
+      "name": "Tokelau",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.7215346f-26f3-4d15-bc2a-e04350b1acc0",
+      "name": "Tonga",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.17a684c6-aac3-4f9a-8908-86e91c0a097d",
+      "name": "Tuvalu",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    },
+    {
+      "countryId": "country.04352166-79c8-4cee-8bd8-4a7eb810c8ba",
+      "name": "Wallis and Futuna Islands",
+      "legal": {
+        "personal": "unavailable",
+        "consumption": "unavailable",
+        "payroll": "unavailable",
+        "corporate": "unavailable"
+      },
+      "observedAggregates": {
+        "revenue": "unavailable",
+        "spending": "unavailable",
+        "debt": "unavailable",
+        "interest": "unavailable"
+      },
+      "observedServices": {
+        "health": "unavailable",
+        "education": "unavailable",
+        "socialProtection": "unavailable",
+        "infrastructure": "unavailable"
+      },
+      "simulationInitialization": "see-fiscal-initialization-report.json"
+    }
+  ]
+}

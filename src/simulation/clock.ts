@@ -1,3 +1,5 @@
+import { scheduleFiscalReform } from './fiscal/runtime';
+import type { FiscalReform } from './fiscal/model';
 import { requestEconomicShock } from './socioeconomy/runtime';
 import type { Shock } from './socioeconomy/model';
 import type { SimulationState } from '../types';
@@ -17,6 +19,7 @@ export class SimulationClock {
     this.current = cloneSimulationState(initial);
     this.scheduler = scheduler;
   }
+  reformFiscal = (reform: Omit<FiscalReform, 'sequence'>) => { this.current = scheduleFiscalReform(this.current, reform); };
   snapshot = () => this.snapshotCache(this.current);
   setEconomicShock = (regionId: string, shock: Shock) => { this.current = requestEconomicShock(this.current, this.scheduler, regionId, shock); };
   setPaused = (paused: boolean) => { this.current = {...this.current, paused}; };

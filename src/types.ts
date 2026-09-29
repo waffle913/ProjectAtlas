@@ -1,3 +1,4 @@
+import type { FiscalState } from './simulation/fiscal/model';
 import type { SocioeconomicState } from './simulation/socioeconomy/model';
 export type EntityKind = 'sovereign' | 'dependency' | 'disputed' | 'other';
 
@@ -130,7 +131,8 @@ export interface SimulationEngineState {
   dirtyDomains: DirtyDomainRecord[];
 }
 export interface SimulationState {
-  schemaVersion: 8;
+  schemaVersion: 9;
+  fiscal: FiscalState;
   socioeconomy: SocioeconomicState;
   date: string;
   paused: boolean;
