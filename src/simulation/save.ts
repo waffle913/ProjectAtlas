@@ -4,8 +4,6 @@ import { initializeFiscal, upgradeFiscalStateV1 } from './fiscal/runtime';
 import { emptySocioeconomy } from './socioeconomy/model';
 import { emptyPolitics } from './politics/model';
 import { initializePolitics } from './politics/initialization';
-import politicalOfficesJson from '../data/political-offices.json';
-import type { PoliticalOfficesData } from '../data/countryData';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
@@ -32,7 +30,7 @@ const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields>
   const countryIds = countryIdsFor(state, regions, context);
   const initialized = initializeFiscal(initializeSocioeconomy({ ...state, schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }, regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
-  return { ...crisis, politics: initializePolitics(crisis, countryIds, regions, { offices: politicalOfficesJson as unknown as PoliticalOfficesData }) };
+  return { ...crisis, politics: initializePolitics(crisis, countryIds, regions) };
 };
 const validationContext = (regions: RegionEntity[], context: DiplomacyContext): InvariantContext => ({ ...context, regions });
 
@@ -53,7 +51,11 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     const base = { ...current, schemaVersion: 11 as const, politics: version === 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
     const upgraded = cloneSimulationState(base);
     const fiscalRestored = version >= 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
-    const restored = version === 11 ? fiscalRestored : { ...fiscalRestored, politics: initializePolitics(fiscalRestored, countryIds, regions, { offices: politicalOfficesJson as unknown as PoliticalOfficesData }) };
+    const hasNormalizedPolitics = version === 11 && (current.politics as { registryVersion?: unknown }).registryVersion === 'political-registry-0.13-v2';
+    // Early 0.13 schema-11 saves embedded mutable static registries. Rebuild their
+    // deterministic opinion branch against the pinned v2 registry instead of
+    // carrying stale party references into the runtime.
+    const restored = hasNormalizedPolitics ? fiscalRestored : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

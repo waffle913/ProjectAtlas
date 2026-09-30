@@ -1,71 +1,58 @@
 # Milestone 0.13 validation
 
-Implemented from accepted milestone 0.12 commit `e2f8a5d1b317876c7fad0b59bb95128e45abaab9`.
+Corrective validation from base `1af0b3cddb03d24c6b2ad3a87518ab6ce5006c22`.
 
 ## Delivered contract
 
-- Global save schema 11 and politics model `politics-0.13-v1`.
-- National institutions with explicit provenance and unavailable fields where 2026-01-01 evidence is absent.
-- Three fictional multidimensional parties and two fictional organizations per Country.
-- Population-weighted Region and Country opinion over the existing nine socioeconomic cohorts.
-- Weekly deterministic material-response dynamics at scheduler priority 400.
-- Exact 10,000-bps support accounting, inertia, bounded diagnostics and no direct crisis bonus.
-- Schema 10 migration, save/reload, cached snapshots, delta detection, fidelity conservation and debug inspection.
-- No 0.14 player decisions, elections, legislation, votes, actions or political effects.
+- Global save schema 11 and dynamic model `politics-0.13-v1` remain unchanged.
+- Pinned static `political-registry-0.13-v2`, generated reproducibly from an IPU Parline historical snapshot applicable on 2026-01-01.
+- 193 sourced parliamentary landscapes, country-specific fictional party identities and honest unavailable/not-applicable gaps.
+- Canonical sovereign ownership reconciliation each weekly update; military occupation alone has no political ownership effect.
+- Compact dynamic cohort tuples with all 40,572 world cohorts retained, exact 10,000-bps support and no static definitions/provenance in saves.
+- Identical health-plus-education public-service definition at initialization and runtime; infrastructure remains separate.
+- No 0.14 player decisions, election simulation, legislation, political actions or effects.
 
 ## Coverage
 
-The committed coverage audit contains 252 Country rows. Office structure is partial for 199 entities and unavailable for 53. Executive-system classification, legislatures, electoral systems, seats and coalitions remain unavailable for all 252 because no admissible snapshot applicable on 2026-01-01 establishes them. Parties, organizations and opinion priors are explicitly modelled and fictional.
+| Field | Sourced | Partial | Unavailable | Not applicable |
+| --- | ---: | ---: | ---: | ---: |
+| Institutions | 0 | 193 | 7 | 52 |
+| Legislature | 193 | 0 | 7 | 52 |
+| Electoral system | 179 | 14 | 7 | 52 |
+| Party basis | 118 | 0 | 82 | 52 |
+| Seats | 153 | 0 | 47 | 52 |
+| Governing bloc | 56 | 0 | 144 | 52 |
+| Organized interests | 0 | 0 | 200 | 52 |
+
+The registry contains 281 chambers. Of these, 182 have complete reconciled allocations totaling 31,736 seats. There are 948 fictional parties backed one-to-one by sourced seat forces. Country party counts range from zero to 43 and use 21 distinct values: 0–15 except 16, then 17, 18, 21, 23 and 43. Opinion anchors remain `modelled_fallback` for all 252 Countries because no polling dataset is admitted.
 
 ## Validation results
 
-`npm run verify` passed:
+`npm run verify` passed the data audits, production build and all 24 test files / 179 tests. The final test stage completed in 125.49 s. The build transformed 112 modules; the main bundle was 2,897.13 kB (361.24 kB gzip), including the pinned static registry.
 
-- source/data audit: 252 Countries and 4,574 Regions, no blocking anomaly;
-- production build: 110 modules transformed, main JavaScript 510.69 kB (154.04 kB gzip);
-- tests: 24 files and 184 tests passed;
-- test-stage duration: 102.11 s.
+`npm run politics:audit` passed its generated-data hash/reproduction check and ten focused/full-world tests. It verified seat conservation, variable party counts, sovereign-transfer remapping, occupation neutrality, unavailable/not-applicable semantics, compact save round-trip, early-schema-11 normalization and public-service/infrastructure separation.
 
-`npm run politics:audit` passed 15 focused/full-world tests and verified:
+The corrected three-year benchmark retained 156 weekly runs and all 40,572 cohorts:
 
-- 199 partial and 53 unavailable institution profiles;
-- 252 unavailable legislatures, electoral systems, seat distributions and coalitions;
-- 756 fictional modelled parties;
-- 504 fictional modelled organizations.
+| Measure | Before correction | Corrected |
+| --- | ---: | ---: |
+| Runtime / 1,095 days | 83,583.90 ms | 91,230.98 ms |
+| Ticks per second | 13 | 12 |
+| Full/cold snapshot | 940.32 ms | replaced by changed-path measures |
+| Weekly changed snapshot | not measured | 120.73 ms |
+| Coincident monthly + weekly snapshot | not measured | 400.00 ms |
+| Full save reload | 1,377.10 ms | 584.29 ms |
+| Save size | 77,552,988 bytes | 30,157,846 bytes |
 
-The audit test stage completed in 92.31 s. Its three-year world benchmark recorded 156 weekly runs and 713,544 Region evaluations.
+The broader `npm run benchmark:world` suite passed:
 
-`npm run politics:benchmark` passed all three workloads. The final three-year result was:
+- frozen world integrity: 3,650 ticks in 68.31 ms, 53,432 ticks/s, checksum 25,750,886;
+- socioeconomic runtime: 3,650 ticks in 6,539.69 ms, 558 ticks/s, snapshot 33.32 ms, save 15,820,352 bytes;
+- cached daily UI path: 353 reused days and 12 changed days, 0.0169 ms reused-day mean, 142.46 ms monthly-day mean, 1,715.43 ms total;
+- fiscal/shared runtime: 3,650 ticks in 25,426.80 ms, 144 ticks/s, save 23,803,819 bytes, zero Countries with arrears.
 
-| Measure | Result |
-| --- | ---: |
-| Countries / Regions / cohorts | 252 / 4,574 / 40,572 |
-| Parties / unions / associations | 756 / 252 / 252 |
-| Chambers / represented seats | 0 / 0 |
-| Weekly runs / Region evaluations | 156 / 713,544 |
-| Ticks | 1,095 |
-| Runtime | 83,583.90 ms |
-| Ticks per second | 13 |
-| Cold defensive snapshot | 940.32 ms |
-| Reused unchanged snapshot | 0.0020 ms |
-| Full save reload | 1,377.10 ms |
-| Save size | 77,552,988 bytes |
+## Migration and limits
 
-Zero chambers and seats are a coverage result: no admissible 2026-01-01 source was added for those facts, so the engine does not invent them.
+Schema 10→11 still initializes politics at the saved logical date with no invented history. An early schema-11 save without registry subversion is deterministically normalized against v2, so obsolete generic party references cannot survive; its non-political branches are preserved. Current v2 schema-11 saves round-trip exactly.
 
-`npm run benchmark:world` passed all four established workloads:
-
-- frozen world integrity: 3,650 ticks in 65.52 ms, 55,706 ticks/s, checksum 25,750,886;
-- socioeconomic runtime: 3,650 ticks in 5,487.73 ms, 665 ticks/s, snapshot 38.23 ms, save 15,820,368 bytes;
-- cached daily UI path: 353 reused days and 12 changed days, 0.0152 ms reused-day mean, 117.51 ms monthly-day mean, 1,415.55 ms total;
-- fiscal/shared runtime: 3,650 ticks in 24,363.31 ms, 150 ticks/s, save 23,803,835 bytes, zero Countries with arrears.
-
-Explicit runtime search returned `MATH_RANDOM_RUNTIME_OCCURRENCES=0`.
-
-## Interpretation and limits
-
-No new factual source snapshot was added. The existing dated political-office registry is reused; all other initial political content is explicitly modelled or unavailable. Modelled assumptions include fictionalization, ideology and issue priors, initial support, engagement, cohort sensitivity, material-response equations, salience dynamics and inertia. See [politics-0.13.md](politics-0.13.md) for their contract.
-
-The political state is deliberately detailed and makes the full save about 77.55 MB. Daily structural sharing avoids paying that copy cost when the politics branch is unchanged, while the three-year weekly workload establishes a performance baseline for later optimization.
-
-No 0.14+ system was implemented: there are no player political decisions, elections, campaigns, legislation, votes, ministers, media, propaganda, demonstrations, strikes, repression, coups or political AI actions.
+IPU Parline establishes parliament/election facts, not a complete executive-system classification, polling, or organized-interest membership dataset. These fields remain unavailable rather than inferred. Full seat allocations are deliberately omitted for partial-renewal or non-reconciling election records. Fictional ideology, issue positions and initial opinion are modelled gameplay inputs, not claims about real parties or voters. The richer variable party landscape makes the three-year opinion calculation modestly slower, while save, reload and changed-snapshot costs fall sharply and remain below a one-second UI pause.

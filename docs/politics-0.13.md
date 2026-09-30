@@ -1,31 +1,29 @@
 # National institutions and political opinion 0.13
 
-## Contract
+## Scope and sources
 
-Schema 11 adds `SimulationState.politics`, version `politics-0.13-v1`. The domain is national: each permanent Country has one institution record, three explicitly fictional parties and two explicitly fictional organized-interest archetypes. It does not create regional governments. Regional records describe opinion among the existing socioeconomic cohorts and retain their existing population counts.
+Schema 11 retains `politics-0.13-v1`. Static definitions use pinned subversion `political-registry-0.13-v2` and are not serialized in every game. `scripts/update-politics-source.mjs` retrieves IPU Parline historical chamber, election and political-party records applicable on 2026-01-01. The committed source snapshot records retrieval date, publisher, URL, licence and limitations. `scripts/generate-politics-data.mjs` deterministically produces the immutable registry and supports an offline `--check` mode.
 
-The only admissible real political input applicable on the scenario date is `political-offices.json`, reference date 2026-01-01. It establishes head-of-state and head-of-government office structure for 199 entities. It does not establish an executive-system classification, legislature, electoral rule, seat allocation or coalition. Those fields therefore remain `unavailable`. The government-form snapshot dated 2026-09-26 is not backdated into the scenario. No real party, logo, slogan, vote share or organization membership is inferred.
+The source covers 193 registry Countries and 281 chambers. Complete seat allocations are accepted only when the election renewed the chamber's complete statutory seat count and the allocation reconciles without an excess. This produces 182 complete chamber allocations representing 31,736 seats. Other chamber facts remain present with an unavailable seat-allocation status. Executive-system classification remains unavailable because the admitted source does not establish it. Dependencies and special-status entities without a separate national legislature are `not_applicable`; other evidence gaps are `unavailable`.
 
-Parties are the fictional analytical identities Social Compact, Civic Centre and National Stewardship. Each carries nine ideology dimensions and six issue positions. Workers Federation and Civic Services Association are fictional union/association archetypes. Their membership is unavailable. Repeated names across Countries describe model roles, not transnational organizations or real political actors.
+## Fictional identities over a sourced basis
 
-## Opinion model
+Real source party identifiers and names are retained only in the static audit mapping. Every source force in an accepted seat allocation maps one-to-one to a Country-specific fictional gameplay party. Visible names and deterministic ideology/issue profiles are modelled and never presented as facts about the real organization. Party counts are not forced: the registry contains 948 fictional parties and Country counts range from zero to 43 across 21 distinct values. Countries without an accepted partisan basis get no invented three-party system. Organized interests remain unavailable because this pipeline does not source them.
 
-Every nonempty one of the nine existing income/orientation cohorts receives preferences and salience for fiscal distribution, public services, labour protection, income security, infrastructure and public order. Party support plus undecided sums to exactly 10,000 basis points for every cohort, Region and Country. Aggregation is population weighted and uses deterministic largest remainder allocation.
+The governing bloc is recorded only when IPU's government-party text matches a sourced party name after deterministic normalization. Otherwise coalition coverage remains unavailable. Election and next-election dates are retained when supplied. Every sourced chamber allocation satisfies `fictional party seats + independent/other = totalSeats`.
 
-The shared scheduler runs `politics.opinion-weekly` at priority 400, after economy (100), fiscal/services (150), administration (200) and crises (300). Updates read current disposable income, unemployment, basic-needs coverage, tax burden, transfers and service/infrastructure coverage. They use inertia for preferences, salience, sentiment and party support, so deterioration and recovery are progressive. Crisis phase and pressure are not inputs: political opinion reacts to the underlying material condition, avoiding a duplicate crisis bonus.
+## Dynamic opinion and ownership
 
-The model uses no random draw. Iteration order, allocation and IDs are deterministic. It applies no effects to socioeconomic, fiscal, crisis, diplomatic or military state. Country fidelity changes conserve the complete politics branch.
+The dynamic save contains Country aggregates and all nine existing socioeconomic cohorts per populated Region. Each cohort stores compact numeric vectors for six issue preferences, six salience values, support in registry-party order plus undecided, engagement, sentiment, baseline income and recent issue indexes. Population remains authoritative in the socioeconomic branch and is not duplicated. Static party, chamber, ideology and provenance definitions remain in the immutable registry.
 
-## Provenance and assumptions
+The shared scheduler runs `politics.opinion-weekly` at priority 400. Public-services experience always means health plus education; infrastructure is a separate issue at initialization and runtime. Material deterioration and recovery change preferences, salience, sentiment and support progressively. Crisis phase is not an input.
 
-All fictional identities, ideology values, initial preferences, support values, engagement, sensitivities and inertia constants are `modelled`. Initial opinion has no polling or electoral anchor. This is stated in each cohort and party provenance. Unknown institutions and real-world quantities remain unavailable rather than zero.
+Every weekly update reads canonical `state.regionOwnership`. A sovereign transfer moves the Region between Country aggregates, preserves local issue preferences and salience, and deterministically remaps support into the new Country's party order. A destination with no partisan basis receives 100% undecided support. `occupationByRegion` is deliberately ignored.
 
-The committed `politics-coverage-report.json` records each Country's coverage. Current totals are 199 partial office structures and 53 unavailable institution records; all 252 legislatures, electoral systems, seat allocations and coalitions are unavailable. The runtime contains 756 fictional parties and 504 fictional organizations.
+## Saves, snapshots and migration
 
-## Saves, snapshots and limits
+Ordinary days retain the exact politics branch. Weekly evaluation replaces dynamic political objects; the static registry remains the same frozen module object. The UI snapshot cache therefore copies no static political evidence. Schema-10 migration initializes politics on the saved date without reconstructed history. Early schema-11 saves that embedded the pre-correction generic registries are detected by the missing registry subversion and deterministically reinitialized against v2, preventing stale party references while retaining every non-political branch.
 
-Migration 10→11 preserves all earlier state and initializes politics at the saved logical date. It creates no prior weekly evaluation or opinion history. Schema-11 saves retain all political state. The politics branch is copy-on-write: ordinary days reuse it; weekly evaluation replaces only political structures while retaining economy, fiscal and crisis branches. Debug inspection is available through `inspectPolitics()` and the Country panel.
+`inspectPolitics()` expands compact vectors into named debug fields and returns a defensive clone. The milestone still has no election simulation, candidacies, legislation, player political actions, ministers, protests, coups, media or political AI.
 
-This milestone has no election simulation, candidacies, voting, legislation, player political actions, ministers, cabinets, subnational governments, protests, unrest, coups, lobbying operations, media, campaigning, international party links or political AI. It provides the deterministic state and causal opinion foundation for later milestones.
-
-Run `npm run politics:audit` for coverage and behavioral tests, `npm run politics:benchmark` for the three-year full-world workload, and `npm run benchmark:world` for the shared engine baselines.
+Run `npm run politics:audit` to verify generated data, coverage and behavioral tests; `npm run politics:benchmark` measures the three-year world path, weekly changed snapshot, coincident monthly/weekly snapshot and save/reload; `npm run benchmark:world` validates the shared engine baseline.
