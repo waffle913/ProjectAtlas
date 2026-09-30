@@ -14,7 +14,7 @@ import { migrateSimulationState, restoreSimulationState, serializeSimulationStat
 import { emptySocioeconomy } from '../socioeconomy/model';
 import { createEngineState } from '../state';
 
-const sourced = Object.values(politicalRegistry.countries).filter(item => item.partyIds.length > 1).slice(0, 2).map(item => item.countryId);
+const sourced = Object.values(politicalRegistry.countries).filter(item => item.partyIds.length > 1 && item.organizationIds.length > 1 && item.partyIds.some(id => politicalRegistry.parties[id].ideologicalBasis.status === 'sourced' || politicalRegistry.parties[id].ideologicalBasis.status === 'partial')).slice(0, 2).map(item => item.countryId);
 const regions: RegionEntity[] = sourced.map((id, index) => ({ id: `region.test-${index}`, parentCountryId: id, initialOwnerCountryId: id, commonName: id, administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: [id] } }));
 const context = { countryIds: new Set(sourced), regionIds: new Set(regions.map(r => r.id)), regions };
 const base = (): SimulationState => ({ schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: Object.fromEntries(regions.map(r => [r.id, r.parentCountryId])), populationByRegion: Object.fromEntries(regions.map(r => [r.id, 90_000])), economicOutputByRegion: Object.fromEntries(regions.map(r => [r.id, 1_080_000_000])), bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(sourced, 'politics-test') });
@@ -45,6 +45,32 @@ describe('0.13 corrected national politics', () => {
     economy.employed = Math.floor(economy.labourForce / 2); economy.unemployed = economy.labourForce - economy.employed;
     const before = state.politics.regionalOpinion[regionId].cohorts['low:left'], after = evaluate(stressed).politics.regionalOpinion[regionId].cohorts['low:left'];
     expect(after[1][issue('labour_protection')]).toBeGreaterThan(before[1][issue('labour_protection')]);
+    const partyIds = politicalRegistry.countries[sourced[0]].partyIds, differentiated = partyIds.map((_, index) => after[2][index] - before[2][index]);
+    expect(new Set(differentiated).size).toBeGreaterThan(1);
+  });
+
+  it('uses sourced ideological evidence while retaining an explicit low-confidence fallback', () => {
+    const evidenced = Object.values(politicalRegistry.parties).filter(party => party.ideologicalBasis.status === 'sourced' || party.ideologicalBasis.status === 'partial');
+    expect(evidenced.length).toBeGreaterThan(1);
+    expect(evidenced.some((party, index) => evidenced.slice(index + 1).some(other => JSON.stringify(other.ideology) !== JSON.stringify(party.ideology)))).toBe(true);
+    const fallbackCountry = Object.values(politicalRegistry.countries).find(country => country.partyIds.length > 0 && country.partyIds.every(id => politicalRegistry.parties[id].ideologicalBasis.status === 'modelled_fallback'))!;
+    expect(fallbackCountry.coverage.partyIdeology).toBe('modelled_fallback');
+    expect(fallbackCountry.partyIds.every(id => politicalRegistry.parties[id].ideologicalBasis.confidenceBps === 500)).toBe(true);
+  });
+
+  it('updates unions and employer associations differently and recovers with inertia', () => {
+    const state = initialized(), regionId = regions[0].id, organizationIds = politicalRegistry.countries[sourced[0]].organizationIds;
+    const unionId = organizationIds.find(id => politicalRegistry.organizations[id].type === 'union')!, associationId = organizationIds.find(id => politicalRegistry.organizations[id].type === 'association')!;
+    const stressed = structuredClone(state), economy = stressed.socioeconomy.regions[regionId].economy!;
+    economy.employed = Math.floor(economy.labourForce / 3); economy.unemployed = economy.labourForce - economy.employed;
+    const stressedResult = evaluate(stressed), union = stressedResult.politics.organizations[unionId], association = stressedResult.politics.organizations[associationId];
+    const unionLabourDelta = union.currentPositions.labour_protection - state.politics.organizations[unionId].currentPositions.labour_protection;
+    const associationLabourDelta = association.currentPositions.labour_protection - state.politics.organizations[associationId].currentPositions.labour_protection;
+    expect(unionLabourDelta).not.toBe(associationLabourDelta); expect(unionLabourDelta).toBeGreaterThan(associationLabourDelta);
+    const recoveredInput = structuredClone(stressedResult); recoveredInput.socioeconomy.regions[regionId].economy = structuredClone(state.socioeconomy.regions[regionId].economy);
+    const recovered = evaluate(recoveredInput, '2026-01-12').politics.organizations[unionId];
+    expect(recovered.currentPositions.labour_protection).not.toBe(union.currentPositions.labour_protection);
+    expect(recovered.currentPositions.labour_protection).not.toBe(state.politics.organizations[unionId].currentPositions.labour_protection);
   });
 
   it('does not turn degraded infrastructure into a first-update public-services shock', () => {
@@ -72,8 +98,15 @@ describe('0.13 corrected national politics', () => {
     const migrated = migrateSimulationState(legacy, regions, {}, {}, context); expect(migrated.politics).toMatchObject({ initializedOn: '2032-06-15', weeklyEvaluations: 0, registryVersion: politicalRegistry.version });
     const evaluated = evaluate(state), serialized = serializeSimulationState(evaluated, context); expect(serialized).not.toContain('sourcePartyName'); expect(serialized).not.toContain('issuePositions');
     expect(restoreSimulationState(serialized, regions, {}, {}, context)).toEqual(evaluated);
-    const v2 = structuredClone(evaluated) as unknown as { politics: Record<string, unknown> }; v2.politics.registryVersion = 'political-registry-0.13-v2';
-    const upgraded = restoreSimulationState(JSON.stringify(v2), regions, {}, {}, context); expect(upgraded.politics.registryVersion).toBe(politicalRegistry.version); expect(upgraded.politics.regionalOpinion).toEqual(evaluated.politics.regionalOpinion);
+    const v2 = structuredClone(evaluated); v2.politics.registryVersion = 'political-registry-0.13-v2' as never; delete (v2.politics as Partial<typeof v2.politics>).organizations;
+    const preserved = Object.fromEntries(Object.entries(v2.politics.regionalOpinion).map(([regionId, regional]) => [regionId, Object.fromEntries(Object.entries(regional.cohorts).map(([cohortId, opinion]) => [cohortId, [opinion[0], opinion[1], opinion[3], opinion[4], opinion[5], opinion[6]]]))]));
+    for (const regional of Object.values(v2.politics.regionalOpinion)) for (const opinion of Object.values(regional.cohorts)) opinion[2] = opinion[2].map((_, index) => index === 0 ? 10_000 : 0);
+    for (const country of Object.values(v2.politics.countries)) country.nationalSupportBps = country.nationalSupportBps.map((_, index) => index === 0 ? 10_000 : 0);
+    const nonPolitical = { fiscal: v2.fiscal, socioeconomic: v2.socioeconomy, crisis: v2.crisis };
+    const upgraded = restoreSimulationState(JSON.stringify(v2), regions, {}, {}, context); expect(upgraded.politics.registryVersion).toBe(politicalRegistry.version);
+    expect(upgraded.politics.regionalOpinion[regions[0].id].cohorts['low:left'][2]).not.toEqual(v2.politics.regionalOpinion[regions[0].id].cohorts['low:left'][2]);
+    const retained = Object.fromEntries(Object.entries(upgraded.politics.regionalOpinion).map(([regionId, regional]) => [regionId, Object.fromEntries(Object.entries(regional.cohorts).map(([cohortId, opinion]) => [cohortId, [opinion[0], opinion[1], opinion[3], opinion[4], opinion[5], opinion[6]]]))]));
+    expect(retained).toEqual(preserved); expect(upgraded.politics.organizations).not.toEqual({}); expect({ fiscal: upgraded.fiscal, socioeconomic: upgraded.socioeconomy, crisis: upgraded.crisis }).toEqual(nonPolitical);
     const earlySchema11 = structuredClone(evaluated) as unknown as { politics: Record<string, unknown> }; delete earlySchema11.politics.registryVersion;
     expect(restoreSimulationState(JSON.stringify(earlySchema11), regions, {}, {}, context).politics.registryVersion).toBe(politicalRegistry.version);
   });
@@ -107,6 +140,7 @@ describe('0.13 corrected national politics', () => {
     expect(activeResult.socioeconomy).toBe(active.socioeconomy);
     expect(activeResult.fiscal).toBe(active.fiscal);
     expect(activeResult.crisis).toBe(active.crisis);
+    expect(activeResult.politics.organizations).not.toBe(active.politics.organizations);
   });
 
   it('keeps unavailable distinct from numeric zero and never infers not-applicable from entity type', () => {
@@ -114,7 +148,8 @@ describe('0.13 corrected national politics', () => {
     expect(absent.coverage.executiveSystem).toBe('unavailable');
     expect(absent.coverage.legislature).toBe('unavailable');
     expect(Object.values(politicalRegistry.countries).some(item => Object.values(item.coverage).includes('not_applicable'))).toBe(false);
-    expect(politicalRegistry.parties[politicalRegistry.countries[sourced[0]].partyIds[0]].ideologicalBasis).toMatchObject({ status: 'modelled_fallback', confidenceBps: 500 });
+    const fallback = Object.values(politicalRegistry.parties).find(party => party.ideologicalBasis.status === 'modelled_fallback')!;
+    expect(fallback.ideologicalBasis).toMatchObject({ status: 'modelled_fallback', confidenceBps: 500 });
   });
 
   it('rejects malformed seats, support and future evidence', () => {

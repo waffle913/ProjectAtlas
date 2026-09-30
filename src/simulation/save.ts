@@ -3,7 +3,7 @@ import { emptyCrisis, initializeCrisisState } from './crisis/model';
 import { initializeFiscal, upgradeFiscalStateV1 } from './fiscal/runtime';
 import { emptySocioeconomy } from './socioeconomy/model';
 import { emptyPolitics } from './politics/model';
-import { initializePolitics } from './politics/initialization';
+import { initializePolitics, rebasePoliticsRegistry } from './politics/initialization';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
@@ -52,12 +52,12 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     const upgraded = cloneSimulationState(base);
     const fiscalRestored = version >= 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
     const savedRegistryVersion = version === 11 ? (current.politics as { registryVersion?: unknown }).registryVersion : undefined;
-    const hasNormalizedPolitics = savedRegistryVersion === 'political-registry-0.13-v3';
+    const hasNormalizedPolitics = savedRegistryVersion === 'political-registry-0.13-v4';
     // Early 0.13 schema-11 saves embedded mutable static registries. Rebuild their
     // deterministic opinion branch against the current pinned registry instead of
     // carrying stale party references into the runtime.
-    const v2Compatible = savedRegistryVersion === 'political-registry-0.13-v2';
-    const restored = hasNormalizedPolitics ? fiscalRestored : v2Compatible ? { ...fiscalRestored, politics: { ...fiscalRestored.politics, registryVersion: 'political-registry-0.13-v3' as const } } : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
+    const needsPoliticalRebase = savedRegistryVersion === 'political-registry-0.13-v2' || savedRegistryVersion === 'political-registry-0.13-v3';
+    const restored = hasNormalizedPolitics ? fiscalRestored : needsPoliticalRebase ? { ...fiscalRestored, politics: rebasePoliticsRegistry(fiscalRestored) } : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

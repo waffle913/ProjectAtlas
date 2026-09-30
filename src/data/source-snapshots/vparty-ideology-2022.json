@@ -1,0 +1,1698 @@
+{
+  "schemaVersion": 1,
+  "referenceDate": "2026-01-01",
+  "retrievedAt": "2026-09-30",
+  "source": {
+    "name": "V-Party Country-Party-Date v2 via vdemdata 16.0",
+    "publisher": "V-Dem Institute",
+    "published": "2022-02-01",
+    "url": "https://v-dem.net/data/v-party-dataset/",
+    "codebook": "https://v-dem.net/static/website/img/refs/vparty_codebook.pdf",
+    "distributionUrl": "https://raw.githubusercontent.com/vdeminstitute/vdemdata/f4dd26922e658442524dfd954bf14f7ebe622d5d/data/vparty.RData",
+    "distributionCommit": "f4dd26922e658442524dfd954bf14f7ebe622d5d",
+    "distributionLicence": "GPL-3.0"
+  },
+  "methodology": "Explicit reviewed IPU-to-Party-Facts entity links only. Latest V-Party observation per Party Facts ID. Eight ordinal expert-coded variables retained only with at least three coders; no name-based classification or source-ID-derived ideology.",
+  "parties": [
+    {
+      "sourcePartyId": "au-australian_labor_party_alp",
+      "sourcePartyName": "Australian Labor Party (ALP)",
+      "partyFactsId": 424,
+      "vPartyId": 424,
+      "vPartyName": "Australian Labor Party",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 4,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "au-greens_0",
+      "sourcePartyName": "The Greens",
+      "partyFactsId": 1209,
+      "vPartyId": 1209,
+      "vPartyName": "Australian Greens",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 4,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-brazilian_democratic_movement_mdb_",
+      "sourcePartyName": "Brazilian Democratic Movement (MDB)",
+      "partyFactsId": 654,
+      "vPartyId": 654,
+      "vPartyName": "Partido do Movimento Democrático Brasileiro",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 4,
+          "coderCount": 9
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 8
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 9
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 9
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 8
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 8
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 9
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-brazilian_social_democratic_party_psdb",
+      "sourcePartyName": "Brazilian Social Democratic Party (PSDB)",
+      "partyFactsId": 225,
+      "vPartyId": 225,
+      "vPartyName": "Brazilian Social Democracy Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 4,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-brazilian_socialist_party_psb",
+      "sourcePartyName": "Brazilian Socialist Party (PSB)",
+      "partyFactsId": 723,
+      "vPartyId": 723,
+      "vPartyName": "Brazilian Socialist Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 9
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-democratic_labour_party_pdt",
+      "sourcePartyName": "Democratic Labour Party (PDT)",
+      "partyFactsId": 1009,
+      "vPartyId": 1009,
+      "vPartyName": "Democratic Labour Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 9
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-liberal_party_pl",
+      "sourcePartyName": "Liberal Party (PL)",
+      "partyFactsId": 4405,
+      "vPartyId": 4405,
+      "vPartyName": "Party of the Republic / Liberal Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 5,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 1,
+          "coderCount": 8
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 8
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 8
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-progressive_party_pp",
+      "sourcePartyName": "Progressive Party (PP)",
+      "partyFactsId": 781,
+      "vPartyId": 781,
+      "vPartyName": "Progressive Party / Brazilian Progressive Party (PPB)",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 5,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 1,
+          "coderCount": 8
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 2,
+          "coderCount": 8
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 8
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-republicans_republicanos_",
+      "sourcePartyName": "Republicans (Republicanos)",
+      "partyFactsId": 7079,
+      "vPartyId": 7079,
+      "vPartyName": "Brazilian Republican Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 5,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 2,
+          "coderCount": 8
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 0,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 2,
+          "coderCount": 9
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 1,
+          "coderCount": 9
+        },
+        "v2paculsup": {
+          "ordinal": 1,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-social_democratic_party_psd",
+      "sourcePartyName": "Social Democratic Party (PSD)",
+      "partyFactsId": 4613,
+      "vPartyId": 4613,
+      "vPartyName": "Social Democratic Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 4,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 2,
+          "coderCount": 8
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 2,
+          "coderCount": 8
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 8
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "br-workers_party_pt",
+      "sourcePartyName": "Workers' Party (PT)",
+      "partyFactsId": 356,
+      "vPartyId": 356,
+      "vPartyName": "Workers' Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 1,
+          "coderCount": 10
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 9
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 10
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 10
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 9
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 10
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 9
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 10
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "ca-bloc_qu__b__cois_bq",
+      "sourcePartyName": "Bloc Québécois (BQ)",
+      "partyFactsId": 1428,
+      "vPartyId": 1428,
+      "vPartyName": "Quebec Bloc",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_centre",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "ca-conservative_party",
+      "sourcePartyName": "Conservative Party",
+      "partyFactsId": 1004,
+      "vPartyId": 1004,
+      "vPartyName": "Conservative Party of Canada (2003)",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "ca-green_party",
+      "sourcePartyName": "Green Party",
+      "partyFactsId": 931,
+      "vPartyId": 931,
+      "vPartyName": "Green Party of Canada",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 4,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "ca-liberal_party",
+      "sourcePartyName": "Liberal Party",
+      "partyFactsId": 1739,
+      "vPartyId": 1739,
+      "vPartyName": "Liberal Party of Canada",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "ca-ndp_new_democratic_party_ndp_",
+      "sourcePartyName": "NDP-New Democratic Party (NDP)",
+      "partyFactsId": 152,
+      "vPartyId": 152,
+      "vPartyName": "New Democratic Party",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "de-alternative_germany_afd",
+      "sourcePartyName": "Alternative for Germany (AfD)",
+      "partyFactsId": 1976,
+      "vPartyId": 1976,
+      "vPartyName": "Alternative for Germany",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_centre",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2pawelf": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 1,
+          "coderCount": 5
+        },
+        "v2palgbt": {
+          "ordinal": 1,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 1,
+          "coderCount": 5
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2paculsup": {
+          "ordinal": 0,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "de-christian_democratic_union_cdu",
+      "sourcePartyName": "Christian Democratic Union (CDU)",
+      "partyFactsId": 1375,
+      "vPartyId": 1375,
+      "vPartyName": "Christian Democratic Union",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "de-christian_social_union_bavaria_csu",
+      "sourcePartyName": "Christian Social Union of Bavaria (CSU)",
+      "partyFactsId": 1731,
+      "vPartyId": 1731,
+      "vPartyName": "Christian Social Union",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 1,
+          "coderCount": 5
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "de-green_party",
+      "sourcePartyName": "Green Party",
+      "partyFactsId": 1816,
+      "vPartyId": 1816,
+      "vPartyName": "Alliance 90 / Greens",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2pawelf": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paculsup": {
+          "ordinal": 4,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "de-left_party_die_linke",
+      "sourcePartyName": "Left Party (Die Linke)",
+      "partyFactsId": 1545,
+      "vPartyId": 1545,
+      "vPartyName": "The Left",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 0,
+          "coderCount": 5
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 5
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paculsup": {
+          "ordinal": 4,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "de-social_democratic_party_spd",
+      "sourcePartyName": "Social Democratic Party (SPD)",
+      "partyFactsId": 383,
+      "vPartyId": 383,
+      "vPartyName": "Social Democratic Party of Germany",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2pawelf": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "fr-national_rally_rn_",
+      "sourcePartyName": "National Rally (RN)",
+      "partyFactsId": 433,
+      "vPartyId": 433,
+      "vPartyName": "National Front",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_centre",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 3,
+          "coderCount": 4
+        },
+        "v2pawelf": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 1,
+          "coderCount": 4
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paminor": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 4
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paculsup": {
+          "ordinal": 0,
+          "coderCount": 4
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "fr-republicans_lr",
+      "sourcePartyName": "The Republicans (LR)",
+      "partyFactsId": 1595,
+      "vPartyId": 1595,
+      "vPartyName": "Union for a Popular Movement",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2pawelf": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 1,
+          "coderCount": 4
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 4
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 4
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "fr-socialist_party_ps",
+      "sourcePartyName": "Socialist Party (PS)",
+      "partyFactsId": 1478,
+      "vPartyId": 1478,
+      "vPartyName": "Socialist Party",
+      "effectiveYear": 2017,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 1,
+          "coderCount": 4
+        },
+        "v2pawelf": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 4
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 4
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 4
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "gb-conservative_party",
+      "sourcePartyName": "Conservative Party",
+      "partyFactsId": 1567,
+      "vPartyId": 1567,
+      "vPartyName": "Conservatives",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "gb-labour_party",
+      "sourcePartyName": "Labour Party",
+      "partyFactsId": 1516,
+      "vPartyId": 1516,
+      "vPartyName": "Labour",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "gb-scottish_national_party",
+      "sourcePartyName": "Scottish National Party",
+      "partyFactsId": 986,
+      "vPartyId": 986,
+      "vPartyName": "Scottish National Party",
+      "effectiveYear": 2019,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "jp-constitutional_democratic_party_japan",
+      "sourcePartyName": "Constitutional Democratic Party of Japan",
+      "partyFactsId": 6135,
+      "vPartyId": 6135,
+      "vPartyName": "Constitutional Democratic Party of Japan",
+      "effectiveYear": 2017,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "jp-japanese_communist_party_jcp",
+      "sourcePartyName": "Japanese Communist Party (JCP)",
+      "partyFactsId": 736,
+      "vPartyId": 736,
+      "vPartyName": "Japan Communist Party",
+      "effectiveYear": 2017,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 4,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "jp-komeito",
+      "sourcePartyName": "Komeito",
+      "partyFactsId": 1515,
+      "vPartyId": 1515,
+      "vPartyName": "Clean Government Party / New Komeito",
+      "effectiveYear": 2017,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "jp-liberal_democratic_party_ldp",
+      "sourcePartyName": "Liberal Democratic Party (LDP)",
+      "partyFactsId": 1746,
+      "vPartyId": 1746,
+      "vPartyName": "Liberal Democratic Party",
+      "effectiveYear": 2017,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 5,
+          "coderCount": 4
+        },
+        "v2pawelf": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 1,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 0,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "jp-nippon_ishin_no_japan_restoration_party",
+      "sourcePartyName": "Nippon Ishin (Japan Innovation Party)",
+      "partyFactsId": 2080,
+      "vPartyId": 2080,
+      "vPartyName": "Japan Restoration [Innovation] Party",
+      "effectiveYear": 2017,
+      "status": "partial",
+      "confidenceBps": 4500,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 5,
+          "coderCount": 3
+        },
+        "v2pawelf": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2paminor": {
+          "ordinal": 2,
+          "coderCount": 3
+        },
+        "v2paplur": {
+          "ordinal": 4,
+          "coderCount": 3
+        },
+        "v2pawomlab": {
+          "ordinal": 3,
+          "coderCount": 3
+        },
+        "v2paculsup": {
+          "ordinal": 2,
+          "coderCount": 3
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "us-democratic_party_0",
+      "sourcePartyName": "Democratic Party",
+      "partyFactsId": 432,
+      "vPartyId": 432,
+      "vPartyName": "Democratic Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_left",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2pawelf": {
+          "ordinal": 3,
+          "coderCount": 5
+        },
+        "v2paimmig": {
+          "ordinal": 2,
+          "coderCount": 6
+        },
+        "v2palgbt": {
+          "ordinal": 4,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 1,
+          "coderCount": 6
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 6
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paculsup": {
+          "ordinal": 3,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    },
+    {
+      "sourcePartyId": "us-republican_party",
+      "sourcePartyName": "Republican Party",
+      "partyFactsId": 809,
+      "vPartyId": 809,
+      "vPartyName": "Republican Party",
+      "effectiveYear": 2018,
+      "status": "sourced",
+      "confidenceBps": 7000,
+      "politicalFamily": "economic_right",
+      "sourceIdeologicalLabels": {
+        "v2pariglef": {
+          "ordinal": 5,
+          "coderCount": 4
+        },
+        "v2pawelf": {
+          "ordinal": 1,
+          "coderCount": 5
+        },
+        "v2paimmig": {
+          "ordinal": 1,
+          "coderCount": 6
+        },
+        "v2palgbt": {
+          "ordinal": 2,
+          "coderCount": 5
+        },
+        "v2paminor": {
+          "ordinal": 1,
+          "coderCount": 6
+        },
+        "v2paplur": {
+          "ordinal": 3,
+          "coderCount": 6
+        },
+        "v2pawomlab": {
+          "ordinal": 2,
+          "coderCount": 4
+        },
+        "v2paculsup": {
+          "ordinal": 1,
+          "coderCount": 5
+        }
+      },
+      "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
+      "transformationMethod": "vparty_ordinal_linear_v1",
+      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+    }
+  ]
+}

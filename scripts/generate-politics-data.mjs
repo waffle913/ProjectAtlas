@@ -4,11 +4,14 @@ import { buildPartyProfile } from './politics-party-profile.mjs';
 
 const inputPath = 'src/data/source-snapshots/ipu-parline-politics-2026-01-01.json';
 const interestsPath = 'src/data/source-snapshots/organized-interests-2026-01-01.json';
+const ideologyPath = 'src/data/source-snapshots/vparty-ideology-2022.json';
 const outputPath = 'src/data/political-registry.json';
 const source = JSON.parse(readFileSync(inputPath, 'utf8'));
 const interests = JSON.parse(readFileSync(interestsPath, 'utf8'));
+const ideologySource = JSON.parse(readFileSync(ideologyPath, 'utf8'));
 const entities = JSON.parse(readFileSync('src/data/entity-registry.json', 'utf8'));
 const ipuByCountry = new Map(source.countries.map(country => [country.countryId, country]));
+const ideologyBySourcePartyId = new Map(ideologySource.parties.map(party => [party.sourcePartyId, party]));
 const interestsByCountry = new Map();
 for (const item of interests.organizations) interestsByCountry.set(item.countryId, [...(interestsByCountry.get(item.countryId) ?? []), item]);
 const families = ['Civic Alliance', 'Social Forum', 'National League', 'Reform Movement', 'Democratic Union', 'Popular Assembly', 'Liberal Coalition', 'Community Congress', 'Green Initiative', 'Labour Front', 'Republican Group', 'Progressive List'];
@@ -39,7 +42,7 @@ const matchGovernment = (texts, parties) => {
   return { ids: [...matched].sort(), derivations };
 };
 
-const registry = { version: 'political-registry-0.13-v3', referenceDate: source.referenceDate, sourceSnapshotSha256: sha(readFileSync(inputPath)), organizedInterestsSourceSha256: sha(readFileSync(interestsPath)), countries: {}, institutions: {}, parties: {}, organizations: {} };
+const registry = { version: 'political-registry-0.13-v4', referenceDate: source.referenceDate, sourceSnapshotSha256: sha(readFileSync(inputPath)), organizedInterestsSourceSha256: sha(readFileSync(interestsPath)), ideologySourceSnapshotSha256: sha(readFileSync(ideologyPath)), countries: {}, institutions: {}, parties: {}, organizations: {} };
 for (const entity of [...entities.countries].sort((a, b) => a.id.localeCompare(b.id))) {
   const evidence = ipuByCountry.get(entity.id), institutionId = `institution:${entity.id}:national`, executiveSystem = executive(evidence);
   const allocations = evidence?.chambers.filter(chamber => chamber.election?.fullAllocation) ?? [];
@@ -51,7 +54,7 @@ for (const entity of [...entities.countries].sort((a, b) => a.id.localeCompare(b
   sortedParties.forEach(([sourceId, sourceName], index) => {
     const id = partyId(entity.id, sourceId);
     registry.parties[id] = { id, countryId: entity.id, displayName: `${entity.commonName} ${families[index % families.length]}${index >= families.length ? ` ${Math.floor(index / families.length) + 1}` : ''}`, fictional: true,
-      provenance: provenance('modelled_fallback', 'Fictional gameplay identity mapped one-to-one to a sourced electoral seat entry. The neutral profile makes no claim about the real party.'), sourceBasis: { sourcePartyId: sourceId, sourcePartyName: sourceName }, ...buildPartyProfile({ sourcePartyId: sourceId, sourcePartyName: sourceName }, evidence?.partyProfiles?.[sourceId]),
+      provenance: provenance('modelled_fallback', 'Fictional gameplay identity mapped one-to-one to a sourced electoral seat entry. Ideological evidence, when present, is separately qualified.'), sourceBasis: { sourcePartyId: sourceId, sourcePartyName: sourceName }, ...buildPartyProfile({ sourcePartyId: sourceId, sourcePartyName: sourceName }, ideologyBySourcePartyId.get(sourceId)),
       currentSeats: allocations.reduce((sum, chamber) => sum + (chamber.election.seats.find(seat => seat.sourcePartyId === sourceId)?.seats ?? 0), 0), governmentStatus: government.ids.length ? (government.ids.includes(id) ? 'government' : 'opposition') : 'unavailable' };
   });
   const chambers = (evidence?.chambers ?? []).map(chamber => {
@@ -64,7 +67,8 @@ for (const entity of [...entities.countries].sort((a, b) => a.id.localeCompare(b
   const orgs = interestsByCountry.get(entity.id) ?? [], organizationIds = [];
   orgs.forEach((item, index) => { const id = organizationId(entity.id, item.sourceId), basis = interests.sources[item.sourceKey]; organizationIds.push(id); registry.organizations[id] = { id, countryId: entity.id, type: item.type, displayName: `${entity.commonName} ${item.type === 'union' ? 'Workers Federation' : 'Enterprise Forum'}${index > 1 ? ` ${index}` : ''}`, fictional: true, sourceBasis: { sourceOrganizationId: item.sourceId, sourceOrganizationName: item.sourceName }, representedInterests: item.type === 'union' ? ['labour', 'income_security', 'public_services'] : ['enterprise', 'infrastructure', 'fiscal_policy'], representedCohorts: item.type === 'union' ? ['low', 'middle'] : ['middle', 'high'], issuePriorities: item.type === 'union' ? ['labour_protection', 'income_security', 'public_services'] : ['infrastructure', 'fiscal_distribution', 'public_order'], membership: { status: 'unavailable' }, provenance: provenance('partial', 'Source establishes an affiliated organization and country, while gameplay identity/interests are modelled and membership is unavailable.', basis) }; });
   const electoral = chambers.length && chambers.every(c => c.electoralRule.status === 'sourced') ? 'sourced' : chambers.length ? 'partial' : 'unavailable';
-  registry.countries[entity.id] = { countryId: entity.id, institutionId, partyIds: ids, organizationIds, coverage: { institutions: institutionStatus, executiveSystem: executiveSystem.status, legislature: evidence ? 'sourced' : 'unavailable', electoralSystem: electoral, partyBasis: ids.length ? 'sourced' : 'unavailable', partyIdeology: ids.length ? 'modelled_fallback' : 'unavailable', seats: allocations.length ? 'sourced' : 'unavailable', coalition: government.ids.length ? 'partial' : 'unavailable', organizedInterests: organizationIds.length ? 'partial' : 'unavailable', opinionAnchor: 'modelled_fallback' } };
+  const ideologyStatuses = ids.map(id => registry.parties[id].ideologicalBasis.status), partyIdeology = !ids.length ? 'unavailable' : ideologyStatuses.some(status => status === 'sourced' || status === 'partial') ? 'partial' : 'modelled_fallback';
+  registry.countries[entity.id] = { countryId: entity.id, institutionId, partyIds: ids, organizationIds, coverage: { institutions: institutionStatus, executiveSystem: executiveSystem.status, legislature: evidence ? 'sourced' : 'unavailable', electoralSystem: electoral, partyBasis: ids.length ? 'sourced' : 'unavailable', partyIdeology, seats: allocations.length ? 'sourced' : 'unavailable', coalition: government.ids.length ? 'partial' : 'unavailable', organizedInterests: organizationIds.length ? 'partial' : 'unavailable', opinionAnchor: 'modelled_fallback' } };
 }
 const output = `${JSON.stringify(registry, null, 2)}\n`;
 if (process.argv.includes('--check')) { if (readFileSync(outputPath, 'utf8') !== output) throw new Error('Political registry is stale. Run npm run politics:data:generate.'); } else writeFileSync(outputPath, output);

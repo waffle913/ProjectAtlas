@@ -1,16 +1,18 @@
 {
-  "version": "politics-coverage-0.13-v3",
+  "version": "politics-coverage-0.13-v4",
   "scenarioDate": "2026-01-01",
   "generatedFrom": {
     "sourceSnapshotSha256": "9d1a3f6dacdfb729710c61765568c20e4f41f85ed31e70bc8fd21da7e9d55f13",
     "organizedInterestsSourceSha256": "20324a3699023d8f9675e4a8e117eb449bbe762e358d1bbdab698f84a5045cc3",
-    "politicalRegistrySha256": "77d8c2e25b1db99537a070f9987d72d01ca9159b416c9e8c59852bc97d846143"
+    "ideologySourceSnapshotSha256": "f4690b22a3c50efac4f3b096a49ed4cb31ad3cc798d9714a0349f045e1d965d0",
+    "politicalRegistrySha256": "dd655249c797420dff65d76dc96db3ae5d6ffb1dcf2f1431cdddc274f146b1ef"
   },
   "methodology": {
     "institutionalSource": "Inter-Parliamentary Union, country systems, chambers and latest elections applicable on 2026-01-01",
-    "visiblePartyIdentities": "Fictional country-specific identities mapped one-to-one to sourced full seat allocations; missing ideology uses a source-ID-independent neutral low-confidence fallback.",
+    "visiblePartyIdentities": "Fictional country-specific identities mapped one-to-one to sourced full seat allocations.",
+    "ideologicalBasis": "V-Party Country-Party-Date v2 via vdemdata 16.0; explicit reviewed IPU-to-Party-Facts links only; deterministic ordinal transformation; unmatched parties remain source-ID/name-independent neutral low-confidence fallbacks.",
     "governingBloc": "Partial derived normalized-name match retaining source text, method and result.",
-    "organizedInterests": "Partial dated ITUC/IOE source cross-section; no universal organizations are fabricated and membership is unavailable.",
+    "organizedInterests": "Partial dated ITUC/IOE source cross-section; no universal organizations are fabricated, membership is unavailable, and weekly dynamic positions are stored only for these registered organizations.",
     "opinion": "Nine socioeconomic cohorts per populated region; modelled without polling claims."
   },
   "totals": {
@@ -20,7 +22,15 @@
     "chambersWithReconciledSeats": 182,
     "representedSeats": 31736,
     "fictionalParties": 948,
+    "partiesWithSourcedOrPartialIdeology": 35,
+    "partiesWithNeutralModelledFallback": 913,
+    "ideologicalBasis": {
+      "sourced": 20,
+      "partial": 15,
+      "modelled_fallback": 913
+    },
     "fictionalOrganizations": 20,
+    "dynamicOrganizationDefinitions": 20,
     "organizedInterestCountries": 10,
     "partyCountMin": 0,
     "partyCountMax": 43,
@@ -95,8 +105,8 @@
     },
     "partyIdeology": {
       "sourced": 0,
-      "partial": 0,
-      "modelled_fallback": 118,
+      "partial": 8,
+      "modelled_fallback": 110,
       "unavailable": 134,
       "not_applicable": 0
     },
