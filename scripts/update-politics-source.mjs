@@ -42,9 +42,14 @@ const electoralKind = attributes => {
 };
 
 const chamberResponse = await fetchJson(endpoint('chambers', { 'page[size]': 400, 'date_range[from]': REFERENCE_DATE, 'date_range[to]': REFERENCE_DATE }));
+const countryResponse = await fetchJson(endpoint('countries', { 'page[size]': 400 }));
 const partyResponse = await fetchJson(endpoint('political_parties', { 'page[size]': 4000 }));
 const partyNames = new Map(unwrapData(partyResponse).map(item => [item.political_party_code, item.party_name?.en ?? item.party_name?.fr ?? item.political_party_code]));
 const chambers = unwrapData(chamberResponse).filter(item => byIso2.has(item.id.slice(0, 2)));
+const countrySystems = new Map(unwrapData(countryResponse).map(item => [item.id, {
+  politicalSystem: value(item.attributes.political_system)?.term,
+  politicalSubsystem: value(item.attributes.political_subsystem)?.term,
+}]).filter(([, item]) => item.politicalSystem || item.politicalSubsystem));
 
 const electionByChamber = new Map();
 let cursor = 0;
@@ -64,6 +69,7 @@ for (const [iso2, country] of [...byIso2].sort((a, b) => a[1].id.localeCompare(b
   if (!countryChambers.length) continue;
   countries.push({
     countryId: country.id, ipuCountryCode: iso2,
+    ...countrySystems.get(iso2),
     legislatureKind: countryChambers.length === 1 ? 'unicameral' : 'bicameral',
     chambers: countryChambers.map(chamber => {
       const attributes = chamber.attributes, election = electionByChamber.get(chamber.id), electionAttributes = election?.attributes;
@@ -95,7 +101,7 @@ for (const [iso2, country] of [...byIso2].sort((a, b) => a[1].id.localeCompare(b
 const snapshot = {
   schemaVersion: 1, referenceDate: REFERENCE_DATE, retrievedAt: RETRIEVED_AT,
   source: { name: 'IPU Parline', publisher: 'Inter-Parliamentary Union', url: 'https://data.ipu.org/', api: API, licence: 'CC BY-NC-SA 4.0', terms: 'https://www.ipu.org/terms-use' },
-  methodology: 'Chamber values valid at 2026-01-01. Latest election on or before that date. Seat allocations retained only for full renewals whose seats-at-stake equal the statutory chamber size and reconcile without excess.',
+  methodology: 'Country political-system values and chamber values valid at 2026-01-01. Latest election on or before that date. Seat allocations retained only for full renewals whose seats-at-stake equal the statutory chamber size and reconcile without excess.',
   countries,
 };
 assert(countries.length > 100, 'Unexpectedly low IPU country coverage.');

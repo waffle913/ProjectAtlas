@@ -1,14 +1,16 @@
 {
-  "version": "politics-coverage-0.13-v2",
+  "version": "politics-coverage-0.13-v3",
   "scenarioDate": "2026-01-01",
   "generatedFrom": {
-    "sourceSnapshotSha256": "3f1249061a34cb2c9de53ad49dded462b3e6cc3e699bc879cf4e5a353450720c",
-    "politicalRegistrySha256": "b2493da2f9632dd8f1aac6d8eb9848fdd13b50cc57ab64b7235b2031022d6970"
+    "sourceSnapshotSha256": "9d1a3f6dacdfb729710c61765568c20e4f41f85ed31e70bc8fd21da7e9d55f13",
+    "organizedInterestsSourceSha256": "20324a3699023d8f9675e4a8e117eb449bbe762e358d1bbdab698f84a5045cc3",
+    "politicalRegistrySha256": "77d8c2e25b1db99537a070f9987d72d01ca9159b416c9e8c59852bc97d846143"
   },
   "methodology": {
-    "institutionalSource": "Inter-Parliamentary Union, chambers and latest elections applicable on 2026-01-01",
-    "visiblePartyIdentities": "Fictional country-specific identities mapped one-to-one to sourced full seat allocations; ideology is deterministic modelled gameplay data.",
-    "organizedInterests": "Unavailable unless sourced; no universal organizations are fabricated.",
+    "institutionalSource": "Inter-Parliamentary Union, country systems, chambers and latest elections applicable on 2026-01-01",
+    "visiblePartyIdentities": "Fictional country-specific identities mapped one-to-one to sourced full seat allocations; missing ideology uses a source-ID-independent neutral low-confidence fallback.",
+    "governingBloc": "Partial derived normalized-name match retaining source text, method and result.",
+    "organizedInterests": "Partial dated ITUC/IOE source cross-section; no universal organizations are fabricated and membership is unavailable.",
     "opinion": "Nine socioeconomic cohorts per populated region; modelled without polling claims."
   },
   "totals": {
@@ -18,7 +20,8 @@
     "chambersWithReconciledSeats": 182,
     "representedSeats": 31736,
     "fictionalParties": 948,
-    "fictionalOrganizations": 0,
+    "fictionalOrganizations": 20,
+    "organizedInterestCountries": 10,
     "partyCountMin": 0,
     "partyCountMax": 43,
     "distinctPartyCounts": [
@@ -45,55 +48,78 @@
       43
     ]
   },
+  "executiveSystems": {
+    "presidential": 46,
+    "parliamentary": 47,
+    "semi_presidential": 41,
+    "collective": 0,
+    "monarchy_parliamentary": 30,
+    "other": 29,
+    "unavailable": 59
+  },
   "coverage": {
     "institutions": {
       "sourced": 0,
       "partial": 193,
       "modelled_fallback": 0,
-      "unavailable": 7,
-      "not_applicable": 52
+      "unavailable": 59,
+      "not_applicable": 0
+    },
+    "executiveSystem": {
+      "sourced": 181,
+      "partial": 12,
+      "modelled_fallback": 0,
+      "unavailable": 59,
+      "not_applicable": 0
     },
     "legislature": {
       "sourced": 193,
       "partial": 0,
       "modelled_fallback": 0,
-      "unavailable": 7,
-      "not_applicable": 52
+      "unavailable": 59,
+      "not_applicable": 0
     },
     "electoralSystem": {
       "sourced": 179,
       "partial": 14,
       "modelled_fallback": 0,
-      "unavailable": 7,
-      "not_applicable": 52
+      "unavailable": 59,
+      "not_applicable": 0
     },
     "partyBasis": {
       "sourced": 118,
       "partial": 0,
       "modelled_fallback": 0,
-      "unavailable": 82,
-      "not_applicable": 52
+      "unavailable": 134,
+      "not_applicable": 0
+    },
+    "partyIdeology": {
+      "sourced": 0,
+      "partial": 0,
+      "modelled_fallback": 118,
+      "unavailable": 134,
+      "not_applicable": 0
     },
     "seats": {
       "sourced": 153,
       "partial": 0,
       "modelled_fallback": 0,
-      "unavailable": 47,
-      "not_applicable": 52
+      "unavailable": 99,
+      "not_applicable": 0
     },
     "coalition": {
-      "sourced": 56,
-      "partial": 0,
+      "sourced": 0,
+      "partial": 56,
       "modelled_fallback": 0,
-      "unavailable": 144,
-      "not_applicable": 52
+      "unavailable": 196,
+      "not_applicable": 0
     },
     "organizedInterests": {
       "sourced": 0,
-      "partial": 0,
+      "partial": 10,
       "modelled_fallback": 0,
-      "unavailable": 200,
-      "not_applicable": 52
+      "unavailable": 242,
+      "not_applicable": 0
     },
     "opinionAnchor": {
       "sourced": 0,

@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import type { RegionEntity, SimulationState } from '../../types';
 import { emptyCrisis } from '../crisis/model';
 import { emptyFiscal } from '../fiscal/model';
 import { initializeNewGame } from '../initialization';
-import { assertSimulationInvariants } from '../invariants';
+import { applyPendingFidelityTransitions, requestFidelityTransition } from '../fidelity';
+import { assertSimulationInvariants, validateFidelityConservation } from '../invariants';
 import { emptyPolitics, POLITICAL_ISSUES } from '../politics/model';
+import { validatePoliticalRegistry } from '../politics/invariants';
 import { politicalRegistry } from '../politics/registry';
 import { inspectPolitics, runPoliticalOpinionWeek } from '../politics/runtime';
 import { migrateSimulationState, restoreSimulationState, serializeSimulationState } from '../save';
@@ -30,6 +33,7 @@ describe('0.13 corrected national politics', () => {
 
   it('retains nine socioeconomic cohorts with exact compact support', () => {
     const state = initialized();
+    for (const country of Object.values(state.politics.countries)) expect(country.nationalSupportBps.reduce((a, b) => a + b, 0)).toBe(10_000);
     for (const [regionId, regional] of Object.entries(state.politics.regionalOpinion)) {
       expect(Object.keys(regional.cohorts)).toHaveLength(state.socioeconomy.regions[regionId].cohorts.filter(c => c.persons > 0).length);
       for (const cohort of Object.values(regional.cohorts)) expect(cohort[2].reduce((a, b) => a + b, 0)).toBe(10_000);
@@ -68,6 +72,8 @@ describe('0.13 corrected national politics', () => {
     const migrated = migrateSimulationState(legacy, regions, {}, {}, context); expect(migrated.politics).toMatchObject({ initializedOn: '2032-06-15', weeklyEvaluations: 0, registryVersion: politicalRegistry.version });
     const evaluated = evaluate(state), serialized = serializeSimulationState(evaluated, context); expect(serialized).not.toContain('sourcePartyName'); expect(serialized).not.toContain('issuePositions');
     expect(restoreSimulationState(serialized, regions, {}, {}, context)).toEqual(evaluated);
+    const v2 = structuredClone(evaluated) as unknown as { politics: Record<string, unknown> }; v2.politics.registryVersion = 'political-registry-0.13-v2';
+    const upgraded = restoreSimulationState(JSON.stringify(v2), regions, {}, {}, context); expect(upgraded.politics.registryVersion).toBe(politicalRegistry.version); expect(upgraded.politics.regionalOpinion).toEqual(evaluated.politics.regionalOpinion);
     const earlySchema11 = structuredClone(evaluated) as unknown as { politics: Record<string, unknown> }; delete earlySchema11.politics.registryVersion;
     expect(restoreSimulationState(JSON.stringify(earlySchema11), regions, {}, {}, context).politics.registryVersion).toBe(politicalRegistry.version);
   });
@@ -75,5 +81,61 @@ describe('0.13 corrected national politics', () => {
   it('returns defensive inspection data without exposing static registry identity', () => {
     const state = initialized(), inspected = inspectPolitics(state, sourced[0])!; inspected.country.regionIds.length = 0;
     expect(state.politics.countries[sourced[0]].regionIds).toHaveLength(1); expect(inspected.parties.length).toBe(politicalRegistry.countries[sourced[0]].partyIds.length);
+  });
+
+  it('is deterministic for the same state and independent of Country/Region insertion order', () => {
+    const state = initialized(), reordered = structuredClone(state);
+    reordered.politics.countries = Object.fromEntries(Object.entries(reordered.politics.countries).reverse());
+    reordered.politics.regionalOpinion = Object.fromEntries(Object.entries(reordered.politics.regionalOpinion).reverse());
+    reordered.socioeconomy.regions = Object.fromEntries(Object.entries(reordered.socioeconomy.regions).reverse());
+    expect(evaluate(state).politics).toEqual(evaluate(structuredClone(state)).politics);
+    expect(evaluate(reordered).politics).toEqual(evaluate(state).politics);
+  });
+
+  it('keeps politics conserved across fidelity-only transitions', () => {
+    const state = initialized(), queued = requestFidelityTransition(state, sourced[0], 'Detailed', context.countryIds);
+    const applied = applyPendingFidelityTransitions(queued);
+    expect(applied.politics).toBe(queued.politics);
+    expect(validateFidelityConservation(queued, applied)).toEqual([]);
+  });
+
+  it('ignores crisis phase and does not mutate socioeconomic, fiscal or crisis branches', () => {
+    const state = initialized(), active = structuredClone(state), episode = active.crisis.countries[sourced[0]].currentByType.fiscal_stress;
+    episode.state = 'ACTIVE'; episode.severity = 'severe'; episode.activatedOn = active.date;
+    const normalResult = evaluate(state), activeResult = evaluate(active);
+    expect(activeResult.politics).toEqual(normalResult.politics);
+    expect(activeResult.socioeconomy).toBe(active.socioeconomy);
+    expect(activeResult.fiscal).toBe(active.fiscal);
+    expect(activeResult.crisis).toBe(active.crisis);
+  });
+
+  it('keeps unavailable distinct from numeric zero and never infers not-applicable from entity type', () => {
+    const absent = Object.values(politicalRegistry.countries).find(item => item.coverage.institutions === 'unavailable')!;
+    expect(absent.coverage.executiveSystem).toBe('unavailable');
+    expect(absent.coverage.legislature).toBe('unavailable');
+    expect(Object.values(politicalRegistry.countries).some(item => Object.values(item.coverage).includes('not_applicable'))).toBe(false);
+    expect(politicalRegistry.parties[politicalRegistry.countries[sourced[0]].partyIds[0]].ideologicalBasis).toMatchObject({ status: 'modelled_fallback', confidenceBps: 500 });
+  });
+
+  it('rejects malformed seats, support and future evidence', () => {
+    const malformedSeats = structuredClone(politicalRegistry), partyId = malformedSeats.countries[sourced[0]].partyIds[0];
+    malformedSeats.parties[partyId].currentSeats = -1;
+    expect(validatePoliticalRegistry(malformedSeats)).toContain(`Invalid party profile ${partyId}.`);
+    const sourcedChamber = Object.values(malformedSeats.institutions).flatMap(item => item.chambers).find(item => item.seatAllocationStatus === 'sourced' && Object.keys(item.seatsByParty).length)!;
+    sourcedChamber.seatsByParty[Object.keys(sourcedChamber.seatsByParty)[0]] += 1;
+    expect(validatePoliticalRegistry(malformedSeats)).toContain(`Seat allocation does not reconcile for ${sourcedChamber.id}.`);
+    const future = structuredClone(politicalRegistry); future.parties[partyId].provenance.effectiveDate = '2027-01-01';
+    expect(validatePoliticalRegistry(future).some(error => error.includes('Future-dated'))).toBe(true);
+    const malformedSupport = initialized(); malformedSupport.politics.countries[sourced[0]].nationalSupportBps[0] += 1;
+    expect(() => assertSimulationInvariants(malformedSupport, context, 'tick')).toThrow(/support does not sum/);
+  });
+
+  it('continues deterministically after save/reload and contains no 0.14 state', () => {
+    const first = evaluate(initialized()), restored = restoreSimulationState(serializeSimulationState(first, context), regions, {}, {}, context);
+    const nextDate = '2026-01-12';
+    expect(evaluate(restored, nextDate)).toEqual(evaluate(first, nextDate));
+    expect(JSON.stringify(first.politics)).not.toMatch(/electionSimulation|candidate|legislation|protest|coup|media|politicalAi/i);
+    expect(readFileSync('src/simulation/politics/runtime.ts', 'utf8')).not.toContain('Math.random');
+    expect(readFileSync('src/simulation/politics/initialization.ts', 'utf8')).not.toContain('Math.random');
   });
 });

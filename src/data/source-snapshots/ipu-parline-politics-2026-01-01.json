@@ -10,11 +10,13 @@
     "licence": "CC BY-NC-SA 4.0",
     "terms": "https://www.ipu.org/terms-use"
   },
-  "methodology": "Chamber values valid at 2026-01-01. Latest election on or before that date. Seat allocations retained only for full renewals whose seats-at-stake equal the statutory chamber size and reconcile without excess.",
+  "methodology": "Country political-system values and chamber values valid at 2026-01-01. Latest election on or before that date. Seat allocations retained only for full renewals whose seats-at-stake equal the statutory chamber size and reconcile without excess.",
   "countries": [
     {
       "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
       "ipuCountryCode": "AD",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -66,6 +68,7 @@
     {
       "countryId": "country.04362960-a7d3-4b19-8f76-6572995728e9",
       "ipuCountryCode": "MH",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -96,6 +99,8 @@
     {
       "countryId": "country.10o3gxv",
       "ipuCountryCode": "KH",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -155,6 +160,7 @@
     {
       "countryId": "country.10umxsb",
       "ipuCountryCode": "TZ",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -187,6 +193,7 @@
     {
       "countryId": "country.12na4wl",
       "ipuCountryCode": "DJ",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -231,6 +238,8 @@
     {
       "countryId": "country.12rbtu0",
       "ipuCountryCode": "IN",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -277,6 +286,8 @@
     {
       "countryId": "country.133c7481-f1fb-49a2-a220-d585495c33c5",
       "ipuCountryCode": "KI",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -306,6 +317,7 @@
     {
       "countryId": "country.13gf39o",
       "ipuCountryCode": "ML",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -330,6 +342,7 @@
     {
       "countryId": "country.13ie6ly",
       "ipuCountryCode": "NA",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -382,6 +395,7 @@
     {
       "countryId": "country.13l0w18",
       "ipuCountryCode": "EC",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -459,6 +473,7 @@
     {
       "countryId": "country.13si2qd",
       "ipuCountryCode": "LR",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -572,6 +587,7 @@
     {
       "countryId": "country.14nagci",
       "ipuCountryCode": "CF",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -600,6 +616,7 @@
     {
       "countryId": "country.14p3bj2",
       "ipuCountryCode": "LB",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -707,6 +724,7 @@
     {
       "countryId": "country.14vdqsc",
       "ipuCountryCode": "BF",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -732,6 +750,7 @@
     {
       "countryId": "country.15217la",
       "ipuCountryCode": "NE",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -761,6 +780,8 @@
     {
       "countryId": "country.15794b34-37b2-4053-964a-2dfea1e18400",
       "ipuCountryCode": "VC",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -793,6 +814,8 @@
     {
       "countryId": "country.159s948",
       "ipuCountryCode": "EE",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -857,6 +880,8 @@
     {
       "countryId": "country.1629o6e",
       "ipuCountryCode": "SB",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -936,6 +961,8 @@
     {
       "countryId": "country.17a684c6-aac3-4f9a-8908-86e91c0a097d",
       "ipuCountryCode": "TV",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -967,6 +994,7 @@
     {
       "countryId": "country.17se0x",
       "ipuCountryCode": "SA",
+      "politicalSystem": "monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -992,6 +1020,7 @@
     {
       "countryId": "country.18echaw",
       "ipuCountryCode": "KW",
+      "politicalSystem": "monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1021,6 +1050,7 @@
     {
       "countryId": "country.18zkp24",
       "ipuCountryCode": "CR",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1083,6 +1113,7 @@
     {
       "countryId": "country.18zobjo",
       "ipuCountryCode": "LA",
+      "politicalSystem": "communist_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1127,6 +1158,7 @@
     {
       "countryId": "country.19420d8c-93e0-40af-afbe-4ca4d8c4de9e",
       "ipuCountryCode": "SG",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1156,6 +1188,7 @@
     {
       "countryId": "country.19iew1b",
       "ipuCountryCode": "SY",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1180,6 +1213,8 @@
     {
       "countryId": "country.1a1ajo",
       "ipuCountryCode": "MY",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -1220,6 +1255,7 @@
     {
       "countryId": "country.1abe1vk",
       "ipuCountryCode": "LT",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1304,6 +1340,8 @@
     {
       "countryId": "country.1aj872z",
       "ipuCountryCode": "CA",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -1369,6 +1407,8 @@
     {
       "countryId": "country.1akiyqe",
       "ipuCountryCode": "TG",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -1419,6 +1459,7 @@
     {
       "countryId": "country.1bf4760",
       "ipuCountryCode": "SN",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1513,6 +1554,8 @@
     {
       "countryId": "country.1bqmiqj",
       "ipuCountryCode": "GE",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1572,6 +1615,8 @@
     {
       "countryId": "country.1br72am",
       "ipuCountryCode": "RS",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1654,6 +1699,8 @@
     {
       "countryId": "country.1bryr1g",
       "ipuCountryCode": "NZ",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1686,6 +1733,7 @@
     {
       "countryId": "country.1bwwirt",
       "ipuCountryCode": "SS",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -1729,6 +1777,8 @@
     {
       "countryId": "country.1bxt04r",
       "ipuCountryCode": "FJ",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1783,6 +1833,7 @@
     {
       "countryId": "country.1cf3s0n",
       "ipuCountryCode": "ME",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -1862,6 +1913,7 @@
     {
       "countryId": "country.1cin176",
       "ipuCountryCode": "AR",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -1913,6 +1965,7 @@
     {
       "countryId": "country.1ckv6i4",
       "ipuCountryCode": "PH",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -1964,6 +2017,8 @@
     {
       "countryId": "country.1ddp0cj",
       "ipuCountryCode": "NL",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -2089,6 +2144,8 @@
     {
       "countryId": "country.1dg1asq",
       "ipuCountryCode": "HR",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2122,6 +2179,8 @@
     {
       "countryId": "country.1dsqes5",
       "ipuCountryCode": "IL",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2203,6 +2262,7 @@
     {
       "countryId": "country.1dtcx1v",
       "ipuCountryCode": "CY",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2235,6 +2295,7 @@
     {
       "countryId": "country.1ena0me",
       "ipuCountryCode": "MW",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2315,6 +2376,7 @@
     {
       "countryId": "country.1fog5xu",
       "ipuCountryCode": "TN",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -2365,6 +2427,8 @@
     {
       "countryId": "country.1g4p5xi",
       "ipuCountryCode": "BW",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2397,6 +2461,8 @@
     {
       "countryId": "country.1ga7ffb",
       "ipuCountryCode": "SE",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2471,6 +2537,8 @@
     {
       "countryId": "country.1ge48fm",
       "ipuCountryCode": "GR",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2545,6 +2613,7 @@
     {
       "countryId": "country.1gtbljd",
       "ipuCountryCode": "ID",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2617,6 +2686,8 @@
     {
       "countryId": "country.1gxtyz9",
       "ipuCountryCode": "AU",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -2700,6 +2771,8 @@
     {
       "countryId": "country.1hnoduz",
       "ipuCountryCode": "VU",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2809,6 +2882,7 @@
     {
       "countryId": "country.1i4b92q",
       "ipuCountryCode": "MX",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -2910,6 +2984,7 @@
     {
       "countryId": "country.1jpkbk",
       "ipuCountryCode": "GA",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -2959,6 +3034,7 @@
     {
       "countryId": "country.1jzfv40",
       "ipuCountryCode": "KR",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -2990,6 +3066,7 @@
     {
       "countryId": "country.1k431t",
       "ipuCountryCode": "SO",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3035,6 +3112,7 @@
     {
       "countryId": "country.1knbk6o",
       "ipuCountryCode": "GN",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -3060,6 +3138,7 @@
     {
       "countryId": "country.1lye27d",
       "ipuCountryCode": "BT",
+      "politicalSystem": "monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3127,6 +3206,8 @@
     {
       "countryId": "country.1mkrhod",
       "ipuCountryCode": "LS",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3177,6 +3258,7 @@
     {
       "countryId": "country.1mxwn59",
       "ipuCountryCode": "BR",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3346,6 +3428,8 @@
     {
       "countryId": "country.1nths69",
       "ipuCountryCode": "SK",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -3415,6 +3499,7 @@
     {
       "countryId": "country.1nz4j7w",
       "ipuCountryCode": "GH",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -3464,6 +3549,7 @@
     {
       "countryId": "country.1oit02h",
       "ipuCountryCode": "AO",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -3523,6 +3609,8 @@
     {
       "countryId": "country.1onsv24",
       "ipuCountryCode": "IT",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3620,6 +3708,7 @@
     {
       "countryId": "country.1orw7jp",
       "ipuCountryCode": "MA",
+      "politicalSystem": "monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3731,6 +3820,8 @@
     {
       "countryId": "country.1p0y3nd",
       "ipuCountryCode": "TL",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -3790,6 +3881,7 @@
     {
       "countryId": "country.1pajyhp",
       "ipuCountryCode": "TJ",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3865,6 +3957,7 @@
     {
       "countryId": "country.1powv0y",
       "ipuCountryCode": "MR",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -3904,6 +3997,7 @@
     {
       "countryId": "country.1pvjhz6",
       "ipuCountryCode": "QA",
+      "politicalSystem": "monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -3930,6 +4024,7 @@
     {
       "countryId": "country.1qeehvj",
       "ipuCountryCode": "UY",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -4015,6 +4110,7 @@
     {
       "countryId": "country.1qt08wm",
       "ipuCountryCode": "RW",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -4096,6 +4192,7 @@
     {
       "countryId": "country.1r1l1cm",
       "ipuCountryCode": "HT",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -4253,6 +4350,7 @@
     {
       "countryId": "country.1rbe765",
       "ipuCountryCode": "ER",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -4275,6 +4373,8 @@
     {
       "countryId": "country.1rdien2",
       "ipuCountryCode": "BD",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -4304,6 +4404,8 @@
     {
       "countryId": "country.1rdws0z",
       "ipuCountryCode": "AL",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -4366,6 +4468,8 @@
     {
       "countryId": "country.1rzzy0l",
       "ipuCountryCode": "JM",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -4429,6 +4533,8 @@
     {
       "countryId": "country.1s29x2y",
       "ipuCountryCode": "CH",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -4569,6 +4675,7 @@
     {
       "countryId": "country.1slft1c",
       "ipuCountryCode": "CU",
+      "politicalSystem": "communist_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -4601,6 +4708,8 @@
     {
       "countryId": "country.1t8wy2p",
       "ipuCountryCode": "HU",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -4685,6 +4794,7 @@
     {
       "countryId": "country.1tac25k",
       "ipuCountryCode": "BN",
+      "politicalSystem": "monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -4714,6 +4824,7 @@
     {
       "countryId": "country.1us5oyp",
       "ipuCountryCode": "AF",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -4758,6 +4869,8 @@
     {
       "countryId": "country.1vrmp4h",
       "ipuCountryCode": "NO",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -4834,6 +4947,7 @@
     {
       "countryId": "country.1w9qxht",
       "ipuCountryCode": "CM",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -4924,6 +5038,7 @@
     {
       "countryId": "country.1wszh7v",
       "ipuCountryCode": "BO",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -5035,6 +5150,7 @@
     {
       "countryId": "country.1wvxlzg",
       "ipuCountryCode": "NG",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -5165,6 +5281,8 @@
     {
       "countryId": "country.1x9bk5g",
       "ipuCountryCode": "AM",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -5214,6 +5332,8 @@
     {
       "countryId": "country.1xyn8u3",
       "ipuCountryCode": "JP",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -5329,6 +5449,8 @@
     {
       "countryId": "country.1y3qxos",
       "ipuCountryCode": "IQ",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -5415,6 +5537,7 @@
     {
       "countryId": "country.1y5kvsv",
       "ipuCountryCode": "KE",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -5541,6 +5664,7 @@
     {
       "countryId": "country.1y9w9xr",
       "ipuCountryCode": "KZ",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -5626,6 +5750,8 @@
     {
       "countryId": "country.1yl9unk",
       "ipuCountryCode": "SI",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -5709,6 +5835,7 @@
     {
       "countryId": "country.1yyv1wz",
       "ipuCountryCode": "PL",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -5814,6 +5941,7 @@
     {
       "countryId": "country.2aded07b-a46c-4e6b-8b87-ad5e4f973d52",
       "ipuCountryCode": "MV",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -5845,6 +5973,8 @@
     {
       "countryId": "country.2f7f4233-514c-485b-b289-248f71b3c562",
       "ipuCountryCode": "LI",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -5899,6 +6029,8 @@
     {
       "countryId": "country.2r4kh5",
       "ipuCountryCode": "IS",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -5963,6 +6095,7 @@
     {
       "countryId": "country.3f7ydp",
       "ipuCountryCode": "HN",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6019,6 +6152,8 @@
     {
       "countryId": "country.46088230-c32b-4e3f-a816-fa6daf9737c4",
       "ipuCountryCode": "CV",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6068,6 +6203,7 @@
     {
       "countryId": "country.4b67c337-52f1-4fbe-bb69-f51e8f67fc03",
       "ipuCountryCode": "BH",
+      "politicalSystem": "monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -6117,6 +6253,8 @@
     {
       "countryId": "country.4c29f8cf-400e-4d36-ac63-b9fd94058944",
       "ipuCountryCode": "KN",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6149,6 +6287,7 @@
     {
       "countryId": "country.50z1vg",
       "ipuCountryCode": "MM",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -6200,6 +6339,8 @@
     {
       "countryId": "country.5472bc14-36bc-4d4a-a088-d270a3bb1347",
       "ipuCountryCode": "MT",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6232,6 +6373,7 @@
     {
       "countryId": "country.54732cb4-6064-445b-a3c2-461d752e4305",
       "ipuCountryCode": "SC",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6276,6 +6418,8 @@
     {
       "countryId": "country.589767fd-d38e-45be-933c-e243cd22ec04",
       "ipuCountryCode": "MU",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6308,6 +6452,8 @@
     {
       "countryId": "country.5d8b54a9-8886-4e50-ac35-dfdbac3cdcff",
       "ipuCountryCode": "BB",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -6366,6 +6512,7 @@
     {
       "countryId": "country.5q931z",
       "ipuCountryCode": "UG",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6445,6 +6592,8 @@
     {
       "countryId": "country.656241b3-385a-416c-86a1-6512d294a685",
       "ipuCountryCode": "MC",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6484,6 +6633,8 @@
     {
       "countryId": "country.6mdobv",
       "ipuCountryCode": "MD",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6542,6 +6693,8 @@
     {
       "countryId": "country.6sun05",
       "ipuCountryCode": "BS",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -6605,6 +6758,7 @@
     {
       "countryId": "country.6th7vw",
       "ipuCountryCode": "ZW",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -6668,6 +6822,7 @@
     {
       "countryId": "country.7215346f-26f3-4d15-bc2a-e04350b1acc0",
       "ipuCountryCode": "TO",
+      "politicalSystem": "monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -6698,6 +6853,7 @@
     {
       "countryId": "country.72e2lh",
       "ipuCountryCode": "GQ",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -6762,6 +6918,7 @@
     {
       "countryId": "country.78ys5y",
       "ipuCountryCode": "CD",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7026,6 +7183,7 @@
     {
       "countryId": "country.79df96d6-6b58-4696-b486-ed62877ef5e8",
       "ipuCountryCode": "FM",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7055,6 +7213,7 @@
     {
       "countryId": "country.7zmt7h",
       "ipuCountryCode": "KG",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7085,6 +7244,7 @@
     {
       "countryId": "country.82nqba",
       "ipuCountryCode": "BI",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7148,6 +7308,8 @@
     {
       "countryId": "country.8554a20a-f004-46eb-a49c-b26c269c127c",
       "ipuCountryCode": "LC",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7199,6 +7361,7 @@
     {
       "countryId": "country.88o7pu",
       "ipuCountryCode": "TM",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7267,6 +7430,8 @@
     {
       "countryId": "country.8c79c739-2c80-452e-88cf-10db55637921",
       "ipuCountryCode": "SM",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7336,6 +7501,7 @@
     {
       "countryId": "country.8cy639",
       "ipuCountryCode": "PE",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7419,6 +7585,7 @@
     {
       "countryId": "country.8thyov",
       "ipuCountryCode": "PA",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7450,6 +7617,7 @@
     {
       "countryId": "country.8zgnf1",
       "ipuCountryCode": "YE",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7527,6 +7695,8 @@
     {
       "countryId": "country.8zv92e",
       "ipuCountryCode": "UA",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7556,6 +7726,7 @@
     {
       "countryId": "country.91355bcb-0475-45e6-8a22-9425ff14ef5a",
       "ipuCountryCode": "PW",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7613,6 +7784,7 @@
     {
       "countryId": "country.97e14s",
       "ipuCountryCode": "FR",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7738,6 +7910,7 @@
     {
       "countryId": "country.9cg02n",
       "ipuCountryCode": "ZM",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7770,6 +7943,8 @@
     {
       "countryId": "country.9j09vn",
       "ipuCountryCode": "MN",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7829,6 +8004,8 @@
     {
       "countryId": "country.abcbf2de-3898-4bff-9a00-899fcadcc32a",
       "ipuCountryCode": "DM",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7861,6 +8038,7 @@
     {
       "countryId": "country.aheews",
       "ipuCountryCode": "GY",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -7891,6 +8069,7 @@
     {
       "countryId": "country.alucm0",
       "ipuCountryCode": "AT",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -7956,6 +8135,8 @@
     {
       "countryId": "country.ao8edp",
       "ipuCountryCode": "TT",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8005,6 +8186,7 @@
     {
       "countryId": "country.awshmp",
       "ipuCountryCode": "JO",
+      "politicalSystem": "monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8057,6 +8239,7 @@
     {
       "countryId": "country.b4jfbk",
       "ipuCountryCode": "EG",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8108,6 +8291,8 @@
     {
       "countryId": "country.b6fde5b8-cf15-4377-94fd-cef6d5af956b",
       "ipuCountryCode": "WS",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -8138,6 +8323,7 @@
     {
       "countryId": "country.b8da38ac-b364-44d1-82ea-fc39ff807e0b",
       "ipuCountryCode": "ST",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -8192,6 +8378,8 @@
     {
       "countryId": "country.bk8phe",
       "ipuCountryCode": "BE",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8305,6 +8493,7 @@
     {
       "countryId": "country.c55i8p",
       "ipuCountryCode": "UZ",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8382,6 +8571,7 @@
     {
       "countryId": "country.ckoh6f",
       "ipuCountryCode": "CO",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8434,6 +8624,8 @@
     {
       "countryId": "country.d0e7yk",
       "ipuCountryCode": "ET",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8516,6 +8708,7 @@
     {
       "countryId": "country.d772x9",
       "ipuCountryCode": "DO",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8638,6 +8831,8 @@
     {
       "countryId": "country.e06wze",
       "ipuCountryCode": "ES",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8752,6 +8947,7 @@
     {
       "countryId": "country.e55nqx",
       "ipuCountryCode": "TD",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -8847,6 +9043,8 @@
     {
       "countryId": "country.eno4h9",
       "ipuCountryCode": "MK",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -8879,6 +9077,7 @@
     {
       "countryId": "country.f3a9acdf-e608-4c67-9f5c-aab01b6ac91f",
       "ipuCountryCode": "KM",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -8926,6 +9125,8 @@
     {
       "countryId": "country.f5u1ei",
       "ipuCountryCode": "PK",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9041,6 +9242,7 @@
     {
       "countryId": "country.f8c2068a-5e07-4e6a-bc75-4cb20c9fd1e6",
       "ipuCountryCode": "NR",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -9071,6 +9273,8 @@
     {
       "countryId": "country.fb52b2fd-95f8-4731-a50a-e7e0f6fbeb26",
       "ipuCountryCode": "GD",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9134,6 +9338,8 @@
     {
       "countryId": "country.fbc079c5-7b73-4476-a6c0-f9cf0aa983f5",
       "ipuCountryCode": "AG",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9184,6 +9390,8 @@
     {
       "countryId": "country.gddwz0",
       "ipuCountryCode": "TH",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9324,6 +9532,7 @@
     {
       "countryId": "country.h03oz0",
       "ipuCountryCode": "RU",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9396,6 +9605,8 @@
     {
       "countryId": "country.hs6fyh",
       "ipuCountryCode": "NP",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9510,6 +9721,7 @@
     {
       "countryId": "country.hw7u0k",
       "ipuCountryCode": "DZ",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9635,6 +9847,8 @@
     {
       "countryId": "country.i9fek6",
       "ipuCountryCode": "CZ",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9721,6 +9935,7 @@
     {
       "countryId": "country.ieqa5v",
       "ipuCountryCode": "SR",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -9790,6 +10005,7 @@
     {
       "countryId": "country.j4e5mk",
       "ipuCountryCode": "CN",
+      "politicalSystem": "communist_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -9815,6 +10031,7 @@
     {
       "countryId": "country.jg9ci8",
       "ipuCountryCode": "SD",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -9886,6 +10103,7 @@
     {
       "countryId": "country.jm8gea",
       "ipuCountryCode": "KP",
+      "politicalSystem": "communist_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -9918,6 +10136,7 @@
     {
       "countryId": "country.jmri14",
       "ipuCountryCode": "GM",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -9950,6 +10169,7 @@
     {
       "countryId": "country.joydxr",
       "ipuCountryCode": "BY",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -10024,6 +10244,7 @@
     {
       "countryId": "country.jvmcgx",
       "ipuCountryCode": "TR",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10127,6 +10348,8 @@
     {
       "countryId": "country.kb8qjm",
       "ipuCountryCode": "BG",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10206,6 +10429,8 @@
     {
       "countryId": "country.mbt8ni",
       "ipuCountryCode": "BA",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -10329,6 +10554,7 @@
     {
       "countryId": "country.mce667",
       "ipuCountryCode": "CG",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -10469,6 +10695,7 @@
     {
       "countryId": "country.mgrohe",
       "ipuCountryCode": "SV",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10525,6 +10752,7 @@
     {
       "countryId": "country.mqcp0q",
       "ipuCountryCode": "SL",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10557,6 +10785,7 @@
     {
       "countryId": "country.n2i2m0",
       "ipuCountryCode": "AZ",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10649,6 +10878,7 @@
     {
       "countryId": "country.n7hxdt",
       "ipuCountryCode": "BJ",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -10702,6 +10932,8 @@
     {
       "countryId": "country.nusos0",
       "ipuCountryCode": "LV",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10771,6 +11003,7 @@
     {
       "countryId": "country.opradj",
       "ipuCountryCode": "VN",
+      "politicalSystem": "communist_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10815,6 +11048,8 @@
     {
       "countryId": "country.pauqcg",
       "ipuCountryCode": "PT",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10897,6 +11132,8 @@
     {
       "countryId": "country.pqqumd",
       "ipuCountryCode": "DK",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -10991,6 +11228,7 @@
     {
       "countryId": "country.qdlh80",
       "ipuCountryCode": "VE",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -11020,6 +11258,8 @@
     {
       "countryId": "country.qo855j",
       "ipuCountryCode": "LU",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -11088,6 +11328,7 @@
     {
       "countryId": "country.qw8j9b",
       "ipuCountryCode": "PY",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11214,6 +11455,8 @@
     {
       "countryId": "country.s93ito",
       "ipuCountryCode": "IE",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11321,6 +11564,8 @@
     {
       "countryId": "country.sadyi7",
       "ipuCountryCode": "FI",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -11405,6 +11650,7 @@
     {
       "countryId": "country.snc7v9",
       "ipuCountryCode": "MG",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11489,6 +11735,7 @@
     {
       "countryId": "country.sq8sl2",
       "ipuCountryCode": "OM",
+      "politicalSystem": "monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11540,6 +11787,8 @@
     {
       "countryId": "country.sxojze",
       "ipuCountryCode": "DE",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary_ceremonial_president",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11617,6 +11866,8 @@
     {
       "countryId": "country.t3667i",
       "ipuCountryCode": "ZA",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11667,6 +11918,7 @@
     {
       "countryId": "country.td9ldb",
       "ipuCountryCode": "SZ",
+      "politicalSystem": "monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11716,6 +11968,7 @@
     {
       "countryId": "country.tyezxm",
       "ipuCountryCode": "GW",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -11742,6 +11995,8 @@
     {
       "countryId": "country.u4ua72",
       "ipuCountryCode": "BZ",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11791,6 +12046,7 @@
     {
       "countryId": "country.u6myyj",
       "ipuCountryCode": "US",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11860,6 +12116,7 @@
     {
       "countryId": "country.ukura0",
       "ipuCountryCode": "CI",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -11938,6 +12195,7 @@
     {
       "countryId": "country.wkwrv6",
       "ipuCountryCode": "GT",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12055,6 +12313,7 @@
     {
       "countryId": "country.wxv6tu",
       "ipuCountryCode": "LY",
+      "politicalSystem": "transitional_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12084,6 +12343,7 @@
     {
       "countryId": "country.xjfx2m",
       "ipuCountryCode": "AE",
+      "politicalSystem": "monarchy",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12114,6 +12374,7 @@
     {
       "countryId": "country.xs7zo4",
       "ipuCountryCode": "LK",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12213,6 +12474,7 @@
     {
       "countryId": "country.yc1r8r",
       "ipuCountryCode": "IR",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12243,6 +12505,7 @@
     {
       "countryId": "country.yhajqy",
       "ipuCountryCode": "CL",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -12326,6 +12589,7 @@
     {
       "countryId": "country.z7gp3s",
       "ipuCountryCode": "NI",
+      "politicalSystem": "presidential_system",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12358,6 +12622,7 @@
     {
       "countryId": "country.zaf4y3",
       "ipuCountryCode": "MZ",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12410,6 +12675,7 @@
     {
       "countryId": "country.zsxuo0",
       "ipuCountryCode": "RO",
+      "politicalSystem": "presidential_parliamentary",
       "legislatureKind": "bicameral",
       "chambers": [
         {
@@ -12504,6 +12770,8 @@
     {
       "countryId": "country.zvvq7v",
       "ipuCountryCode": "PG",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "parliamentary",
       "legislatureKind": "unicameral",
       "chambers": [
         {
@@ -12560,6 +12828,8 @@
     {
       "countryId": "country.zwicjl",
       "ipuCountryCode": "GB",
+      "politicalSystem": "parliamentary_system",
+      "politicalSubsystem": "constitutional_monarchy",
       "legislatureKind": "bicameral",
       "chambers": [
         {

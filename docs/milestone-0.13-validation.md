@@ -1,58 +1,61 @@
-# Milestone 0.13 validation
+# Milestone 0.13 final corrective validation
 
-Corrective validation from base `1af0b3cddb03d24c6b2ad3a87518ab6ce5006c22`.
+Corrective validation from base `051564a4a2d5b7724d286961f1688dd97a9422dc`.
 
 ## Delivered contract
 
 - Global save schema 11 and dynamic model `politics-0.13-v1` remain unchanged.
-- Pinned static `political-registry-0.13-v2`, generated reproducibly from an IPU Parline historical snapshot applicable on 2026-01-01.
-- 193 sourced parliamentary landscapes, country-specific fictional party identities and honest unavailable/not-applicable gaps.
-- Canonical sovereign ownership reconciliation each weekly update; military occupation alone has no political ownership effect.
-- Compact dynamic cohort tuples with all 40,572 world cohorts retained, exact 10,000-bps support and no static definitions/provenance in saves.
-- Identical health-plus-education public-service definition at initialization and runtime; infrastructure remains separate.
-- No 0.14 player decisions, election simulation, legislation, political actions or effects.
+- Static `political-registry-0.13-v3` is reproducibly generated from dated IPU and partial organized-interest snapshots.
+- No party profile is derived from a hash or source identifier. Missing ideology uses a uniform neutral low-confidence fallback; family and constituency remain unavailable.
+- IPU political-system/sub-category values feed a documented deterministic executive classification.
+- Organized Interests V1 contains 20 fictional organizations grounded in dated sources across ten Countries, with membership unavailable and no direct effects.
+- Governing-bloc matching is partial derived evidence retaining source text, method, result and ambiguity.
+- Source absence means unavailable. No political coverage field is inferred `not_applicable` from entity type.
+- Sovereignty remaps opinion at weekly priority 400; occupation and crisis phase remain neutral. There is no 0.14 feature.
 
 ## Coverage
 
-| Field | Sourced | Partial | Unavailable | Not applicable |
-| --- | ---: | ---: | ---: | ---: |
-| Institutions | 0 | 193 | 7 | 52 |
-| Legislature | 193 | 0 | 7 | 52 |
-| Electoral system | 179 | 14 | 7 | 52 |
-| Party basis | 118 | 0 | 82 | 52 |
-| Seats | 153 | 0 | 47 | 52 |
-| Governing bloc | 56 | 0 | 144 | 52 |
-| Organized interests | 0 | 0 | 200 | 52 |
+| Field | Sourced | Partial | Modelled fallback | Unavailable | Not applicable |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Institutions | 0 | 193 | 0 | 59 | 0 |
+| Executive system | 181 | 12 | 0 | 59 | 0 |
+| Legislature | 193 | 0 | 0 | 59 | 0 |
+| Electoral system | 179 | 14 | 0 | 59 | 0 |
+| Party basis | 118 | 0 | 0 | 134 | 0 |
+| Party ideology | 0 | 0 | 118 | 134 | 0 |
+| Seats | 153 | 0 | 0 | 99 | 0 |
+| Governing bloc | 0 | 56 | 0 | 196 | 0 |
+| Organized interests | 0 | 10 | 0 | 242 | 0 |
+| Opinion anchor | 0 | 0 | 252 | 0 | 0 |
 
-The registry contains 281 chambers. Of these, 182 have complete reconciled allocations totaling 31,736 seats. There are 948 fictional parties backed one-to-one by sourced seat forces. Country party counts range from zero to 43 and use 21 distinct values: 0–15 except 16, then 17, 18, 21, 23 and 43. Opinion anchors remain `modelled_fallback` for all 252 Countries because no polling dataset is admitted.
+Executive kinds: presidential 46, parliamentary 47, semi-presidential 41, collective 0, parliamentary monarchy 30, other 29, unavailable 59. The registry contains 281 chambers; 182 allocations reconcile to 31,736 seats. It contains 948 parties and 20 organizations.
 
 ## Validation results
 
-`npm run verify` passed the data audits, production build and all 24 test files / 179 tests. The final test stage completed in 125.49 s. The build transformed 112 modules; the main bundle was 2,897.13 kB (361.24 kB gzip), including the pinned static registry.
+`npm run verify` passed data audits, production TypeScript/Vite build and all **24 test files / 185 tests** in **117.64 s**. The production build transformed 112 modules; the main bundle was 3,515.16 kB (293.56 kB gzip).
 
-`npm run politics:audit` passed its generated-data hash/reproduction check and ten focused/full-world tests. It verified seat conservation, variable party counts, sovereign-transfer remapping, occupation neutrality, unavailable/not-applicable semantics, compact save round-trip, early-schema-11 normalization and public-service/infrastructure separation.
+`npm run politics:audit` passed the hashes, reproducible generation, source-ID-independent profile check, coverage assertions and **2 test files / 16 tests** in **106.23 s**. Its embedded world run completed in 83,484.13 ms, at 13 ticks/s.
 
-The corrected three-year benchmark retained 156 weekly runs and all 40,572 cohorts:
+`npm run politics:benchmark` passed **3 tests** in **117.00 s**. The three-year run retained 156 weekly executions and 40,572 cohorts:
 
-| Measure | Before correction | Corrected |
-| --- | ---: | ---: |
-| Runtime / 1,095 days | 83,583.90 ms | 91,230.98 ms |
-| Ticks per second | 13 | 12 |
-| Full/cold snapshot | 940.32 ms | replaced by changed-path measures |
-| Weekly changed snapshot | not measured | 120.73 ms |
-| Coincident monthly + weekly snapshot | not measured | 400.00 ms |
-| Full save reload | 1,377.10 ms | 584.29 ms |
-| Save size | 77,552,988 bytes | 30,157,846 bytes |
+| Measure | Result |
+| --- | ---: |
+| Runtime / 1,095 days | 92,465.03 ms |
+| Ticks per second | 12 |
+| Weekly changed snapshot | 115.49 ms |
+| Coincident monthly + weekly snapshot | 630.01 ms |
+| Full save reload | 528.96 ms |
+| Save size | 30,160,167 bytes |
 
-The broader `npm run benchmark:world` suite passed:
+`npm run benchmark:world` passed **4 tests** in **52.67 s**:
 
-- frozen world integrity: 3,650 ticks in 68.31 ms, 53,432 ticks/s, checksum 25,750,886;
-- socioeconomic runtime: 3,650 ticks in 6,539.69 ms, 558 ticks/s, snapshot 33.32 ms, save 15,820,352 bytes;
-- cached daily UI path: 353 reused days and 12 changed days, 0.0169 ms reused-day mean, 142.46 ms monthly-day mean, 1,715.43 ms total;
-- fiscal/shared runtime: 3,650 ticks in 25,426.80 ms, 144 ticks/s, save 23,803,819 bytes, zero Countries with arrears.
+- frozen world integrity: 3,650 ticks in 60.51 ms, 60,322 ticks/s, checksum 25,750,886;
+- socioeconomic runtime: 3,650 ticks in 5,937.51 ms, 615 ticks/s, snapshot 28.18 ms, save 15,820,352 bytes;
+- cached daily UI path: 353 reused days and 12 changed days, 0.016 ms reused-day mean, 134.6 ms monthly-day mean, 1,620.88 ms total;
+- fiscal runtime: 3,650 ticks in 25,037.9 ms, 146 ticks/s, save 23,803,819 bytes, zero Countries with arrears.
 
-## Migration and limits
+## Migration and distribution
 
-Schema 10→11 still initializes politics at the saved logical date with no invented history. An early schema-11 save without registry subversion is deterministically normalized against v2, so obsolete generic party references cannot survive; its non-political branches are preserved. Current v2 schema-11 saves round-trip exactly.
+Schema 10→11 still initializes politics at the saved logical date without invented history. Early schema-11 saves lacking a registry subversion are normalized. Corrected v2 saves retain their dynamic opinion while upgrading the registry reference to v3 because party identities and ordering did not change.
 
-IPU Parline establishes parliament/election facts, not a complete executive-system classification, polling, or organized-interest membership dataset. These fields remain unavailable rather than inferred. Full seat allocations are deliberately omitted for partial-renewal or non-reconciling election records. Fictional ideology, issue positions and initial opinion are modelled gameplay inputs, not claims about real parties or voters. The richer variable party landscape makes the three-year opinion calculation modestly slower, while save, reload and changed-snapshot costs fall sharply and remain below a one-second UI pause.
+[`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md) separates ISC-licensed ProjectAtlas code, CC BY-NC-SA 4.0 IPU source/derived data, and ITUC/IOE material whose open-data licence was not established. Commercial distribution clearance remains required before release.

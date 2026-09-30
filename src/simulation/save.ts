@@ -51,11 +51,13 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     const base = { ...current, schemaVersion: 11 as const, politics: version === 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
     const upgraded = cloneSimulationState(base);
     const fiscalRestored = version >= 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
-    const hasNormalizedPolitics = version === 11 && (current.politics as { registryVersion?: unknown }).registryVersion === 'political-registry-0.13-v2';
+    const savedRegistryVersion = version === 11 ? (current.politics as { registryVersion?: unknown }).registryVersion : undefined;
+    const hasNormalizedPolitics = savedRegistryVersion === 'political-registry-0.13-v3';
     // Early 0.13 schema-11 saves embedded mutable static registries. Rebuild their
-    // deterministic opinion branch against the pinned v2 registry instead of
+    // deterministic opinion branch against the current pinned registry instead of
     // carrying stale party references into the runtime.
-    const restored = hasNormalizedPolitics ? fiscalRestored : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
+    const v2Compatible = savedRegistryVersion === 'political-registry-0.13-v2';
+    const restored = hasNormalizedPolitics ? fiscalRestored : v2Compatible ? { ...fiscalRestored, politics: { ...fiscalRestored.politics, registryVersion: 'political-registry-0.13-v3' as const } } : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

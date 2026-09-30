@@ -1,24 +1,25 @@
 import type { SimulationInvariant } from '../invariants';
-import { IDEOLOGY_DIMENSIONS, POLITICAL_ISSUES, POLITICS_MODEL, type PoliticalProvenance } from './model';
+import { IDEOLOGY_DIMENSIONS, POLITICAL_ISSUES, POLITICS_MODEL, type PoliticalProvenance, type PoliticalRegistry } from './model';
 import { politicalRegistry } from './registry';
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 const bounded = (value: number) => Number.isSafeInteger(value) && value >= 0 && value <= 10_000;
-const provenanceErrors = (item: PoliticalProvenance, label: string) => !['sourced', 'partial', 'modelled', 'modelled_fallback', 'unavailable', 'not_applicable'].includes(item.status) || !item.source || !item.limitation || !validDate(item.referenceDate) || !validDate(item.retrievedAt) ? [`Malformed political provenance for ${label}.`] : item.referenceDate > politicalRegistry.referenceDate ? [`Future-dated political evidence for ${label}.`] : [];
+const provenanceErrors = (item: PoliticalProvenance, label: string, registry: PoliticalRegistry) => !['sourced', 'partial', 'modelled', 'modelled_fallback', 'unavailable', 'not_applicable'].includes(item.status) || !item.source || !item.limitation || !validDate(item.referenceDate) || !validDate(item.retrievedAt) || (item.effectiveDate !== undefined && !validDate(item.effectiveDate)) ? [`Malformed political provenance for ${label}.`] : item.referenceDate > registry.referenceDate || (item.effectiveDate !== undefined && item.effectiveDate > registry.referenceDate) ? [`Future-dated political evidence for ${label}.`] : [];
 
-export const validatePoliticalRegistry = () => {
+export const validatePoliticalRegistry = (registry: PoliticalRegistry = politicalRegistry) => {
   const errors: string[] = [], ids = new Set<string>();
-  if (politicalRegistry.version !== POLITICS_MODEL.registryVersion || politicalRegistry.referenceDate !== '2026-01-01') errors.push('Malformed political registry header.');
-  for (const [countryId, country] of Object.entries(politicalRegistry.countries)) {
-    const institution = politicalRegistry.institutions[country.institutionId]; if (!institution || institution.countryId !== countryId) { errors.push(`Invalid institution reference for ${countryId}.`); continue; }
-    errors.push(...provenanceErrors(institution.provenance, institution.id));
+  if (registry.version !== POLITICS_MODEL.registryVersion || registry.referenceDate !== '2026-01-01') errors.push('Malformed political registry header.');
+  for (const [countryId, country] of Object.entries(registry.countries)) {
+    const institution = registry.institutions[country.institutionId]; if (!institution || institution.countryId !== countryId) { errors.push(`Invalid institution reference for ${countryId}.`); continue; }
+    errors.push(...provenanceErrors(institution.provenance, institution.id, registry), ...provenanceErrors(institution.executiveSystemProvenance, `${institution.id}:executive`, registry));
     for (const chamber of institution.chambers) {
       if (ids.has(chamber.id) || chamber.countryId !== countryId) errors.push(`Invalid chamber identity ${chamber.id}.`); ids.add(chamber.id);
-      errors.push(...provenanceErrors(chamber.provenance, chamber.id), ...provenanceErrors(chamber.electoralRule.provenance, `${chamber.id}:rule`));
+      errors.push(...provenanceErrors(chamber.provenance, chamber.id, registry), ...provenanceErrors(chamber.electoralRule.provenance, `${chamber.id}:rule`, registry));
       if (chamber.seatAllocationStatus === 'sourced') { const allocated = Object.values(chamber.seatsByParty).reduce((a, b) => a + b, 0) + (chamber.independentOtherSeats ?? 0); if (chamber.totalSeats === undefined || allocated !== chamber.totalSeats) errors.push(`Seat allocation does not reconcile for ${chamber.id}.`); }
       else if (Object.keys(chamber.seatsByParty).length || chamber.independentOtherSeats !== undefined) errors.push(`Unavailable allocation contains seats for ${chamber.id}.`);
       for (const partyId of Object.keys(chamber.seatsByParty)) if (!country.partyIds.includes(partyId)) errors.push(`Unknown party ${partyId} in ${chamber.id}.`);
     }
-    for (const partyId of country.partyIds) { const party = politicalRegistry.parties[partyId]; if (!party || party.countryId !== countryId || !party.fictional || ids.has(partyId)) { errors.push(`Invalid fictional party ${partyId}.`); continue; } ids.add(partyId); errors.push(...provenanceErrors(party.provenance, partyId)); if (IDEOLOGY_DIMENSIONS.some(key => !bounded(party.ideology[key])) || POLITICAL_ISSUES.some(issue => !bounded(party.issuePositions[issue]?.preferenceBps))) errors.push(`Invalid party profile ${partyId}.`); }
+    for (const partyId of country.partyIds) { const party = registry.parties[partyId]; if (!party || party.countryId !== countryId || !party.fictional || ids.has(partyId)) { errors.push(`Invalid fictional party ${partyId}.`); continue; } ids.add(partyId); errors.push(...provenanceErrors(party.provenance, partyId, registry)); if (IDEOLOGY_DIMENSIONS.some(key => !bounded(party.ideology[key])) || POLITICAL_ISSUES.some(issue => !bounded(party.issuePositions[issue]?.preferenceBps) || !bounded(party.issuePositions[issue]?.intensityBps) || !bounded(party.issuePositions[issue]?.confidenceBps)) || !bounded(party.ideologicalBasis.confidenceBps) || party.currentSeats !== null && (!Number.isSafeInteger(party.currentSeats) || party.currentSeats < 0)) errors.push(`Invalid party profile ${partyId}.`); }
+    for (const organizationId of country.organizationIds) { const organization = registry.organizations[organizationId]; if (!organization || organization.countryId !== countryId || !organization.fictional || ids.has(organizationId)) errors.push(`Invalid fictional organization ${organizationId}.`); else { ids.add(organizationId); errors.push(...provenanceErrors(organization.provenance, organizationId, registry)); } }
   }
   return errors;
 };

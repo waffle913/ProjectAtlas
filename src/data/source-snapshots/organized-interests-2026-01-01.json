@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "referenceDate": "2026-01-01",
+  "retrievedAt": "2026-09-30",
+  "methodology": "A deliberately partial V1 cross-section. Trade-union confederations are drawn from the ITUC December 2024 affiliate list. Employer associations are drawn from the IOE 2023-2024 membership report. Source names are retained for audit mapping only; gameplay identities are fictional. Membership counts are unavailable.",
+  "sources": {
+    "ituc": { "publisher": "International Trade Union Confederation", "title": "List of affiliated organisations, December 2024", "url": "https://www.ituc-csi.org/IMG/pdf/list_of_affiliates_december_2024.pdf", "licence": "Copyright status/open-data licence not stated in the source document" },
+    "ioe": { "publisher": "International Organisation of Employers", "title": "Annual Report 2023-2024", "url": "https://www.ioe-emp.org/news/details/ioe-annual-report-2023-2024-now-available-in-english-french-and-spanish", "licence": "Copyright status/open-data licence not stated on the publication page" }
+  },
+  "organizations": [
+    { "countryId": "country.u6myyj", "type": "union", "sourceId": "ituc:us:afl-cio", "sourceName": "American Federation of Labor and Congress of Industrial Organizations (AFL-CIO)", "sourceKey": "ituc" },
+    { "countryId": "country.1aj872z", "type": "union", "sourceId": "ituc:ca:clc", "sourceName": "Canadian Labour Congress (CLC)", "sourceKey": "ituc" },
+    { "countryId": "country.zwicjl", "type": "union", "sourceId": "ituc:gb:tuc", "sourceName": "Trades Union Congress (TUC)", "sourceKey": "ituc" },
+    { "countryId": "country.97e14s", "type": "union", "sourceId": "ituc:fr:cfdt", "sourceName": "French Democratic Confederation of Labour (CFDT)", "sourceKey": "ituc" },
+    { "countryId": "country.sxojze", "type": "union", "sourceId": "ituc:de:dgb", "sourceName": "German Trade Union Confederation (DGB)", "sourceKey": "ituc" },
+    { "countryId": "country.1gxtyz9", "type": "union", "sourceId": "ituc:au:actu", "sourceName": "Australian Council of Trade Unions (ACTU)", "sourceKey": "ituc" },
+    { "countryId": "country.1bryr1g", "type": "union", "sourceId": "ituc:nz:nzctu", "sourceName": "New Zealand Council of Trade Unions (NZCTU)", "sourceKey": "ituc" },
+    { "countryId": "country.1xyn8u3", "type": "union", "sourceId": "ituc:jp:rengo", "sourceName": "Japanese Trade Union Confederation (JTUC-RENGO)", "sourceKey": "ituc" },
+    { "countryId": "country.1mxwn59", "type": "union", "sourceId": "ituc:br:cut", "sourceName": "Unified Workers' Central (CUT)", "sourceKey": "ituc" },
+    { "countryId": "country.t3667i", "type": "union", "sourceId": "ituc:za:cosatu", "sourceName": "Congress of South African Trade Unions (COSATU)", "sourceKey": "ituc" },
+    { "countryId": "country.u6myyj", "type": "association", "sourceId": "ioe:us:uscib", "sourceName": "United States Council for International Business (USCIB)", "sourceKey": "ioe" },
+    { "countryId": "country.1aj872z", "type": "association", "sourceId": "ioe:ca:cec", "sourceName": "Canadian Employers Council (CEC)", "sourceKey": "ioe" },
+    { "countryId": "country.zwicjl", "type": "association", "sourceId": "ioe:gb:cbi", "sourceName": "Confederation of British Industry (CBI)", "sourceKey": "ioe" },
+    { "countryId": "country.97e14s", "type": "association", "sourceId": "ioe:fr:medef", "sourceName": "Movement of the Enterprises of France (MEDEF)", "sourceKey": "ioe" },
+    { "countryId": "country.sxojze", "type": "association", "sourceId": "ioe:de:bda", "sourceName": "Confederation of German Employers' Associations (BDA)", "sourceKey": "ioe" },
+    { "countryId": "country.1gxtyz9", "type": "association", "sourceId": "ioe:au:acci", "sourceName": "Australian Chamber of Commerce and Industry (ACCI)", "sourceKey": "ioe" },
+    { "countryId": "country.1bryr1g", "type": "association", "sourceId": "ioe:nz:businessnz", "sourceName": "Business New Zealand", "sourceKey": "ioe" },
+    { "countryId": "country.1xyn8u3", "type": "association", "sourceId": "ioe:jp:keidanren", "sourceName": "Japan Business Federation (Keidanren)", "sourceKey": "ioe" },
+    { "countryId": "country.1mxwn59", "type": "association", "sourceId": "ioe:br:cni", "sourceName": "National Confederation of Industry (CNI)", "sourceKey": "ioe" },
+    { "countryId": "country.t3667i", "type": "association", "sourceId": "ioe:za:busa", "sourceName": "Business Unity South Africa (BUSA)", "sourceKey": "ioe" }
+  ]
+}
