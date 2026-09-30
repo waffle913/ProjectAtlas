@@ -1,0 +1,67 @@
+import type { SimulationInvariant } from '../invariants';
+import { CRISIS_MODEL, CRISIS_TYPES, crisisRngKey, type CrisisEpisode, type CrisisSeverity } from './model';
+
+const phases = new Set(['NORMAL', 'PRESSURE', 'ACTIVE', 'RECOVERING']);
+const severities = new Set<CrisisSeverity>(['none', 'low', 'moderate', 'severe', 'critical']);
+const dateValid = (value: string | undefined) => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value);
+const quantity = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+
+function validateEpisode(episode: CrisisEpisode, stateDate: string, countryId: string, regionIds: ReadonlySet<string>) {
+  const errors: string[] = [], fail = (message: string) => errors.push(`${episode.id}: ${message}`);
+  if (episode.countryId !== countryId || !CRISIS_TYPES.includes(episode.type)) fail('Invalid Country or crisis type.');
+  if (episode.id !== `crisis:${countryId}:${episode.type}:${episode.episodeOrdinal}` || !quantity(episode.episodeOrdinal)) fail('Unstable episode ID or ordinal.');
+  if (!phases.has(episode.state) || !severities.has(episode.severity) || !severities.has(episode.maximumSeverity)) fail('Invalid phase or severity.');
+  if (!quantity(episode.currentPressure) || !quantity(episode.maximumPressure) || episode.maximumPressure < episode.currentPressure || !quantity(episode.dangerousEvaluations) || !quantity(episode.recoveryEvaluations)) fail('Invalid pressure or persistence counter.');
+  for (const date of [episode.pressureStartedOn, episode.activatedOn, episode.recoveringOn, episode.endedOn, episode.lastEvaluatedOn]) if (date && (!dateValid(date) || date > stateDate)) fail(`Invalid or future date ${date}.`);
+  if (episode.activatedOn && (!episode.pressureStartedOn || episode.activatedOn < episode.pressureStartedOn)) fail('Activation predates pressure.');
+  if (episode.recoveringOn && (!episode.activatedOn || episode.recoveringOn < episode.activatedOn)) fail('Recovery predates activation.');
+  if (episode.state === 'ACTIVE' && !episode.activatedOn) fail('ACTIVE episode lacks activation date.');
+  if (episode.state === 'RECOVERING' && (!episode.activatedOn || !episode.recoveringOn)) fail('RECOVERING episode lacks activation/recovery dates.');
+  if (episode.endedOn) fail('Current episode cannot have an end date.');
+  if (episode.regionIds?.some(id => !regionIds.has(id))) fail('Unknown Region ID.');
+  const ids = new Set<string>(); let reconciled = 0;
+  for (const tripwire of episode.currentTripwires) {
+    if (ids.has(tripwire.id)) fail(`Duplicate tripwire ${tripwire.id}.`); ids.add(tripwire.id);
+    if (tripwire.id !== `${episode.type}:${tripwire.indicator}` || tripwire.countryId !== countryId || tripwire.crisisType !== episode.type) fail(`Unstable tripwire identity ${tripwire.id}.`);
+    if (![tripwire.currentValue, tripwire.dangerThreshold, tripwire.recoveryThreshold, tripwire.exceedanceBps, tripwire.persistenceMonths, tripwire.recoveryMonths, tripwire.severityContribution, tripwire.persistenceContribution, tripwire.deteriorationContribution, tripwire.pressureContribution].every(quantity)) fail(`Invalid quantity in ${tripwire.id}.`);
+    if (tripwire.unit !== 'BASIS_POINTS' || !['above', 'below'].includes(tripwire.direction)) fail(`Invalid unit/direction in ${tripwire.id}.`);
+    if (tripwire.direction === 'above' && tripwire.dangerThreshold <= tripwire.recoveryThreshold || tripwire.direction === 'below' && tripwire.dangerThreshold >= tripwire.recoveryThreshold) fail(`Missing hysteresis in ${tripwire.id}.`);
+    if (tripwire.pressureContribution !== tripwire.severityContribution + tripwire.persistenceContribution + tripwire.deteriorationContribution) fail(`Pressure components do not reconcile in ${tripwire.id}.`);
+    reconciled += tripwire.pressureContribution;
+  }
+  if (reconciled !== episode.currentPressure) fail('Episode pressure does not reconcile with tripwires.');
+  if (episode.activatedOn && episode.activationRngKey !== crisisRngKey(countryId, episode.type, episode.activatedOn, episode.episodeOrdinal)) fail('Activation RNG key is not deterministic.');
+  if (episode.activationSnapshot && episode.activationSnapshot.date !== episode.activatedOn) fail('Activation snapshot date mismatch.');
+  return errors;
+}
+
+export const crisisInvariant: SimulationInvariant = {
+  id: 'crisis-episodes',
+  check: (state, context) => {
+    const crisis = state.crisis, errors: string[] = [];
+    if (!crisis || crisis.version !== CRISIS_MODEL.version || !crisis.countries || !quantity(crisis.evaluations)) return ['Malformed crisis state.'];
+    if (!crisis.initializedOn) return Object.keys(crisis.countries).length || crisis.lastMonthlyDate ? ['Crisis state lacks initialization date.'] : [];
+    if (!dateValid(crisis.initializedOn) || crisis.initializedOn! > state.date || crisis.lastMonthlyDate && (!dateValid(crisis.lastMonthlyDate) || crisis.lastMonthlyDate > state.date)) errors.push('Invalid crisis state dates.');
+    const globalIds = new Set<string>();
+    for (const countryId of context.countryIds) if (!crisis.countries[countryId]) errors.push(`Missing crisis state for Country ${countryId}.`);
+    for (const [countryId, country] of Object.entries(crisis.countries)) {
+      if (!context.countryIds.has(countryId)) errors.push(`Crisis state references unknown Country ${countryId}.`);
+      if (country.history.length > CRISIS_MODEL.historyLimitPerCountry) errors.push(`Crisis history limit exceeded for ${countryId}.`);
+      for (const type of CRISIS_TYPES) {
+        const episode = country.currentByType[type];
+        if (!episode) errors.push(`Missing ${type} monitor for ${countryId}.`);
+        else {
+          errors.push(...validateEpisode(episode, state.date, countryId, context.regionIds));
+          if (globalIds.has(episode.id)) errors.push(`Duplicate crisis ID ${episode.id}.`); globalIds.add(episode.id);
+        }
+      }
+      for (const old of country.history) {
+        if (globalIds.has(old.id)) errors.push(`Duplicate crisis ID ${old.id}.`); globalIds.add(old.id);
+        if (old.countryId !== countryId || old.id !== `crisis:${countryId}:${old.type}:${old.episodeOrdinal}` || !dateValid(old.endedOn) || old.endedOn > state.date || !dateValid(old.pressureStartedOn) || old.endedOn < old.pressureStartedOn) errors.push(`Malformed crisis history ${old.id}.`);
+        if (old.activatedOn && old.activatedOn < old.pressureStartedOn || old.recoveringOn && (!old.activatedOn || old.recoveringOn < old.activatedOn)) errors.push(`Incoherent crisis history chronology ${old.id}.`);
+        if (!quantity(old.maximumPressure) || !severities.has(old.maximumSeverity)) errors.push(`Malformed crisis history metrics ${old.id}.`);
+      }
+    }
+    return errors;
+  },
+};

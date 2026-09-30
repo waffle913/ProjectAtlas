@@ -25,7 +25,7 @@ A task declares a stable ID, cadence (`daily`, `weekly`, `monthly`, `quarterly`,
 
 `requestImmediate()` persists a task ID, stable event key, request tick and sequence. The request executes at the next daily boundary in the same global ordering as scheduled work. An immediate request is never executed directly from an event handler or React render.
 
-Future 0.10 and 0.12 systems should register their cadence with the shared scheduler. They should request a keyed immediate update after a major event instead of inventing a timer.
+Future systems register their cadence with the shared scheduler. They should request a keyed immediate update after a major event instead of inventing a timer.
 
 ## Deterministic random values
 
@@ -65,7 +65,7 @@ Run `npm run benchmark:world` for the reproducible `projectatlas-world-v1` basel
 
 ## Deliberately deferred
 
-Milestone 0.8 does not implement economic dynamics, crises, institutions, government AI, ministers, fog of information, worker execution or different economic/political algorithms per fidelity level. Those systems must use this state, scheduler, RNG, dirty, fidelity and invariant contract rather than introduce parallel infrastructure.
+Milestone 0.8 did not implement domain systems. Later systems use this state, scheduler, RNG, dirty, fidelity and invariant contract rather than introduce parallel infrastructure.
 
 ## Milestone 0.10 integration
 
@@ -86,3 +86,5 @@ Exact measurements and checks for this correction: [0.10 corrective validation](
 ## Fiscal extension (0.11)
 
 Schema 9 adds `fiscal`, with national accounts, household fiscal ledgers, dated policy reforms and service stocks. Fiscal sub-model v2 separates known statutory tax revenue from a fixed aggregate/residual financing baseline and preserves provenance for that baseline and opening debt. Initial fiscal-v1 schema-9 saves upgrade deterministically without another global schema increment. The default scheduler runs `fiscal.reforms` daily (priority 50) and `fiscal.monthly` after the economy (priority 150). The existing administration task reports execution without choosing policies. Fiscal state is included in core invariant and fidelity-conservation checks and structural UI deltas. The snapshot cache reuses it on ordinary days. See [fiscal-0.11.md](fiscal-0.11.md) for exact accounting, source coverage and timing semantics. Historical schema 8 saves preserve their full economic branch on upgrade. Same-date debug reforms update policy while paused; they do not execute monthly flows or bypass scheduler accounting.
+
+Schema 10 adds the `crisis-0.12-v1` reality branch. `crisis.monthly` runs at priority 300 after all current causal monthly tasks. It observes national fiscal accounts and one pass over Region economic aggregates, produces explainable persistent tripwires and uses keyed RNG only for eligible tipping. Schema-9 migration starts monitoring on the saved date without reconstructed history. Crisis state participates in core invariants, fidelity conservation, copy-on-write snapshots and structural deltas. See [crisis-0.12.md](crisis-0.12.md).

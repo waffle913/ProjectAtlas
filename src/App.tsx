@@ -1,6 +1,7 @@
 import { FiscalDebug } from './components/FiscalDebug';
 import { initializeFiscal } from './simulation/fiscal/runtime';
 import { emptyFiscal } from './simulation/fiscal/model';
+import { emptyCrisis } from './simulation/crisis/model';
 import { emptySocioeconomy, inspectSocioeconomy, NO_SHOCK } from './simulation/socioeconomy/model';
 import { initializeSocioeconomy } from './simulation/socioeconomy/initialization';
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -24,7 +25,7 @@ import { assertSimulationInvariants } from "./simulation/invariants";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 9, fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
+  schemaVersion: 10, crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,

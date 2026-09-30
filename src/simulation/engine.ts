@@ -1,4 +1,5 @@
 import { registerFiscalTasks } from './fiscal/runtime';
+import { registerCrisisTasks } from './crisis/runtime';
 import { registerSocioeconomicTasks } from './socioeconomy/runtime';
 import type { SimulationState } from '../types';
 import { applyPendingFidelityTransitions } from './fidelity';
@@ -8,7 +9,7 @@ import { validateFidelityConservation } from './invariants';
 export const CORE_FIDELITY_TASK_ID = 'engine.apply-fidelity-transitions';
 
 export function createCoreScheduler() {
-  return registerFiscalTasks(registerSocioeconomicTasks(new SimulationScheduler().register({
+  return registerCrisisTasks(registerFiscalTasks(registerSocioeconomicTasks(new SimulationScheduler().register({
     id: CORE_FIDELITY_TASK_ID,
     cadence: 'daily',
     priority: -1_000,
@@ -19,7 +20,7 @@ export function createCoreScheduler() {
       if (violations.length) throw new Error(violations.map(item => item.message).join('\n'));
       return next;
     },
-  })));
+  }))));
 }
 
 export const advanceSimulationDays = (state: SimulationState, days: number, scheduler = createCoreScheduler()) => {

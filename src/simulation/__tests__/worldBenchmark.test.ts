@@ -1,4 +1,5 @@
 import { emptyFiscal } from '../fiscal/model';
+import { emptyCrisis } from '../crisis/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 /// <reference types="node" />
 import { performance } from 'node:perf_hooks';
@@ -16,7 +17,7 @@ const countryIds = entityRegistryJson.countries.map(country => country.id);
 const demographicByRegion = new Map(demographicsJson.records.map(record => [record.regionId, record]));
 const economicByRegion = new Map(economicsJson.records.map(record => [record.regionId, record]));
 const worldState = (): SimulationState => ({
-  schemaVersion: 9, fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
+  schemaVersion: 10, crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
   regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
   populationByRegion: Object.fromEntries(regions.map(region => { const record = demographicByRegion.get(region.id); return [region.id, record?.status === 'available' ? record.baselinePopulation : undefined]; })),
   economicOutputByRegion: Object.fromEntries(regions.map(region => { const record = economicByRegion.get(region.id); return [region.id, record?.status === 'available' ? record.baselineAnnualOutputUsd : undefined]; })),

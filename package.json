@@ -30,7 +30,9 @@
     "economy:audit": "node scripts/socioeconomic-audit.mjs",
     "economy:audit:generate": "node scripts/socioeconomic-audit.mjs --write",
     "fiscal:audit": "node scripts/fiscal-audit.mjs",
-    "fiscal:audit:generate": "node scripts/fiscal-audit.mjs --write"
+    "fiscal:audit:generate": "node scripts/fiscal-audit.mjs --write",
+    "crisis:audit": "vitest run src/simulation/__tests__/crisis.test.ts --reporter=verbose",
+    "crisis:benchmark": "vitest run src/simulation/__tests__/crisisWorld.test.ts --reporter=verbose"
   },
   "repository": {
     "type": "git",

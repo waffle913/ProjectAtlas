@@ -19,6 +19,7 @@ export function createEngineState(countryIds: Iterable<string> = [], seed = DEFA
 export function cloneSimulationState(state: SimulationState): SimulationState {
   return {
     ...state,
+    crisis: structuredClone(state.crisis),
     socioeconomy: cloneSocioeconomy(state.socioeconomy),
     fiscal: structuredClone(state.fiscal),
     territoryOwnership: { ...state.territoryOwnership },
