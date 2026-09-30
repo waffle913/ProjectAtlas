@@ -118,6 +118,7 @@ export const CRISIS_MODEL = Object.freeze({
   hazard: { baseBps: 1_000, pressureDivisor: 4, persistenceBps: 400, tripwireBps: 250, deteriorationDivisor: 10, maximumBps: 9_000 },
   tripwirePersistenceBpsPerMonth: 500,
   tripwirePersistenceMaximumBps: 3_000,
+  degenerateStressMaximumBps: 30_000,
   thresholds: {
     fiscal: { unpaidCommitmentsBps: [1_500, 400], interestBurdenBps: [1_800, 1_000], debtToAnnualOutputBps: [9_000, 7_000], deficitToOutputBps: [800, 200] },
     publicServices: { coverageBps: [8_000, 9_000], underfundingBps: [1_500, 500], backlogBps: [4_000, 1_000] },

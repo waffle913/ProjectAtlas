@@ -46,7 +46,8 @@ const episode = (state: SimulationState, type: CrisisType, id = 'country.a') => 
 function makeDangerous(state: SimulationState, type: CrisisType, countryId = 'country.a') {
   const next = structuredClone(state), country = next.fiscal.countries[countryId], account = country.account!;
   if (type === 'fiscal_stress') {
-    account.stress.unpaidCommitments = Math.max(1, account.totalRevenue * 2); account.stress.interestBurdenBps = 3_000; account.stress.debtToAnnualOutputBps = 15_000; account.stress.deficitToOutputBps = 2_000;
+    const localRegion = next.socioeconomy.regions[`region.${countryId.slice('country.'.length)}`], output = localRegion.economy!.output;
+    account.stress.unpaidCommitments = Math.max(1, account.totalRevenue * 2); account.interestPaid = Math.max(1, Math.floor(account.totalRevenue * 0.3)); country.debt = output * 18; account.totalSpending = account.totalRevenue + Math.floor(output * 0.2);
   } else if (type === 'public_service_degradation') {
     for (const name of ['health', 'education'] as const) { const service = country.services[name]; service.coverageBps = 5_000; service.spending = 0; service.required = Math.max(1, service.required); service.backlog = service.required * 2; }
   } else if (type === 'infrastructure_degradation') {
@@ -79,6 +80,42 @@ describe('generic deterministic crisis engine', () => {
     expect(CRISIS_TYPES.map(type => episode(state, type).state)).toEqual(CRISIS_TYPES.map(() => 'NORMAL'));
     expect(episode(state, 'fiscal_stress').currentPressure).toBe(0);
     expect(state.fiscal.countries['country.a'].policy.personal).toBeNull();
+  });
+
+  it('treats positive unpaid commitments over zero revenue as capped dangerous stress', () => {
+    let { state } = build(); const account = state.fiscal.countries['country.a'].account!;
+    account.totalRevenue = 0; account.stress.unpaidCommitments = 100;
+    state = evaluate(state, 3, 9_999);
+    const tripwire = episode(state, 'fiscal_stress').currentTripwires.find(item => item.indicator === 'unpaid_commitments_to_revenue')!;
+    expect(tripwire).toMatchObject({ currentValue: 30_000, dangerous: true });
+    expect(tripwire.provenance.detail).toContain('zero_denominator_cap');
+  });
+
+  it('treats zero commitments over zero revenue as no stress', () => {
+    let { state } = build(); const country = state.fiscal.countries['country.a'], account = country.account!;
+    account.totalRevenue = 0; account.totalSpending = 0; account.interestPaid = 0; account.stress.unpaidCommitments = 0; country.debt = 0;
+    state = evaluate(state, 3, 9_999);
+    const tripwire = episode(state, 'fiscal_stress').currentTripwires.find(item => item.indicator === 'unpaid_commitments_to_revenue')!;
+    expect(tripwire).toMatchObject({ currentValue: 0, dangerous: false, pressureContribution: 0 });
+    expect(episode(state, 'fiscal_stress').state).toBe('NORMAL');
+  });
+
+  it('omits zero-reference household coverage instead of inventing zero-percent coverage', () => {
+    let { state } = build(); const economy = state.socioeconomy.regions['region.a'].economy!;
+    economy.householdDemand = 0; economy.consumption = 0; economy.demand = 0; economy.shortage = 0; economy.essentialReferenceByGroup = [0, 0, 0]; economy.essentialConsumption = 0;
+    state = evaluate(state, 3, 9_999);
+    const current = episode(state, 'household_distress');
+    expect(current.currentTripwires.some(item => item.indicator === 'household_consumption_coverage')).toBe(false);
+    expect(current.currentTripwires.some(item => item.indicator === 'basic_needs_coverage')).toBe(false);
+    expect(current.state).toBe('NORMAL');
+  });
+
+  it('omits a genuinely unavailable service observation instead of reading it as zero', () => {
+    let { state } = build(); state.fiscal.countries['country.a'].services.health.coverageBps = null;
+    state = evaluate(state, 3, 9_999);
+    const current = episode(state, 'public_service_degradation');
+    expect(current.currentTripwires.some(item => item.indicator === 'health_coverage')).toBe(false);
+    expect(current.state).toBe('NORMAL');
   });
 
   it('moves brief danger through PRESSURE back to NORMAL without ACTIVE', () => {
@@ -181,7 +218,7 @@ describe('generic deterministic crisis engine', () => {
   });
 
   it('preserves deterministic continuation across save/reload and fidelity transitions', () => {
-    let { state, regions } = build(); state = makeDangerous(state, 'fiscal_stress'); state = evaluate(state, 3);
+    let { state, regions } = build(); const account = state.fiscal.countries['country.a'].account!; account.stress.unpaidCommitments = account.totalRevenue * 2; state = evaluate(state, 3);
     const ids = new Set(['country.a']), invariantContext = { regions, countryIds: ids, regionIds: new Set(['region.a']) };
     const restored = restoreSimulationState(serializeSimulationState(state), regions, {}, {}, invariantContext);
     expect(evaluate(restored, 4)).toEqual(evaluate(state, 4));
@@ -190,7 +227,7 @@ describe('generic deterministic crisis engine', () => {
   });
 
   it('satisfies episode invariants with finite integer diagnostics', () => {
-    let { state, regions } = build(); state = makeDangerous(state, 'fiscal_stress'); for (const month of [3, 4, 5]) state = evaluate(state, month, 0);
+    let { state, regions } = build(); const account = state.fiscal.countries['country.a'].account!; account.stress.unpaidCommitments = account.totalRevenue * 2; for (const month of [3, 4, 5]) state = evaluate(state, month, 0);
     const ids = new Set(['country.a']); expect(assertSimulationInvariants(state, { regions, countryIds: ids, regionIds: new Set(['region.a']) }, 'tick')).toBe(true);
     expect(JSON.stringify(state.crisis)).not.toMatch(/NaN|Infinity/);
   });

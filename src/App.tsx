@@ -1,9 +1,7 @@
 import { FiscalDebug } from './components/FiscalDebug';
-import { initializeFiscal } from './simulation/fiscal/runtime';
 import { emptyFiscal } from './simulation/fiscal/model';
 import { emptyCrisis } from './simulation/crisis/model';
 import { emptySocioeconomy, inspectSocioeconomy, NO_SHOCK } from './simulation/socioeconomy/model';
-import { initializeSocioeconomy } from './simulation/socioeconomy/initialization';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
@@ -22,6 +20,7 @@ import { getAvailableCasusBelli, type AvailableCasusBelli } from "./simulation/d
 import { isWarGoalSatisfied } from "./simulation/war";
 import { createEngineState } from "./simulation/state";
 import { assertSimulationInvariants } from "./simulation/invariants";
+import { initializeNewGame } from "./simulation/initialization";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
@@ -119,7 +118,12 @@ export default function App() {
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
         clock.current.setCountries(data.registry.countries.map(country => country.id));
-        clock.current = new SimulationClock(initializeFiscal(initializeSocioeconomy(clock.current.snapshot(), regions.registry.regions, { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries })));
+        clock.current = new SimulationClock(initializeNewGame(
+          clock.current.snapshot(),
+          regions.registry.regions,
+          data.registry.countries.map(country => country.id),
+          { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries },
+        ));
         const registryContext = { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
         assertSimulationInvariants(clock.current.snapshot(), { ...registryContext, regions: regions.registry.regions }, 'reload');
         setSim(clock.current.snapshot());

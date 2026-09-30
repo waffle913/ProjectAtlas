@@ -18,11 +18,11 @@ Validated on 2026-09-29 from accepted 0.11 commit `98848694df891d75e1eda6f01747b
 `npm run verify` passed:
 
 - source/data audit: 252 Countries, 4,574 Regions, no blocking anomalies;
-- production TypeScript/Vite build: 104 modules transformed, main JavaScript 490.87 kB (148.19 kB gzip);
-- tests: 22 files passed, 164 tests passed;
-- duration: 46.71 s for the test stage.
+- production TypeScript/Vite build: 105 modules transformed, main JavaScript 490.50 kB (148.46 kB gzip);
+- tests: 22 files passed, 169 tests passed;
+- duration: 48.35 s for the test stage.
 
-`npm run crisis:audit` passed: 1 file, 20 tests. It covers scheduler order, snapshot branch reuse, stable baseline, brief and persistent danger, tipping eligibility, seed determinism, Country-order independence, worsening, recovery, hysteresis, all five types, fiscal provenance, no direct effects/cross-score cascades, schema migration, save continuation, fidelity and invariants.
+`npm run crisis:audit` passed: 1 file, 24 tests. It covers scheduler order, snapshot branch reuse, stable baseline, degenerate stress and unavailable coverage semantics, brief and persistent danger, tipping eligibility, seed determinism, Country-order independence, worsening, recovery, hysteresis, all five types, fiscal provenance, no direct effects/cross-score cascades, schema migration, save continuation, fidelity and invariants.
 
 `npm run crisis:benchmark` passed on 252 Countries over five years:
 
@@ -35,18 +35,18 @@ Validated on 2026-09-29 from accepted 0.11 commit `98848694df891d75e1eda6f01747b
 | Active episodes | 0 |
 | Recovering episodes | 0 |
 | Ended episodes | 0 |
-| Runtime | 8,054.86 ms |
-| Defensive full-snapshot cost | 118.14 ms |
-| Save size | 23,744,666 bytes |
+| Runtime | 7,966.03 ms |
+| Defensive full-snapshot cost | 117.29 ms |
+| Save size | 23,798,589 bytes |
 
-Every type ended with 252 `NORMAL` monitors. The no-shock baseline produced no episodes because the existing 0.10/0.11 simulation remains materially stable. An initial validation exposed 43 false service/transfer cases caused by unavailable economic bases; the engine now preserves unavailable status instead of treating it as zero performance. Thresholds were not changed to force this result.
+Every type ended with 252 `NORMAL` monitors. A separate fresh-game check confirms that all 1,260 monitors exist on 2026-01-01 with zero evaluations, pressure and history, and that the first evaluation occurs on 2026-02-01. The no-shock baseline produced no episodes because the existing 0.10/0.11 simulation remains materially stable. An initial validation exposed 43 false service/transfer cases caused by unavailable economic bases; the engine now preserves unavailable status instead of treating it as zero performance. Thresholds were not changed to force this result.
 
 `npm run benchmark:world` passed all four workloads:
 
-- frozen world integrity: 3,650 ticks in 61.12 ms, 59,721 ticks/s, checksum 25,750,886;
-- socioeconomic runtime: 3,650 ticks in 5,679.93 ms, 643 ticks/s, snapshot 32.40 ms, save 15,939,272 bytes;
-- cached daily UI path: 353 reused days and 12 changed days, 0.0145 ms reused-day mean, 119.12 ms monthly-day mean, 1,434.55 ms total;
-- full fiscal/shared runtime: 3,650 ticks in 22,448.49 ms, 163 ticks/s, save 23,749,792 bytes, 0 Countries with arrears.
+- frozen world integrity: 3,650 ticks in 53.90 ms, 67,718 ticks/s, checksum 25,750,886;
+- socioeconomic runtime: 3,650 ticks in 5,874.54 ms, 621 ticks/s, snapshot 31.03 ms, save 15,820,205 bytes;
+- cached daily UI path: 353 reused days and 12 changed days, 0.0158 ms reused-day mean, 126.43 ms monthly-day mean, 1,522.77 ms total;
+- full fiscal/shared runtime: 3,650 ticks in 22,570.27 ms, 162 ticks/s, save 23,803,672 bytes, 0 Countries with arrears.
 
 Explicit `Math.random` search under runtime `src` and `scripts`: `MATH_RANDOM_RUNTIME_OCCURRENCES=0`.
 

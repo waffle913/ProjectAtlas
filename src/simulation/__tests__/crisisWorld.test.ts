@@ -7,11 +7,28 @@ import { initializeFiscal } from '../fiscal/runtime';
 import { assertSimulationInvariants } from '../invariants';
 import { serializeSimulationState } from '../save';
 import { cloneSimulationState } from '../state';
-import { socioeconomicWorld, worldContext } from './worldScenario';
+import { initializeNewGame } from '../initialization';
+import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldInputs, worldRegions } from './worldScenario';
 
 const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
 
 describe('full-world crisis validation', () => {
+  it('initializes all fresh-game monitors without evaluating or inventing history', () => {
+    let state = initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs);
+    expect(state.date).toBe('2026-01-01'); expect(state.crisis.initializedOn).toBe('2026-01-01');
+    expect(Object.keys(state.crisis.countries)).toHaveLength(252); expect(state.crisis.lastMonthlyDate).toBeUndefined(); expect(state.crisis.evaluations).toBe(0);
+    for (const country of Object.values(state.crisis.countries)) {
+      expect(country.history).toEqual([]);
+      expect(Object.values(country.currentByType)).toHaveLength(5);
+      expect(Object.values(country.currentByType).every(item => item.state === 'NORMAL' && item.currentPressure === 0 && item.lastEvaluatedOn === undefined)).toBe(true);
+    }
+    const scheduler = createCoreScheduler();
+    for (let day = 0; day < 30; day += 1) state = scheduler.advanceOneDay(state).state;
+    expect(state.date).toBe('2026-01-31'); expect(state.crisis.evaluations).toBe(0); expect(state.crisis.lastMonthlyDate).toBeUndefined();
+    state = scheduler.advanceOneDay(state).state;
+    expect(state.date).toBe('2026-02-01'); expect(state.crisis.evaluations).toBe(252 * CRISIS_TYPES.length); expect(state.crisis.lastMonthlyDate).toBe('2026-02-01');
+  });
+
   it('evaluates all Countries for five years with bounded causal episodes', () => {
     let state = initializeFiscal(socioeconomicWorld());
     const scheduler = createCoreScheduler(); let monthlyEvaluations = 0;
