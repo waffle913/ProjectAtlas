@@ -12,7 +12,7 @@ it('audits actual fiscal initialization for every Country separately from legal 
     countries: Object.entries(state.fiscal.countries).map(([countryId, c]) => ({ countryId,
       economicCoverage: c.initialization.economicCoverage,
       legal: Object.fromEntries(Object.entries(c.policy).map(([k, rule]) => [k, rule?.status ?? 'unavailable'])),
-      simulation: { revenue: 'modelled-known-components-only', spending: c.initialization.economicCoverage === 'unavailable' ? 'unavailable-economic-base' : 'modelled', debt: 'modelled', interest: 'modelled', collectionEfficiency: 'modelled',
+      simulation: { knownTaxRevenue: 'simulated-from-available-legal-rules', otherRevenue: c.revenueCalibration.status, totalRevenue: 'mixed-explicit-components', revenueCalibrationDataset: c.revenueCalibration.dataset, debt: c.debtInitialization.status, debtInitializationDataset: c.debtInitialization.dataset, spending: c.initialization.economicCoverage === 'unavailable' ? 'unavailable-economic-base' : 'modelled', interest: 'modelled', collectionEfficiency: 'modelled',
         health: c.initialization.economicCoverage === 'unavailable' ? 'unavailable-economic-base' : 'modelled', education: c.initialization.economicCoverage === 'unavailable' ? 'unavailable-economic-base' : 'modelled', socialProtection: c.initialization.economicCoverage === 'unavailable' ? 'unavailable-economic-base' : 'modelled', infrastructure: c.initialization.economicCoverage === 'unavailable' ? 'unavailable-economic-base' : 'modelled' },
     })) };
   const path = 'src/data/fiscal-initialization-report.json';

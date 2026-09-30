@@ -29,31 +29,48 @@ export interface Service {
   referencePopulation: number; referenceMonthlyCost: number; required: number;
   spending: number; fundedCapacity: number; capacity: number; coverageBps: number | null; backlog: number;
 }
+export interface FiscalProvenance {
+  status: 'sourced' | 'modelled';
+  referenceDate: string;
+  dataset: string;
+  method: string;
+  limitation: string;
+  source?: string;
+}
+export interface RevenueCalibration extends FiscalProvenance {
+  monthlyAmount: number;
+}
+export interface DebtInitialization extends FiscalProvenance {
+  amount: number;
+}
 export interface Account {
   unit: 'USD_NOMINAL'; period: 'MONTH'; policyApplied: Policy; collectionEfficiencyBps: number;
-  date: string; taxes: Record<TaxCategory, TaxFlow>; revenue: number;
+  date: string; taxes: Record<TaxCategory, TaxFlow>;
+  knownTaxRevenue: number; otherRevenue: number; totalRevenue: number;
   appropriated: Budget; executed: Budget; interestDue: number; interestPaid: number;
   totalSpending: number; primaryBalance: number; overallBalance: number;
   openingCash: number; closingCash: number; openingDebt: number; closingDebt: number;
   financingNeed: number; borrowed: number; repaid: number;
   arrears: Budget; interestArrears: number; openingArrears: Budget; openingInterestArrears: number;
-  transferPaid: number; stress: { unpaidCommitments: number; interestBurdenBps: number | null; debtToAnnualOutputBps: number | null; deficitToOutputBps: number | null; pensionFundingGap: number; incomeSupportFundingGap: number; serviceUnderfunding: number; infrastructureBacklog: number; disposableIncomeDeclineBps: number | null };
+  transferPaid: number; stress: { financingBaselineStatus: 'sourced' | 'modelled'; unpaidCommitments: number; interestBurdenBps: number | null; debtToAnnualOutputBps: number | null; deficitToOutputBps: number | null; pensionFundingGap: number; incomeSupportFundingGap: number; serviceUnderfunding: number; infrastructureBacklog: number; disposableIncomeDeclineBps: number | null };
 }
 export interface FiscalCountry {
   policy: Policy; policyHistory: { date: string; policy: Policy }[];
   annualBudget: Budget; cash: number; debt: number; interestRateBps: number;
   debtLimit: number; monthlyBorrowingLimit: number; arrears: Budget; interestArrears: number;
   services: Record<'health' | 'education' | 'infrastructure', Service>;
+  revenueCalibration: RevenueCalibration;
+  debtInitialization: DebtInitialization;
   account?: Account;
   initialization: { status: 'modelled'; date: string; economicCoverage: 'complete' | 'partial' | 'unavailable'; output: number; method: string };
 }
 export interface FiscalReform { sequence: number; countryId: string; effectiveDate: string; policy?: Policy; annualBudget?: Budget }
 export interface FiscalState {
-  version: 'fiscal-0.11-v1'; initializedOn?: string; lastMonthlyDate?: string;
+  version: 'fiscal-0.11-v2'; initializedOn?: string; lastMonthlyDate?: string;
   countries: Record<string, FiscalCountry>; regions: Record<string, RegionFiscal>;
   reforms: FiscalReform[]; nextSequence: number;
 }
-export const emptyFiscal = (): FiscalState => ({ version: 'fiscal-0.11-v1', countries: {}, regions: {}, reforms: [], nextSequence: 0 });
+export const emptyFiscal = (): FiscalState => ({ version: 'fiscal-0.11-v2', countries: {}, regions: {}, reforms: [], nextSequence: 0 });
 export const zeroBudget = (): Budget => ({ health: 0, education: 0, pensions: 0, incomeSupport: 0, infrastructure: 0, administration: 0 });
 /** Central model assumptions, not empirical national observations. */
 export const FISCAL_MODEL = Object.freeze({

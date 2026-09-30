@@ -71,13 +71,16 @@ describe('0.11 causal monthly integration', () => {
     const amended = reform(s, us, { ...policy, personal: custom(policy.personal!, { allowance: 0, bands: [{ lower: 0, rateBps: 5000 }] }) }, '2026-02-01');
     const a = advanceSimulationDays(s, 31), b = advanceSimulationDays(amended, 31);
     expect(b.fiscal.countries[us].account!.taxes.personal.liability).toBeGreaterThan(a.fiscal.countries[us].account!.taxes.personal.liability);
-    expect(b.fiscal.countries[us].account!.revenue).toBeGreaterThan(a.fiscal.countries[us].account!.revenue);
+    expect(b.fiscal.countries[us].account!.knownTaxRevenue).toBeGreaterThan(a.fiscal.countries[us].account!.knownTaxRevenue);
+    expect(b.fiscal.countries[us].account!.otherRevenue).toBe(a.fiscal.countries[us].account!.otherRevenue);
+    expect(b.fiscal.countries[us].account!.totalRevenue).toBeGreaterThan(a.fiscal.countries[us].account!.totalRevenue);
+    expect(b.fiscal.countries[us].account!.overallBalance).toBeGreaterThan(a.fiscal.countries[us].account!.overallBalance);
     expect(b.fiscal.regions[rid].disposable.reduce((a, b) => a + b)).toBeLessThan(a.fiscal.regions[rid].disposable.reduce((a, b) => a + b));
     expect(b.socioeconomy.regions[rid].economy!.output).toBe(a.socioeconomy.regions[rid].economy!.output);
     const laterA = advanceSimulationDays(a, 28), laterB = advanceSimulationDays(b, 28);
     expect(laterB.socioeconomy.regions[rid].economy!.householdDemand).toBeLessThan(laterA.socioeconomy.regions[rid].economy!.householdDemand);
     expect(assertSimulationInvariants(laterB, context, 'tick')).toBe(true);
-    console.info('FISCAL_CAUSAL_SCENARIO', JSON.stringify({ baseline: { liability: a.fiscal.countries[us].account!.taxes.personal.liability, revenue: a.fiscal.countries[us].account!.revenue, disposable: a.fiscal.regions[rid].disposable, nextDemand: laterA.socioeconomy.regions[rid].economy!.householdDemand }, reform: { liability: b.fiscal.countries[us].account!.taxes.personal.liability, revenue: b.fiscal.countries[us].account!.revenue, disposable: b.fiscal.regions[rid].disposable, nextDemand: laterB.socioeconomy.regions[rid].economy!.householdDemand } }));
+    console.info('FISCAL_CAUSAL_SCENARIO', JSON.stringify({ baseline: { liability: a.fiscal.countries[us].account!.taxes.personal.liability, knownTaxRevenue: a.fiscal.countries[us].account!.knownTaxRevenue, otherRevenue: a.fiscal.countries[us].account!.otherRevenue, totalRevenue: a.fiscal.countries[us].account!.totalRevenue, balance: a.fiscal.countries[us].account!.overallBalance, disposable: a.fiscal.regions[rid].disposable, nextDemand: laterA.socioeconomy.regions[rid].economy!.householdDemand }, reform: { liability: b.fiscal.countries[us].account!.taxes.personal.liability, knownTaxRevenue: b.fiscal.countries[us].account!.knownTaxRevenue, otherRevenue: b.fiscal.countries[us].account!.otherRevenue, totalRevenue: b.fiscal.countries[us].account!.totalRevenue, balance: b.fiscal.countries[us].account!.overallBalance, disposable: b.fiscal.regions[rid].disposable, nextDemand: laterB.socioeconomy.regions[rid].economy!.householdDemand } }));
   });
   it('corporate taxes reduce retained surplus without a direct output penalty', () => {
     const s = initial(), p = s.fiscal.countries[us].policy;
@@ -97,7 +100,7 @@ describe('0.11 causal monthly integration', () => {
   });
   it('debt financing is bounded, obligations become arrears, and interest uses debt stock', () => {
     let s = initial();
-    s.fiscal.countries.unknown.cash = 0; s.fiscal.countries.unknown.debt = 120000; s.fiscal.countries.unknown.monthlyBorrowingLimit = 100;
+    s.fiscal.countries.unknown.cash = 0; s.fiscal.countries.unknown.debt = 120000; s.fiscal.countries.unknown.monthlyBorrowingLimit = 100; s.fiscal.countries.unknown.revenueCalibration.monthlyAmount = 0;
     const a = advanceSimulationDays(s, 31).fiscal.countries.unknown.account!;
     expect(a.interestDue).toBe(200); expect(a.borrowed).toBe(100); expect(a.interestPaid).toBe(100);
     expect(a.closingDebt).toBe(120100); expect(a.interestArrears).toBe(100); expect(a.stress.unpaidCommitments).toBeGreaterThan(100);
@@ -105,6 +108,33 @@ describe('0.11 causal monthly integration', () => {
     const b = advanceSimulationDays(s, 31);
     expect(b.fiscal.countries[us].debt).toBeGreaterThanOrEqual(0);
     expect(assertSimulationInvariants(b, context, 'tick')).toBe(true);
+  });
+  it('keeps a Country with unavailable legal rules stable under unchanged policy', () => {
+    const s = initial(), opening = s.fiscal.countries.unknown;
+    expect(Object.values(opening.policy).every(rule => rule === null)).toBe(true);
+    expect(opening.revenueCalibration).toMatchObject({ status: 'modelled', referenceDate: s.date });
+    expect(opening.debtInitialization).toMatchObject({ status: 'modelled', amount: 0 });
+    const after = advanceSimulationDays(s, 3650).fiscal.countries.unknown;
+    expect(after.account!.knownTaxRevenue).toBe(0);
+    expect(after.account!.otherRevenue).toBe(opening.revenueCalibration.monthlyAmount);
+    expect(after.account!.totalRevenue).toBe(after.account!.otherRevenue);
+    expect(after.debt).toBe(0);
+    expect(after.interestArrears).toBe(0);
+    expect(Object.values(after.arrears).every(value => value === 0)).toBe(true);
+    expect(after.account!.stress).toMatchObject({ financingBaselineStatus: 'modelled', unpaidCommitments: 0, debtToAnnualOutputBps: 0 });
+  });
+  it('keeps residual revenue frozen when a previously uncovered Country enacts a tax reform', () => {
+    const s = initial(), country = s.fiscal.countries.unknown;
+    const corporate: TaxRule = { id: 'debug-unknown-corporate', countryId: 'unknown', kind: 'corporate', status: 'modelled', scope: 'national', currency: 'USD', unit: 'annual_currency_units_and_basis_points',
+      effectiveDate: s.date, referenceDate: s.date, retrievedAt: s.date, source: 'debug:explicit-policy', document: 'Synthetic reform test', limitations: 'Modelled test rule, not observed law.', rateBps: 5000 };
+    const changed = reform(s, 'unknown', { ...country.policy, corporate });
+    const baseline = advanceSimulationDays(s, 31).fiscal.countries.unknown.account!;
+    const reformed = advanceSimulationDays(changed, 31).fiscal.countries.unknown.account!;
+    expect(baseline.otherRevenue).toBeGreaterThan(0);
+    expect(reformed.otherRevenue).toBe(baseline.otherRevenue);
+    expect(reformed.knownTaxRevenue).toBeGreaterThan(baseline.knownTaxRevenue);
+    expect(reformed.totalRevenue - baseline.totalRevenue).toBe(reformed.knownTaxRevenue - baseline.knownTaxRevenue);
+    expect(reformed.overallBalance).toBeGreaterThan(baseline.overallBalance);
   });
   it('service underfunding accumulates backlog and restoration recovers progressively', () => {
     let service = initial().fiscal.countries[us].services.health;
@@ -136,6 +166,29 @@ describe('0.11 causal monthly integration', () => {
     expect(restored.fiscal.initializedOn).toBe(s.date); expect(restored.fiscal.lastMonthlyDate).toBeUndefined();
     expect(restored.fiscal.countries[us].account).toBeUndefined(); expect(assertSimulationInvariants(restored, context, 'reload')).toBe(true);
   });
+  it('upgrades an initial schema-9 fiscal v1 save deterministically without calling modelled debt observed', () => {
+    const current = advanceSimulationDays(initial(), 31);
+    const legacy = structuredClone(current) as unknown as { fiscal: { version: string; countries: Record<string, Record<string, unknown>> } };
+    legacy.fiscal.version = 'fiscal-0.11-v1';
+    for (const country of Object.values(legacy.fiscal.countries)) {
+      delete country.revenueCalibration;
+      delete country.debtInitialization;
+      const account = country.account as Record<string, unknown> | undefined;
+      if (account) {
+        account.revenue = account.totalRevenue;
+        delete account.knownTaxRevenue; delete account.otherRevenue; delete account.totalRevenue;
+        delete (account.stress as Record<string, unknown>).financingBaselineStatus;
+      }
+    }
+    const a = migrateSimulationState(legacy, regions, {}, {}, context);
+    const b = migrateSimulationState(legacy, regions, {}, {}, context);
+    expect(a).toEqual(b);
+    expect(a.schemaVersion).toBe(9); expect(a.fiscal.version).toBe('fiscal-0.11-v2');
+    expect(a.fiscal.countries.unknown.revenueCalibration.status).toBe('modelled');
+    expect(a.fiscal.countries.unknown.debtInitialization).toMatchObject({ status: 'modelled', limitation: expect.stringMatching(/not be interpreted as observed/) });
+    expect(a.fiscal.countries.unknown.account).toBeUndefined();
+    expect(assertSimulationInvariants(a, context, 'reload')).toBe(true);
+  });
   it('save/reload continues identically with pending reforms; same seed and input reproduce results', () => {
     const s = scheduleFiscalReform(initial(), { countryId: us, effectiveDate: '2026-07-01', annualBudget: { ...initial().fiscal.countries[us].annualBudget, health: 0 } });
     const a = advanceSimulationDays(s, 120);
@@ -165,7 +218,7 @@ describe('0.11 causal monthly integration', () => {
   });
   it('invariants detect real ledger corruption, not just missing fields', () => {
     const s = advanceSimulationDays(initial(), 31), bad = cloneSimulationState(s);
-    bad.fiscal.countries[us].account!.revenue++;
+    bad.fiscal.countries[us].account!.totalRevenue++;
     bad.fiscal.regions[rid].disposable[0]++;
     bad.fiscal.countries[us].debt++;
     const errors = validateSimulationInvariants(bad, context, 'tick').violations.map(x => x.message).join(' ');

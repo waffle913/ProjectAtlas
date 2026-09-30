@@ -5,10 +5,21 @@ import assert from 'node:assert/strict';
 const read = path => JSON.parse(readFileSync(path, 'utf8'));
 const path = 'src/data/fiscal-rules.json';
 const data = read(path);
+const aggregates = read('src/data/fiscal-aggregates.json');
 const countries = read('src/data/entity-registry.json').countries;
 const categories = ['personal', 'consumption', 'payroll', 'corporate'];
 const ids = new Set(countries.map(c => c.id));
 const keys = new Set();
+assert.equal(aggregates.scenarioDate, data.scenarioDate);
+assert.equal(aggregates.unit, 'USD_NOMINAL');
+for (const record of aggregates.records) {
+  assert(ids.has(record.countryId));
+  assert(record.referenceDate <= data.scenarioDate);
+  assert(record.retrievedAt && record.dataset && record.limitations);
+  assert.equal(new URL(record.source).protocol, 'https:');
+  assert(record.annualRevenueUsd !== undefined || record.debtUsd !== undefined);
+  for (const value of [record.annualRevenueUsd, record.debtUsd]) if (value !== undefined) assert(Number.isSafeInteger(value) && value >= 0);
+}
 for (const r of data.rules) {
   assert(ids.has(r.countryId)); assert(categories.includes(r.kind));
   const key = `${r.countryId}:${r.kind}`; assert(!keys.has(key)); keys.add(key);
@@ -29,7 +40,7 @@ const report = {
   totals: Object.fromEntries(categories.map(kind => [kind, { partial: data.rules.filter(r => r.kind === kind).length, unavailable: countries.length - data.rules.filter(r => r.kind === kind).length }])),
   countries: countries.map(c => ({ countryId: c.id, name: c.commonName,
     legal: Object.fromEntries(categories.map(kind => [kind, data.rules.find(r => r.countryId === c.id && r.kind === kind)?.status ?? 'unavailable'])),
-    observedAggregates: { revenue: 'unavailable', spending: 'unavailable', debt: 'unavailable', interest: 'unavailable' },
+    observedAggregates: { revenue: aggregates.records.some(r => r.countryId === c.id && r.annualRevenueUsd !== undefined) ? 'sourced' : 'unavailable', spending: 'unavailable', debt: aggregates.records.some(r => r.countryId === c.id && r.debtUsd !== undefined) ? 'sourced' : 'unavailable', interest: 'unavailable' },
     observedServices: { health: 'unavailable', education: 'unavailable', socialProtection: 'unavailable', infrastructure: 'unavailable' },
     simulationInitialization: 'see-fiscal-initialization-report.json',
   })),

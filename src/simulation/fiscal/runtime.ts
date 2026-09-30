@@ -1,8 +1,9 @@
 import type { SimulationState } from '../../types';
 import legalData from '../../data/fiscal-rules.json';
+import aggregateData from '../../data/fiscal-aggregates.json';
 import { allocate, INCOMES, integer, MODEL, ratio, type SocioRegion } from '../socioeconomy/model';
 import { collected, consumptionCollected, consumptionLiability, netGoodsBudget, payrollMonthly, progressiveMonthly, sum, validatePolicy, dateValid } from './math';
-import { CATEGORIES, FISCAL_MODEL as M, TAXES, emptyFiscal, zeroBudget, type Budget, type FiscalCountry, type FiscalReform, type Policy, type RegionFiscal, type Service, type TaxFlow, type TaxRule } from './model';
+import { CATEGORIES, FISCAL_MODEL as M, TAXES, emptyFiscal, zeroBudget, type Budget, type FiscalCountry, type FiscalReform, type FiscalState, type Policy, type RegionFiscal, type Service, type TaxFlow, type TaxRule } from './model';
 import type { SimulationScheduler } from '../scheduler';
 const kinds = ['personal', 'consumption', 'payroll', 'corporate'] as const;
 const taxKind = (category: typeof TAXES[number]) => category === 'employee' || category === 'employer' ? 'payroll' : category;
@@ -10,7 +11,34 @@ const flows = (policy: Policy): Record<typeof TAXES[number], TaxFlow> => Object.
 const groupPersons = (r: SocioRegion) => INCOMES.map(i => sum(r.cohorts.filter(c => c.income === i).map(c => c.persons)));
 const monthlyBudget = (annual: Budget, date: string): Budget => Object.fromEntries(CATEGORIES.map(k => [k, Math.floor(annual[k] / 12) + (Number(date.slice(5, 7)) <= annual[k] % 12 ? 1 : 0)])) as Budget;
 const budgetSum = (b: Budget) => sum(CATEGORIES.map(k => b[k]));
+interface AggregateObservation {
+  countryId: string; referenceDate: string; retrievedAt: string; source: string; dataset: string;
+  annualRevenueUsd?: number; debtUsd?: number; limitations: string;
+}
 export function validateBudget(b: Budget) { for (const k of CATEGORIES) integer(b[k]); }
+
+/** Deterministic in-schema upgrade for saves written by the initial 0.11 release. */
+export function upgradeFiscalStateV1(fiscal: unknown, date: string): FiscalState {
+  const prior = fiscal as { version?: string; countries?: Record<string, FiscalCountry & { account?: FiscalCountry['account'] & { revenue?: number } }> } & Omit<FiscalState, 'version' | 'countries'>;
+  if (prior.version === 'fiscal-0.11-v2') return fiscal as FiscalState;
+  if (prior.version !== 'fiscal-0.11-v1' || !prior.countries) throw new Error('Malformed fiscal model.');
+  const countries = Object.fromEntries(Object.entries(prior.countries).map(([id, c]) => {
+    const oldAccount = c.account;
+    const knownTaxRevenue = oldAccount?.revenue ?? (oldAccount ? sum(TAXES.map(k => oldAccount.taxes[k].collected)) : 0);
+    const referenceAppropriation = oldAccount ? budgetSum(oldAccount.appropriated) : budgetSum(monthlyBudget(c.annualBudget, date));
+    const otherRevenue = Math.max(0, referenceAppropriation - knownTaxRevenue);
+    const revenueCalibration = { status: 'modelled' as const, monthlyAmount: otherRevenue, referenceDate: date, dataset: 'fiscal-0.11-v1-save-upgrade',
+      method: 'One-time deterministic residual from saved monthly appropriations and saved known-tax revenue.',
+      limitation: 'Legacy 0.11 save contained no aggregate-revenue baseline; this modelled value is fixed after migration and is not an observation.' };
+    const debtInitialization = { status: 'modelled' as const, amount: oldAccount?.openingDebt ?? c.debt, referenceDate: date, dataset: 'fiscal-0.11-v1-save-upgrade',
+      method: 'Opening debt carried from the legacy fiscal save at upgrade.',
+      limitation: 'Legacy 0.11 debt had no source provenance; it must not be interpreted as observed sovereign debt.' };
+    // The v1 account was booked without residual revenue. Keep its stocks but do not
+    // reinterpret that flawed last-period ledger as if the new revenue had existed.
+    return [id, { ...c, revenueCalibration, debtInitialization, account: undefined }];
+  }));
+  return { ...prior, version: 'fiscal-0.11-v2', countries } as FiscalState;
+}
 function taxRegion(r: SocioRegion, owner: string, policy: Policy, previous?: RegionFiscal): RegionFiscal {
   const e = r.economy!;
   const persons = groupPersons(r);
@@ -91,12 +119,31 @@ export function initializeFiscal(state: SimulationState): SimulationState {
     const annualBudget = Object.fromEntries(CATEGORIES.map(k => [k, ratio(output, M.budgetOutputBps[k] * 12, 10000)])) as Budget;
     const monthly = monthlyBudget(annualBudget, state.date);
     const services = Object.fromEntries((['health', 'education', 'infrastructure'] as const).map(k => [k, { status: population && monthly[k] ? 'modelled' : 'unavailable', referencePopulation: population, referenceMonthlyCost: monthly[k], required: monthly[k], spending: 0, fundedCapacity: population, capacity: population, coverageBps: population && monthly[k] ? 10000 : null, backlog: 0 }])) as FiscalCountry['services'];
+    const initialRegions = Object.fromEntries(ids.map(rid => [rid, taxRegion(state.socioeconomy.regions[rid], id, policy)]));
+    const initialKnownTaxRevenue = sum(Object.values(initialRegions).flatMap(region => TAXES.map(k => region.taxes[k].collected)));
+    const aggregate = (aggregateData.records as AggregateObservation[]).find(record => record.countryId === id && record.referenceDate <= state.date);
+    const observedMonthlyRevenue = aggregate?.annualRevenueUsd === undefined ? undefined : ratio(aggregate.annualRevenueUsd, 1, 12);
+    const openingDebt = aggregate?.debtUsd ?? 0;
+    const initialInterest = ratio(openingDebt, M.interestRateBps, 120000);
+    const baselineResidualRevenue = Math.max(0, (observedMonthlyRevenue ?? budgetSum(monthly) + initialInterest) - initialKnownTaxRevenue);
     fiscal.countries[id] = { policy, policyHistory: [{ date: state.date, policy }], annualBudget, cash: budgetSum(monthly) * M.initialCashMonths,
-      debt: 0, interestRateBps: M.interestRateBps, debtLimit: ratio(output, M.debtLimitAnnualOutputBps * 12, 10000), monthlyBorrowingLimit: ratio(output, M.borrowingMonthlyOutputBps, 10000),
+      debt: openingDebt, interestRateBps: M.interestRateBps, debtLimit: Math.max(openingDebt, ratio(output, M.debtLimitAnnualOutputBps * 12, 10000)), monthlyBorrowingLimit: ratio(output, M.borrowingMonthlyOutputBps, 10000),
       arrears: zeroBudget(), interestArrears: 0, services,
+      revenueCalibration: aggregate?.annualRevenueUsd !== undefined
+        ? { status: 'sourced', monthlyAmount: baselineResidualRevenue, referenceDate: aggregate.referenceDate, dataset: aggregate.dataset, source: aggregate.source,
+          method: 'Fixed residual equals sourced aggregate monthly revenue minus simulated known-tax revenue at initialization, floored at zero.', limitation: aggregate.limitations }
+        : { status: 'modelled', monthlyAmount: baselineResidualRevenue, referenceDate: state.date, dataset: 'fiscal-0.11-baseline-financing-v1',
+          method: 'Fixed residual equals initial monthly appropriations minus simulated known-tax revenue, floored at zero.',
+          limitation: 'Not an observed tax rate or revenue total; prevents legal-data gaps alone from creating structural deficits. Never recalibrated after reforms.' },
+      debtInitialization: aggregate?.debtUsd !== undefined
+        ? { status: 'sourced', amount: openingDebt, referenceDate: aggregate.referenceDate, dataset: aggregate.dataset, source: aggregate.source,
+          method: 'Opening national debt stock from the accepted aggregate observation.', limitation: aggregate.limitations }
+        : { status: 'modelled', amount: 0, referenceDate: state.date, dataset: 'fiscal-0.11-debt-initialization-v1',
+          method: 'Explicit zero opening stock required by the sandbox financing model.',
+          limitation: 'Modelled initialization, not an observation of real sovereign debt.' },
       initialization: { status: 'modelled', date: state.date, economicCoverage: !ids.length ? 'unavailable' : ids.length === totalRegions.get(id) ? 'complete' : 'partial', output,
         method: 'fiscal-0.11-v1; current saved economy; no reconstructed history; 2026 law held fixed until explicit reform (not a prediction of subsequent real law)' } };
-    for (const rid of ids) fiscal.regions[rid] = taxRegion(state.socioeconomy.regions[rid], id, policy);
+    Object.assign(fiscal.regions, initialRegions);
     distribute(state, ids, fiscal.regions, monthly);
     // Calibrate private closure once. Do not rewrite any schema-8 economic quantity or book a fictitious fiscal month.
     for (const rid of ids) {
@@ -124,14 +171,16 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
       const r = taxRegion(state.socioeconomy.regions[rid], id, c.policy, f.regions[rid]); regions[rid] = r;
       for (const k of TAXES) { taxes[k].base += r.taxes[k].base; taxes[k].liability += r.taxes[k].liability; taxes[k].collected += r.taxes[k].collected; }
     }
-    const revenue = sum(TAXES.map(k => taxes[k].collected));
+    const knownTaxRevenue = sum(TAXES.map(k => taxes[k].collected));
+    const otherRevenue = c.revenueCalibration.monthlyAmount;
+    const totalRevenue = integer(knownTaxRevenue + otherRevenue);
     const appropriated = monthlyBudget(c.annualBudget, state.date);
     const obligations = CATEGORIES.map(k => appropriated[k] + c.arrears[k]);
     const interestDue = ratio(c.debt, c.interestRateBps, 120000);
     const interestObligation = interestDue + c.interestArrears;
-    const financingNeed = Math.max(0, sum(obligations) + interestObligation - revenue - c.cash);
+    const financingNeed = Math.max(0, sum(obligations) + interestObligation - totalRevenue - c.cash);
     const borrowed = Math.min(financingNeed, c.monthlyBorrowingLimit, Math.max(0, c.debtLimit - c.debt));
-    const resources = integer(c.cash + revenue + borrowed);
+    const resources = integer(c.cash + totalRevenue + borrowed);
     const interestPaid = Math.min(resources, interestObligation);
     const allocations = allocate(ids.length ? Math.min(resources - interestPaid, sum(obligations)) : 0, obligations);
     const executed = Object.fromEntries(CATEGORIES.map((k, i) => [k, allocations[i]])) as Budget;
@@ -146,13 +195,14 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     const oldDisposable = sum(ids.map(r => sum(f.regions[r]?.disposable ?? [])));
     const disposable = sum(ids.map(r => sum(regions[r].disposable)));
     countries[id] = { ...c, cash, debt, arrears, interestArrears: interestObligation - interestPaid, services,
-      account: { unit: 'USD_NOMINAL', period: 'MONTH', policyApplied: c.policy, collectionEfficiencyBps: M.collectionBps, date: state.date, taxes, revenue, appropriated, executed, interestDue, interestPaid, totalSpending,
-        primaryBalance: revenue - sum(allocations), overallBalance: revenue - totalSpending,
+      account: { unit: 'USD_NOMINAL', period: 'MONTH', policyApplied: c.policy, collectionEfficiencyBps: M.collectionBps, date: state.date, taxes,
+        knownTaxRevenue, otherRevenue, totalRevenue, appropriated, executed, interestDue, interestPaid, totalSpending,
+        primaryBalance: totalRevenue - sum(allocations), overallBalance: totalRevenue - totalSpending,
         openingCash: c.cash, closingCash: cash, openingDebt: c.debt, closingDebt: debt, financingNeed, borrowed, repaid,
         arrears, openingArrears: c.arrears, openingInterestArrears: c.interestArrears, interestArrears: interestObligation - interestPaid,
         transferPaid: executed.pensions + executed.incomeSupport,
-        stress: { unpaidCommitments: budgetSum(arrears) + interestObligation - interestPaid, interestBurdenBps: revenue ? ratio(interestPaid, 10000, revenue) : null, debtToAnnualOutputBps: output ? ratio(debt, 10000, output * 12) : null,
-          deficitToOutputBps: output ? ratio(Math.max(0, totalSpending - revenue), 10000, output) : null,
+        stress: { financingBaselineStatus: c.revenueCalibration.status, unpaidCommitments: budgetSum(arrears) + interestObligation - interestPaid, interestBurdenBps: totalRevenue ? ratio(interestPaid, 10000, totalRevenue) : null, debtToAnnualOutputBps: output ? ratio(debt, 10000, output * 12) : null,
+          deficitToOutputBps: output ? ratio(Math.max(0, totalSpending - totalRevenue), 10000, output) : null,
           pensionFundingGap: Math.max(0, appropriated.pensions - executed.pensions), incomeSupportFundingGap: Math.max(0, appropriated.incomeSupport - executed.incomeSupport),
           serviceUnderfunding: sum(Object.values(services).map(s => Math.max(0, s.required - s.spending))), infrastructureBacklog: services.infrastructure.backlog,
           disposableIncomeDeclineBps: oldDisposable ? ratio(Math.max(0, oldDisposable - disposable), 10000, oldDisposable) : null } } };
@@ -187,4 +237,4 @@ function applyReforms(state: SimulationState): SimulationState {
 export const registerFiscalTasks = (scheduler: SimulationScheduler) => scheduler
   .register({ id: 'fiscal.reforms', cadence: 'daily', priority: 50, run: applyReforms })
   .register({ id: 'fiscal.monthly', cadence: 'monthly', priority: 150, run: runFiscalMonth });
-export const inspectFiscal = (state: SimulationState, countryId: string) => structuredClone({ date: state.date, countryId, assumptions: M, country: state.fiscal.countries[countryId], queued: state.fiscal.reforms.filter(r => r.countryId === countryId), revenueScope: 'known-component subtotal; unavailable categories are not zero-rate laws' });
+export const inspectFiscal = (state: SimulationState, countryId: string) => structuredClone({ date: state.date, countryId, assumptions: M, country: state.fiscal.countries[countryId], queued: state.fiscal.reforms.filter(r => r.countryId === countryId), revenueScope: 'knownTaxRevenue contains simulated documented categories; otherRevenue is a fixed sourced/modelled aggregate calibration; unavailable categories are not zero-rate laws' });

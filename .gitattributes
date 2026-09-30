@@ -1,4 +1,5 @@
 # Fiscal audit hashes pinned extracts and compares generated reports byte-for-byte.
 /src/data/fiscal-rules.json text eol=lf
+/src/data/fiscal-aggregates.json text eol=lf
 /src/data/fiscal-coverage-report.json text eol=lf
 /src/data/fiscal-initialization-report.json text eol=lf

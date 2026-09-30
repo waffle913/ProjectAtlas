@@ -1,0 +1,7 @@
+{
+  "version": "fiscal-aggregate-observations-v1",
+  "scenarioDate": "2026-01-01",
+  "unit": "USD_NOMINAL",
+  "records": [],
+  "limitations": "No compatible dated national revenue or debt observations have been accepted yet. Empty coverage is explicit; the engine uses documented modelled initialization rather than treating missing observations as zero."
+}

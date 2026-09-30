@@ -1,5 +1,5 @@
 import { emptyFiscal } from './fiscal/model';
-import { initializeFiscal } from './fiscal/runtime';
+import { initializeFiscal, upgradeFiscalStateV1 } from './fiscal/runtime';
 import { emptySocioeconomy } from './socioeconomy/model';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
 import type { RegionEntity, SimulationState } from '../types';
@@ -34,8 +34,9 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     if (!diplomacyContext) throw new Error('A Country and Region registry context is required to validate a v7/v8/v9 simulation save.');
     if (!current.engine || typeof current.engine.seed !== 'string' || !Number.isSafeInteger(current.engine.tick) || !current.engine.fidelityByCountry || !Array.isArray(current.engine.pendingFidelityTransitions) || !Array.isArray(current.engine.recentFidelityTransitions) || !Array.isArray(current.engine.pendingImmediateUpdates) || !Array.isArray(current.engine.dirtyDomains)) throw new Error('Malformed v7 simulation engine state.');
     if (version >= 8 && (!current.socioeconomy || current.socioeconomy.modelVersion !== 'socioeconomy-0.10-v1')) throw new Error('Malformed or unsupported v8 socioeconomic model.');
-    if (version === 9 && current.fiscal?.version !== 'fiscal-0.11-v1') throw new Error('Malformed fiscal model.');
-    const upgraded = cloneSimulationState({ ...current, schemaVersion: 9, fiscal: version === 9 ? current.fiscal : emptyFiscal(), socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy });
+    if (version === 9 && !['fiscal-0.11-v1', 'fiscal-0.11-v2'].includes(current.fiscal?.version)) throw new Error('Malformed fiscal model.');
+    const fiscal = version === 9 ? upgradeFiscalStateV1(current.fiscal, current.date) : emptyFiscal();
+    const upgraded = cloneSimulationState({ ...current, schemaVersion: 9, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy });
     const restored = version === 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;

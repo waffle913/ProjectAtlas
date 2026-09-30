@@ -9,7 +9,7 @@ export function FiscalDebug({ state, countryId, onReform }: { state: SimulationS
   return <details><summary>Fiscal debug · USD · modelled initialization</summary>
     <p>Revenue covers known tax components only. Missing laws are unavailable. Initialization projections are not executed monthly accounts.</p>
     <p>Cash: {country.cash.toLocaleString()} · Debt: {country.debt.toLocaleString()}</p>
-    <p>Last monthly revenue: {country.account?.revenue.toLocaleString() ?? 'Not executed'} · Balance: {country.account?.overallBalance.toLocaleString() ?? 'Not executed'}</p>
+    <p>Known tax revenue: {country.account?.knownTaxRevenue.toLocaleString() ?? 'Not executed'} · Other revenue: {country.account?.otherRevenue.toLocaleString() ?? 'Not executed'} · Total: {country.account?.totalRevenue.toLocaleString() ?? 'Not executed'} · Balance: {country.account?.overallBalance.toLocaleString() ?? 'Not executed'}</p>
     <details><summary>Policy, accounts, services and provenance</summary><pre style={{ overflow: 'auto', maxHeight: 400 }}>{JSON.stringify(inspectFiscal(state, countryId), null, 2)}</pre></details>
     <button onClick={() => { setDraft(JSON.stringify({ countryId, effectiveDate: state.date, policy: country.policy, annualBudget: country.annualBudget }, null, 2)); setMessage('Edit explicit annual USD budgets or policy rates/bands. For an edited law, use status modelled and document the debug reform.'); }}>Prepare explicit reform</button>
     <label>Reform JSON (engine/debug only)<textarea aria-label="Fiscal reform JSON" style={{ width: '100%', minHeight: 140 }} value={draft} onChange={e => setDraft(e.target.value)} /></label>
