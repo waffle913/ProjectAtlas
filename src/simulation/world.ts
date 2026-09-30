@@ -35,6 +35,7 @@ export const simulationDelta = (before: SimulationState, after: SimulationState)
   date: after.date,
   changedDomains: [
     structurallyEqual(before.crisis, after.crisis) ? undefined : 'crisis',
+    structurallyEqual(before.politics, after.politics) ? undefined : 'politics',
     structurallyEqual(before.fiscal, after.fiscal) ? undefined : 'fiscal',
     structurallyEqual(before.socioeconomy, after.socioeconomy) ? undefined : 'socioeconomy',
     before.date === after.date ? undefined : 'time',

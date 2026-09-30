@@ -20,6 +20,7 @@ export function cloneSimulationState(state: SimulationState): SimulationState {
   return {
     ...state,
     crisis: structuredClone(state.crisis),
+    politics: structuredClone(state.politics),
     socioeconomy: cloneSocioeconomy(state.socioeconomy),
     fiscal: structuredClone(state.fiscal),
     territoryOwnership: { ...state.territoryOwnership },

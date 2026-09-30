@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { emptyCrisis, initializeCrisisState, CRISIS_TYPES, type CrisisType } from '../crisis/model';
+import { emptyPolitics } from '../politics/model';
 import { inspectCrises, runCrisisMonth } from '../crisis/runtime';
 import { emptyFiscal } from '../fiscal/model';
 import { initializeFiscal, runFiscalMonth } from '../fiscal/runtime';
@@ -19,7 +20,7 @@ const region = (id: string): RegionEntity => ({ id: `region.${id}`, parentCountr
 const build = (ids = ['a'], seed = 'crisis-seed'): { state: SimulationState; regions: RegionEntity[] } => {
   const regions = ids.map(region), countryIds = ids.map(id => `country.${id}`);
   let state: SimulationState = {
-    schemaVersion: 10, crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+    schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
     territoryOwnership: {}, regionOwnership: Object.fromEntries(regions.map(r => [r.id, r.parentCountryId])),
     populationByRegion: Object.fromEntries(regions.map(r => [r.id, 100_000])), economicOutputByRegion: Object.fromEntries(regions.map(r => [r.id, 1_200_000_000])),
     bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(countryIds, seed),
@@ -213,7 +214,7 @@ describe('generic deterministic crisis engine', () => {
   it('migrates schema 9 at the saved date without fake history', () => {
     const { state, regions } = build(); const legacy = structuredClone(state) as unknown as Record<string, unknown>; delete legacy.crisis; legacy.schemaVersion = 9; legacy.date = '2031-06-15';
     const ids = new Set(['country.a']), migrated = migrateSimulationState(legacy, regions, {}, {}, { countryIds: ids, regionIds: new Set(['region.a']) });
-    expect(migrated.schemaVersion).toBe(10); expect(migrated.crisis.initializedOn).toBe('2031-06-15'); expect(migrated.crisis.lastMonthlyDate).toBeUndefined();
+    expect(migrated.schemaVersion).toBe(11); expect(migrated.crisis.initializedOn).toBe('2031-06-15'); expect(migrated.crisis.lastMonthlyDate).toBeUndefined();
     expect(migrated.crisis.countries['country.a'].history).toEqual([]); expect(episode(migrated, 'fiscal_stress').lastEvaluatedOn).toBeUndefined();
   });
 

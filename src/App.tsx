@@ -1,6 +1,8 @@
 import { FiscalDebug } from './components/FiscalDebug';
+import { PoliticsDebug } from './components/PoliticsDebug';
 import { emptyFiscal } from './simulation/fiscal/model';
 import { emptyCrisis } from './simulation/crisis/model';
+import { emptyPolitics } from './simulation/politics/model';
 import { emptySocioeconomy, inspectSocioeconomy, NO_SHOCK } from './simulation/socioeconomy/model';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, useMap, useMapEvents } from "react-leaflet";
@@ -24,7 +26,7 @@ import { initializeNewGame } from "./simulation/initialization";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 10, crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
+  schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -123,6 +125,7 @@ export default function App() {
           regions.registry.regions,
           data.registry.countries.map(country => country.id),
           { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries },
+          { countries: data.registry.countries, offices: data.politics },
         ));
         const registryContext = { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
         assertSimulationInvariants(clock.current.snapshot(), { ...registryContext, regions: regions.registry.regions }, 'reload');
@@ -254,7 +257,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.10 · SOCIOECONOMIC ENGINE</small>
+          <small>MILESTONE 0.13 · NATIONAL POLITICS</small>
         </div>
         <Clock state={sim} onChange={changeClock} />
       </header>
@@ -398,6 +401,7 @@ export default function App() {
         ) : (
           <CountryPanel
             fiscalDebug={selected ? <FiscalDebug key={selected} state={sim} countryId={selected} onReform={r => { clock.current.reformFiscal(r); setSim(clock.current.snapshot()); }} /> : undefined}
+            politicalDebug={selected ? <PoliticsDebug key={selected} state={sim} countryId={selected} /> : undefined}
             country={selectedCountry}
             factsRecord={selected ? countryData?.factsByCountryId.get(selected) : undefined}
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
