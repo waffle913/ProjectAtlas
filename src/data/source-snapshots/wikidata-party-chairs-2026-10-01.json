@@ -10,7 +10,7 @@
   "attribution": "Wikidata contributors; CC0 1.0; entity property P488 (chairperson) with P580/P582 tenure qualifiers.",
   "limitations": [
     "The query result is a pinned 2026-10-01 extract, not a historical Wikidata dump as of 2026-01-01.",
-    "A claim is treated as applicable on the scenario date only when its P580 start is on or before 2026-01-01 and its P582 end is absent or after that date.",
+    "A claim is treated as positively applicable on the scenario date only when both P580 and P582 are present and bound a tenure interval containing 2026-01-01. Missing P582 is not evidence of continued tenure.",
     "Missing qualifiers, multiple active chair identities, incomplete or incorrect Wikidata statements, and parties without a reviewed exact identifier bridge are unavailable or ambiguous; no names or order are used to infer matches."
   ],
   "records": [

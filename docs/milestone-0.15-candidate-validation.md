@@ -36,30 +36,51 @@ Expert change presentation only and are not part of simulation state,
 scheduling or RNG.
 
 All 948 gameplay party leaders are distinct deterministic fictional persons.
-The global stable-ID pipeline enumerates every party, joining only reviewed
-IPU-to-Party-Facts IDs, exact Party Facts Wikidata QIDs, and a unique dated
-Wikidata P488 chairperson claim with P580/P582 tenure qualifiers. Coverage is
-35 exact Party Facts bridges, 21 derived leader mappings, 4 ambiguous
-multi-person matches, 10 bridged but unavailable records, and 913 parties
-without a reviewed Party Facts bridge. Totals are 0 sourced/observed mappings,
-21 derived mappings, 927 modelled fictional fallback leaders, 923 unavailable
-source mappings, 4 ambiguous mappings, and 5 reconciled executive
-officeholders. Anthony Alburn (ALP) and Friedrich Merzen (CDU) remain
-fictional analogues; other mapped leaders use deterministic fictional names.
-Wikidata chair claims are CC0-1.0. The Party Facts crosswalk data licence
-remains `requires_confirmation`; the repository software licence is not
-treated as a data licence, so commercial redistribution is not cleared. The
-Wikidata extract was retrieved after the scenario date; only explicit tenure
-qualifiers valid on 2026-01-01 are used. No fuzzy name match or inferred
-leadership is used.
+The stable-ID pipeline joins only reviewed IPU-to-Party-Facts IDs and exact
+Party Facts Wikidata QIDs. Wikidata P488 means chairperson/presiding member; it
+does not necessarily mean constitutional or electoral party leader. A P488
+mapping requires explicit P580 and P582 bounds containing 2026-01-01; missing
+P582 is never evidence of continued tenure. A dated primary-source override
+must identify the person and role; conflicts remain ambiguous.
+
+The re-run 948-party audit reports 35 exact Party Facts bridges, 7 derived
+mappings, 1 ambiguous mapping, 940 unavailable source mappings (913 parties
+without a bridge and 27 bridged parties without unique positive leadership
+evidence), 941 modelled fallback leaders, 0 sourced/observed mappings, and 3
+reconciled executive officeholders. Every surviving source-derived mapping
+has a checked-in, hand-reviewed fictional name, distinct from its source
+identity and unique among active initial leaders. Canada's mappings are Yves
+Blanchet → Yves-François Blancheval (Bloc Québécois, party leader), Don Davies
+→ Don Davison (NDP, chairperson), and Pierre Poilievre → Pierre Poilapin
+(Conservative Party, party leader). Other mappings are Anthony Albanese →
+Anthony Alburn (Australian Labor Party, party leader), Friedrich Merz →
+Friedrich Merzen (CDU, chairperson), Joe Gruters → Joe Grutter (Republican
+Party, chairperson), and Keir Starmer → Keir Starmont (Labour Party,
+chairperson). `P488` chairpersons are used as gameplay party heads only where
+the recorded source role supports that analogue; they are not relabelled as
+constitutional/electoral leaders.
+
+Fourteen of the previous mappings were removed for insufficient historical
+applicability: Mark Carney (Liberal Party), Elizabeth May (Green Party),
+Larissa Waters (Australian Greens), Ciro Nogueira Lima Filho (Progressive
+Party), Aécio Neves (PSDB), Yoshihiko Noda (Constitutional Democratic Party
+of Japan), Tomoko Tamura (Japanese Communist Party), Sanae Takaichi (LDP),
+Olivier Faure (Socialist Party), Jordan Bardella (National Rally), Markus
+Söder (CSU), Ken Martin (Democratic Party), Kemi Badenoch (Conservative
+Party), and John Swinney (Scottish National Party). The Republican mapping
+changed from Michael Whatley to Joe Gruters based on a dated RNC announcement.
+The Party Facts crosswalk, V-Party dataset, and official primary publication
+licences remain `requires_confirmation`; Wikidata is CC0-1.0. Commercial
+redistribution is not cleared.
 
 Succession selects an eligible existing member or generates a deterministic
 fictional successor based on the party's validated profile. Leadership loss
 does not change player control. A persisted handoff choice can continue as the
 former person or explicitly switch to the successor once.
 
-The start flow is Country → Party → Leader and does not grant an office.
-Only the five exact officeholder matches receive their separately reconciled
+The start flow is Country → Party → Leader and does not grant an office; it
+renders the fictional analogue and keeps source names out of the player
+presentation. Only the three reconciled mapped officeholders receive their separately reconciled
 executive office; party-bloc status alone grants no office. Fiscal controls
 submit the existing corporate-tax or annual infrastructure-budget governance
 proposal command; they do not mutate fiscal state directly. Country and
@@ -70,26 +91,23 @@ scope.
 
 | Command | Result |
 |---|---|
-| `npm run verify` | Passed: country, Region, population, economy and aggregate data audits; TypeScript/build; 278 tests across 29 files. Vite reports a 3,970.89 kB JS chunk (353.99 kB gzip). |
+| `npm run verify` | Passed: country, Region, population, economy and aggregate data audits; TypeScript/build; 280 tests across 29 files. Production JS bundle: 3,980.44 kB (359.55 kB gzip). |
 | `npm run information:test` | Passed: 21 focused information tests, including access, reporting, briefings and migration/save behavior. |
-| `npm run information:audit:generate` | Passed: regenerated the pinned deterministic leader mapping and coverage report from reviewed snapshots. |
-| `npm run information:audit` | Passed: 948 party records; 35 exact Party Facts bridges, 21 derived mappings, 927 modelled fallbacks, 923 unavailable source mappings, 4 ambiguous mappings and 5 reconciled executive officeholders. |
-| `npm run information:benchmark` | Passed: 948 leaders; 170.58 ms isolated generation, 341.09 ms new-game initialization, 86.41 ms monthly changed day, 14,971,011-byte save and 2,792,474-byte estimated save delta. |
-| `npm run governance:audit` | Passed: 62 governance tests, including succession chronology invariants and resolved presidential authority. |
-| `npm run governance:benchmark` | Passed: 948 people; 26,923,079-byte save, 0.0605 ms snapshot, 285.91 ms serialization and 12.849 ms mean proposal analysis. |
-| `npm run fiscal:audit` | Passed: 19 fiscal tests. |
+| `npm run information:audit:generate` | Passed: regenerated the conservative leader mapping and coverage report from pinned reviewed snapshots. |
+| `npm run information:audit` | Passed: 948 parties; 35 bridges, 7 derived mappings, 941 modelled fallbacks, 940 unavailable mappings, 1 ambiguous mapping, and 3 reconciled executive officeholders. |
+| `npm run information:benchmark` | Passed: 948 leaders; 169.24 ms isolated generation, 350.47 ms new-game initialization, 86.93 ms monthly changed day, 14,967,029-byte save and 2,788,492-byte estimated save delta. |
+| `npm run governance:audit` | Passed: 64 governance tests, including source-mapping/name invariants, schema-13 revalidation, save/reload, succession chronology and presidential authority. |
+| `npm run governance:benchmark` | Passed: 948 people; 26,919,097-byte save, 0.0357 ms snapshot, 280.69 ms serialization and 12.631 ms mean proposal analysis. |
+| `npm run fiscal:audit` | Passed: 19 fiscal tests and the 252-country fiscal coverage audit. |
 | `npm run politics:data:generate` | Passed: generated 252 countries, 948 parties, 20 organizations, 281 chambers and 31,736 represented seats. |
 | `npm run politics:audit:generate` | Passed after normalizing source-snapshot line endings before hashing; generated political coverage evidence. |
-| `npm run politics:audit` | Passed: politics audit and 24 tests across three files, including the three-year world benchmark (89,219.92 ms; 12 ticks/s in this run). |
-| `npm run benchmark:world` | Passed: four world benchmark tests; socioeconomic benchmark was 10 years in 6,157.91 ms (593 ticks/s). |
-| `Get-ChildItem -Path src\\simulation\\information,src\\simulation\\governance,src\\components -Recurse -File \| Select-String -Pattern 'Math\\.random'; Select-String -Path src\\App.tsx -Pattern 'Math\\.random'` | No matches in the changed runtime/UI paths. |
+| `npm run politics:audit` | Passed: 24 politics tests across three files; three-year full-world benchmark 87,308.95 ms (13 ticks/s), 102.79 ms weekly snapshot, 362.39 ms coincident monthly/weekly snapshot and 567.03 ms reload. |
+| `npm run benchmark:world` | Passed: 4 world benchmarks; 10-year socioeconomic run 5,953.96 ms (613 ticks/s), 10-year fiscal run 22,634.51 ms (161 ticks/s), daily UI and full-world baseline checks passed. |
+| `rg "Math\\.random" src\\simulation\\governance src\\components\\StartGame.tsx` | No matches in the changed governance runtime, model, invariant, or start-flow paths. |
 | `git diff --check` | Passed with no whitespace errors. |
 
-The broad verification emitted a Vite chunk-size warning; all tests completed
-successfully in 128.60 seconds. An earlier full-suite run exposed two
-simulation-heavy tests exceeding the default 5-second per-test timeout under
-suite load; both now have explicit 30-second limits and passed in the final
-run.
+The final broad verification passed all tests in 124.62 seconds. No new
+simulation system, save schema version, or 0.16 work was introduced.
 
 ## Measured workload and save impact
 
@@ -98,26 +116,26 @@ regions, 948 gameplay parties and 948 active leaders:
 
 | Measurement | Result |
 |---|---:|
-| Isolated leader generation | 170.58 ms |
-| Single-party leader lookup (warmed average over 1,000 lookups) | 0.0254 ms |
-| New-game initialization | 341.09 ms |
-| First monthly report generation (252 reports) | 4.36 ms |
+| Isolated leader generation | 169.24 ms |
+| Single-party leader lookup (warmed average over 1,000 lookups) | 0.0243 ms |
+| New-game initialization | 350.47 ms |
+| First monthly report generation (252 reports) | 4.64 ms |
 | Information state after first report | 224,248 bytes |
 | Serialized 256-briefing history | 123,905 bytes |
-| Current save | 14,971,011 bytes |
+| Current save | 14,967,029 bytes |
 | Estimated schema-12 save without 0.15 | 12,178,537 bytes |
-| Estimated save delta | 2,792,474 bytes |
-| Ordinary day | 0.4779 ms |
-| Monthly changed day | 86.41 ms |
-| Deterministic fallback succession | 0.74 ms |
+| Estimated save delta | 2,788,492 bytes |
+| Ordinary day | 0.4729 ms |
+| Monthly changed day | 86.93 ms |
+| Deterministic fallback succession | 0.83 ms |
 
-The governance world benchmark measured 948 people-leaders, a 26,923,079-byte
-save, 0.0605 ms snapshot, 285.91 ms serialization, and 12.849 ms mean
+The governance world benchmark measured 948 people-leaders, a 26,919,097-byte
+save, 0.0357 ms snapshot, 280.69 ms serialization, and 12.631 ms mean
 proposal analysis. The current three-year politics world benchmark measured
-89,219.92 ms elapsed, 12 ticks/s, 92.88 ms weekly changed snapshot, 375.22 ms
-coincident monthly/weekly snapshot, 555.58 ms reload, and a 33,202,457-byte
-save. The world benchmark also measured a 10-year fiscal workload at
-23,568.28 ms (155 ticks/s), with a 451.17 ms mean monthly snapshot day.
+87,308.95 ms elapsed, 13 ticks/s, 102.79 ms weekly changed snapshot, 362.39 ms
+coincident monthly/weekly snapshot, 567.03 ms reload, and a 33,198,475-byte
+save. The world benchmark measured a 10-year fiscal workload at 22,634.51 ms
+(161 ticks/s), with a 310.53 ms mean monthly snapshot day.
 Benchmark figures are workload- and environment-specific, not device
 guarantees. Save sizes differ because the benchmarks cover different world
 state workloads.
@@ -136,10 +154,10 @@ state workloads.
   qualifiers applicable on 2026-01-01 are used. Officeholder evidence has
   separate provenance and does not by itself establish party leadership or
   legal powers.
-- The 21 party-leadership mappings are explicitly `derived`, not
-  sourced/observed; 4 multi-person cases remain ambiguous, and 923 source
-  mappings unavailable. All 948 gameplay identities remain fictional and
-  source coverage is partial.
+- The 7 party-leadership mappings are explicitly `derived`, not
+  sourced/observed; 1 case remains ambiguous and 940 source mappings are
+  unavailable. All 948 gameplay identities remain fictional and source
+  coverage is partial.
 - Unemployment is the only Government Information report currently emitted.
   Confidential defense/diplomacy intelligence, public perception, autonomous
   ministers, cabinet politics, and new policy instruments are out of scope.

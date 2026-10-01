@@ -3,6 +3,7 @@ import { dateValid, validatePolicy } from '../fiscal/math';
 import { fiscalReformFingerprint, validateBudget } from '../fiscal/runtime';
 import { politicalRegistry } from '../politics/registry';
 import politicalOffices from '../../data/political-offices.json';
+import partyLeadershipSources from '../../data/source-snapshots/party-leadership-2026-01-01.json';
 import { GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint,
@@ -17,6 +18,7 @@ const finite = (value: unknown) => typeof value === 'number' && Number.isFinite(
 const coverage = (value: unknown) => ['complete', 'partial', 'unavailable'].includes(value as string);
 const officeholdersById = new Map(politicalOffices.officeholders.map(item => [item.officeId, item]));
 const officeDefinitionsById = new Map(politicalOffices.offices.map(item => [item.id, item]));
+const reviewedLeaderMappingsByPartyId = new Map(partyLeadershipSources.mappings.map(item => [item.partyId, item]));
 const executiveCapabilities = ['access_government_information', 'sponsor_budget_reform', 'sponsor_fiscal_reform', 'sponsor_legislation', 'vote_legislation'] as const;
 
 function validatePartyEvaluation(evaluation: PartyProposalEvaluation): boolean {
@@ -73,6 +75,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
   if (!g || g.version !== GOVERNANCE_VERSION || !g.initializedOn || !dateValid(g.initializedOn) || g.initializedOn > state.date || !nonNegative(g.nextPersonSequence) || !nonNegative(g.nextProposalSequence)) return ['Malformed governance state.'];
   if (g.player.controlledPersonId && !g.persons[g.player.controlledPersonId]) errors.push('Controlled person does not exist.');
   const sourceIdentityOwners = new Map<string, string>();
+  const activeInitialLeaderNames = new Set<string>();
   const trackSourceIdentity = (sourcePersonId: string, countryId: string, personId: string) => {
     const key = `${countryId}:${sourcePersonId}`;
     const owner = sourceIdentityOwners.get(key);
@@ -81,6 +84,10 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
   };
   for (const [id, person] of Object.entries(g.persons)) {
     if (person.id !== id || !id.match(/^person\.\d{8}$/) || Number(id.slice(7)) >= g.nextPersonSequence || !person.displayName.trim() || !context.countryIds.has(person.countryId) || !dateValid(person.createdOn) || person.createdOn < g.initializedOn || person.createdOn > state.date || !['active', 'inactive'].includes(person.status)) errors.push(`Malformed political person ${id}.`);
+    if (person.isPartyLeader && person.status === 'active' && person.createdOn === politicalRegistry.referenceDate) {
+      if (activeInitialLeaderNames.has(person.displayName)) errors.push(`Initial active party leader name is duplicated: ${person.displayName}.`);
+      activeInitialLeaderNames.add(person.displayName);
+    }
     if (person.partyId && politicalRegistry.parties[person.partyId]?.countryId !== person.countryId) errors.push(`Invalid party reference for ${id}.`);
     if (person.isPartyLeader && !person.partyId) errors.push(`Party leader ${id} has no party.`);
     if (person.office && (!['head_of_government', 'head_of_state', 'legislator'].includes(person.office.role) || person.office.countryId !== person.countryId || !person.office.title?.trim() || !dateValid(person.office.appointedOn) || person.office.appointedOn < g.initializedOn || person.office.appointedOn < person.createdOn || person.office.appointedOn > state.date || person.office.authorityProfile.status !== 'modelled_constitutional_abstraction' || !person.office.authorityProfile.limitation || person.office.authorityProfile.capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item)))) errors.push(`Malformed office for ${id}.`);
@@ -106,10 +113,15 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (person.leaderProvenance) {
       const provenance = person.leaderProvenance;
       const party = person.partyId ? politicalRegistry.parties[person.partyId] : undefined;
+      const sourceMapping = party ? reviewedLeaderMappingsByPartyId.get(party.id) : undefined;
       if (!context.countryIds.has(person.countryId) || !party || party.countryId !== person.countryId || provenance.sourcePartyId !== party.sourceBasis.sourcePartyId
         || !dateValid(provenance.referenceDate) || !provenance.limitation
         || provenance.basis === 'modelled_fallback' && (!['unavailable', 'ambiguous'].includes(provenance.sourceLeaderStatus) || provenance.sourceLeader !== undefined)
-        || provenance.basis !== 'modelled_fallback' && (!['sourced', 'derived'].includes(provenance.sourceLeaderStatus) || !provenance.sourceLeader?.id || !provenance.sourceLeader.name || provenance.sourceLeader.name === person.displayName || !Array.isArray(provenance.sourceLeader.sourceRecordIds) || !provenance.sourceLeader.sourceRecordIds.length)) errors.push(`Invalid party leader provenance for ${id}.`);
+        || provenance.basis !== 'modelled_fallback' && (!['sourced', 'derived'].includes(provenance.sourceLeaderStatus) || !provenance.sourceLeader?.id || !provenance.sourceLeader.name || provenance.sourceLeader.name === person.displayName || !Array.isArray(provenance.sourceLeader.sourceRecordIds) || !provenance.sourceLeader.sourceRecordIds.length
+          || !sourceMapping || provenance.sourceLeader.id !== `wikidata:${sourceMapping.sourcePersonId}` || sourceMapping.sourceStatus !== provenance.sourceLeaderStatus
+          || sourceMapping.fictionalAnalogueName !== person.displayName || sourceMapping.fictionalAnalogueName === provenance.sourceLeader.name
+          || provenance.sourceLeader.sourceRole !== undefined && provenance.sourceLeader.sourceRole !== sourceMapping.sourceRole
+          || provenance.sourceLeader.sourceRecordIds.some(sourceRecordId => !sourceMapping.sourceRecordIds.includes(sourceRecordId)))) errors.push(`Invalid party leader provenance for ${id}.`);
       if (provenance.sourceLeader?.id) trackSourceIdentity(provenance.sourceLeader.id, person.countryId, id);
     }
   }

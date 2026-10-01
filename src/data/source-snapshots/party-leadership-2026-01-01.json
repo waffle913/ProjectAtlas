@@ -27,7 +27,12 @@
     {
       "snapshotId": "wikidata-party-chairs-2026-10-01",
       "path": "src/data/source-snapshots/wikidata-party-chairs-2026-10-01.json",
-      "sha256": "582ad2f9dcbd9330383ff0b49ffc458b385821b33dc53349f66d3f8a030af146"
+      "sha256": "4d77692324a3a59c26c3f36e0d5e786c0de7f1003e9e873785618c197ffaa950"
+    },
+    {
+      "snapshotId": "party-leadership-evidence-2026-01-01",
+      "path": "src/data/source-snapshots/party-leadership-evidence-2026-01-01.json",
+      "sha256": "a28d3994e693bf193afd246479fc72fa2b6b2d8b3d3175739e8aa88f3df6a29f"
     }
   ],
   "sourceRecords": [
@@ -61,6 +66,37 @@
       "limitations": [
         "This record verifies exact source identity and office applicability; it does not by itself establish party leadership or the office's legal powers.",
         "The source data licence is not inferred from the query service."
+      ]
+    },
+    {
+      "sourceRecordId": "bloc-quebecois-blanchet-2025-12-10",
+      "publisher": "Bloc Québécois",
+      "url": "https://www.blocquebecois.org/session-automnale-2025-limposture-liberale-au-grand-jour/",
+      "evidenceDate": "2025-12-10",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "requires_confirmation",
+      "attribution": "Bloc Québécois",
+      "claim": "The dated party release identifies Yves-François Blanchet as chef du Bloc Québécois.",
+      "limitations": [
+        "This is a dated primary-source identification near the scenario date, not a complete leadership-tenure history.",
+        "The publication's reuse licence is not established."
+      ]
+    },
+    {
+      "sourceRecordId": "canada-conservative-poilievre-2025-12-11",
+      "publisher": "Conservative Party of Canada",
+      "url": "https://www.conservative.ca/events/",
+      "evidenceDate": "2025-12-11",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "requires_confirmation",
+      "attribution": "Conservative Party of Canada",
+      "claim": "The party's dated December 11, 2025 event listing explicitly identifies Pierre Poilievre as Party Leader.",
+      "limitations": [
+        "The events page is mutable and its current rendering no longer shows the 2025 event; the indexed dated event record is retained as reviewed evidence.",
+        "This is a near-date status record, not a complete leadership-tenure history.",
+        "The publication's reuse licence is not established."
       ]
     },
     {
@@ -113,6 +149,36 @@
       ]
     },
     {
+      "sourceRecordId": "rnc-joe-gruters-chair-2025-10-29",
+      "publisher": "Republican National Committee",
+      "url": "https://gop.com/press-release/icymi-rnc-chairman-joe-gruters-discusses-2026-midterms-with-breitbart-news/",
+      "evidenceDate": "2025-10-29",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "requires_confirmation",
+      "attribution": "Republican National Committee",
+      "claim": "The dated RNC release identifies Joe Gruters as RNC Chairman while discussing the 2026 midterms.",
+      "limitations": [
+        "This is a dated primary-source identification near the scenario date, not a complete leadership-tenure history.",
+        "The page is blocked from direct retrieval; the pinned title, date and role were reviewed from the RNC search-indexed release.",
+        "The publication's reuse licence is not established."
+      ]
+    },
+    {
+      "sourceRecordId": "wikidata-joe-gruters-identity-2026-10-01",
+      "publisher": "Wikidata contributors",
+      "url": "https://www.wikidata.org/wiki/Q56486440",
+      "evidenceDate": "2026-10-01",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "CC0-1.0",
+      "attribution": "Wikidata contributors; CC0 1.0.",
+      "claim": "Wikidata Q56486440 labels the person Joe Gruters; the RNC primary source independently supports his party-chair role.",
+      "limitations": [
+        "The Wikidata item establishes the stable identity label only, not the RNC role or its applicability on the scenario date."
+      ]
+    },
+    {
       "sourceRecordId": "wikidata-party-chair-snapshot-2026-10-01",
       "publisher": "Wikidata contributors",
       "url": "https://query.wikidata.org/",
@@ -125,8 +191,10 @@
       "snapshotPath": "src/data/source-snapshots/wikidata-party-chairs-2026-10-01.json",
       "limitations": [
         "The query result is a pinned 2026-10-01 extract, not a historical Wikidata dump as of 2026-01-01.",
-        "A claim is treated as applicable on the scenario date only when its P580 start is on or before 2026-01-01 and its P582 end is absent or after that date.",
-        "Missing qualifiers, multiple active chair identities, incomplete or incorrect Wikidata statements, and parties without a reviewed exact identifier bridge are unavailable or ambiguous; no names or order are used to infer matches."
+        "A claim is treated as positively applicable on the scenario date only when both P580 and P582 are present and bound a tenure interval containing 2026-01-01. Missing P582 is not evidence of continued tenure.",
+        "Missing qualifiers, multiple active chair identities, incomplete or incorrect Wikidata statements, and parties without a reviewed exact identifier bridge are unavailable or ambiguous; no names or order are used to infer matches.",
+        "P488 identifies a chairperson/presiding member, not necessarily the constitutional or electoral party leader. A chairperson is used as the gameplay party head only when the reviewed mapping records that source role explicitly.",
+        "P580 without a P582 end date is not treated as evidence that a chairperson still held the role on the scenario date."
       ]
     }
   ],
@@ -139,31 +207,14 @@
       "sourcePartyName": "Bloc Québécois (BQ)",
       "sourcePersonId": "Q3573412",
       "sourcePersonName": "Yves-François Blanchet",
+      "fictionalAnalogueName": "Yves-François Blancheval",
       "basis": "derived_analogue",
       "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q735105-1FA95048-3421-4F6A-893B-DD6A0C679303",
+      "sourceRole": "party_leader",
+      "gameplayRole": "party_head",
       "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.1aj872z:291d6ea4c4b0",
-      "sourcePartyId": "ca-liberal_party",
-      "partyFactsId": 1739,
-      "wikidataPartyId": "Q138345",
-      "sourcePartyName": "Liberal Party",
-      "sourcePersonId": "Q192533",
-      "sourcePersonName": "Mark Carney",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q138345-2c7a6182-4a9e-ac8d-fcac-d81d0bcb9c10",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
+        "bloc-quebecois-blanchet-2025-12-10",
+        "partyfacts-wikidata-crosswalk-2026-10-01"
       ],
       "referenceDate": "2026-01-01"
     },
@@ -175,28 +226,12 @@
       "sourcePartyName": "NDP-New Democratic Party (NDP)",
       "sourcePersonId": "Q3035763",
       "sourcePersonName": "Don Davies",
+      "fictionalAnalogueName": "Don Davison",
       "basis": "derived_analogue",
       "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
+      "sourceRole": "party_chairperson",
+      "gameplayRole": "party_head",
       "chairStatementId": "Q130765-288a56c1-4b93-0f9e-3953-8ee683e34f4b",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.1aj872z:721d519c10c6",
-      "sourcePartyId": "ca-green_party",
-      "partyFactsId": 931,
-      "wikidataPartyId": "Q691730",
-      "sourcePartyName": "Green Party",
-      "sourcePersonId": "Q445620",
-      "sourcePersonName": "Elizabeth May",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q691730-f94e50dd-4d66-7cdf-0985-41d351bc60d0",
       "sourceRecordIds": [
         "partyfacts-wikidata-crosswalk-2026-10-01",
         "wikidata-party-chair-snapshot-2026-10-01"
@@ -211,229 +246,67 @@
       "sourcePartyName": "Conservative Party",
       "sourcePersonId": "Q3386636",
       "sourcePersonName": "Pierre Poilievre",
+      "fictionalAnalogueName": "Pierre Poilapin",
       "basis": "derived_analogue",
       "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q488523-3689de3e-488e-e43f-b883-df01e4bf2f08",
+      "sourceRole": "party_leader",
+      "gameplayRole": "party_head",
       "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
+        "canada-conservative-poilievre-2025-12-11",
+        "partyfacts-wikidata-crosswalk-2026-10-01"
       ],
       "referenceDate": "2026-01-01"
     },
     {
-      "partyId": "party:country.1gxtyz9:8067bad62a65",
-      "sourcePartyId": "au-greens_0",
-      "partyFactsId": 1209,
-      "wikidataPartyId": "Q781486",
-      "sourcePartyName": "The Greens",
-      "sourcePersonId": "Q6489515",
-      "sourcePersonName": "Larissa Waters",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q781486-2d10505b-45ae-3146-d3aa-97008e9895cb",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.1gxtyz9:e17696de6831",
-      "sourcePartyId": "au-australian_labor_party_alp",
-      "sourcePartyName": "Australian Labor Party (ALP)",
-      "sourcePersonId": "Q335697",
-      "sourcePersonName": "Anthony Albanese",
-      "fictionalAnalogueName": "Anthony Alburn",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "sourceRecordIds": [
-        "australia-labor-leader-2025",
-        "australia-officeholder-Q335697",
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01",
       "officeholderMatch": {
         "officeId": "office:country.1gxtyz9:head_of_government",
         "sourcePersonId": "Q335697",
         "startDate": "2022-05-23",
         "title": "Prime Minister"
       },
+      "partyId": "party:country.1gxtyz9:e17696de6831",
+      "sourcePartyId": "au-australian_labor_party_alp",
       "partyFactsId": 424,
       "wikidataPartyId": "Q216082",
-      "chairStatementId": "Q216082-2bdf2916-4a8f-8f33-0cc6-4e34812ce9c9"
-    },
-    {
-      "partyId": "party:country.1mxwn59:a6339a8d1ab1",
-      "sourcePartyId": "br-progressive_party_pp",
-      "partyFactsId": 781,
-      "wikidataPartyId": "Q732852",
-      "sourcePartyName": "Progressive Party (PP)",
-      "sourcePersonId": "Q15985219",
-      "sourcePersonName": "Ciro Nogueira Lima Filho",
+      "sourcePartyName": "Australian Labor Party (ALP)",
+      "sourcePersonId": "Q335697",
+      "sourcePersonName": "Anthony Albanese",
+      "fictionalAnalogueName": "Anthony Alburn",
       "basis": "derived_analogue",
       "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q732852-ddb93d60-4cb1-e7e1-ec91-b61707a567e3",
+      "sourceRole": "party_leader",
+      "gameplayRole": "party_head",
       "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
+        "australia-labor-leader-2025",
+        "australia-officeholder-Q335697",
+        "partyfacts-wikidata-crosswalk-2026-10-01"
       ],
       "referenceDate": "2026-01-01"
     },
     {
-      "partyId": "party:country.1mxwn59:d7d86b7abffa",
-      "sourcePartyId": "br-brazilian_social_democratic_party_psdb",
-      "partyFactsId": 225,
-      "wikidataPartyId": "Q1322897",
-      "sourcePartyName": "Brazilian Social Democratic Party (PSDB)",
-      "sourcePersonId": "Q2875339",
-      "sourcePersonName": "Aécio Neves",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q1322897-80F1F31D-E172-4F98-9B52-C8C3295DD867",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.1xyn8u3:7fe1ccb1aa48",
-      "sourcePartyId": "jp-constitutional_democratic_party_japan",
-      "partyFactsId": 6135,
-      "wikidataPartyId": "Q99233271",
-      "sourcePartyName": "Constitutional Democratic Party of Japan",
-      "sourcePersonId": "Q57647",
-      "sourcePersonName": "Yoshihiko Noda",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q99233271-56fda552-4991-11f2-730b-1060e1bad095",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.1xyn8u3:c76c5ee99064",
-      "sourcePartyId": "jp-japanese_communist_party_jcp",
-      "partyFactsId": 736,
-      "wikidataPartyId": "Q641600",
-      "sourcePartyName": "Japanese Communist Party (JCP)",
-      "sourcePersonId": "Q11576938",
-      "sourcePersonName": "Tomoko Tamura",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q641600-99C9233A-4822-494C-AB32-7F97AE3CEF6F",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.1xyn8u3:ef367eea8941",
-      "sourcePartyId": "jp-liberal_democratic_party_ldp",
-      "partyFactsId": 1746,
-      "wikidataPartyId": "Q232595",
-      "sourcePartyName": "Liberal Democratic Party (LDP)",
-      "sourcePersonId": "Q1705028",
-      "sourcePersonName": "Sanae Takaichi",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q232595-a95a01c6-461b-699a-92c1-c88c4539c436",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.97e14s:88c64c838a77",
-      "sourcePartyId": "fr-socialist_party_ps",
-      "partyFactsId": 1478,
-      "wikidataPartyId": "Q170972",
-      "sourcePartyName": "Socialist Party (PS)",
-      "sourcePersonId": "Q3351018",
-      "sourcePersonName": "Olivier Faure",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q170972-1618A9C9-D8ED-4987-9454-8B3577665645",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.97e14s:9a6e1e732dc5",
-      "sourcePartyId": "fr-national_rally_rn_",
-      "partyFactsId": 433,
-      "wikidataPartyId": "Q205150",
-      "sourcePartyName": "National Rally (RN)",
-      "sourcePersonId": "Q40655898",
-      "sourcePersonName": "Jordan Bardella",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q205150-8edf4f8a-4bd0-36e2-59d6-e4dba82004de",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
+      "officeholderMatch": {
+        "officeId": "office:country.sxojze:head_of_government",
+        "sourcePersonId": "Q566257",
+        "startDate": "2025-05-06",
+        "title": "Federal Chancellor",
+        "sourceRecordId": "germany-officeholder-Q566257"
+      },
       "partyId": "party:country.sxojze:08a93106ca5f",
       "sourcePartyId": "de-christian_democratic_union_cdu",
+      "partyFactsId": 1375,
+      "wikidataPartyId": "Q49762",
       "sourcePartyName": "Christian Democratic Union (CDU)",
       "sourcePersonId": "Q566257",
       "sourcePersonName": "Friedrich Merz",
       "fictionalAnalogueName": "Friedrich Merzen",
       "basis": "derived_analogue",
       "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
+      "sourceRole": "party_chairperson",
+      "gameplayRole": "party_head",
       "sourceRecordIds": [
         "germany-cdu-leader-2025",
         "germany-officeholder-Q566257",
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01",
-      "officeholderMatch": {
-        "officeId": "office:country.sxojze:head_of_government",
-        "sourcePersonId": "Q566257",
-        "startDate": "2025-05-06",
-        "title": "Federal Chancellor"
-      },
-      "partyFactsId": 1375,
-      "wikidataPartyId": "Q49762",
-      "chairStatementId": "Q49762-4c080fe3-4ace-9265-eab0-812322a66438"
-    },
-    {
-      "partyId": "party:country.sxojze:7b76e682488d",
-      "sourcePartyId": "de-christian_social_union_bavaria_csu",
-      "partyFactsId": 1731,
-      "wikidataPartyId": "Q49763",
-      "sourcePartyName": "Christian Social Union of Bavaria (CSU)",
-      "sourcePersonId": "Q50664",
-      "sourcePersonName": "Markus Söder",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q49763-E9A3A1F8-A708-4401-B6AF-46BFB0CACA3A",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
+        "partyfacts-wikidata-crosswalk-2026-10-01"
       ],
       "referenceDate": "2026-01-01"
     },
@@ -443,69 +316,17 @@
       "partyFactsId": 809,
       "wikidataPartyId": "Q29468",
       "sourcePartyName": "Republican Party",
-      "sourcePersonId": "Q124450754",
-      "sourcePersonName": "Michael Whatley",
+      "sourcePersonId": "Q56486440",
+      "sourcePersonName": "Joe Gruters",
+      "fictionalAnalogueName": "Joe Grutter",
       "basis": "derived_analogue",
       "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q29468-0c22f7fb-42de-7586-3e0f-307830b4c9b5",
+      "sourceRole": "party_chairperson",
+      "gameplayRole": "party_head",
       "sourceRecordIds": [
         "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.u6myyj:dc8ce2f5ed4c",
-      "sourcePartyId": "us-democratic_party_0",
-      "partyFactsId": 432,
-      "wikidataPartyId": "Q29552",
-      "sourcePartyName": "Democratic Party",
-      "sourcePersonId": "Q6388085",
-      "sourcePersonName": "Ken Martin",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q29552-04fe1018-4e36-9f8b-200b-9e6ead15d91a",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.zwicjl:0fb2b6a211ca",
-      "sourcePartyId": "gb-conservative_party",
-      "partyFactsId": 1567,
-      "wikidataPartyId": "Q9626",
-      "sourcePartyName": "Conservative Party",
-      "sourcePersonId": "Q21592171",
-      "sourcePersonName": "Kemi Badenoch",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q9626-fc7fc089-4bca-fe43-63cd-874355b58ca0",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
-      ],
-      "referenceDate": "2026-01-01"
-    },
-    {
-      "partyId": "party:country.zwicjl:47f08561874f",
-      "sourcePartyId": "gb-scottish_national_party",
-      "partyFactsId": 986,
-      "wikidataPartyId": "Q10658",
-      "sourcePartyName": "Scottish National Party",
-      "sourcePersonId": "Q333811",
-      "sourcePersonName": "John Swinney",
-      "basis": "derived_analogue",
-      "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
-      "chairStatementId": "Q10658-a46d26a4-42af-d65f-d412-df0deeb01811",
-      "sourceRecordIds": [
-        "partyfacts-wikidata-crosswalk-2026-10-01",
-        "wikidata-party-chair-snapshot-2026-10-01"
+        "rnc-joe-gruters-chair-2025-10-29",
+        "wikidata-joe-gruters-identity-2026-10-01"
       ],
       "referenceDate": "2026-01-01"
     },
@@ -517,9 +338,11 @@
       "sourcePartyName": "Labour Party",
       "sourcePersonId": "Q6383803",
       "sourcePersonName": "Keir Starmer",
+      "fictionalAnalogueName": "Keir Starmont",
       "basis": "derived_analogue",
       "sourceStatus": "derived",
-      "leaderRole": "party_chairperson",
+      "sourceRole": "party_chairperson",
+      "gameplayRole": "party_head",
       "chairStatementId": "Q9630-45ca7573-4b73-d0da-399c-1f48adbca104",
       "sourceRecordIds": [
         "partyfacts-wikidata-crosswalk-2026-10-01",
@@ -530,7 +353,9 @@
   ],
   "limitations": [
     "The structured pipeline reports every registered gameplay party. Exact Party Facts/Wikidata identifier coverage is partial; parties without reviewed ID links remain unavailable, never name-matched.",
-    "Only one distinct Wikidata P488 chairperson with a P580 start on or before 2026-01-01 and no P582 end by that date is eligible. Multiple active identities are ambiguous and are not selected.",
+    "A Wikidata P488 claim qualifies only when P580 and P582 explicitly bound a tenure interval containing 2026-01-01. A missing P582 is not evidence that tenure continued.",
+    "A manually reviewed, dated primary source may override incomplete P488 coverage when it explicitly names the person and party role near the scenario date; conflicting positive evidence remains ambiguous.",
+    "P488 means chairperson/presiding member, not necessarily constitutional or electoral party leader. The source role and the gameplay party-head role are recorded separately.",
     "The Wikidata extract was retrieved on 2026-10-01, after the scenario date; qualifiers support a dated tenure inference but do not establish what was publicly knowable on 2026-01-01.",
     "The Party Facts repository software licence is not treated as a data licence. Its crosswalk data remains requires_confirmation; commercial redistribution is not cleared.",
     "Wikidata chairperson identities provide provenance only. Gameplay persons remain fictional and receive no real-person ideology or policy preferences."
@@ -542,29 +367,70 @@
       "partyFactsId": 1428,
       "wikidataPartyId": "Q735105",
       "mappingStatus": "derived",
+      "sourcePersonId": "Q3573412",
+      "sourcePersonName": "Yves-François Blanchet",
+      "sourceRole": "party_leader",
+      "fictionalAnalogueName": "Yves-François Blancheval",
+      "sourceRecordIds": [
+        "bloc-quebecois-blanchet-2025-12-10"
+      ],
       "chairIds": [
         "Q3573412"
       ],
       "statementIds": [
         "Q735105-1FA95048-3421-4F6A-893B-DD6A0C679303"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "A reviewed, dated primary party source explicitly identifies this person in the recorded party role near the scenario date; the gameplay identity remains fictional."
     },
     {
       "partyId": "party:country.1aj872z:291d6ea4c4b0",
       "sourcePartyId": "ca-liberal_party",
       "partyFactsId": 1739,
       "wikidataPartyId": "Q138345",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
-        "Q192533"
+        "Q128529",
+        "Q128543",
+        "Q128568",
+        "Q128604",
+        "Q128626",
+        "Q128633",
+        "Q128664",
+        "Q128708",
+        "Q192533",
+        "Q3099714",
+        "Q311684",
+        "Q333003",
+        "Q366456",
+        "Q5217019",
+        "Q8619",
+        "Q888208",
+        "Q956335"
       ],
       "statementIds": [
-        "Q138345-2c7a6182-4a9e-ac8d-fcac-d81d0bcb9c10"
+        "Q138345-023d9507-4b27-3891-476d-2c2871781b32",
+        "Q138345-10904678-45bd-991d-1467-aa84cad4ea19",
+        "Q138345-2c7a6182-4a9e-ac8d-fcac-d81d0bcb9c10",
+        "Q138345-3afa27d1-45e8-d0a8-cf9d-7bf1e6e377a8",
+        "Q138345-44e75184-495a-21fe-37f0-76530bee6289",
+        "Q138345-6e096289-436b-8bbe-2f8c-54edf1d97e65",
+        "Q138345-83ea60c1-43bc-efaf-671f-3a9873f98678",
+        "Q138345-93ee2606-4371-02cc-9757-d4e6942eeb12",
+        "Q138345-a9758437-4118-460a-b0bf-8b3affd0052a",
+        "Q138345-b00421e1-495b-efaf-71ce-1d79e41a32d5",
+        "Q138345-cb978b16-45e6-427b-daef-8b6a49f1790d",
+        "Q138345-cc051b35-46a3-be54-5861-15047592faf4",
+        "Q138345-DD82AA14-91C9-4435-9B06-D582C2184231",
+        "Q138345-e7083cc2-4bf5-01cd-a04b-2636ac6e100a",
+        "Q138345-eade2d40-42af-73d7-b896-a82afab8d576",
+        "Q138345-f68d9c89-4e67-f064-dea6-a31571de21e6",
+        "Q138345-fa56dd61-48cf-9994-7854-14b8bbba6d41"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1aj872z:6870f25598ba",
@@ -572,29 +438,49 @@
       "partyFactsId": 152,
       "wikidataPartyId": "Q130765",
       "mappingStatus": "derived",
+      "sourcePersonId": "Q3035763",
+      "sourcePersonName": "Don Davies",
+      "sourceRole": "party_chairperson",
+      "fictionalAnalogueName": "Don Davison",
+      "sourceRecordIds": [
+        "wikidata-party-chair-snapshot-2026-10-01"
+      ],
       "chairIds": [
-        "Q3035763"
+        "Q1892814",
+        "Q3035763",
+        "Q6122681"
       ],
       "statementIds": [
+        "Q130765-288a56c1-4b93-0f9e-3953-8ee683e34f4b",
+        "Q130765-2f39a71d-4fcb-5a09-cf60-d02b0eca259b",
+        "Q130765-5A920586-1D3B-48A2-94D8-369AF48F65AC"
+      ],
+      "qualifyingStatementIds": [
         "Q130765-288a56c1-4b93-0f9e-3953-8ee683e34f4b"
       ],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "A source-dated P488 chairperson identity is used as the fictional gameplay party head; this does not claim that the chairperson is the constitutional or electoral party leader."
     },
     {
       "partyId": "party:country.1aj872z:721d519c10c6",
       "sourcePartyId": "ca-green_party",
       "partyFactsId": 931,
       "wikidataPartyId": "Q691730",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
-        "Q445620"
+        "Q133257785",
+        "Q445620",
+        "Q96743904"
       ],
       "statementIds": [
+        "Q691730-302fcbe1-42de-4ec9-dd01-521a9ff9e994",
+        "Q691730-3bb8aa88-4e4c-506e-23ad-501c66072fae",
+        "Q691730-a3547aea-4572-62a7-9580-06c31a8204f7",
         "Q691730-f94e50dd-4d66-7cdf-0985-41d351bc60d0"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1aj872z:b2973aec8190",
@@ -602,29 +488,56 @@
       "partyFactsId": 1004,
       "wikidataPartyId": "Q488523",
       "mappingStatus": "derived",
+      "sourcePersonId": "Q3386636",
+      "sourcePersonName": "Pierre Poilievre",
+      "sourceRole": "party_leader",
+      "fictionalAnalogueName": "Pierre Poilapin",
+      "sourceRecordIds": [
+        "canada-conservative-poilievre-2025-12-11"
+      ],
       "chairIds": [
-        "Q3386636"
+        "Q1700898",
+        "Q206",
+        "Q2846724",
+        "Q3386636",
+        "Q3441480"
       ],
       "statementIds": [
-        "Q488523-3689de3e-488e-e43f-b883-df01e4bf2f08"
+        "Q488523-1eb45d79-401b-06cc-968e-1769b38ebb97",
+        "Q488523-1F69B606-5A2A-4744-84A4-E713C99EA02D",
+        "Q488523-3689de3e-488e-e43f-b883-df01e4bf2f08",
+        "Q488523-39ffc865-4c57-7679-5f20-229ce3478f5a",
+        "Q488523-84b89455-45d3-a25e-c464-92ed84f3c2fd"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "A reviewed, dated primary party source explicitly identifies this person in the recorded party role near the scenario date; the gameplay identity remains fictional."
     },
     {
       "partyId": "party:country.1gxtyz9:8067bad62a65",
       "sourcePartyId": "au-greens_0",
       "partyFactsId": 1209,
       "wikidataPartyId": "Q781486",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
+        "Q14201517",
+        "Q186010",
+        "Q24598",
+        "Q4678672",
+        "Q542278",
         "Q6489515"
       ],
       "statementIds": [
-        "Q781486-2d10505b-45ae-3146-d3aa-97008e9895cb"
+        "Q781486-243FCF1A-3F30-4794-88B6-A8875B36A2A5",
+        "Q781486-2d10505b-45ae-3146-d3aa-97008e9895cb",
+        "Q781486-48b96939-4635-5c64-961c-641952dfec24",
+        "Q781486-56494482-4243-b2f1-62b9-9ee09c1f478d",
+        "Q781486-661f7744-46be-d868-90f0-650df8ab0888",
+        "Q781486-d22013e5-4451-0c8c-9047-71fb4a4b9850"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1gxtyz9:e17696de6831",
@@ -632,14 +545,30 @@
       "partyFactsId": 424,
       "wikidataPartyId": "Q216082",
       "mappingStatus": "derived",
+      "sourcePersonId": "Q335697",
+      "sourcePersonName": "Anthony Albanese",
+      "sourceRole": "party_leader",
+      "fictionalAnalogueName": "Anthony Alburn",
+      "sourceRecordIds": [
+        "australia-labor-leader-2025"
+      ],
       "chairIds": [
-        "Q335697"
+        "Q1077015",
+        "Q335697",
+        "Q41563",
+        "Q43135",
+        "Q4910865"
       ],
       "statementIds": [
-        "Q216082-2bdf2916-4a8f-8f33-0cc6-4e34812ce9c9"
+        "Q216082-2bdf2916-4a8f-8f33-0cc6-4e34812ce9c9",
+        "Q216082-36b7b81c-4319-6928-e4c4-592154a153a4",
+        "Q216082-6AD5803E-C3E3-463E-8FEB-15CC2435E1E9",
+        "Q216082-b79c3121-4135-6060-4347-d7c410cf10fb",
+        "Q216082-c93ca7e4-4c4c-902b-cd07-ea83730440ca"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "A reviewed, dated primary party source explicitly identifies this person in the recorded party role near the scenario date; the gameplay identity remains fictional."
     },
     {
       "partyId": "party:country.1mxwn59:1afe6008610c",
@@ -649,8 +578,9 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:3cd7f3055de6",
@@ -660,8 +590,9 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:7f61e67446bc",
@@ -671,8 +602,9 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:97a073593985",
@@ -682,23 +614,25 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:a6339a8d1ab1",
       "sourcePartyId": "br-progressive_party_pp",
       "partyFactsId": 781,
       "wikidataPartyId": "Q732852",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
         "Q15985219"
       ],
       "statementIds": [
         "Q732852-ddb93d60-4cb1-e7e1-ec91-b61707a567e3"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:c3488712859f",
@@ -708,8 +642,9 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:ca2a945bddf5",
@@ -719,8 +654,9 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:cc979f0b4e17",
@@ -730,23 +666,25 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1mxwn59:d7d86b7abffa",
       "sourcePartyId": "br-brazilian_social_democratic_party_psdb",
       "partyFactsId": 225,
       "wikidataPartyId": "Q1322897",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
         "Q2875339"
       ],
       "statementIds": [
         "Q1322897-80F1F31D-E172-4F98-9B52-C8C3295DD867"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1xyn8u3:2c63386618a7",
@@ -756,23 +694,29 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1xyn8u3:7fe1ccb1aa48",
       "sourcePartyId": "jp-constitutional_democratic_party_japan",
       "partyFactsId": 6135,
       "wikidataPartyId": "Q99233271",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
-        "Q57647"
+        "Q57647",
+        "Q6391984",
+        "Q732087"
       ],
       "statementIds": [
-        "Q99233271-56fda552-4991-11f2-730b-1060e1bad095"
+        "Q99233271-3833d236-4641-e29e-4ded-f73d88483de6",
+        "Q99233271-56fda552-4991-11f2-730b-1060e1bad095",
+        "Q99233271-7ddfa7c1-41d6-434a-8b5a-940c491056b5"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1xyn8u3:94b179595baa",
@@ -782,38 +726,41 @@
       "mappingStatus": "unavailable",
       "chairIds": [],
       "statementIds": [],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1xyn8u3:c76c5ee99064",
       "sourcePartyId": "jp-japanese_communist_party_jcp",
       "partyFactsId": 736,
       "wikidataPartyId": "Q641600",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
         "Q11576938"
       ],
       "statementIds": [
         "Q641600-99C9233A-4822-494C-AB32-7F97AE3CEF6F"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.1xyn8u3:ef367eea8941",
       "sourcePartyId": "jp-liberal_democratic_party_ldp",
       "partyFactsId": 1746,
       "wikidataPartyId": "Q232595",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
         "Q1705028"
       ],
       "statementIds": [
         "Q232595-a95a01c6-461b-699a-92c1-c88c4539c436"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.97e14s:3e5d4d881c99",
@@ -821,40 +768,56 @@
       "partyFactsId": 1595,
       "wikidataPartyId": "Q173152",
       "mappingStatus": "unavailable",
-      "chairIds": [],
-      "statementIds": [],
+      "chairIds": [
+        "Q215569",
+        "Q329",
+        "Q62354"
+      ],
+      "statementIds": [
+        "Q173152-3031222D-D1A2-4D7C-8DB4-1D1891446BC4",
+        "Q173152-371043e7-48e2-cdf2-9e0f-708aca426d94",
+        "Q173152-5e529a7e-4323-9d1a-66a6-6551dfc2bb18",
+        "Q173152-8ca74b8d-42b4-5db9-e766-6b9c24b147a9"
+      ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.97e14s:88c64c838a77",
       "sourcePartyId": "fr-socialist_party_ps",
       "partyFactsId": 1478,
       "wikidataPartyId": "Q170972",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
         "Q3351018"
       ],
       "statementIds": [
         "Q170972-1618A9C9-D8ED-4987-9454-8B3577665645"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.97e14s:9a6e1e732dc5",
       "sourcePartyId": "fr-national_rally_rn_",
       "partyFactsId": 433,
       "wikidataPartyId": "Q205150",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
-        "Q40655898"
+        "Q12927",
+        "Q40655898",
+        "Q7177"
       ],
       "statementIds": [
+        "Q205150-04de8c7b-4974-8a5f-a64c-cb075edacfb0",
+        "Q205150-639F7A18-D866-4BCF-B32C-96F57D01B971",
         "Q205150-8edf4f8a-4bd0-36e2-59d6-e4dba82004de"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.sxojze:08a93106ca5f",
@@ -862,82 +825,214 @@
       "partyFactsId": 1375,
       "wikidataPartyId": "Q49762",
       "mappingStatus": "derived",
+      "sourcePersonId": "Q566257",
+      "sourcePersonName": "Friedrich Merz",
+      "sourceRole": "party_chairperson",
+      "fictionalAnalogueName": "Friedrich Merzen",
+      "sourceRecordIds": [
+        "germany-cdu-leader-2025"
+      ],
       "chairIds": [
-        "Q566257"
+        "Q16019",
+        "Q2492",
+        "Q2496",
+        "Q2512",
+        "Q2518",
+        "Q470285",
+        "Q566257",
+        "Q567",
+        "Q71359",
+        "Q78205"
       ],
       "statementIds": [
-        "Q49762-4c080fe3-4ace-9265-eab0-812322a66438"
+        "Q49762-01443c92-45e0-1b70-fb33-6ee70c60cdda",
+        "Q49762-0fafd17a-4dc3-28a3-bafa-0bc06a5b76af",
+        "Q49762-4c080fe3-4ace-9265-eab0-812322a66438",
+        "q49762-4e0779b1-4d79-432f-a2ba-fedf8fce2fb4",
+        "Q49762-58d20fb0-4168-21b5-ac88-b899f7d4670e",
+        "Q49762-5a543354-4a13-ab45-8792-63ae951568f5",
+        "Q49762-8fef9a01-4033-532a-65a6-b99f8d0edf8c",
+        "Q49762-b3e79f33-4fab-c41a-101e-ac119da51288",
+        "Q49762-cc3f612d-4531-22e9-df99-509a4534cc22",
+        "Q49762-e53ee923-4199-4826-3ecd-13caa8406e7e"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "A source-dated P488 chairperson identity is used as the fictional gameplay party head; this does not claim that the chairperson is the constitutional or electoral party leader."
     },
     {
       "partyId": "party:country.sxojze:6244f2d93a49",
       "sourcePartyId": "de-alternative_germany_afd",
       "partyFactsId": 1976,
       "wikidataPartyId": "Q6721203",
-      "mappingStatus": "ambiguous",
+      "mappingStatus": "unavailable",
       "chairIds": [
+        "Q114824",
+        "Q15907132",
+        "Q1670311",
         "Q27975838",
-        "Q40895143"
+        "Q40895143",
+        "Q7477615",
+        "Q823840"
       ],
       "statementIds": [
         "Q6721203-050b8faf-4dcc-b188-23a1-2e565f89fcde",
+        "Q6721203-0d515e10-4b3a-33ba-45c8-16c089f7e732",
+        "Q6721203-3c6f0b0d-4c34-a867-3670-6cd491786bcb",
+        "Q6721203-942fc5cb-4437-96c7-d18b-c04af39f305d",
+        "Q6721203-c5ba06a8-4dfc-bba0-8ac5-6465668a5633",
+        "Q6721203-dd92c172-44c2-0454-b9b1-775eee0cfdd4",
         "Q6721203-f520dd30-486a-d16a-5710-68a0cc5cda3b"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "Multiple distinct stable-ID-linked Wikidata chair identities have dated tenures applicable on the scenario date; no leader is selected."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.sxojze:7b76e682488d",
       "sourcePartyId": "de-christian_social_union_bavaria_csu",
       "partyFactsId": 1731,
       "wikidataPartyId": "Q49763",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
-        "Q50664"
+        "Q44507",
+        "Q44612",
+        "Q44620",
+        "Q50664",
+        "Q62077",
+        "Q65920",
+        "Q67597",
+        "Q72562",
+        "Q73204"
       ],
       "statementIds": [
+        "Q49763-02f66763-4548-5546-6710-588b632632e2",
+        "Q49763-1db395ae-4293-3295-a13a-9097f3cd6b5b",
+        "Q49763-2a0e5a1d-4890-1208-3507-1a60c1b03bc6",
+        "Q49763-4786277a-4df2-98ed-9bd2-c1adb17c1386",
+        "Q49763-532d0de1-47ed-ae73-5dad-c071b727fbf5",
+        "Q49763-a2ee0c52-48ec-5052-1625-2f331920abd7",
+        "Q49763-b5e19df0-44bd-8bf9-9077-d65586eabc44",
+        "Q49763-da708c08-404f-46ee-e72b-981c7d0f8987",
         "Q49763-E9A3A1F8-A708-4401-B6AF-46BFB0CACA3A"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.sxojze:8ca049ac6212",
       "sourcePartyId": "de-green_party",
       "partyFactsId": 1816,
       "wikidataPartyId": "Q49766",
-      "mappingStatus": "ambiguous",
+      "mappingStatus": "unavailable",
       "chairIds": [
+        "Q102662",
+        "Q109943",
+        "Q109979",
+        "Q11762",
+        "Q1243855",
+        "Q12839",
+        "Q1662598",
         "Q17591264",
-        "Q76265"
+        "Q1789128",
+        "Q243081",
+        "Q31236",
+        "Q42841188",
+        "Q564328",
+        "Q65128",
+        "Q71635",
+        "Q75791",
+        "Q76265",
+        "Q77525",
+        "Q78408"
       ],
       "statementIds": [
+        "Q49766-017cd0e1-48c3-2f4d-6fcd-61ce47281547",
+        "Q49766-036b134c-4ca8-b983-70b2-43e0770e6a1f",
+        "Q49766-0618b53c-4137-e96a-eb93-81bb0960b2bb",
+        "Q49766-25ff745f-47a0-ca79-e4ad-63f3d7f983e4",
+        "q49766-2cacebda-4521-9a12-c707-95971f36c815",
+        "Q49766-3c356194-4fa6-e8a6-7947-a8f62190633c",
+        "Q49766-44da9eee-4328-c917-339f-746f0ee8a785",
+        "Q49766-488720ab-43c3-2a62-67d9-84873b9919d1",
+        "Q49766-48cfd990-4760-72c5-ea77-f8337e94f5a5",
+        "Q49766-4d00d019-4d69-a38e-2b6d-3eddf3d1c9cc",
+        "Q49766-52f29434-4e02-833e-395e-4620e04a9d69",
         "Q49766-5e7cd6dc-4fd1-16f3-50f6-19579781865e",
-        "Q49766-c1994cce-40f1-9437-4969-7b8ce6674a48"
+        "Q49766-6be1657c-485f-0250-b7e0-fde47e48370d",
+        "Q49766-76ae1872-4bf9-083b-cf6a-ce03ba84071b",
+        "Q49766-811f8c20-4bb0-d9d0-a130-9d9eaf1f7118",
+        "Q49766-8e2fb5f3-4319-6f7f-b4b3-222a3444793e",
+        "Q49766-8f59b9c7-41b7-949f-f7eb-dd1597ae4274",
+        "Q49766-92c6567e-4782-03ef-5820-3a447841cd07",
+        "Q49766-bf7a1dd2-433b-37dc-051f-31f62e19049b",
+        "Q49766-c0ade9f8-4439-1955-2cbc-a11f9bfeb5d3",
+        "Q49766-c1860ce6-4ff5-369d-3581-049320022616",
+        "Q49766-c1994cce-40f1-9437-4969-7b8ce6674a48",
+        "Q49766-d6490dc4-49ff-f2f0-8e91-339914cb01ab",
+        "Q49766-d66ca572-4d8c-aed3-b424-23eba4ba745c",
+        "Q49766-e9587259-4ebc-9c0c-4204-dd05dea5beb0",
+        "q49766-fa2fc373-4634-5744-a687-913806076eab"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "Multiple distinct stable-ID-linked Wikidata chair identities have dated tenures applicable on the scenario date; no leader is selected."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.sxojze:8fcfc4983ced",
       "sourcePartyId": "de-social_democratic_party_spd",
       "partyFactsId": 383,
       "wikidataPartyId": "Q49768",
-      "mappingStatus": "ambiguous",
+      "mappingStatus": "unavailable",
       "chairIds": [
         "Q1019016",
+        "Q110719",
+        "Q15813082",
+        "Q160902",
         "Q1756734",
-        "Q1806261"
+        "Q17905",
+        "Q1806261",
+        "Q2514",
+        "Q2530",
+        "Q2551",
+        "Q552483",
+        "Q57465",
+        "Q57682",
+        "Q58609",
+        "Q61321",
+        "Q62185",
+        "Q62279",
+        "Q62810",
+        "Q65109",
+        "Q76658"
       ],
       "statementIds": [
         "Q49768-1462f9ac-4497-50ed-8f3c-f7f37d4de747",
+        "Q49768-1958af96-4a60-f80a-67de-30c14091d2b8",
+        "Q49768-1b069353-4c2f-592f-cc7a-7dc0a2a889aa",
+        "Q49768-1cdf6cb1-4fd8-6eef-0b7d-3d7a2de1f171",
+        "Q49768-2a3eebe9-4c23-88bf-daf7-c4ec9b61b323",
+        "Q49768-3155637e-4bc2-c764-2a4e-4d30487a3578",
+        "q49768-435fb755-46a4-2240-6b70-cba4be71c171",
+        "Q49768-6529419d-467c-dae6-3b26-d9d0b4f60eac",
+        "Q49768-7812f785-4b82-9d1d-0686-21565218a148",
+        "Q49768-85590336-4652-c3aa-f2af-a13b7bc628b6",
+        "Q49768-885fd5b0-4b50-3c71-463a-74570fae58ff",
+        "Q49768-93a1afc2-4c70-7e9c-edc7-61c2adc7e9da",
+        "Q49768-954cbce5-4de0-bd89-d574-2b5466715b43",
+        "Q49768-9fbb6149-411b-4c07-1089-1971311c560b",
         "Q49768-aa515c96-4505-1cf0-48eb-7953e1d404cc",
-        "Q49768-f3fe7c6c-4714-a997-d08a-0700998df129"
+        "Q49768-ab62a11b-44f8-713f-7830-4f0197fbc8bf",
+        "Q49768-ce9cf8be-49b2-0b44-59cf-31bf4880ca89",
+        "Q49768-e8647405-4871-442c-ce93-fdacce15fecb",
+        "Q49768-ee28219a-46c9-e929-4180-1cd23d389e2d",
+        "Q49768-f3fe7c6c-4714-a997-d08a-0700998df129",
+        "Q49768-fd651a8b-4826-2c7d-7608-f54fe0fdf2f2"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "Multiple distinct stable-ID-linked Wikidata chair identities have dated tenures applicable on the scenario date; no leader is selected."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.sxojze:f71a2f2938cf",
@@ -947,14 +1042,35 @@
       "mappingStatus": "ambiguous",
       "chairIds": [
         "Q107176",
-        "Q112428905"
+        "Q110719",
+        "Q112428905",
+        "Q1682774",
+        "Q17124693",
+        "Q2369250",
+        "Q26206",
+        "Q65114",
+        "Q69346",
+        "Q71018",
+        "Q76342"
       ],
       "statementIds": [
+        "Q49764-13ef4cde-485e-aaa4-ee51-0e1858865e32",
+        "Q49764-460fb5d4-4b00-2a0b-5842-ebd9714a6146",
+        "Q49764-68994984-463f-9f1e-82b2-7b98bda9c98f",
+        "Q49764-7865f277-4521-d8a2-f80a-72b11da451f1",
+        "Q49764-81a3678a-4f71-5982-a413-14c6ac2ed3a1",
         "Q49764-937764c4-4cfd-36a4-3191-e28045558911",
+        "Q49764-9dbe830b-4a4a-a581-b72f-1c09461e3bea",
+        "Q49764-b0c41819-4a6b-2f50-4dd2-4a3547905826",
+        "Q49764-C752BD44-93CD-4331-AC03-2DCF8350ED26",
+        "Q49764-e2dc96ef-4421-2392-402e-115053f871e7",
+        "Q49764-f551b6b5-448c-7e4d-8ce9-9bddbae17211"
+      ],
+      "qualifyingStatementIds": [
         "Q49764-b0c41819-4a6b-2f50-4dd2-4a3547905826"
       ],
       "referenceDate": "2026-01-01",
-      "limitation": "Multiple distinct stable-ID-linked Wikidata chair identities have dated tenures applicable on the scenario date; no leader is selected."
+      "limitation": "Conflicting positively applicable party-leadership identities are present; no source person is selected."
     },
     {
       "partyId": "party:country.u6myyj:90c6a09fd8f4",
@@ -962,59 +1078,95 @@
       "partyFactsId": 809,
       "wikidataPartyId": "Q29468",
       "mappingStatus": "derived",
+      "sourcePersonId": "Q56486440",
+      "sourcePersonName": "Joe Gruters",
+      "sourceRole": "party_chairperson",
+      "fictionalAnalogueName": "Joe Grutter",
+      "sourceRecordIds": [
+        "rnc-joe-gruters-chair-2025-10-29",
+        "wikidata-joe-gruters-identity-2026-10-01"
+      ],
       "chairIds": [
-        "Q124450754"
+        "Q124450754",
+        "Q1357640",
+        "Q27899325",
+        "Q331838"
       ],
       "statementIds": [
-        "Q29468-0c22f7fb-42de-7586-3e0f-307830b4c9b5"
+        "Q29468-0c22f7fb-42de-7586-3e0f-307830b4c9b5",
+        "Q29468-4a4a9ab8-417c-3eb4-4419-112b718f5bcb",
+        "Q29468-5af682a9-491d-68e7-bf58-78721dbd5109",
+        "Q29468-D751BDFD-BEDD-4977-B079-3BB9A83026C1"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "A source-dated P488 chairperson identity is used as the fictional gameplay party head; this does not claim that the chairperson is the constitutional or electoral party leader."
     },
     {
       "partyId": "party:country.u6myyj:dc8ce2f5ed4c",
       "sourcePartyId": "us-democratic_party_0",
       "partyFactsId": 432,
       "wikidataPartyId": "Q29552",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
+        "Q27916181",
         "Q6388085"
       ],
       "statementIds": [
-        "Q29552-04fe1018-4e36-9f8b-200b-9e6ead15d91a"
+        "Q29552-04fe1018-4e36-9f8b-200b-9e6ead15d91a",
+        "q29552-4df0a3a2-4507-2d0e-5812-e11e4b861bfc"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.zwicjl:0fb2b6a211ca",
       "sourcePartyId": "gb-conservative_party",
       "partyFactsId": 1567,
       "wikidataPartyId": "Q9626",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
-        "Q21592171"
+        "Q180589",
+        "Q20055561",
+        "Q21592171",
+        "Q264766",
+        "Q272201"
       ],
       "statementIds": [
+        "Q9626-0116d8fe-41be-e6a8-3aaa-57c02bdb59d5",
+        "Q9626-08568418-461e-8149-a589-7a5452a0e485",
+        "Q9626-10d7b799-4204-8c14-813c-368dd42980da",
+        "Q9626-e58826fd-4ad8-e564-7df2-23fc00a8cfa2",
         "Q9626-fc7fc089-4bca-fe43-63cd-874355b58ca0"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.zwicjl:47f08561874f",
       "sourcePartyId": "gb-scottish_national_party",
       "partyFactsId": 986,
       "wikidataPartyId": "Q10658",
-      "mappingStatus": "derived",
+      "mappingStatus": "unavailable",
       "chairIds": [
-        "Q333811"
+        "Q10652",
+        "Q174924",
+        "Q333811",
+        "Q467112"
       ],
       "statementIds": [
-        "Q10658-a46d26a4-42af-d65f-d412-df0deeb01811"
+        "Q10658-49a9d428-4cfa-8cc3-8be9-42832c93e8f3",
+        "Q10658-99d0bbe8-4997-5f76-54c5-6107aa65e0df",
+        "Q10658-a46d26a4-42af-d65f-d412-df0deeb01811",
+        "Q10658-cea47e54-4542-a4a7-e5ee-f0c719f53f66",
+        "Q10658-d331d572-4183-80a4-ee1f-1dd7165fa063",
+        "Q10658-D7A7A067-A1B4-4A30-A007-5C2E3CCBE121"
       ],
+      "qualifyingStatementIds": [],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure."
     },
     {
       "partyId": "party:country.zwicjl:e5477bdba16d",
@@ -1022,14 +1174,72 @@
       "partyFactsId": 1516,
       "wikidataPartyId": "Q9630",
       "mappingStatus": "derived",
+      "sourcePersonId": "Q6383803",
+      "sourcePersonName": "Keir Starmer",
+      "sourceRole": "party_chairperson",
+      "fictionalAnalogueName": "Keir Starmont",
+      "sourceRecordIds": [
+        "wikidata-party-chair-snapshot-2026-10-01"
+      ],
       "chairIds": [
-        "Q6383803"
+        "Q10648",
+        "Q1231332",
+        "Q128956",
+        "Q129006",
+        "Q166646",
+        "Q208665",
+        "Q216594",
+        "Q232639",
+        "Q234182",
+        "Q247589",
+        "Q291169",
+        "Q317258",
+        "Q332377",
+        "Q332419",
+        "Q332460",
+        "Q332915",
+        "Q334073",
+        "Q337380",
+        "Q337459",
+        "Q6383803",
+        "Q746232",
+        "Q9545",
+        "Q9576"
       ],
       "statementIds": [
+        "Q9630-018ed839-4a49-8ba2-13fd-5c15a527a138",
+        "Q9630-07f8160e-4359-c050-9f38-1396159ee075",
+        "Q9630-08c141e2-472c-bff3-5200-c0407067e1b4",
+        "Q9630-0abd7e21-42fd-cef3-3955-3dde31212417",
+        "Q9630-0e3a9130-4d20-82e7-bf04-5b64db1e5cf3",
+        "Q9630-14a948ed-4254-f568-74e1-2b2a24e27f78",
+        "Q9630-2279a551-4261-a40d-1449-524fe464056e",
+        "Q9630-26266121-42ef-5aa1-0fb8-7ce26a696d1c",
+        "Q9630-371e09c9-4520-6743-37dd-901946f15a4a",
+        "Q9630-398eac01-4877-2ed4-44c0-7ba9ccfe708d",
+        "Q9630-45ca7573-4b73-d0da-399c-1f48adbca104",
+        "Q9630-4e2cbd36-466a-15dd-d97e-e80aa321341f",
+        "Q9630-53354ff6-4095-308a-478e-8226da65b018",
+        "Q9630-5c29470f-4436-8719-9f76-1b2342fc5ffb",
+        "Q9630-6431624f-4a37-834f-39dd-5cdb1a2caf21",
+        "Q9630-6a9e4e18-4622-8099-e17f-b783cbe60ede",
+        "Q9630-6d01d2da-4897-ccae-f28f-b8dc1272adde",
+        "Q9630-729474d6-4dd0-dd5b-819b-fd25037eee75",
+        "Q9630-8010cbfd-4980-ba28-8974-4bca0e4a6a61",
+        "Q9630-80e22aaa-4539-8fad-bd9a-ec866fc6bd23",
+        "Q9630-83a372c3-47d0-c2ad-adb4-25fe13fcce83",
+        "Q9630-aeaf6b5e-49c6-afd3-c76d-67279b553b32",
+        "Q9630-b11ae78b-4411-2d4f-dde4-feb478c0cddf",
+        "Q9630-c16a09f2-4855-aec6-92de-f54f0e3106b7",
+        "Q9630-d0557b96-41ae-d214-09e3-14a529b0d95d",
+        "Q9630-f4252cfb-4bd0-c015-3173-bd69815b49cc",
+        "Q9630-f4b558a3-44dc-444e-51f0-c9fd9d0f503a"
+      ],
+      "qualifyingStatementIds": [
         "Q9630-45ca7573-4b73-d0da-399c-1f48adbca104"
       ],
       "referenceDate": "2026-01-01",
-      "limitation": "One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional."
+      "limitation": "A source-dated P488 chairperson identity is used as the fictional gameplay party head; this does not claim that the chairperson is the constitutional or electoral party leader."
     }
   ]
 }

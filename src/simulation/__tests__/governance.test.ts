@@ -1,5 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import { advanceSimulationDays } from '../engine';
@@ -21,6 +23,7 @@ import type { TaxKind, TaxRule } from '../fiscal/model';
 import { evaluateImmediateFiscalPolicyCounterfactual, scheduleFiscalReform } from '../fiscal/runtime';
 import { COHORT } from '../politics/model';
 import politicalOffices from '../../data/political-offices.json';
+import { StartGame } from '../../components/StartGame';
 
 const fullWorld = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
 let initial: SimulationState;
@@ -120,7 +123,7 @@ describe('governance 0.14 player and political decisions', () => {
   it('initializes one fictional gameplay leader per party and reconciles only reviewed executive offices', () => {
     expect(initial).toMatchObject({ schemaVersion: 13, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
     expect(Object.values(initial.governance.persons).filter(person => person.isPartyLeader && person.status === 'active')).toHaveLength(Object.keys(politicalRegistry.parties).length);
-    expect(Object.values(initial.governance.persons).filter(person => person.office?.evidence)).toHaveLength(5);
+    expect(Object.values(initial.governance.persons).filter(person => person.office?.evidence)).toHaveLength(3);
   });
 
   it('creates stable sequence IDs independent of display names', () => {
@@ -137,15 +140,76 @@ describe('governance 0.14 player and political decisions', () => {
     expect(second.governance.persons).toEqual(first.governance.persons);
     const leaders = Object.values(first.governance.persons).filter(person => person.isPartyLeader);
     expect(leaders).toHaveLength(Object.keys(politicalRegistry.parties).length);
-    expect(leaders.filter(person => person.leaderProvenance?.basis === 'derived_analogue')).toHaveLength(21);
-    expect(leaders.filter(person => person.leaderProvenance?.sourceLeaderStatus === 'ambiguous')).toHaveLength(4);
-    expect(leaders.filter(person => person.leaderProvenance?.basis === 'modelled_fallback')).toHaveLength(leaders.length - 21);
+    const sourceDerivedLeaders = leaders.filter(person => person.leaderProvenance?.basis === 'derived_analogue');
+    expect(sourceDerivedLeaders).toHaveLength(7);
+    expect(leaders.filter(person => person.leaderProvenance?.sourceLeaderStatus === 'ambiguous')).toHaveLength(1);
+    expect(leaders.filter(person => person.leaderProvenance?.basis === 'modelled_fallback')).toHaveLength(leaders.length - 7);
     expect(new Set(leaders.map(person => person.displayName)).size).toBe(leaders.length);
-    expect(leaders.every(person => person.displayName !== person.leaderProvenance?.sourceLeader?.name)).toBe(true);
+    expect(sourceDerivedLeaders.every(person => person.displayName !== person.leaderProvenance?.sourceLeader?.name && person.leaderProvenance?.sourceLeader?.sourceRole)).toBe(true);
+    const canadianAliases = new Map(sourceDerivedLeaders.filter(person => person.countryId === 'country.1aj872z').map(person => [person.leaderProvenance!.sourceLeader!.name, person.displayName]));
+    expect(canadianAliases).toEqual(new Map([
+      ['Yves-François Blanchet', 'Yves-François Blancheval'],
+      ['Don Davies', 'Don Davison'],
+      ['Pierre Poilievre', 'Pierre Poilapin'],
+    ]));
     const reconciledOffices = leaders.filter(person => person.office?.evidence);
-    expect(reconciledOffices).toHaveLength(5);
+    expect(reconciledOffices).toHaveLength(3);
     expect(reconciledOffices.some(person => person.office?.title === 'Federal Chancellor')).toBe(true);
     expect(reconciledOffices.some(person => person.office?.title === 'Prime Minister')).toBe(true);
+  });
+
+  it('renders fictional Canadian party leaders and never exposes their source names in the start flow', () => {
+    const state = initializePartyLeaders(worldBase());
+    const canadianLeaders = Object.values(state.governance.persons).filter(person => person.countryId === 'country.1aj872z' && person.isPartyLeader);
+    const markup = renderToStaticMarkup(createElement(StartGame, {
+      countries: [{ id: 'country.1aj872z', commonName: 'Canada' }],
+      leaders: canadianLeaders,
+      onPlay: () => undefined,
+    }));
+    expect(markup).toContain('Yves-François Blancheval');
+    expect(markup).toContain('Fictional gameplay analogue based on reviewed party-leadership evidence');
+    expect(markup).not.toContain('Yves-François Blanchet');
+    expect(markup).not.toContain('Pierre Poilievre');
+    expect(markup).not.toContain('Don Davies');
+  });
+
+  it('revalidates schema-13 initial leader identities without changing the schema or simulated date', () => {
+    const started = advanceSimulationDays(initial, 5);
+    const legacy = structuredClone(started) as SimulationState;
+    const republican = Object.values(legacy.governance.persons).find(person => person.partyId === 'party:country.u6myyj:90c6a09fd8f4' && person.isPartyLeader)!;
+    legacy.governance.persons[republican.id] = {
+      ...republican,
+      displayName: 'Joriven Dalen',
+      leaderProvenance: {
+        ...republican.leaderProvenance!,
+        method: 'reviewed_global_party_chair_snapshot_v1',
+        sourceLeader: { id: 'wikidata:Q124450754', name: 'Michael Whatley', sourceRecordIds: ['wikidata-party-chair-snapshot-2026-10-01'] },
+      },
+    };
+    const unsupported = Object.values(legacy.governance.persons).find(person => person.partyId === 'party:country.zwicjl:0fb2b6a211ca' && person.isPartyLeader)!;
+    legacy.governance.persons[unsupported.id] = {
+      ...unsupported,
+      displayName: 'Kemi Badenoch',
+      leaderProvenance: {
+        ...unsupported.leaderProvenance!,
+        basis: 'derived_analogue',
+        method: 'reviewed_global_party_chair_snapshot_v1',
+        sourceLeaderStatus: 'derived',
+        sourceLeader: { id: 'wikidata:Q21592171', name: 'Kemi Badenoch', sourceRecordIds: ['wikidata-party-chair-snapshot-2026-10-01'] },
+      },
+    };
+    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
+    expect(restored.schemaVersion).toBe(13);
+    expect(restored.date).toBe(started.date);
+    expect(restored.engine.tick).toBe(started.engine.tick);
+    expect(restored.engine.seed).toBe(started.engine.seed);
+    expect(restored.fiscal).toEqual(started.fiscal);
+    expect(restored.governance.persons[republican.id]).toMatchObject({
+      displayName: 'Joe Grutter',
+      leaderProvenance: { sourceLeaderStatus: 'derived', sourceLeader: { id: 'wikidata:Q56486440', name: 'Joe Gruters', sourceRole: 'party_chairperson' } },
+    });
+    expect(restored.governance.persons[unsupported.id].displayName).not.toBe('Kemi Badenoch');
+    expect(restored.governance.persons[unsupported.id].leaderProvenance).toMatchObject({ basis: 'modelled_fallback', sourceLeaderStatus: 'unavailable' });
   });
 
   it('retains exact reviewed leader provenance, fictional names, and one-person office reconciliation through save reload', () => {
@@ -186,7 +250,7 @@ describe('governance 0.14 player and political decisions', () => {
     expect(oppositionParty.governmentStatus).toBe('opposition');
     expect(oppositionLeader.office).toBeUndefined();
     expect(oppositionLeader.leaderProvenance?.basis).toBe('modelled_fallback');
-    expect(oppositionLeader.leaderProvenance?.sourceLeaderStatus).toBe('ambiguous');
+    expect(oppositionLeader.leaderProvenance?.sourceLeaderStatus).toBe('unavailable');
   });
 
   it('derives presidential executive authority only from resolved institutional evidence', () => {

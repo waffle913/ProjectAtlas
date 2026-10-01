@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "referenceDate": "2026-01-01",
+  "retrievedAt": "2026-10-01",
+  "sources": [
+    {
+      "sourceRecordId": "bloc-quebecois-blanchet-2025-12-10",
+      "publisher": "Bloc Québécois",
+      "url": "https://www.blocquebecois.org/session-automnale-2025-limposture-liberale-au-grand-jour/",
+      "evidenceDate": "2025-12-10",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "requires_confirmation",
+      "attribution": "Bloc Québécois",
+      "claim": "The dated party release identifies Yves-François Blanchet as chef du Bloc Québécois.",
+      "limitations": [
+        "This is a dated primary-source identification near the scenario date, not a complete leadership-tenure history.",
+        "The publication's reuse licence is not established."
+      ]
+    },
+    {
+      "sourceRecordId": "canada-conservative-poilievre-2025-12-11",
+      "publisher": "Conservative Party of Canada",
+      "url": "https://www.conservative.ca/events/",
+      "evidenceDate": "2025-12-11",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "requires_confirmation",
+      "attribution": "Conservative Party of Canada",
+      "claim": "The party's dated December 11, 2025 event listing explicitly identifies Pierre Poilievre as Party Leader.",
+      "limitations": [
+        "The events page is mutable and its current rendering no longer shows the 2025 event; the indexed dated event record is retained as reviewed evidence.",
+        "This is a near-date status record, not a complete leadership-tenure history.",
+        "The publication's reuse licence is not established."
+      ]
+    },
+    {
+      "sourceRecordId": "rnc-joe-gruters-chair-2025-10-29",
+      "publisher": "Republican National Committee",
+      "url": "https://gop.com/press-release/icymi-rnc-chairman-joe-gruters-discusses-2026-midterms-with-breitbart-news/",
+      "evidenceDate": "2025-10-29",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "requires_confirmation",
+      "attribution": "Republican National Committee",
+      "claim": "The dated RNC release identifies Joe Gruters as RNC Chairman while discussing the 2026 midterms.",
+      "limitations": [
+        "This is a dated primary-source identification near the scenario date, not a complete leadership-tenure history.",
+        "The page is blocked from direct retrieval; the pinned title, date and role were reviewed from the RNC search-indexed release.",
+        "The publication's reuse licence is not established."
+      ]
+    },
+    {
+      "sourceRecordId": "wikidata-joe-gruters-identity-2026-10-01",
+      "publisher": "Wikidata contributors",
+      "url": "https://www.wikidata.org/wiki/Q56486440",
+      "evidenceDate": "2026-10-01",
+      "referenceDate": "2026-01-01",
+      "retrievedAt": "2026-10-01",
+      "licence": "CC0-1.0",
+      "attribution": "Wikidata contributors; CC0 1.0.",
+      "claim": "Wikidata Q56486440 labels the person Joe Gruters; the RNC primary source independently supports his party-chair role.",
+      "limitations": [
+        "The Wikidata item establishes the stable identity label only, not the RNC role or its applicability on the scenario date."
+      ]
+    }
+  ],
+  "primarySourceOverrides": [
+    {
+      "partyFactsId": 1428,
+      "wikidataPartyId": "Q735105",
+      "sourcePersonId": "Q3573412",
+      "sourcePersonName": "Yves-François Blanchet",
+      "sourceRole": "party_leader",
+      "sourceRecordId": "bloc-quebecois-blanchet-2025-12-10",
+      "evidenceDate": "2025-12-10",
+      "appliesOnScenarioDate": true,
+      "fictionalAnalogueName": "Yves-François Blancheval"
+    },
+    {
+      "partyFactsId": 1004,
+      "wikidataPartyId": "Q488523",
+      "sourcePersonId": "Q3386636",
+      "sourcePersonName": "Pierre Poilievre",
+      "sourceRole": "party_leader",
+      "sourceRecordId": "canada-conservative-poilievre-2025-12-11",
+      "evidenceDate": "2025-12-11",
+      "appliesOnScenarioDate": true,
+      "fictionalAnalogueName": "Pierre Poilapin"
+    },
+    {
+      "partyFactsId": 424,
+      "wikidataPartyId": "Q216082",
+      "sourcePersonId": "Q335697",
+      "sourcePersonName": "Anthony Albanese",
+      "sourceRole": "party_leader",
+      "sourceRecordId": "australia-labor-leader-2025",
+      "evidenceDate": "2025-05-13",
+      "appliesOnScenarioDate": true,
+      "fictionalAnalogueName": "Anthony Alburn",
+      "officeholderMatch": {
+        "officeId": "office:country.1gxtyz9:head_of_government",
+        "sourcePersonId": "Q335697",
+        "startDate": "2022-05-23",
+        "title": "Prime Minister",
+        "sourceRecordId": "australia-officeholder-Q335697"
+      }
+    },
+    {
+      "partyFactsId": 1375,
+      "wikidataPartyId": "Q49762",
+      "sourcePersonId": "Q566257",
+      "sourcePersonName": "Friedrich Merz",
+      "sourceRole": "party_chairperson",
+      "sourceRecordId": "germany-cdu-leader-2025",
+      "evidenceDate": "2025-05-06",
+      "appliesOnScenarioDate": true,
+      "fictionalAnalogueName": "Friedrich Merzen",
+      "officeholderMatch": {
+        "officeId": "office:country.sxojze:head_of_government",
+        "sourcePersonId": "Q566257",
+        "startDate": "2025-05-06",
+        "title": "Federal Chancellor",
+        "sourceRecordId": "germany-officeholder-Q566257"
+      }
+    },
+    {
+      "partyFactsId": 809,
+      "wikidataPartyId": "Q29468",
+      "sourcePersonId": "Q56486440",
+      "sourcePersonName": "Joe Gruters",
+      "sourceRole": "party_chairperson",
+      "sourceRecordId": "rnc-joe-gruters-chair-2025-10-29",
+      "identitySourceRecordId": "wikidata-joe-gruters-identity-2026-10-01",
+      "evidenceDate": "2025-10-29",
+      "appliesOnScenarioDate": true,
+      "fictionalAnalogueName": "Joe Grutter"
+    }
+  ],
+  "fictionalAnalogueNames": [
+    {
+      "partyFactsId": 1428,
+      "sourcePersonId": "Q3573412",
+      "name": "Yves-François Blancheval"
+    },
+    {
+      "partyFactsId": 152,
+      "sourcePersonId": "Q3035763",
+      "name": "Don Davison"
+    },
+    {
+      "partyFactsId": 1004,
+      "sourcePersonId": "Q3386636",
+      "name": "Pierre Poilapin"
+    },
+    {
+      "partyFactsId": 424,
+      "sourcePersonId": "Q335697",
+      "name": "Anthony Alburn"
+    },
+    {
+      "partyFactsId": 1375,
+      "sourcePersonId": "Q566257",
+      "name": "Friedrich Merzen"
+    },
+    {
+      "partyFactsId": 809,
+      "sourcePersonId": "Q56486440",
+      "name": "Joe Grutter"
+    },
+    {
+      "partyFactsId": 1516,
+      "sourcePersonId": "Q6383803",
+      "name": "Keir Starmont"
+    }
+  ]
+}

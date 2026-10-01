@@ -7,6 +7,7 @@ const officesPath = 'src/data/political-offices.json';
 const vpartyPath = 'src/data/source-snapshots/vparty-ideology-2022.json';
 const bridgePath = 'src/data/source-snapshots/partyfacts-wikidata-2026-10-01.json';
 const chairsPath = 'src/data/source-snapshots/wikidata-party-chairs-2026-10-01.json';
+const evidencePath = 'src/data/source-snapshots/party-leadership-evidence-2026-01-01.json';
 const sourcesPath = 'src/data/source-snapshots/party-leadership-2026-01-01.json';
 const reportPath = 'src/data/party-leader-coverage-report.json';
 const bytes = path => readFileSync(path);
@@ -16,18 +17,19 @@ const officesBytes = bytes(officesPath);
 const vpartyBytes = bytes(vpartyPath);
 const bridgeBytes = bytes(bridgePath);
 const chairBytes = bytes(chairsPath);
+const evidenceBytes = bytes(evidencePath);
 const sourceBytes = bytes(sourcesPath);
 const registry = JSON.parse(registryBytes);
 const offices = JSON.parse(officesBytes);
 const vparty = JSON.parse(vpartyBytes);
 const bridges = JSON.parse(bridgeBytes);
 const chairs = JSON.parse(chairBytes);
+const evidence = JSON.parse(evidenceBytes);
 const priorSources = JSON.parse(sourceBytes);
 const parties = Object.values(registry.parties).sort((a, b) => a.id.localeCompare(b.id));
 const partyBySourceId = new Map(parties.map(party => [party.sourceBasis.sourcePartyId, party]));
 const bridgeByPartyFactsId = new Map(bridges.records.map(item => [String(item.partyFactsId), item]));
 const priorMappingByPartyId = new Map(priorSources.mappings.map(mapping => [mapping.partyId, mapping]));
-const activeChairClaims = new Map();
 const scenarioDate = registry.referenceDate;
 const partyFactsSourceRecordId = 'partyfacts-wikidata-crosswalk-2026-10-01';
 const wikidataSourceRecordId = 'wikidata-party-chair-snapshot-2026-10-01';
@@ -55,13 +57,18 @@ const wikidataSourceRecord = {
   attribution: chairs.attribution,
   claim: 'Pinned Wikidata P488 chairperson claims with P580/P582 tenure qualifiers for the reviewed Party Facts/Wikidata party QIDs.',
   snapshotPath: chairsPath,
-  limitations: chairs.limitations,
+  limitations: [
+    ...chairs.limitations,
+    'P488 identifies a chairperson/presiding member, not necessarily the constitutional or electoral party leader. A chairperson is used as the gameplay party head only when the reviewed mapping records that source role explicitly.',
+    'P580 without a P582 end date is not treated as evidence that a chairperson still held the role on the scenario date.',
+  ],
 };
 
 assert.equal(registry.referenceDate, '2026-01-01');
 assert.equal(vparty.referenceDate, registry.referenceDate);
 assert.equal(bridges.referenceDate, registry.referenceDate);
 assert.equal(chairs.referenceDate, registry.referenceDate);
+assert.equal(evidence.referenceDate, registry.referenceDate);
 assert.equal(chairs.licence, 'CC0-1.0');
 assert.equal(bridges.licence, 'requires_confirmation');
 assert.equal(bridges.sourceCommit, '61e04e83a4eff4e285bdb724cc11cc8bdf4beb16');
@@ -72,27 +79,114 @@ assert.deepEqual([...chairs.queryPartyIds].sort(), bridges.records.map(record =>
 assert.equal(chairs.queryResultRecordsSha256, hash(JSON.stringify(chairs.records)));
 assert.ok(chairs.records.every(record => chairs.queryPartyIds.includes(record.partyId)));
 
-function candidateStatus(claims) {
-  const active = claims.filter(claim => claim.rank !== 'DeprecatedRank' && claim.startDate
-    && claim.startDate <= scenarioDate && (!claim.endDate || claim.endDate > scenarioDate));
-  return new Set(active.map(claim => claim.chairId)).size === 1
-    ? 'derived'
-    : new Set(active.map(claim => claim.chairId)).size > 1 ? 'ambiguous' : 'unavailable';
+const sourceRecordsById = new Map([
+  ...priorSources.sourceRecords.filter(record => !evidence.sources.some(item => item.sourceRecordId === record.sourceRecordId)),
+  ...evidence.sources,
+  partyFactsSourceRecord,
+  wikidataSourceRecord,
+].map(record => [record.sourceRecordId, record]));
+const sourceRecords = [...sourceRecordsById.values()].sort((a, b) => a.sourceRecordId.localeCompare(b.sourceRecordId));
+const sourceRecordById = new Map(sourceRecords.map(record => [record.sourceRecordId, record]));
+const analogueNames = new Map(evidence.fictionalAnalogueNames.map(item => [`${item.partyFactsId}:${item.sourcePersonId}`, item.name]));
+assert.equal(analogueNames.size, evidence.fictionalAnalogueNames.length, 'Fictional analogue table keys must be unique.');
+assert.equal(new Set(evidence.fictionalAnalogueNames.map(item => item.name)).size, evidence.fictionalAnalogueNames.length, 'Fictional analogue names must be unique.');
+assert.ok(evidence.fictionalAnalogueNames.every(item => item.name.trim() && !item.name.includes('\n')));
+const overrideByPartyFactsId = new Map();
+for (const override of evidence.primarySourceOverrides) {
+  const matches = overrideByPartyFactsId.get(String(override.partyFactsId)) ?? [];
+  matches.push(override);
+  overrideByPartyFactsId.set(String(override.partyFactsId), matches);
+  const bridge = bridgeByPartyFactsId.get(String(override.partyFactsId));
+  assert.ok(bridge, `Primary evidence override has no exact Party Facts bridge: ${override.partyFactsId}.`);
+  assert.equal(bridge.wikidataPartyId, override.wikidataPartyId, `Primary evidence override party identifier mismatch: ${override.partyFactsId}.`);
+  assert.ok(['party_chairperson', 'party_leader', 'interim_party_leader'].includes(override.sourceRole));
+  assert.equal(override.appliesOnScenarioDate, true);
+  assert.ok(override.evidenceDate && override.evidenceDate <= scenarioDate);
+  assert.ok(sourceRecordById.has(override.sourceRecordId), `Primary evidence source record is missing: ${override.sourceRecordId}.`);
+  assert.equal(sourceRecordById.get(override.sourceRecordId).evidenceDate, override.evidenceDate);
+  if (override.fictionalAnalogueName) {
+    assert.equal(analogueNames.get(`${override.partyFactsId}:${override.sourcePersonId}`), override.fictionalAnalogueName);
+    assert.notEqual(override.fictionalAnalogueName, override.sourcePersonName);
+  }
+  if (override.identitySourceRecordId) assert.ok(sourceRecordById.has(override.identitySourceRecordId));
+  if (override.officeholderMatch) {
+    const { officeholderMatch } = override;
+    const sourceOfficeholder = offices.officeholders.find(item => item.officeId === officeholderMatch.officeId);
+    assert.equal(officeholderMatch.sourcePersonId, override.sourcePersonId);
+    assert.equal(sourceOfficeholder?.status, 'available');
+    assert.equal(sourceOfficeholder?.referenceDate, scenarioDate);
+    assert.equal(sourceOfficeholder?.person?.id, `wikidata:${override.sourcePersonId}`);
+    assert.equal(sourceOfficeholder?.startDate, officeholderMatch.startDate);
+    assert.ok(sourceRecordById.has(officeholderMatch.sourceRecordId));
+    assert.equal(sourceRecordById.get(officeholderMatch.sourceRecordId).officeId, officeholderMatch.officeId);
+  }
 }
-assert.equal(candidateStatus([{ rank: 'NormalRank', startDate: '2025-01-01', endDate: null, chairId: 'Q1' }]), 'derived');
-assert.equal(candidateStatus([
-  { rank: 'NormalRank', startDate: '2025-01-01', endDate: null, chairId: 'Q1' },
-  { rank: 'PreferredRank', startDate: '2025-02-01', endDate: null, chairId: 'Q2' },
-]), 'ambiguous');
-assert.equal(candidateStatus([{ rank: 'NormalRank', startDate: null, endDate: null, chairId: 'Q1' }]), 'unavailable');
-assert.equal(candidateStatus([{ rank: 'NormalRank', startDate: '2026-01-02', endDate: null, chairId: 'Q1' }]), 'unavailable');
+function resolveEvidence(claims, primaryOverrides) {
+  const datedClaims = claims.filter(claim => claim.rank !== 'DeprecatedRank' && claim.startDate && claim.endDate
+    && claim.startDate <= scenarioDate && claim.endDate > scenarioDate);
+  const positiveEvidence = [
+    ...datedClaims.map(claim => ({
+      sourcePersonId: claim.chairId,
+      sourcePersonName: claim.chairName,
+      sourceRole: 'party_chairperson',
+      statementId: claim.statementId,
+      sourceRecordIds: [wikidataSourceRecordId],
+      evidenceDate: claim.startDate,
+    })),
+    ...primaryOverrides.filter(item => item.appliesOnScenarioDate === true).map(item => ({
+      sourcePersonId: item.sourcePersonId,
+      sourcePersonName: item.sourcePersonName,
+      sourceRole: item.sourceRole,
+      statementId: undefined,
+      sourceRecordIds: [item.sourceRecordId, ...(item.identitySourceRecordId ? [item.identitySourceRecordId] : [])],
+      evidenceDate: item.evidenceDate,
+    })),
+  ];
+  const byIdentity = new Map();
+  for (const item of positiveEvidence) {
+    const matches = byIdentity.get(item.sourcePersonId) ?? [];
+    matches.push(item);
+    byIdentity.set(item.sourcePersonId, matches);
+  }
+  const identities = [...byIdentity.keys()].sort();
+  const selectedId = identities.length === 1 ? identities[0] : undefined;
+  const unresolvedConflictingOpenClaim = selectedId && claims.some(claim =>
+    claim.rank !== 'DeprecatedRank'
+    && claim.startDate
+    && claim.startDate <= scenarioDate
+    && !claim.endDate
+    && claim.chairId !== selectedId
+    && !primaryOverrides.some(item => item.sourcePersonId === selectedId && item.evidenceDate > claim.startDate),
+  );
+  const status = identities.length > 1 || unresolvedConflictingOpenClaim
+    ? 'ambiguous'
+    : identities.length === 1 ? 'derived' : 'unavailable';
+  return {
+    status,
+    selected: status === 'derived'
+      ? byIdentity.get(selectedId).sort((a, b) => a.sourceRole.localeCompare(b.sourceRole) || a.evidenceDate.localeCompare(b.evidenceDate))[0]
+      : undefined,
+    evidence: positiveEvidence,
+    datedClaims,
+  };
+}
 
-for (const claim of chairs.records) {
-  if (claim.rank === 'DeprecatedRank' || !claim.startDate || claim.startDate > scenarioDate || claim.endDate && claim.endDate <= scenarioDate) continue;
-  const claims = activeChairClaims.get(claim.partyId) ?? [];
-  claims.push(claim);
-  activeChairClaims.set(claim.partyId, claims);
-}
+assert.equal(resolveEvidence([{ rank: 'NormalRank', startDate: '2024-01-01', endDate: null, chairId: 'Q-old' }], []).status, 'unavailable');
+assert.equal(resolveEvidence([{ rank: 'NormalRank', startDate: '2024-01-01', endDate: '2027-01-01', chairId: 'Q1' }], []).status, 'derived');
+assert.equal(resolveEvidence([
+  { rank: 'NormalRank', startDate: '2024-01-01', endDate: '2027-01-01', chairId: 'Q1' },
+  { rank: 'NormalRank', startDate: '2025-01-01', endDate: '2027-01-01', chairId: 'Q2' },
+], []).status, 'ambiguous');
+assert.equal(resolveEvidence([
+  { rank: 'NormalRank', startDate: '2024-01-01', endDate: '2027-01-01', chairId: 'Q1' },
+  { rank: 'PreferredRank', startDate: '2024-01-01', endDate: null, chairId: 'Q2' },
+], []).status, 'ambiguous');
+const staleChairReplacementFixture = resolveEvidence(
+  [{ rank: 'PreferredRank', startDate: '2024-03-08', endDate: null, chairId: 'Q-old' }],
+  [{ sourcePersonId: 'Q-new', sourcePersonName: 'New Chair', sourceRole: 'party_chairperson', sourceRecordId: 'fixture-primary', evidenceDate: '2025-10-29', appliesOnScenarioDate: true }],
+);
+assert.equal(staleChairReplacementFixture.status, 'derived');
+assert.equal(staleChairReplacementFixture.selected.sourcePersonId, 'Q-new');
 
 const candidates = [];
 for (const link of vparty.parties) {
@@ -102,29 +196,35 @@ for (const link of vparty.parties) {
   assert.equal(link.linkMethod, 'reviewed_ipu_party_to_partyfacts_id_v1');
   assert.equal(party.sourceBasis.sourcePartyId, link.sourcePartyId);
 
-  const claims = activeChairClaims.get(bridge.wikidataPartyId) ?? [];
-  const claimsByChair = new Map();
-  for (const claim of claims) {
-    const matches = claimsByChair.get(claim.chairId) ?? [];
-    matches.push(claim);
-    claimsByChair.set(claim.chairId, matches);
-  }
-  const status = candidateStatus(claims);
-  const exactClaims = [...claimsByChair.values()].flat().sort((a, b) => a.statementId.localeCompare(b.statementId));
+  const claims = chairs.records.filter(claim => claim.partyId === bridge.wikidataPartyId);
+  const resolved = resolveEvidence(claims, overrideByPartyFactsId.get(String(link.partyFactsId)) ?? []);
+  const datedClaims = resolved.datedClaims.sort((a, b) => a.statementId.localeCompare(b.statementId));
+  const allScenarioStartClaims = claims.filter(claim => claim.rank !== 'DeprecatedRank' && claim.startDate && claim.startDate <= scenarioDate)
+    .sort((a, b) => a.statementId.localeCompare(b.statementId));
   candidates.push({
     partyId: party.id,
     sourcePartyId: link.sourcePartyId,
     partyFactsId: link.partyFactsId,
     wikidataPartyId: bridge.wikidataPartyId,
-    mappingStatus: status,
-    chairIds: [...claimsByChair.keys()].sort(),
-    statementIds: exactClaims.map(claim => claim.statementId),
+    mappingStatus: resolved.status,
+    sourcePersonId: resolved.selected?.sourcePersonId,
+    sourcePersonName: resolved.selected?.sourcePersonName,
+    sourceRole: resolved.selected?.sourceRole,
+    fictionalAnalogueName: resolved.selected
+      ? analogueNames.get(`${link.partyFactsId}:${resolved.selected.sourcePersonId}`)
+      : undefined,
+    sourceRecordIds: resolved.selected?.sourceRecordIds,
+    chairIds: [...new Set(allScenarioStartClaims.map(claim => claim.chairId))].sort(),
+    statementIds: allScenarioStartClaims.map(claim => claim.statementId),
+    qualifyingStatementIds: datedClaims.map(claim => claim.statementId),
     referenceDate: scenarioDate,
-    limitation: status === 'derived'
-      ? 'One stable-ID-linked Wikidata chair identity has a dated tenure applicable on the scenario date; the gameplay person remains fictional.'
-      : status === 'ambiguous'
-        ? 'Multiple distinct stable-ID-linked Wikidata chair identities have dated tenures applicable on the scenario date; no leader is selected.'
-        : 'No uniquely supported dated Wikidata chair identity is available for this stable-ID-linked party on the scenario date.',
+    limitation: resolved.status === 'derived'
+      ? resolved.selected.sourceRole === 'party_chairperson'
+        ? 'A source-dated P488 chairperson identity is used as the fictional gameplay party head; this does not claim that the chairperson is the constitutional or electoral party leader.'
+        : 'A reviewed, dated primary party source explicitly identifies this person in the recorded party role near the scenario date; the gameplay identity remains fictional.'
+      : resolved.status === 'ambiguous'
+        ? 'Conflicting positively applicable party-leadership identities are present; no source person is selected.'
+        : 'The available evidence does not positively establish a unique party-head identity on the scenario date. Missing P582 is not treated as continued tenure.',
   });
 }
 candidates.sort((a, b) => a.partyId.localeCompare(b.partyId));
@@ -133,38 +233,52 @@ assert.equal(new Set(candidates.map(candidate => candidate.partyId)).size, candi
 
 const priorMappings = new Map(priorSources.mappings.map(mapping => [mapping.partyId, mapping]));
 const mappings = candidates.filter(candidate => candidate.mappingStatus === 'derived').map(candidate => {
+  const override = (overrideByPartyFactsId.get(String(candidate.partyFactsId)) ?? [])
+    .find(item => item.sourcePersonId === candidate.sourcePersonId);
   const claim = chairs.records
-    .filter(record => candidate.statementIds.includes(record.statementId))
+    .filter(record => candidate.qualifyingStatementIds.includes(record.statementId) && record.chairId === candidate.sourcePersonId)
     .sort((a, b) => a.statementId.localeCompare(b.statementId))[0];
-  assert.ok(claim, `Missing exact Wikidata chair statement for ${candidate.partyId}.`);
-  assert.ok(claim.chairId && claim.chairName, `Wikidata chair statement lacks a stable identity or label for ${candidate.partyId}.`);
+  assert.ok(claim || override, `Missing positive dated evidence for ${candidate.partyId}.`);
+  assert.ok(candidate.fictionalAnalogueName, `Missing reviewed fictional analogue name for ${candidate.partyId}.`);
+  assert.notEqual(candidate.fictionalAnalogueName, candidate.sourcePersonName, `Fictional analogue matches source identity for ${candidate.partyId}.`);
   const prior = priorMappings.get(candidate.partyId);
-  if (prior) {
-    assert.equal(prior.sourcePersonId, claim.chairId, `Previously reviewed identity changed for ${candidate.partyId}.`);
-    assert.equal(prior.sourcePersonName, claim.chairName, `Previously reviewed source name changed for ${candidate.partyId}.`);
-  }
+  const officeholderMatch = prior?.sourcePersonId === candidate.sourcePersonId && prior.officeholderMatch
+    ? prior.officeholderMatch
+    : override?.officeholderMatch;
+  const officeholderSourceRecordId = officeholderMatch?.sourceRecordId
+    ?? prior?.sourceRecordIds.find(id => sourceRecordById.get(id)?.officeId === officeholderMatch?.officeId)
+    ?? sourceRecords.find(record => record.officeId === officeholderMatch?.officeId)?.sourceRecordId;
+  if (officeholderMatch) assert.ok(officeholderSourceRecordId, `Missing source record for officeholder reconciliation: ${candidate.partyId}.`);
   return {
-    ...prior,
+    ...(officeholderMatch ? { officeholderMatch } : {}),
     partyId: candidate.partyId,
     sourcePartyId: candidate.sourcePartyId,
     partyFactsId: candidate.partyFactsId,
     wikidataPartyId: candidate.wikidataPartyId,
     sourcePartyName: partyBySourceId.get(candidate.sourcePartyId).sourceBasis.sourcePartyName,
-    sourcePersonId: claim.chairId,
-    sourcePersonName: claim.chairName,
-    ...(prior?.fictionalAnalogueName ? { fictionalAnalogueName: prior.fictionalAnalogueName } : {}),
+    sourcePersonId: candidate.sourcePersonId,
+    sourcePersonName: candidate.sourcePersonName,
+    fictionalAnalogueName: candidate.fictionalAnalogueName,
     basis: 'derived_analogue',
     sourceStatus: 'derived',
-    leaderRole: 'party_chairperson',
-    chairStatementId: claim.statementId,
-    sourceRecordIds: [...new Set([...(prior?.sourceRecordIds ?? []), partyFactsSourceRecordId, wikidataSourceRecordId])].sort(),
+    sourceRole: candidate.sourceRole,
+    gameplayRole: 'party_head',
+    chairStatementId: claim?.statementId,
+    sourceRecordIds: [...new Set([
+      ...(candidate.sourceRecordIds ?? []),
+      ...(claim ? [wikidataSourceRecordId] : []),
+      ...(officeholderSourceRecordId ? [officeholderSourceRecordId] : []),
+      partyFactsSourceRecordId,
+    ])].sort(),
     referenceDate: scenarioDate,
   };
 }).sort((a, b) => a.partyId.localeCompare(b.partyId));
 
 assert.equal(new Set(mappings.map(mapping => mapping.partyId)).size, mappings.length);
 assert.equal(new Set(mappings.map(mapping => mapping.sourcePersonId)).size, mappings.length);
-assert.equal(new Set(mappings.filter(mapping => mapping.fictionalAnalogueName).map(mapping => mapping.fictionalAnalogueName)).size, mappings.filter(mapping => mapping.fictionalAnalogueName).length);
+assert.equal(new Set(mappings.map(mapping => mapping.fictionalAnalogueName)).size, mappings.length);
+assert.ok(mappings.every(mapping => mapping.fictionalAnalogueName !== mapping.sourcePersonName));
+assert.deepEqual([...analogueNames.keys()].sort(), mappings.map(mapping => `${mapping.partyFactsId}:${mapping.sourcePersonId}`).sort(), 'The hand-reviewed analogue table must exactly cover the accepted mappings.');
 
 const officeDefinitions = new Map(offices.offices.map(item => [item.id, item]));
 const officeholdersByParty = new Map(parties.map(party => [party.id, offices.officeholders.filter(item => {
@@ -200,6 +314,7 @@ const reviewedSnapshots = [
   ['vparty-ideology-2022', vpartyPath, vpartyBytes],
   ['partyfacts-wikidata-2026-10-01', bridgePath, bridgeBytes],
   ['wikidata-party-chairs-2026-10-01', chairsPath, chairBytes],
+  ['party-leadership-evidence-2026-01-01', evidencePath, evidenceBytes],
 ].map(([snapshotId, path, content]) => ({ snapshotId, path, sha256: hash(content) }));
 
 const generatedSources = {
@@ -208,23 +323,20 @@ const generatedSources = {
   retrievedAt: chairs.retrievedAt,
   coverageStatus: 'partial',
   reviewedSnapshots,
-  sourceRecords: [
-    ...priorSources.sourceRecords.filter(record => ![partyFactsSourceRecordId, wikidataSourceRecordId].includes(record.sourceRecordId)),
-    partyFactsSourceRecord,
-    wikidataSourceRecord,
-  ].sort((a, b) => a.sourceRecordId.localeCompare(b.sourceRecordId)),
+  sourceRecords,
   partyCandidates: candidates,
   mappings,
   limitations: [
     'The structured pipeline reports every registered gameplay party. Exact Party Facts/Wikidata identifier coverage is partial; parties without reviewed ID links remain unavailable, never name-matched.',
-    'Only one distinct Wikidata P488 chairperson with a P580 start on or before 2026-01-01 and no P582 end by that date is eligible. Multiple active identities are ambiguous and are not selected.',
+    'A Wikidata P488 claim qualifies only when P580 and P582 explicitly bound a tenure interval containing 2026-01-01. A missing P582 is not evidence that tenure continued.',
+    'A manually reviewed, dated primary source may override incomplete P488 coverage when it explicitly names the person and party role near the scenario date; conflicting positive evidence remains ambiguous.',
+    'P488 means chairperson/presiding member, not necessarily constitutional or electoral party leader. The source role and the gameplay party-head role are recorded separately.',
     'The Wikidata extract was retrieved on 2026-10-01, after the scenario date; qualifiers support a dated tenure inference but do not establish what was publicly knowable on 2026-01-01.',
     'The Party Facts repository software licence is not treated as a data licence. Its crosswalk data remains requires_confirmation; commercial redistribution is not cleared.',
     'Wikidata chairperson identities provide provenance only. Gameplay persons remain fictional and receive no real-person ideology or policy preferences.',
   ],
 };
 
-const sourceRecordById = new Map(generatedSources.sourceRecords.map(record => [record.sourceRecordId, record]));
 for (const record of generatedSources.sourceRecords) {
   assert.ok(record.sourceRecordId && record.publisher && record.url && record.evidenceDate && record.referenceDate && record.retrievedAt && record.licence && record.attribution && record.claim);
   assert.equal(record.referenceDate, scenarioDate);
@@ -233,13 +345,19 @@ for (const record of generatedSources.sourceRecords) {
 for (const mapping of mappings) {
   const party = parties.find(item => item.id === mapping.partyId);
   const bridge = bridgeByPartyFactsId.get(String(mapping.partyFactsId));
-  const claim = chairs.records.find(item => item.statementId === mapping.chairStatementId);
-  assert.ok(party && bridge && claim);
+  const claim = mapping.chairStatementId ? chairs.records.find(item => item.statementId === mapping.chairStatementId) : undefined;
+  const override = (overrideByPartyFactsId.get(String(mapping.partyFactsId)) ?? []).find(item => item.sourcePersonId === mapping.sourcePersonId);
+  assert.ok(party && bridge && (claim || override));
   assert.equal(mapping.sourcePartyId, party.sourceBasis.sourcePartyId);
   assert.equal(mapping.wikidataPartyId, bridge.wikidataPartyId);
-  assert.equal(claim.partyId, bridge.wikidataPartyId);
-  assert.equal(claim.chairId, mapping.sourcePersonId);
-  assert.ok(claim.startDate && claim.startDate <= scenarioDate && (!claim.endDate || claim.endDate > scenarioDate));
+  if (claim) {
+    assert.equal(claim.partyId, bridge.wikidataPartyId);
+    assert.equal(claim.chairId, mapping.sourcePersonId);
+    assert.ok(claim.startDate && claim.endDate && claim.startDate <= scenarioDate && claim.endDate > scenarioDate);
+  }
+  assert.ok(mapping.fictionalAnalogueName && mapping.fictionalAnalogueName !== mapping.sourcePersonName);
+  assert.ok(['party_chairperson', 'party_leader', 'interim_party_leader'].includes(mapping.sourceRole));
+  assert.equal(mapping.gameplayRole, 'party_head');
   assert.ok(mapping.sourceRecordIds.every(id => sourceRecordById.has(id)));
 }
 for (const record of reviewedSnapshots) assert.equal(hash(bytes(record.path)), record.sha256);
@@ -254,7 +372,7 @@ const report = {
     leaderSourceSnapshotSha256: hash(sourceOutput),
     reviewedSourceSha256: Object.fromEntries(reviewedSnapshots.map(item => [item.snapshotId, item.sha256])),
   },
-  methodology: 'Enumerate all gameplay parties, then join only reviewed IPU-to-Party-Facts IDs, exact Party Facts Wikidata QIDs, and a unique dated Wikidata P488 chairperson claim applicable on 2026-01-01. Ambiguous and unavailable records are not selected. Source identities remain provenance for fictional gameplay leaders; ideology is not inferred.',
+  methodology: 'Enumerate every gameplay party. Join only reviewed IPU-to-Party-Facts IDs and exact Wikidata party QIDs. Select a source person only from a P488 claim with explicit P580/P582 bounds containing 2026-01-01, or a reviewed dated primary-source override explicitly identifying the party role near that date. Missing P582 is not continued tenure; conflicting positive evidence is ambiguous. Every selected identity has a hand-reviewed fictional analogue. P488 chairperson is recorded as such and is not silently equated with every system’s constitutional/electoral party leader.',
   totals: {
     gameplayParties: parties.length,
     gameplayLeadersRequired: parties.length,
@@ -265,6 +383,7 @@ const report = {
     unavailableSourceMappings: partyRecords.filter(item => item.mappingStatus === 'unavailable').length,
     ambiguousMappings: partyRecords.filter(item => item.mappingStatus === 'ambiguous').length,
     reconciledExecutiveOfficeholders: mappings.filter(mapping => officeholdersByParty.get(mapping.partyId).some(item => item.person?.id === `wikidata:${mapping.sourcePersonId}`)).length,
+    mappingsWithoutFictionalAnalogue: mappings.filter(mapping => !mapping.fictionalAnalogueName).length,
   },
   coverageStatus: generatedSources.coverageStatus,
   licensing: {

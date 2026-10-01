@@ -49,7 +49,7 @@ export function StartGame({ countries, leaders, onPlay }: {
         <span>{selectedPerson.leaderProvenance?.basis === 'modelled_fallback'
           ? 'Modelled fictional leader; party-leadership source evidence is unavailable.'
           : selectedPerson.leaderProvenance?.sourceLeader
-            ? `Fictional gameplay analogue of ${selectedPerson.leaderProvenance.sourceLeader.name}; source identity is provenance only.`
+            ? 'Fictional gameplay analogue based on reviewed party-leadership evidence; source identity is provenance only.'
             : 'Fictional gameplay party leader.'}</span>
         <span>{office
           ? `Reconciled gameplay office: ${office.title}${office.authorityProfile.capabilities.length

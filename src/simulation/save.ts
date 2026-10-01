@@ -8,7 +8,7 @@ import { politicalRegistry } from './politics/registry';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
 import { emptyGovernance } from './governance/model';
 import { upgradeGovernanceSchema12 } from './governance/migration';
-import { initializePartyLeaders } from './governance/runtime';
+import { initializePartyLeaders, reconcileInitialPartyLeaderMappings } from './governance/runtime';
 import { emptyInformation, INFORMATION_VERSION } from './information/model';
 import { initializeInformationState } from './information/runtime';
 import type { RegionEntity, SimulationState } from '../types';
@@ -74,6 +74,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     } else if (current.information!.initializedOn && current.information!.proposalEstimates === undefined) {
       restored = initializeInformationState(restored);
     }
+    if (version === 13) restored = reconcileInitialPartyLeaderMappings(restored);
     if (version === 13 && restored.date === politicalRegistry.referenceDate) restored = initializePartyLeaders(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;

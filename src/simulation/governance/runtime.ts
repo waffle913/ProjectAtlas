@@ -40,21 +40,22 @@ type ReviewedLeaderMapping = {
   wikidataPartyId: string;
   sourcePersonId: string;
   sourcePersonName: string;
-  fictionalAnalogueName?: string;
+  fictionalAnalogueName: string;
   basis: 'derived_analogue';
   sourceStatus: 'derived';
-  leaderRole: 'party_chairperson';
-  chairStatementId: string;
+  sourceRole: 'party_chairperson' | 'party_leader' | 'interim_party_leader';
+  chairStatementId?: string;
   sourceRecordIds: string[];
   referenceDate: string;
   officeholderMatch?: { officeId: string; sourcePersonId: string; startDate: string; title: string };
 };
-const reviewedLeaderMappings = new Map<string, ReviewedLeaderMapping>(partyLeadershipSources.mappings.map(mapping => [mapping.partyId, {
-  ...mapping,
-  basis: 'derived_analogue' as const,
-  sourceStatus: 'derived' as const,
-  leaderRole: 'party_chairperson' as const,
-}]));
+const reviewedLeaderMapping = (mapping: typeof partyLeadershipSources.mappings[number]): ReviewedLeaderMapping => {
+  if (mapping.sourceRole !== 'party_chairperson' && mapping.sourceRole !== 'party_leader' && mapping.sourceRole !== 'interim_party_leader') {
+    throw new Error(`Unknown source role for reviewed party leader ${mapping.partyId}.`);
+  }
+  return { ...mapping, basis: 'derived_analogue', sourceStatus: 'derived', sourceRole: mapping.sourceRole };
+};
+const reviewedLeaderMappings = new Map<string, ReviewedLeaderMapping>(partyLeadershipSources.mappings.map(mapping => [mapping.partyId, reviewedLeaderMapping(mapping)]));
 const reviewedSourceLeaderIds = new Set(partyLeadershipSources.mappings.map(mapping => `wikidata:${mapping.sourcePersonId}`));
 const ambiguousSourceLeaderPartyIds = new Set(partyLeadershipSources.partyCandidates.filter(candidate => candidate.mappingStatus === 'ambiguous').map(candidate => candidate.partyId));
 const sourceOfficeById = new Map(politicalOffices.offices.map(office => [office.id, office]));
@@ -93,27 +94,31 @@ function leaderProfileFor(partyId: string, personIdValue: string, state: Simulat
 type LeaderProvenance = NonNullable<PoliticalPersonState['leaderProvenance']>;
 
 function leaderProvenance(
-partyId: string,
-method: 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2',
-registry: PoliticalRegistry = politicalRegistry,
-mappingOverride?: ReviewedLeaderMapping | null,
+  partyId: string,
+  method: 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2',
+  registry: PoliticalRegistry = politicalRegistry,
+  mappingOverride?: ReviewedLeaderMapping | null,
 ): LeaderProvenance {
-const mapping = mappingOverride === undefined ? reviewedLeaderMappings.get(partyId) : mappingOverride ?? undefined;
-if (mapping && mapping.referenceDate === registry.referenceDate
-  && mapping.basis === 'derived_analogue'
-  && mapping.sourceStatus === 'derived') {
-  return {
-    basis: mapping.basis,
-      method: 'reviewed_global_party_chair_snapshot_v1' as const,
+  const mapping = mappingOverride === undefined ? reviewedLeaderMappings.get(partyId) : mappingOverride ?? undefined;
+  if (mapping && mapping.referenceDate === registry.referenceDate
+    && mapping.basis === 'derived_analogue'
+    && mapping.sourceStatus === 'derived') {
+    if (!mapping.fictionalAnalogueName.trim() || mapping.fictionalAnalogueName === mapping.sourcePersonName) {
+      throw new Error(`Reviewed party leader mapping for ${partyId} has no valid fictional analogue.`);
+    }
+    return {
+      basis: mapping.basis,
+      method: 'reviewed_party_leadership_evidence_v1',
       sourcePartyId: registry.parties[partyId].sourceBasis.sourcePartyId,
       referenceDate: registry.referenceDate,
       sourceLeaderStatus: mapping.sourceStatus,
       sourceLeader: {
         id: `wikidata:${mapping.sourcePersonId}`,
         name: mapping.sourcePersonName,
+        sourceRole: mapping.sourceRole,
         sourceRecordIds: [...mapping.sourceRecordIds],
       },
-      limitation: 'A fictional gameplay leader has an exact, dated Wikidata party-chair identity through stable Party Facts identifiers. Source identity is provenance only; no personal ideology is inferred.',
+      limitation: `The fictional gameplay leader is derived from a dated source role (${mapping.sourceRole}) through reviewed stable party identifiers. Source identity is provenance only; no personal ideology is inferred.`,
     };
   }
   return {
@@ -362,16 +367,21 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
       const existing = leaders[0];
       const mapping = next.date === registry.referenceDate ? reviewedLeaderMappings.get(party.id) : undefined;
       const sourcePersonId = mapping ? `wikidata:${mapping.sourcePersonId}` : undefined;
-      const canReconcile = Boolean(mapping && (existing.createdOn === next.date || existing.leaderProvenance?.sourceLeader?.id === sourcePersonId));
-      if (existing.leaderProfile && existing.leaderProvenance && !canReconcile) continue;
+      const scenarioStartLeader = existing.createdOn === registry.referenceDate && next.date === registry.referenceDate;
+      const canReconcile = Boolean(mapping && (scenarioStartLeader || existing.leaderProvenance?.sourceLeader?.id === sourcePersonId));
+      const needsSourceDowngrade = scenarioStartLeader && !mapping && existing.leaderProvenance?.basis !== 'modelled_fallback';
+      if (existing.leaderProfile && existing.leaderProvenance && !canReconcile && !needsSourceDowngrade) continue;
       const provenance = canReconcile
-        ? existing.leaderProvenance?.sourceLeader?.id === sourcePersonId
-          ? existing.leaderProvenance
-          : leaderProvenance(party.id, 'party_platform_initial_v2', registry, mapping)
-        : existing.leaderProvenance ?? leaderProvenance(party.id, 'party_platform_initial_v2', registry, null);
+        ? leaderProvenance(party.id, 'party_platform_initial_v2', registry, mapping)
+        : needsSourceDowngrade
+          ? leaderProvenance(party.id, 'party_platform_initial_v2', registry, null)
+          : existing.leaderProvenance ?? leaderProvenance(party.id, 'party_platform_initial_v2', registry, null);
+      const displayName = canReconcile && mapping ? mapping.fictionalAnalogueName : existing.displayName;
+      const usedNames = new Set(Object.values(next.governance.persons).filter(person => person.id !== existing.id).map(person => person.displayName));
+      if (usedNames.has(displayName)) throw new Error(`Initial party leader analogue name is not unique: ${displayName}.`);
       next = cloneGovernance(next, { ...next.governance, persons: { ...next.governance.persons, [existing.id]: {
         ...existing,
-        displayName: canReconcile ? mapping?.fictionalAnalogueName ?? existing.displayName : existing.displayName,
+        displayName,
         leaderProfile: existing.leaderProfile ?? leaderProfileFor(party.id, existing.id, next, false, registry),
         leaderProvenance: provenance,
       } } });
@@ -381,16 +391,21 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
     if (next.governance.persons[id]) throw new Error(`Political person sequence is already in use: ${id}.`);
     const usedNames = new Set(Object.values(next.governance.persons).map(person => person.displayName));
     const mapping = next.date === registry.referenceDate ? reviewedLeaderMappings.get(party.id) : undefined;
+    const provenance = leaderProvenance(party.id, 'party_platform_initial_v2', registry, mapping ?? null);
+    const displayName = mapping && provenance.basis !== 'modelled_fallback'
+      ? mapping.fictionalAnalogueName
+      : fictionalLeaderName(next, party.id, 'initial', usedNames);
+    if (usedNames.has(displayName)) throw new Error(`Initial party leader analogue name is not unique: ${displayName}.`);
     const leader = {
       id,
-      displayName: mapping?.fictionalAnalogueName ?? fictionalLeaderName(next, party.id, 'initial', usedNames),
+      displayName,
       countryId: party.countryId,
       createdOn: next.date,
       partyId: party.id,
       isPartyLeader: true,
       status: 'active' as const,
       leaderProfile: leaderProfileFor(party.id, id, next, false, registry),
-      leaderProvenance: leaderProvenance(party.id, 'party_platform_initial_v2', registry, mapping ?? null),
+      leaderProvenance: provenance,
     };
     next = cloneGovernance(next, { ...next.governance, persons: { ...next.governance.persons, [id]: leader }, nextPersonSequence: next.governance.nextPersonSequence + 1 });
   }
@@ -398,6 +413,49 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
     next = { ...next, governance: { ...next.governance, leadersInitializedOn: next.date } };
   }
   return initializeSourceOfficeholders(next, registry);
+}
+
+export function reconcileInitialPartyLeaderMappings(state: SimulationState, registry: PoliticalRegistry = politicalRegistry): SimulationState {
+  let next = state;
+  const initialSourceLeaders = Object.values(state.governance.persons)
+    .filter(person => person.createdOn === registry.referenceDate && person.partyId && person.leaderProvenance && person.leaderProvenance.basis !== 'modelled_fallback')
+    .sort((a, b) => a.id.localeCompare(b.id));
+  for (const person of initialSourceLeaders) {
+    if (!person.partyId || !person.leaderProvenance) continue;
+    const mapping = reviewedLeaderMappings.get(person.partyId);
+    const provenance = leaderProvenance(person.partyId, 'party_platform_initial_v2', registry, mapping ?? null);
+    const usedNames = new Set(Object.values(next.governance.persons).filter(item => item.id !== person.id).map(item => item.displayName));
+    const displayName = mapping?.fictionalAnalogueName ?? (usedNames.has(person.displayName) || person.displayName === person.leaderProvenance.sourceLeader?.name
+      ? fictionalLeaderName(next, person.partyId, `initial-leader-revalidation:${person.id}`, usedNames)
+      : person.displayName);
+    next = cloneGovernance(next, {
+      ...next.governance,
+      persons: {
+        ...next.governance.persons,
+        [person.id]: { ...person, displayName, leaderProvenance: provenance },
+      },
+    });
+  }
+
+  const initialLeaders = Object.values(next.governance.persons)
+    .filter(item => item.createdOn === registry.referenceDate && item.isPartyLeader && item.status === 'active');
+  const usedInitialLeaderNames = new Set(initialLeaders
+    .filter(person => person.leaderProvenance?.basis !== 'modelled_fallback')
+    .map(person => person.displayName));
+  if (usedInitialLeaderNames.size !== initialLeaders.filter(person => person.leaderProvenance?.basis !== 'modelled_fallback').length) {
+    throw new Error('Initial source-derived party leader analogue names are not unique.');
+  }
+  for (const person of initialLeaders.filter(item => item.leaderProvenance?.basis === 'modelled_fallback').sort((a, b) => a.id.localeCompare(b.id))) {
+    if (!usedInitialLeaderNames.has(person.displayName)) {
+      usedInitialLeaderNames.add(person.displayName);
+      continue;
+    }
+    if (!person.partyId) throw new Error(`Initial modelled party leader ${person.id} has no party.`);
+    const displayName = fictionalLeaderName(next, person.partyId, `initial-leader-revalidation:${person.id}`, usedInitialLeaderNames);
+    usedInitialLeaderNames.add(displayName);
+    next = cloneGovernance(next, { ...next.governance, persons: { ...next.governance.persons, [person.id]: { ...person, displayName } } });
+  }
+  return next;
 }
 
 export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[] }): SimulationState {
