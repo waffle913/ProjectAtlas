@@ -64,13 +64,15 @@ export interface FiscalCountry {
   account?: Account;
   initialization: { status: 'modelled'; date: string; economicCoverage: 'complete' | 'partial' | 'unavailable'; output: number; method: string };
 }
-export interface FiscalReform { sequence: number; countryId: string; effectiveDate: string; policy?: Policy; annualBudget?: Budget }
+export interface FiscalReformOrigin { type: 'governance_proposal'; proposalId: string; proposalFingerprint: string }
+export interface FiscalReform { sequence: number; countryId: string; effectiveDate: string; policy?: Policy; annualBudget?: Budget; origin?: FiscalReformOrigin }
+export interface FiscalReformReceipt { sequence: number; countryId: string; effectiveDate: string; reformFingerprint: string; origin?: FiscalReformOrigin; recordedBy: 'runtime' | 'schema12_upgrade' }
 export interface FiscalState {
   version: 'fiscal-0.11-v2'; initializedOn?: string; lastMonthlyDate?: string;
   countries: Record<string, FiscalCountry>; regions: Record<string, RegionFiscal>;
-  reforms: FiscalReform[]; nextSequence: number;
+  reforms: FiscalReform[]; reformReceipts: FiscalReformReceipt[]; nextSequence: number;
 }
-export const emptyFiscal = (): FiscalState => ({ version: 'fiscal-0.11-v2', countries: {}, regions: {}, reforms: [], nextSequence: 0 });
+export const emptyFiscal = (): FiscalState => ({ version: 'fiscal-0.11-v2', countries: {}, regions: {}, reforms: [], reformReceipts: [], nextSequence: 0 });
 export const zeroBudget = (): Budget => ({ health: 0, education: 0, pensions: 0, incomeSupport: 0, infrastructure: 0, administration: 0 });
 /** Central model assumptions, not empirical national observations. */
 export const FISCAL_MODEL = Object.freeze({

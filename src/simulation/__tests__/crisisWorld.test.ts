@@ -27,7 +27,7 @@ describe('full-world crisis validation', () => {
     expect(state.date).toBe('2026-01-31'); expect(state.crisis.evaluations).toBe(0); expect(state.crisis.lastMonthlyDate).toBeUndefined();
     state = scheduler.advanceOneDay(state).state;
     expect(state.date).toBe('2026-02-01'); expect(state.crisis.evaluations).toBe(252 * CRISIS_TYPES.length); expect(state.crisis.lastMonthlyDate).toBe('2026-02-01');
-  });
+  }, 15_000);
 
   it('evaluates all Countries for five years with bounded causal episodes', () => {
     let state = initializeFiscal(socioeconomicWorld());

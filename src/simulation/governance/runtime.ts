@@ -1,13 +1,11 @@
 import type { SimulationState } from '../../types';
 import { allocate } from '../socioeconomy/model';
-import { scheduleFiscalReform, validateFiscalReform } from '../fiscal/runtime';
+import { fiscalReformFingerprint, scheduleFiscalReform, validateFiscalReform } from '../fiscal/runtime';
 import { dateValid } from '../fiscal/math';
-import { type Budget, type TaxRule } from '../fiscal/model';
-import { COHORT, POLITICAL_ISSUES, type PoliticalIssue, type PoliticalRegistry } from '../politics/model';
+import { COHORT, POLITICAL_ISSUES, type PoliticalRegistry } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type ParliamentarySupportEstimate, type PoliticalOfficeRole, type PoliticalProposal, type ProposalImpact, type PublicSupportEstimate } from './model';
-
-const clampSigned = (value: number) => Math.max(-10_000, Math.min(10_000, Math.round(value)));
+import { analyzeProposal, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalProposal, type ProposalAnalysis, type ProposalImpact, type PublicSupportEstimate } from './model';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
 const proposalId = (sequence: number) => `proposal.${sequence.toString().padStart(8, '0')}`;
 const cloneGovernance = (state: SimulationState, governance: GovernanceState): SimulationState => ({ ...state, governance });
@@ -26,7 +24,7 @@ export function initializeGovernance(state: SimulationState): GovernanceState {
 export function createPoliticalPerson(state: SimulationState, input: { displayName: string; countryId: string; createdOn?: string; status?: 'active' | 'inactive' }): SimulationState {
   requireCountry(state, input.countryId);
   const createdOn = input.createdOn ?? state.date;
-  if (!input.displayName.trim() || !dateValid(createdOn) || createdOn > state.date) throw new Error('Invalid political person identity or creation date.');
+  if (!input.displayName.trim() || !dateValid(createdOn) || createdOn > state.date || !state.governance.initializedOn || createdOn < state.governance.initializedOn) throw new Error('Invalid political person identity or creation date.');
   const id = personId(state.governance.nextPersonSequence);
   const person = { id, displayName: input.displayName.trim(), countryId: input.countryId, createdOn, isPartyLeader: false, status: input.status ?? 'active' } as const;
   return cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [id]: person }, nextPersonSequence: state.governance.nextPersonSequence + 1 });
@@ -53,7 +51,7 @@ export function setPartyLeadership(state: SimulationState, personIdValue: string
 export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[] }): SimulationState {
   const person = requirePerson(state, personIdValue); requireCountry(state, input.countryId);
   const appointedOn = input.appointedOn ?? state.date;
-  if (person.countryId !== input.countryId || !dateValid(appointedOn) || appointedOn > state.date) throw new Error('Office scope or appointment date is invalid.');
+  if (person.countryId !== input.countryId || !dateValid(appointedOn) || appointedOn > state.date || !state.governance.initializedOn || appointedOn < state.governance.initializedOn || appointedOn < person.createdOn) throw new Error('Office scope or appointment date is invalid.');
   const capabilities = [...new Set(input.capabilities ?? capabilitiesFor(input.role))].sort();
   if (capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item))) throw new Error('Unknown authority capability.');
   const office = { role: input.role, countryId: input.countryId, appointedOn, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities, limitation: authorityLimitation } };
@@ -102,96 +100,60 @@ export function withdrawProposal(state: SimulationState, proposalIdValue: string
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, status: 'withdrawn', resolvedOn: state.date } } });
 }
 
-const ruleRate = (rule: TaxRule | null) => !rule ? 0 : rule.kind === 'personal' ? Math.round((rule.bands ?? []).reduce((n, band) => n + band.rateBps, 0) / Math.max(1, rule.bands?.length ?? 0)) : rule.kind === 'payroll' ? [...(rule.employee ?? []), ...(rule.employer ?? [])].reduce((n, item) => n + item.rateBps, 0) : rule.rateBps ?? 0;
-const relativeBudgetDelta = (before: Budget, after: Budget, keys: (keyof Budget)[]) => { const oldValue = keys.reduce((n, key) => n + before[key], 0), delta = keys.reduce((n, key) => n + after[key] - before[key], 0); return oldValue ? clampSigned(delta * 5_000 / oldValue) : delta > 0 ? 5_000 : 0; };
-export function classifyProposalImpact(state: SimulationState, proposal: PoliticalProposal): ProposalImpact {
-  const current = state.fiscal.countries[proposal.countryId]; if (!current) throw new Error('Proposal Country has no fiscal state.');
-  const issueDirectionsBps = Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, 0])) as Record<PoliticalIssue, number>, drivers: ProposalImpact['drivers'] = [];
-  const add = (issue: PoliticalIssue, directionBps: number, source: string, explanation: string) => { if (!directionBps) return; issueDirectionsBps[issue] = clampSigned(issueDirectionsBps[issue] + directionBps); drivers.push({ issue, directionBps: clampSigned(directionBps), source, explanation }); };
-  if (proposal.payload.policy) {
-    const before = current.policy, after = proposal.payload.policy;
-    const personal = ruleRate(after.personal) - ruleRate(before.personal), corporate = ruleRate(after.corporate) - ruleRate(before.corporate);
-    add('fiscal_distribution', personal, 'policy.personal', `Representative personal-tax schedule changes by ${personal} bps.`);
-    add('fiscal_distribution', Math.round(corporate / 2), 'policy.corporate', `Corporate statutory rate changes by ${corporate} bps; half-weighted as a distributional direction.`);
-  }
-  if (proposal.payload.annualBudget) {
-    const before = current.annualBudget, after = proposal.payload.annualBudget;
-    add('public_services', relativeBudgetDelta(before, after, ['health', 'education']), 'annualBudget.health+education', 'Direction derived from the real health and education appropriation delta.');
-    add('income_security', relativeBudgetDelta(before, after, ['pensions', 'incomeSupport']), 'annualBudget.pensions+incomeSupport', 'Direction derived from the real pensions and income-support appropriation delta.');
-    add('infrastructure', relativeBudgetDelta(before, after, ['infrastructure']), 'annualBudget.infrastructure', 'Direction derived from the real infrastructure appropriation delta.');
-  }
-  return { issueDirectionsBps, drivers, method: 'fiscal_delta_v1', limitation: 'Directional political classification of explicit fiscal deltas; this is not an economic forecast.' };
+export function classifyProposalImpact(state: SimulationState, proposal: PoliticalProposal, analysisOverride?: ProposalAnalysis): ProposalImpact {
+  const analysis = analysisOverride ?? analyzeProposal(state, proposal), issueDirectionsBps = Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, analysis.issueEffects[issue]])) as ProposalImpact['issueDirectionsBps'];
+  const drivers = analysis.expectedConsequences.filter(item => POLITICAL_ISSUES.includes(item.goal as never)).map(item => ({ issue: item.goal as typeof POLITICAL_ISSUES[number], directionBps: item.directionBps, source: item.source, explanation: item.explanation }));
+  return { issueDirectionsBps, drivers, method: 'fiscal_delta_v1', limitation: analysis.limitations.join(' ') };
 }
 
-function stance(preferences: number[], salience: number[], impact: ProposalImpact) {
-  let score = 0, weight = 0;
-  POLITICAL_ISSUES.forEach((issue, index) => { const direction = impact.issueDirectionsBps[issue]; if (!direction) return; const issueWeight = Math.abs(direction) * Math.max(1, salience[index]); score += (preferences[index] - 5_000) * direction * issueWeight; weight += 5_000 * issueWeight; });
-  return weight ? score / weight : 0;
-}
-
-export function estimatePublicSupport(state: SimulationState, proposal: PoliticalProposal): PublicSupportEstimate {
-  const impact = classifyProposalImpact(state, proposal); let yes = 0, no = 0, neutral = 0, representedPersons = 0;
+export function estimatePublicSupport(state: SimulationState, proposal: PoliticalProposal, analysisOverride?: ProposalAnalysis): PublicSupportEstimate {
+  const analysis = analysisOverride ?? analyzeProposal(state, proposal), impact = classifyProposalImpact(state, proposal, analysis); let yes = 0, no = 0, neutral = 0, representedPersons = 0, confidenceWeighted = 0;
   for (const [regionId, regional] of Object.entries(state.politics.regionalOpinion).sort(([a], [b]) => a.localeCompare(b))) {
     if (regional.countryId !== proposal.countryId) continue;
     const cohorts = state.socioeconomy.regions[regionId]?.cohorts ?? [];
     for (const [cohortId, opinion] of Object.entries(regional.cohorts).sort(([a], [b]) => a.localeCompare(b))) {
       const persons = cohorts.find(item => `${item.income}:${item.orientation}` === cohortId)?.persons ?? 0; if (!persons) continue;
-      representedPersons += persons; const score = stance(opinion[COHORT.preferences], opinion[COHORT.salience], impact), engaged = Math.max(1, opinion[COHORT.engagement]);
-      if (score > 500) yes += persons * engaged; else if (score < -500) no += persons * engaged; else neutral += persons * engaged;
+      const goals = {} as PartyGoalProfile['goals']; POLITICAL_ISSUES.forEach((issue, index) => { const ideal = opinion[COHORT.preferences][index], importance = opinion[COHORT.salience][index], confidence = Math.min(7_000, opinion[COHORT.engagement]); goals[issue] = { idealPointBps: ideal, importanceBps: importance, compromiseToleranceBps: Math.max(1_500, Math.min(9_000, Math.round(8_000 - importance * 0.4 - Math.abs(ideal - 5_000) * 0.2))), confidenceBps: confidence, status: 'modelled_fallback' }; }); goals.fiscal_sustainability = { idealPointBps: 8_500, importanceBps: 2_000, compromiseToleranceBps: 7_500, confidenceBps: 1_000, status: 'modelled_common_constraint' };
+      const evaluation = evaluateProfileForPublic(analysis, { partyId: `cohort:${cohortId}`, goals }), engaged = Math.max(1, opinion[COHORT.engagement]), weight = persons * engaged; representedPersons += persons; confidenceWeighted += evaluation.confidenceBps * persons;
+      if (evaluation.confidenceBps >= GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps && evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps) yes += weight; else if (evaluation.confidenceBps >= GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps && evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps) no += weight; else neutral += weight;
     }
   }
   const totals = allocate(10_000, [yes, no, neutral || (!yes && !no ? 1 : 0)]);
-  return { supportBps: totals[0], opposeBps: totals[1], neutralBps: totals[2], coverage: representedPersons ? 'complete' : 'unavailable', representedPersons, drivers: impact.drivers };
+  return { supportBps: totals[0], opposeBps: totals[1], neutralBps: totals[2], confidenceBps: representedPersons ? Math.round(confidenceWeighted / representedPersons) : 0, coverage: representedPersons ? analysis.coverage : 'unavailable', representedPersons, drivers: impact.drivers };
 }
 
-function partyVote(proposal: PoliticalProposal, partyId: string, impact: ProposalImpact, registry: PoliticalRegistry): 'yes' | 'no' | 'abstain' {
-  const party = registry.parties[partyId]; if (!party) return 'abstain';
-  const active = POLITICAL_ISSUES.filter(issue => impact.issueDirectionsBps[issue] !== 0);
-  if (!active.length) return 'abstain';
-  let score = 0, confidence = 0;
-  for (const issue of active) { const position = party.issuePositions[issue], direction = impact.issueDirectionsBps[issue]; score += (position.preferenceBps - 5_000) * direction * position.intensityBps * position.confidenceBps; confidence += position.confidenceBps; }
-  const normalized = score / Math.max(1, active.length * 10_000 * 10_000 * 10_000);
-  const meanConfidence = confidence / active.length;
-  if (meanConfidence < 1_000 || Math.abs(normalized) < 0.02) return 'abstain';
-  return normalized > 0 ? 'yes' : 'no';
-}
-const partyConfidence = (partyId: string, impact: ProposalImpact, registry: PoliticalRegistry) => {
-  const party = registry.parties[partyId], active = POLITICAL_ISSUES.filter(issue => impact.issueDirectionsBps[issue] !== 0); if (!party || !active.length) return 0;
-  return Math.round(active.reduce((sum, issue) => sum + party.issuePositions[issue].confidenceBps, 0) / active.length);
-};
-
-export function estimateParliamentarySupport(state: SimulationState, proposal: PoliticalProposal, registry: PoliticalRegistry = politicalRegistry): ParliamentarySupportEstimate {
-  const institution = registry.institutions[registry.countries[proposal.countryId]?.institutionId], impact = classifyProposalImpact(state, proposal);
+export function estimateParliamentarySupport(state: SimulationState, proposal: PoliticalProposal, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}, analysisOverride?: ProposalAnalysis): ParliamentarySupportEstimate {
+  const institution = registry.institutions[registry.countries[proposal.countryId]?.institutionId];
   if (!institution || institution.legislatureKind === 'none' || institution.legislatureKind === 'unavailable' || !institution.chambers.length) return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'modelled_procedure_v1' };
-  const chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
+  const analysis = analysisOverride ?? analyzeProposal(state, proposal), chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
     if (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined) return { chamberId: chamber.id, yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: chamber.totalSeats ?? 0, totalSeats: chamber.totalSeats, coverage: 'unavailable' };
-    let yesSeats = 0, noSeats = 0, abstainSeats = 0;
-    for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) { const vote = partyVote(proposal, partyId, impact, registry); if (vote === 'yes') yesSeats += seats; else if (vote === 'no') noSeats += seats; else abstainSeats += seats; }
+    let yesSeats = 0, noSeats = 0, abstainSeats = 0; const partyEvaluations: NonNullable<ChamberSupportEstimate['partyEvaluations']> = [];
+    for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) { const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profiles[partyId], analysis); partyEvaluations.push({ ...evaluation, seats }); if (evaluation.vote === 'yes') yesSeats += seats; else if (evaluation.vote === 'no') noSeats += seats; else abstainSeats += seats; }
     const unavailableSeats = chamber.independentOtherSeats ?? 0, allocated = yesSeats + noSeats + abstainSeats + unavailableSeats;
     const coverage = allocated === chamber.totalSeats ? unavailableSeats ? 'partial' : 'complete' : 'unavailable';
-    return { chamberId: chamber.id, yesSeats, noSeats, abstainSeats, unavailableSeats: coverage === 'unavailable' ? Math.max(unavailableSeats, chamber.totalSeats - yesSeats - noSeats - abstainSeats) : unavailableSeats, totalSeats: chamber.totalSeats, coverage, adopted: coverage === 'complete' ? yesSeats > noSeats : undefined };
+    return { chamberId: chamber.id, yesSeats, noSeats, abstainSeats, unavailableSeats: coverage === 'unavailable' ? Math.max(unavailableSeats, chamber.totalSeats - yesSeats - noSeats - abstainSeats) : unavailableSeats, totalSeats: chamber.totalSeats, coverage, adopted: coverage === 'complete' ? yesSeats > noSeats : undefined, partyEvaluations };
   });
   const totalSeats = chambers.reduce((n, item) => n + (item.totalSeats ?? 0), 0), yesSeats = chambers.reduce((n, item) => n + item.yesSeats, 0), noSeats = chambers.reduce((n, item) => n + item.noSeats, 0), abstainSeats = chambers.reduce((n, item) => n + item.abstainSeats, 0), unavailableSeats = chambers.reduce((n, item) => n + item.unavailableSeats, 0);
   const coverage = chambers.every(item => item.coverage === 'complete') ? 'complete' : chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
-  const confidenceWeight = institution.chambers.reduce((sum, chamber) => sum + Object.entries(chamber.seatsByParty).reduce((partySum, [partyId, seats]) => partySum + partyConfidence(partyId, impact, registry) * seats, 0), 0);
+  const confidenceWeight = chambers.reduce((sum, chamber) => sum + (chamber.partyEvaluations ?? []).reduce((partySum, evaluation) => partySum + evaluation.confidenceBps * evaluation.seats, 0), 0);
   return { yesSeats, noSeats, abstainSeats, unavailableSeats, totalSeats, chambers, coverage, confidenceBps: totalSeats ? Math.round(confidenceWeight / totalSeats) : 0, procedure: 'modelled_procedure_v1' };
 }
 
-export function inspectProposalSupport(state: SimulationState, proposalIdValue: string, registry: PoliticalRegistry = politicalRegistry) {
+export function inspectProposalSupport(state: SimulationState, proposalIdValue: string, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}) {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal) throw new Error('Unknown political proposal.');
-  return structuredClone({ impact: classifyProposalImpact(state, proposal), publicEstimate: estimatePublicSupport(state, proposal), parliamentaryEstimate: estimateParliamentarySupport(state, proposal, registry), informationStatus: 'engine_debug_reality' as const });
+  const analysis = analyzeProposal(state, proposal); return structuredClone({ analysis, impact: classifyProposalImpact(state, proposal, analysis), publicEstimate: estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate: estimateParliamentarySupport(state, proposal, registry, profiles, analysis), informationStatus: 'engine_debug_reality' as const });
 }
 
-export function resolveProposalVote(state: SimulationState, proposalIdValue: string, registry: PoliticalRegistry = politicalRegistry): SimulationState {
+export function resolveProposalVote(state: SimulationState, proposalIdValue: string, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}): SimulationState {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || proposal.status !== 'submitted') throw new Error('Only an unresolved submitted proposal can be voted.');
   const proposer = requireControlled(state, proposal.proposerPersonId);
   if (!hasCapability(proposal, proposer, 'vote_legislation')) throw new Error('Controlled person lacks authority to resolve this legislative vote.');
-  const publicEstimate = estimatePublicSupport(state, proposal), parliamentaryEstimate = estimateParliamentarySupport(state, proposal, registry);
-  const outcome = parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected';
-  const voteResult = { ...parliamentaryEstimate, outcome, resolvedOn: state.date } as const;
-  let next = state, scheduledFiscalReformSequence: number | undefined;
-  if (outcome === 'adopted') { scheduledFiscalReformSequence = state.fiscal.nextSequence; next = scheduleFiscalReform(state, { countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...structuredClone(proposal.payload) }); }
-  const resolved: PoliticalProposal = { ...proposal, status: outcome === 'adopted' ? 'enacted' : outcome, resolvedOn: state.date, publicEstimate, parliamentaryEstimate, voteResult, scheduledFiscalReformSequence };
+  const analysis = analyzeProposal(state, proposal), publicEstimate = estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate = estimateParliamentarySupport(state, proposal, registry, profiles, analysis), expired = state.date > proposal.effectiveDate;
+  const outcome = expired || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected', reason = expired ? 'effective_date_expired' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined;
+  const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome, resolvedOn: state.date, reason };
+  let next = state, scheduledFiscalReformSequence: number | undefined, enactmentReference: PoliticalProposal['enactmentReference'];
+  if (outcome === 'adopted') { scheduledFiscalReformSequence = state.fiscal.nextSequence; const reformInput = { countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...structuredClone(proposal.payload), origin: { type: 'governance_proposal' as const, proposalId: proposal.id, proposalFingerprint: proposal.submittedPayloadFingerprint! } }; enactmentReference = { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: fiscalReformFingerprint(reformInput) }; next = scheduleFiscalReform(state, reformInput); }
+  const resolved: PoliticalProposal = { ...proposal, status: outcome === 'adopted' ? 'enacted' : outcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-0.14-v2', publicEstimate, parliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference };
   return { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
 }
 

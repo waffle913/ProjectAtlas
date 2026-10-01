@@ -5,6 +5,7 @@ import { allocate, INCOMES, integer, MODEL, ratio, type SocioRegion } from '../s
 import { collected, consumptionCollected, consumptionLiability, netGoodsBudget, payrollMonthly, progressiveMonthly, sum, validatePolicy, dateValid } from './math';
 import { CATEGORIES, FISCAL_MODEL as M, TAXES, emptyFiscal, zeroBudget, type Budget, type FiscalCountry, type FiscalReform, type FiscalState, type Policy, type RegionFiscal, type Service, type TaxFlow, type TaxRule } from './model';
 import type { SimulationScheduler } from '../scheduler';
+import { deterministicFingerprint } from '../fingerprint';
 const kinds = ['personal', 'consumption', 'payroll', 'corporate'] as const;
 const taxKind = (category: typeof TAXES[number]) => category === 'employee' || category === 'employer' ? 'payroll' : category;
 const flows = (policy: Policy): Record<typeof TAXES[number], TaxFlow> => Object.fromEntries(TAXES.map(k => [k, { base: 0, liability: 0, collected: 0, status: policy[taxKind(k)]?.status ?? 'unavailable' }])) as Record<typeof TAXES[number], TaxFlow>;
@@ -20,7 +21,7 @@ export function validateBudget(b: Budget) { for (const k of CATEGORIES) integer(
 /** Deterministic in-schema upgrade for saves written by the initial 0.11 release. */
 export function upgradeFiscalStateV1(fiscal: unknown, date: string): FiscalState {
   const prior = fiscal as { version?: string; countries?: Record<string, FiscalCountry & { account?: FiscalCountry['account'] & { revenue?: number } }> } & Omit<FiscalState, 'version' | 'countries'>;
-  if (prior.version === 'fiscal-0.11-v2') return fiscal as FiscalState;
+  if (prior.version === 'fiscal-0.11-v2') { const current = fiscal as FiscalState; return current.reformReceipts ? current : { ...current, reformReceipts: [] }; }
   if (prior.version !== 'fiscal-0.11-v1' || !prior.countries) throw new Error('Malformed fiscal model.');
   const countries = Object.fromEntries(Object.entries(prior.countries).map(([id, c]) => {
     const oldAccount = c.account;
@@ -37,7 +38,7 @@ export function upgradeFiscalStateV1(fiscal: unknown, date: string): FiscalState
     // reinterpret that flawed last-period ledger as if the new revenue had existed.
     return [id, { ...c, revenueCalibration, debtInitialization, account: undefined }];
   }));
-  return { ...prior, version: 'fiscal-0.11-v2', countries } as FiscalState;
+  return { ...prior, version: 'fiscal-0.11-v2', countries, reformReceipts: [] } as FiscalState;
 }
 function taxRegion(r: SocioRegion, owner: string, policy: Policy, previous?: RegionFiscal): RegionFiscal {
   const e = r.economy!;
@@ -102,6 +103,36 @@ function ownedEconomies(state: SimulationState): Map<string, string[]> {
     const ids = grouped.get(owner) ?? []; ids.push(id); grouped.set(owner, ids);
   }
   return grouped;
+}
+
+export interface ImmediateFiscalPolicyCounterfactual {
+  countryId: string; regionCount: number;
+  currentKnownRevenue: number; proposedKnownRevenue: number;
+  currentDisposableByIncome: number[]; proposedDisposableByIncome: number[];
+  currentConsumptionTaxByIncome: number[]; proposedConsumptionTaxByIncome: number[];
+  currentEmployerPayroll: number; proposedEmployerPayroll: number;
+  currentCorporateTax: number; proposedCorporateTax: number;
+  currentRevenueByCategory: Record<typeof TAXES[number], number>; proposedRevenueByCategory: Record<typeof TAXES[number], number>;
+  categoryCoverage: Record<typeof TAXES[number], 'complete' | 'unavailable'>;
+}
+
+/** Pure, current-period counterfactual using the existing 0.11 tax calculators for one Country only. */
+export function evaluateImmediateFiscalPolicyCounterfactual(state: SimulationState, countryId: string, policy: Policy, evaluationDate = state.date): ImmediateFiscalPolicyCounterfactual {
+  const country = state.fiscal.countries[countryId]; if (!country) throw new Error('Unknown fiscal Country.');
+  validatePolicy(policy, countryId, evaluationDate);
+  const regionIds = Object.keys(state.socioeconomy.regions).filter(id => state.regionOwnership[id] === countryId && state.socioeconomy.regions[id].economy).sort();
+  const currentDisposableByIncome = [0, 0, 0], proposedDisposableByIncome = [0, 0, 0], currentConsumptionTaxByIncome = [0, 0, 0], proposedConsumptionTaxByIncome = [0, 0, 0];
+  let currentKnownRevenue = 0, proposedKnownRevenue = 0, currentEmployerPayroll = 0, proposedEmployerPayroll = 0, currentCorporateTax = 0, proposedCorporateTax = 0;
+  const currentRevenueByCategory = Object.fromEntries(TAXES.map(category => [category, 0])) as Record<typeof TAXES[number], number>, proposedRevenueByCategory = { ...currentRevenueByCategory };
+  for (const regionId of regionIds) {
+    const current = state.fiscal.regions[regionId] ?? taxRegion(state.socioeconomy.regions[regionId], countryId, country.policy), proposed = taxRegion(state.socioeconomy.regions[regionId], countryId, policy, current);
+    currentKnownRevenue += sum(TAXES.map(key => current.taxes[key].collected)); proposedKnownRevenue += sum(TAXES.map(key => proposed.taxes[key].collected));
+    for (const category of TAXES) { currentRevenueByCategory[category] += current.taxes[category].collected; proposedRevenueByCategory[category] += proposed.taxes[category].collected; }
+    for (let index = 0; index < 3; index++) { currentDisposableByIncome[index] += current.disposable[index]; proposedDisposableByIncome[index] += proposed.disposable[index]; currentConsumptionTaxByIncome[index] += current.consumptionTax[index]; proposedConsumptionTaxByIncome[index] += proposed.consumptionTax[index]; }
+    currentEmployerPayroll += current.taxes.employer.collected; proposedEmployerPayroll += proposed.taxes.employer.collected; currentCorporateTax += current.taxes.corporate.collected; proposedCorporateTax += proposed.taxes.corporate.collected;
+  }
+  const categoryCoverage = Object.fromEntries(TAXES.map(category => [category, country.policy[taxKind(category)] === null ? 'unavailable' : 'complete'])) as ImmediateFiscalPolicyCounterfactual['categoryCoverage'];
+  return { countryId, regionCount: regionIds.length, currentKnownRevenue, proposedKnownRevenue, currentDisposableByIncome, proposedDisposableByIncome, currentConsumptionTaxByIncome, proposedConsumptionTaxByIncome, currentEmployerPayroll, proposedEmployerPayroll, currentCorporateTax, proposedCorporateTax, currentRevenueByCategory, proposedRevenueByCategory, categoryCoverage };
 }
 export function initializeFiscal(state: SimulationState): SimulationState {
   if (state.fiscal.initializedOn || !state.socioeconomy.initializedOn) return state;
@@ -222,6 +253,7 @@ export function validateFiscalReform(state: SimulationState, input: Omit<FiscalR
   }
   if (input.annualBudget) validateBudget(input.annualBudget);
 }
+export const fiscalReformFingerprint = (input: Pick<FiscalReform, 'countryId' | 'effectiveDate' | 'policy' | 'annualBudget'>) => deterministicFingerprint({ countryId: input.countryId, effectiveDate: input.effectiveDate, policy: input.policy, annualBudget: input.annualBudget });
 export function scheduleFiscalReform(state: SimulationState, input: Omit<FiscalReform, 'sequence'>): SimulationState {
   validateFiscalReform(state, input);
   const reform = { ...structuredClone(input), sequence: state.fiscal.nextSequence };
@@ -230,12 +262,14 @@ export function scheduleFiscalReform(state: SimulationState, input: Omit<FiscalR
 function applyReforms(state: SimulationState): SimulationState {
   if (!state.fiscal.reforms.length || state.fiscal.reforms[0].effectiveDate > state.date) return state;
   const countries = { ...state.fiscal.countries };
-  for (const r of state.fiscal.reforms.filter(r => r.effectiveDate <= state.date)) {
+  const applied = state.fiscal.reforms.filter(r => r.effectiveDate <= state.date), receipts = [...state.fiscal.reformReceipts];
+  for (const r of applied) {
     const c = countries[r.countryId];
     countries[r.countryId] = { ...c, policy: r.policy ?? c.policy, annualBudget: r.annualBudget ?? c.annualBudget,
       policyHistory: r.policy ? [...c.policyHistory, { date: r.effectiveDate, policy: r.policy }] : c.policyHistory };
+    receipts.push({ sequence: r.sequence, countryId: r.countryId, effectiveDate: r.effectiveDate, reformFingerprint: fiscalReformFingerprint(r), origin: r.origin, recordedBy: 'runtime' });
   }
-  return { ...state, fiscal: { ...state.fiscal, countries, reforms: state.fiscal.reforms.filter(r => r.effectiveDate > state.date) } };
+  return { ...state, fiscal: { ...state.fiscal, countries, reforms: state.fiscal.reforms.filter(r => r.effectiveDate > state.date), reformReceipts: receipts } };
 }
 export const registerFiscalTasks = (scheduler: SimulationScheduler) => scheduler
   .register({ id: 'fiscal.reforms', cadence: 'daily', priority: 50, run: applyReforms })

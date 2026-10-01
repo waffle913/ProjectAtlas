@@ -6,6 +6,7 @@ import { emptyPolitics } from './politics/model';
 import { initializePolitics, rebasePoliticsRegistry } from './politics/initialization';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
 import { emptyGovernance } from './governance/model';
+import { upgradeGovernanceSchema12 } from './governance/migration';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
 import { assertSimulationInvariants, type InvariantContext } from './invariants';
@@ -59,7 +60,8 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     // deterministic opinion branch against the current pinned registry instead of
     // carrying stale party references into the runtime.
     const needsPoliticalRebase = savedRegistryVersion === 'political-registry-0.13-v2' || savedRegistryVersion === 'political-registry-0.13-v3';
-    const restored = hasNormalizedPolitics ? fiscalRestored : needsPoliticalRebase ? { ...fiscalRestored, politics: rebasePoliticsRegistry(fiscalRestored) } : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
+    const politicsRestored = hasNormalizedPolitics ? fiscalRestored : needsPoliticalRebase ? { ...fiscalRestored, politics: rebasePoliticsRegistry(fiscalRestored) } : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
+    const restored = version === 12 ? upgradeGovernanceSchema12(politicsRestored) : politicsRestored;
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

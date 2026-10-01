@@ -8,7 +8,7 @@ export const fiscalInvariant: SimulationInvariant = {
   id: 'fiscal-conservation',
   check: (state, context) => {
     const f = state.fiscal, errors: string[] = [];
-    if (!f || f.version !== 'fiscal-0.11-v2' || !f.countries || !f.regions || !Array.isArray(f.reforms)) return ['Malformed fiscal state.'];
+    if (!f || f.version !== 'fiscal-0.11-v2' || !f.countries || !f.regions || !Array.isArray(f.reforms) || !Array.isArray(f.reformReceipts)) return ['Malformed fiscal state.'];
     const fail = (id: string, message: string) => errors.push(`${id}: ${message}`);
     if (!f.initializedOn) return Object.keys(f.countries).length || Object.keys(f.regions).length || f.reforms.length ? ['Fiscal state lacks initialization date.'] : [];
     if (!dateValid(f.initializedOn) || f.initializedOn > state.date || f.lastMonthlyDate && (!dateValid(f.lastMonthlyDate) || f.lastMonthlyDate > state.date)) errors.push('Invalid fiscal dates.');
@@ -74,6 +74,11 @@ export const fiscalInvariant: SimulationInvariant = {
       if (!context.countryIds.has(r.countryId) || !dateValid(r.effectiveDate) || r.effectiveDate <= state.date || !quantity(r.sequence) || r.sequence >= f.nextSequence || seen.has(r.sequence)) errors.push('Invalid reform queue.');
       seen.add(r.sequence);
       try { if (r.policy) validatePolicy(r.policy, r.countryId, r.effectiveDate); if (r.annualBudget) validateBudget(r.annualBudget); } catch (e) { errors.push(String(e)); }
+    }
+    for (const receipt of f.reformReceipts) {
+      if (!context.countryIds.has(receipt.countryId) || !dateValid(receipt.effectiveDate) || receipt.effectiveDate > state.date || !quantity(receipt.sequence) || receipt.sequence >= f.nextSequence || seen.has(receipt.sequence) || typeof receipt.reformFingerprint !== 'string' || receipt.reformFingerprint.length !== 16 || !['runtime', 'schema12_upgrade'].includes(receipt.recordedBy)) errors.push('Invalid fiscal reform receipt.');
+      if (receipt.origin && (receipt.origin.type !== 'governance_proposal' || !receipt.origin.proposalId || typeof receipt.origin.proposalFingerprint !== 'string' || receipt.origin.proposalFingerprint.length !== 16)) errors.push('Invalid fiscal reform origin.');
+      seen.add(receipt.sequence);
     }
     return errors;
   },
