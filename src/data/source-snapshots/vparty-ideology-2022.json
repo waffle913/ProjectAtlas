@@ -7,12 +7,24 @@
     "publisher": "V-Dem Institute",
     "published": "2022-02-01",
     "url": "https://v-dem.net/data/v-party-dataset/",
-    "codebook": "https://v-dem.net/static/website/img/refs/vparty_codebook.pdf",
+    "codebook": "https://v-dem.net/documents/6/vparty_codebook_v2.pdf",
     "distributionUrl": "https://raw.githubusercontent.com/vdeminstitute/vdemdata/f4dd26922e658442524dfd954bf14f7ebe622d5d/data/vparty.RData",
     "distributionCommit": "f4dd26922e658442524dfd954bf14f7ebe622d5d",
-    "distributionLicence": "GPL-3.0"
+    "datasetLicence": {
+      "status": "requires_confirmation",
+      "checkedOn": "2026-09-30",
+      "officialDatasetPage": "https://v-dem.net/data/v-party-dataset/",
+      "evidence": "The official V-Party v2 page does not state a dataset licence, while the v2 codebook says Copyright University of Gothenburg, V-Dem Institute, All rights reserved. The general V-Dem dataset page states CC BY-SA 4.0 but does not explicitly identify V-Party v2 as covered."
+    },
+    "tooling": {
+      "name": "vdemdata R package",
+      "version": "16.0",
+      "repository": "https://github.com/vdeminstitute/vdemdata",
+      "licence": "GPL-3.0"
+    },
+    "citation": "Lindberg, Staffan I., et al. 2022. Codebook Varieties of Party Identity and Organization (V-Party) V2. Varieties of Democracy (V-Dem) Project. https://doi.org/10.23696/vpartydsv2"
   },
-  "methodology": "Explicit reviewed IPU-to-Party-Facts entity links only. Latest V-Party observation per Party Facts ID. Eight ordinal expert-coded variables retained only with at least three coders; no name-based classification or source-ID-derived ideology.",
+  "methodology": "Explicit reviewed IPU-to-Party-Facts entity links only. Latest historical V-Party observation per Party Facts ID. Eight ordinal variables are retained for audit, but only six semantically compatible variables feed ProjectAtlas priors. Mapped variables require at least three coders; coder count qualifies historical measurement quality and does not determine 2026 applicability. No name-based classification or source-ID-derived ideology.",
   "parties": [
     {
       "sourcePartyId": "au-australian_labor_party_alp",
@@ -20,9 +32,11 @@
       "partyFactsId": 424,
       "vPartyId": 424,
       "vPartyName": "Australian Labor Party",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-05-18",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -60,7 +74,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "au-greens_0",
@@ -68,9 +82,11 @@
       "partyFactsId": 1209,
       "vPartyId": 1209,
       "vPartyName": "Australian Greens",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-05-18",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -108,7 +124,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-brazilian_democratic_movement_mdb_",
@@ -116,9 +132,11 @@
       "partyFactsId": 654,
       "vPartyId": 654,
       "vPartyName": "Partido do Movimento Democrático Brasileiro",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -156,7 +174,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-brazilian_social_democratic_party_psdb",
@@ -164,9 +182,11 @@
       "partyFactsId": 225,
       "vPartyId": 225,
       "vPartyName": "Brazilian Social Democracy Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -204,7 +224,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-brazilian_socialist_party_psb",
@@ -212,9 +232,11 @@
       "partyFactsId": 723,
       "vPartyId": 723,
       "vPartyName": "Brazilian Socialist Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -252,7 +274,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-democratic_labour_party_pdt",
@@ -260,9 +282,11 @@
       "partyFactsId": 1009,
       "vPartyId": 1009,
       "vPartyName": "Democratic Labour Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -300,7 +324,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-liberal_party_pl",
@@ -308,9 +332,11 @@
       "partyFactsId": 4405,
       "vPartyId": 4405,
       "vPartyName": "Party of the Republic / Liberal Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -348,7 +374,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-progressive_party_pp",
@@ -356,9 +382,11 @@
       "partyFactsId": 781,
       "vPartyId": 781,
       "vPartyName": "Progressive Party / Brazilian Progressive Party (PPB)",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -396,7 +424,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-republicans_republicanos_",
@@ -404,9 +432,11 @@
       "partyFactsId": 7079,
       "vPartyId": 7079,
       "vPartyName": "Brazilian Republican Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -444,7 +474,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-social_democratic_party_psd",
@@ -452,9 +482,11 @@
       "partyFactsId": 4613,
       "vPartyId": 4613,
       "vPartyName": "Social Democratic Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -492,7 +524,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "br-workers_party_pt",
@@ -500,9 +532,11 @@
       "partyFactsId": 356,
       "vPartyId": 356,
       "vPartyName": "Workers' Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-10-07",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -540,7 +574,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "ca-bloc_qu__b__cois_bq",
@@ -548,9 +582,11 @@
       "partyFactsId": 1428,
       "vPartyId": 1428,
       "vPartyName": "Quebec Bloc",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-10-21",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_centre",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -588,7 +624,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "ca-conservative_party",
@@ -596,9 +632,11 @@
       "partyFactsId": 1004,
       "vPartyId": 1004,
       "vPartyName": "Conservative Party of Canada (2003)",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-10-21",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -636,7 +674,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "ca-green_party",
@@ -644,9 +682,11 @@
       "partyFactsId": 931,
       "vPartyId": 931,
       "vPartyName": "Green Party of Canada",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-10-21",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -684,7 +724,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "ca-liberal_party",
@@ -692,9 +732,11 @@
       "partyFactsId": 1739,
       "vPartyId": 1739,
       "vPartyName": "Liberal Party of Canada",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-10-21",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -732,7 +774,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "ca-ndp_new_democratic_party_ndp_",
@@ -740,9 +782,11 @@
       "partyFactsId": 152,
       "vPartyId": 152,
       "vPartyName": "New Democratic Party",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-10-21",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -780,7 +824,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "de-alternative_germany_afd",
@@ -788,9 +832,11 @@
       "partyFactsId": 1976,
       "vPartyId": 1976,
       "vPartyName": "Alternative for Germany",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-09-24",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_centre",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -828,7 +874,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "de-christian_democratic_union_cdu",
@@ -836,9 +882,11 @@
       "partyFactsId": 1375,
       "vPartyId": 1375,
       "vPartyName": "Christian Democratic Union",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-09-24",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -876,7 +924,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "de-christian_social_union_bavaria_csu",
@@ -884,9 +932,11 @@
       "partyFactsId": 1731,
       "vPartyId": 1731,
       "vPartyName": "Christian Social Union",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-09-24",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -924,7 +974,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "de-green_party",
@@ -932,9 +982,11 @@
       "partyFactsId": 1816,
       "vPartyId": 1816,
       "vPartyName": "Alliance 90 / Greens",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-09-24",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -972,7 +1024,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "de-left_party_die_linke",
@@ -980,9 +1032,11 @@
       "partyFactsId": 1545,
       "vPartyId": 1545,
       "vPartyName": "The Left",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-09-24",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1020,7 +1074,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "de-social_democratic_party_spd",
@@ -1028,9 +1082,11 @@
       "partyFactsId": 383,
       "vPartyId": 383,
       "vPartyName": "Social Democratic Party of Germany",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-09-24",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1068,7 +1124,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "fr-national_rally_rn_",
@@ -1076,9 +1132,11 @@
       "partyFactsId": 433,
       "vPartyId": 433,
       "vPartyName": "National Front",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-06-11",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_centre",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1116,7 +1174,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "fr-republicans_lr",
@@ -1124,9 +1182,11 @@
       "partyFactsId": 1595,
       "vPartyId": 1595,
       "vPartyName": "Union for a Popular Movement",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-06-11",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1164,7 +1224,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "fr-socialist_party_ps",
@@ -1172,9 +1232,11 @@
       "partyFactsId": 1478,
       "vPartyId": 1478,
       "vPartyName": "Socialist Party",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-06-11",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1212,7 +1274,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "gb-conservative_party",
@@ -1220,9 +1282,11 @@
       "partyFactsId": 1567,
       "vPartyId": 1567,
       "vPartyName": "Conservatives",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-12-12",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1260,7 +1324,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "gb-labour_party",
@@ -1268,9 +1332,11 @@
       "partyFactsId": 1516,
       "vPartyId": 1516,
       "vPartyName": "Labour",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-12-12",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1308,7 +1374,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "gb-scottish_national_party",
@@ -1316,9 +1382,11 @@
       "partyFactsId": 986,
       "vPartyId": 986,
       "vPartyName": "Scottish National Party",
-      "effectiveYear": 2019,
+      "effectiveDate": "2019-12-12",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1356,7 +1424,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "jp-constitutional_democratic_party_japan",
@@ -1364,9 +1432,11 @@
       "partyFactsId": 6135,
       "vPartyId": 6135,
       "vPartyName": "Constitutional Democratic Party of Japan",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-10-22",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1404,7 +1474,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "jp-japanese_communist_party_jcp",
@@ -1412,9 +1482,11 @@
       "partyFactsId": 736,
       "vPartyId": 736,
       "vPartyName": "Japan Communist Party",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-10-22",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1452,7 +1524,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "jp-komeito",
@@ -1460,9 +1532,11 @@
       "partyFactsId": 1515,
       "vPartyId": 1515,
       "vPartyName": "Clean Government Party / New Komeito",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-10-22",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1500,7 +1574,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "jp-liberal_democratic_party_ldp",
@@ -1508,9 +1582,11 @@
       "partyFactsId": 1746,
       "vPartyId": 1746,
       "vPartyName": "Liberal Democratic Party",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-10-22",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1548,7 +1624,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "jp-nippon_ishin_no_japan_restoration_party",
@@ -1556,9 +1632,11 @@
       "partyFactsId": 2080,
       "vPartyId": 2080,
       "vPartyName": "Japan Restoration [Innovation] Party",
-      "effectiveYear": 2017,
+      "effectiveDate": "2017-10-22",
       "status": "partial",
-      "confidenceBps": 4500,
+      "measurementConfidenceBps": 4500,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1596,7 +1674,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "us-democratic_party_0",
@@ -1604,9 +1682,11 @@
       "partyFactsId": 432,
       "vPartyId": 432,
       "vPartyName": "Democratic Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-11-06",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_left",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1644,7 +1724,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     },
     {
       "sourcePartyId": "us-republican_party",
@@ -1652,9 +1732,11 @@
       "partyFactsId": 809,
       "vPartyId": 809,
       "vPartyName": "Republican Party",
-      "effectiveYear": 2018,
+      "effectiveDate": "2018-11-06",
       "status": "sourced",
-      "confidenceBps": 7000,
+      "measurementConfidenceBps": 7000,
+      "temporalStatus": "historical_prior",
+      "temporalApplicabilityConfidenceBps": 2500,
       "politicalFamily": "economic_right",
       "sourceIdeologicalLabels": {
         "v2pariglef": {
@@ -1692,7 +1774,7 @@
       },
       "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
       "transformationMethod": "vparty_ordinal_linear_v1",
-      "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three."
+      "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral."
     }
   ]
 }

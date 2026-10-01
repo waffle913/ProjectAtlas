@@ -42,6 +42,8 @@ LINKS = {
 }
 
 VARIABLES = ["v2pariglef", "v2pawelf", "v2paimmig", "v2palgbt", "v2paminor", "v2paplur", "v2pawomlab", "v2paculsup"]
+MAPPED_VARIABLES = ["v2pariglef", "v2paimmig", "v2palgbt", "v2paminor", "v2paplur", "v2pawomlab"]
+TEMPORAL_APPLICABILITY_CONFIDENCE_BPS = 2500
 
 with urllib.request.urlopen(URL) as response:
     payload = response.read()
@@ -64,7 +66,7 @@ for source_party_id, party_facts_id in sorted(LINKS.items()):
         raise ValueError(f"Missing Party Facts ID: {party_facts_id}")
     row = rows.iloc[-1]
     values = {variable: {"ordinal": int(row[f"{variable}_ord"]), "coderCount": int(row[f"{variable}_nr"])} for variable in VARIABLES if not row[[f"{variable}_ord", f"{variable}_nr"]].isna().any()}
-    minimum = min(item["coderCount"] for item in values.values())
+    minimum = min(values[variable]["coderCount"] for variable in MAPPED_VARIABLES)
     if len(values) != len(VARIABLES) or minimum < 3:
         raise ValueError(f"Insufficient V-Party evidence for {party_facts_id}")
     records.append({
@@ -73,14 +75,16 @@ for source_party_id, party_facts_id in sorted(LINKS.items()):
         "partyFactsId": party_facts_id,
         "vPartyId": int(row["v2paid"]),
         "vPartyName": row["v2paenname"],
-        "effectiveYear": int(row["year"]),
+        "effectiveDate": str(row["historical_date"])[:10],
         "status": "sourced" if minimum >= 4 else "partial",
-        "confidenceBps": 7000 if minimum >= 4 else 4500,
+        "measurementConfidenceBps": 7000 if minimum >= 4 else 4500,
+        "temporalStatus": "historical_prior",
+        "temporalApplicabilityConfidenceBps": TEMPORAL_APPLICABILITY_CONFIDENCE_BPS,
         "politicalFamily": "economic_left" if values["v2pariglef"]["ordinal"] <= 2 else "economic_centre" if values["v2pariglef"]["ordinal"] == 3 else "economic_right",
         "sourceIdeologicalLabels": values,
         "linkMethod": "reviewed_ipu_party_to_partyfacts_id_v1",
         "transformationMethod": "vparty_ordinal_linear_v1",
-        "limitations": "Latest V-Party election observation predates the 2026 scenario; unmapped ProjectAtlas dimensions remain neutral. Partial status also applies when the minimum coder count is three.",
+        "limitations": "Election-specific V-Party evidence from 2017-2019 is a historical prior, not a 2026 observation. Coder count qualifies historical measurement quality only; temporal applicability is separately low-confidence. Unmapped or semantically incompatible ProjectAtlas dimensions remain neutral.",
     })
 
 snapshot = {
@@ -92,12 +96,24 @@ snapshot = {
         "publisher": "V-Dem Institute",
         "published": "2022-02-01",
         "url": "https://v-dem.net/data/v-party-dataset/",
-        "codebook": "https://v-dem.net/static/website/img/refs/vparty_codebook.pdf",
+        "codebook": "https://v-dem.net/documents/6/vparty_codebook_v2.pdf",
         "distributionUrl": URL,
         "distributionCommit": COMMIT,
-        "distributionLicence": "GPL-3.0",
+        "datasetLicence": {
+            "status": "requires_confirmation",
+            "checkedOn": RETRIEVED_AT,
+            "officialDatasetPage": "https://v-dem.net/data/v-party-dataset/",
+            "evidence": "The official V-Party v2 page does not state a dataset licence, while the v2 codebook says Copyright University of Gothenburg, V-Dem Institute, All rights reserved. The general V-Dem dataset page states CC BY-SA 4.0 but does not explicitly identify V-Party v2 as covered.",
+        },
+        "tooling": {
+            "name": "vdemdata R package",
+            "version": "16.0",
+            "repository": "https://github.com/vdeminstitute/vdemdata",
+            "licence": "GPL-3.0",
+        },
+        "citation": "Lindberg, Staffan I., et al. 2022. Codebook Varieties of Party Identity and Organization (V-Party) V2. Varieties of Democracy (V-Dem) Project. https://doi.org/10.23696/vpartydsv2",
     },
-    "methodology": "Explicit reviewed IPU-to-Party-Facts entity links only. Latest V-Party observation per Party Facts ID. Eight ordinal expert-coded variables retained only with at least three coders; no name-based classification or source-ID-derived ideology.",
+    "methodology": "Explicit reviewed IPU-to-Party-Facts entity links only. Latest historical V-Party observation per Party Facts ID. Eight ordinal variables are retained for audit, but only six semantically compatible variables feed ProjectAtlas priors. Mapped variables require at least three coders; coder count qualifies historical measurement quality and does not determine 2026 applicability. No name-based classification or source-ID-derived ideology.",
     "parties": records,
 }
 with open(OUTPUT, "w", encoding="utf-8", newline="\n") as handle:

@@ -4,13 +4,15 @@
   "generatedFrom": {
     "sourceSnapshotSha256": "9d1a3f6dacdfb729710c61765568c20e4f41f85ed31e70bc8fd21da7e9d55f13",
     "organizedInterestsSourceSha256": "20324a3699023d8f9675e4a8e117eb449bbe762e358d1bbdab698f84a5045cc3",
-    "ideologySourceSnapshotSha256": "f4690b22a3c50efac4f3b096a49ed4cb31ad3cc798d9714a0349f045e1d965d0",
-    "politicalRegistrySha256": "dd655249c797420dff65d76dc96db3ae5d6ffb1dcf2f1431cdddc274f146b1ef"
+    "ideologySourceSnapshotSha256": "e958be638bab68d4ab1976e4332807da6fd72d1ba7ac199e98274094b452f267",
+    "politicalRegistrySha256": "e3f3ca2a03c693af0f2292de8026c44f591e7ee0f98e5dd076e2e8b8ed78a437"
   },
   "methodology": {
     "institutionalSource": "Inter-Parliamentary Union, country systems, chambers and latest elections applicable on 2026-01-01",
     "visiblePartyIdentities": "Fictional country-specific identities mapped one-to-one to sourced full seat allocations.",
-    "ideologicalBasis": "V-Party Country-Party-Date v2 via vdemdata 16.0; explicit reviewed IPU-to-Party-Facts links only; deterministic ordinal transformation; unmatched parties remain source-ID/name-independent neutral low-confidence fallbacks.",
+    "ideologicalBasis": "V-Party Country-Party-Date v2 via vdemdata 16.0; explicit reviewed IPU-to-Party-Facts links only; historical priors map only semantically compatible variables. Economic left-right, immigration, a documented social composite and pluralism are differentiated; unsupported dimensions remain neutral at low confidence. Measurement quality and 2026 applicability are separate.",
+    "ideologyTemporalStatus": "All admitted V-Party observations are historical_prior (2017-2019), never direct 2026 observations.",
+    "ideologyDatasetLicence": "requires_confirmation",
     "governingBloc": "Partial derived normalized-name match retaining source text, method and result.",
     "organizedInterests": "Partial dated ITUC/IOE source cross-section; no universal organizations are fabricated, membership is unavailable, and weekly dynamic positions are stored only for these registered organizations.",
     "opinion": "Nine socioeconomic cohorts per populated region; modelled without polling claims."

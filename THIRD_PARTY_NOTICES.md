@@ -12,7 +12,13 @@ ProjectAtlas source code is distributed under the ISC licence stated in `package
 
 ## V-Party and Party Facts identifiers
 
-`src/data/source-snapshots/vparty-ideology-2022.json` contains a small derived extract of V-Party Country-Party-Date v2 observations distributed in the V-Dem Institute `vdemdata` R package under GPL-3.0. The extractor pins package commit `f4dd26922e658442524dfd954bf14f7ebe622d5d`, retains the source publication and codebook URLs, and includes only explicitly reviewed Party Facts ID joins. ProjectAtlas records the original ordinal labels and coder counts, then deterministically maps them into fictional gameplay profiles. Party names are retained only for provenance and never drive classification.
+`src/data/source-snapshots/vparty-ideology-2022.json` contains a small derived extract of V-Party Country-Party-Date v2 observations. The extractor pins `vdemdata` package commit `f4dd26922e658442524dfd954bf14f7ebe622d5d`; **GPL-3.0 applies to that package/tooling and is not treated as the dataset licence**.
+
+The official V-Party v2 download page does not state a dataset licence. Its February 2022 codebook says “Copyright © University of Gothenburg, V-Dem Institute — All rights reserved”. The separate general V-Dem dataset page currently states CC BY-SA 4.0, but it does not explicitly establish that V-Party v2 is covered. The V-Party v2 dataset licence is therefore recorded as **`requires_confirmation`**. Distribution or relicensing of this extract must not assume GPL-3.0 or CC BY-SA 4.0 without confirmation from V-Dem.
+
+Citation: Staffan I. Lindberg et al. (2022), *Codebook Varieties of Party Identity and Organization (V-Party) V2*, Varieties of Democracy (V-Dem) Project, https://doi.org/10.23696/vpartydsv2.
+
+The snapshot includes only explicitly reviewed Party Facts ID joins. ProjectAtlas retains the original ordinal labels and coder counts, then maps only semantically compatible variables into fictional historical priors. Party names are retained only for provenance and never drive classification.
 
 ## Distribution
 
