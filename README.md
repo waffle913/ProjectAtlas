@@ -1,10 +1,12 @@
-# ProjectAtlas — Milestone 0.10
+# ProjectAtlas — Milestone 0.14
 
-An original political-map foundation for a future geopolitical simulation, with the starting simulation date fixed at **2026-01-01**.
+An original geopolitical, economic, social, political and military simulation, with the scenario start date fixed at **2026-01-01**.
 
-## Milestone 0.10
+## Current project status
 
-Monthly population/cohort/economy loop, explicit simulation priors separate from audited data, bounded administrative AI, exogenous shock diagnostics and save schema 8. See [the model and migration contract](docs/socioeconomy-0.10.md) and [per-Country coverage](src/data/socioeconomic-coverage-report.json). `npm run economy:audit` verifies the reproducible report; `npm run benchmark:world` measures the actual monthly world runtime alongside the historical probe.
+The current validated milestone is **0.14** (save schema 12): player-character governance and political decisions integrate with the existing fiscal system. Current contracts, rationale, known limits and the locked roadmap are consolidated in the [canonical agent handoff](docs/agent-handoff.md). Agents must read it before implementation and must not begin milestone 0.15 without explicit instruction.
+
+Earlier validated contracts remain part of the current architecture; this status does not replace their technical documentation. The 0.10 socioeconomic model is documented in [the model and migration contract](docs/socioeconomy-0.10.md) and [per-Country coverage](src/data/socioeconomic-coverage-report.json). `npm run economy:audit` verifies the reproducible report; `npm run benchmark:world` measures the actual monthly world runtime alongside the historical probe.
 
 ## Run
 
@@ -125,3 +127,7 @@ Save schema 10 adds a deterministic monthly crisis/tripwire engine for fiscal st
 ## National politics (0.13)
 
 Save schema 11 adds national institutions, country-specific fictional parties and deterministic weekly opinion for the existing socioeconomic cohorts. A pinned IPU Parline extract applicable on 2026-01-01 supplies 193 national parliamentary records, 281 chambers and 182 reconciled full seat allocations; unsupported fields remain explicitly unavailable or not applicable. Static sourced definitions live outside saves in an immutable registry, while saves retain the dynamic cohort opinion needed for deterministic continuation. The milestone adds no elections, legislation or player political actions. Read [the politics contract](docs/politics-0.13.md); `npm run politics:audit` and `npm run politics:benchmark` validate coverage and the full-world path.
+
+## Player governance (0.14)
+
+Save schema 12 adds the persistent fictional player person, office-derived authority, political proposals and coverage-aware public/parliamentary estimates. Fiscal proposals use the existing reform queue exactly once; unknown political evidence remains unknown rather than becoming abstention or rejection. Read [the governance contract](docs/governance-0.14.md) and [the final validation record](docs/milestone-0.14-validation.md). Production ideological and seat coverage does not currently overlap, so many parliamentary outcomes remain unavailable rather than fabricated.

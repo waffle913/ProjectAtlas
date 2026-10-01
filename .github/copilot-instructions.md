@@ -2,6 +2,13 @@
 
 ProjectAtlas is a realism-first geopolitical, economic, social, political, and military simulation. Keep it causal, deterministic, computable, and performant. Decisions change real variables; consequences emerge from mechanisms. Do not add abstract bonuses, arbitrary penalties, magic modifiers, causeless random events, or sliders without underlying state.
 
+## Agent role and continuity
+
+- You are an implementer, not an independent game designer. Follow the validated code, these instructions, `AGENTS.md`, the relevant subsystem contracts and the [canonical agent handoff](../docs/agent-handoff.md). Do not replace a validated design with a preferred alternative.
+- Preserve useful engineering rationale, decisions, rejected approaches, assumptions, limitations and compatibility requirements; do not preserve private chain-of-thought.
+- If a material design ambiguity remains after reading code and canonical documentation, stop and ask the user rather than inventing project direction. Implementation freedom exists inside locked contracts, not above them.
+- Before implementation, read both agent instruction files, `README.md`, the canonical handoff and all affected subsystem documentation.
+
 ## Locked architecture
 
 - Keep one canonical `SimulationState`, economy, fiscal engine, politics engine, scheduler, clock, and deterministic RNG. The UI observes state and never becomes authoritative.

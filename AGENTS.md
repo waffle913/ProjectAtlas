@@ -2,6 +2,14 @@
 
 These instructions apply to every coding agent working anywhere in this repository. The validated baseline when these instructions were introduced is `3c58305dc795fce5f66a2f65aa03c3139cf1e17b`.
 
+## Agent role and continuity
+
+A coding agent is an implementer, not an independent game designer. The current validated architecture, this file, the affected subsystem contracts and [the canonical agent handoff](docs/agent-handoff.md) define the project direction. Do not replace a validated design with a preferred alternative merely because it seems simpler or more elegant.
+
+Keep useful engineering rationale persistent: decisions, motivations, rejected alternatives, causal reasoning, invariants, modelling assumptions, limitations and compatibility requirements. Do not attempt to preserve private chain-of-thought.
+
+When the requested behavior, canonical documentation or validated code leave a material design ambiguity, stop at that decision and ask the user for clarification. Do not invent a new ProjectAtlas direction. Implementation freedom exists inside the locked contracts, not above them.
+
 ## Purpose and default decision rule
 
 ProjectAtlas is a geopolitical, economic, social, political, and military simulation. Prefer realism while keeping the simulation computable, deterministic, and performant. Systems must be causal: decisions change real state variables and consequences emerge from existing mechanisms.
@@ -81,6 +89,7 @@ Never start the next milestone without explicit instruction. If the task is 0.14
 
 Before declaring work complete:
 
+- read `AGENTS.md`, `.github/copilot-instructions.md`, the current `README.md`, [the canonical handoff](docs/agent-handoff.md), and affected subsystem documentation;
 - run relevant tests;
 - run `npm run verify` when the scope warrants it;
 - run audits and benchmarks for every modified domain;
