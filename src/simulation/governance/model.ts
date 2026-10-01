@@ -3,7 +3,7 @@ import type { PoliticalIssue } from '../politics/model';
 import { deterministicFingerprint } from '../fingerprint';
 
 export const GOVERNANCE_VERSION = 'governance-0.14-v1' as const;
-export const AUTHORITY_CAPABILITIES = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation'] as const;
+export const AUTHORITY_CAPABILITIES = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information'] as const;
 export type AuthorityCapability = typeof AUTHORITY_CAPABILITIES[number];
 export type PoliticalOfficeRole = 'head_of_government' | 'head_of_state' | 'legislator';
 
@@ -27,6 +27,31 @@ export interface PoliticalPersonState {
   isPartyLeader: boolean;
   office?: PoliticalOfficeState;
   status: 'active' | 'inactive';
+  leaderProfile?: Record<string, { valueBps: number; confidenceBps: number; status: 'derived' | 'modelled'; limitation: string }>;
+  leaderProvenance?: {
+    status: 'modelled_fallback';
+    method: 'party_platform_initial_v1' | 'bounded_party_platform_succession_v1';
+    sourcePartyId: string;
+    referenceDate: string;
+    sourceLeaderStatus: 'unavailable';
+    limitation: string;
+  };
+}
+
+export interface LeadershipSuccession {
+  id: string;
+  partyId: string;
+  countryId: string;
+  previousPersonId: string;
+  newPersonId: string;
+  effectiveDate: string;
+  selection: 'existing_party_member' | 'modelled_fallback';
+  playerHandoff?: {
+    status: 'pending' | 'continued' | 'switched';
+    previousPersonId: string;
+    successorPersonId: string;
+    decidedOn?: string;
+  };
 }
 
 export interface FiscalProposalPayload { policy?: Policy; annualBudget?: Budget }
@@ -83,23 +108,31 @@ export interface PoliticalProposal {
 export interface GovernanceState {
   version: typeof GOVERNANCE_VERSION;
   initializedOn?: string;
+  leadersInitializedOn?: string;
   player: { controlledPersonId?: string };
   persons: Record<string, PoliticalPersonState>;
   proposals: Record<string, PoliticalProposal>;
   proposalOrder: string[];
   nextPersonSequence: number;
   nextProposalSequence: number;
+  successions: Record<string, LeadershipSuccession>;
+  successionOrder: string[];
+  nextSuccessionSequence: number;
 }
 
 export const emptyGovernance = (initializedOn?: string): GovernanceState => ({
   version: GOVERNANCE_VERSION,
   initializedOn,
+  leadersInitializedOn: undefined,
   player: {},
   persons: {},
   proposals: {},
   proposalOrder: [],
   nextPersonSequence: 0,
   nextProposalSequence: 0,
+  successions: {},
+  successionOrder: [],
+  nextSuccessionSequence: 0,
 });
 
 export const governanceFingerprint = deterministicFingerprint;

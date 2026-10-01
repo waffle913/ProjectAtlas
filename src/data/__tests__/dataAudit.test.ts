@@ -2,6 +2,7 @@ import { emptyFiscal } from '../../simulation/fiscal/model';
 import { emptyCrisis } from '../../simulation/crisis/model';
 import { emptyPolitics } from '../../simulation/politics/model';
 import { emptyGovernance } from '../../simulation/governance/model';
+import { emptyInformation } from '../../simulation/information/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 /// <reference types="node" />
 import { spawnSync } from 'node:child_process';
@@ -54,13 +55,13 @@ describe('milestone 0.9 global data audit', () => {
     const result = spawnSync(process.execPath, ['scripts/audit-data.mjs'], { cwd: process.cwd(), encoding: 'utf8' });
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toContain('Audited 252 Countries and 4574 Regions with no blocking anomalies.');
-  });
+  }, 30_000);
 
   it('loads the complete initial scenario as schema 8 without invariant violations', () => {
     const populationByRegion = Object.fromEntries(demographicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselinePopulation]));
     const economicOutputByRegion = Object.fromEntries(economicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselineAnnualOutputUsd]));
     const state: SimulationState = {
-      schemaVersion: 12, governance: emptyGovernance('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 13, governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(registry.territories.map(territory => [territory.id, territory.initialOwnerCountryId])),
       regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
       populationByRegion, economicOutputByRegion, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},

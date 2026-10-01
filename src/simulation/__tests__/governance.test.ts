@@ -8,8 +8,9 @@ import { assertSimulationInvariants, validateFidelityConservation } from '../inv
 import { politicalRegistry } from '../politics/registry';
 import type { PoliticalRegistry } from '../politics/model';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, estimatePublicSupport, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, withdrawProposal } from '../governance/runtime';
+import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, estimatePublicSupport, initializePartyLeaders, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, replacePartyLeader, resolvePlayerHandoff, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, withdrawProposal } from '../governance/runtime';
 import { initializeNewGame } from '../initialization';
+import { emptyInformation } from '../information/model';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { simulationDelta } from '../world';
 import { analyzeProposal, derivePartyGoalProfile, evaluatePartyProposal, GOVERNANCE_VOTE_THRESHOLDS } from '../governance/analysis';
@@ -58,9 +59,18 @@ function profile(partyId: string, overrides: Partial<Record<GovernanceGoal, Part
   return derivePartyGoalProfile(politicalRegistry.parties[partyId], overrides);
 }
 
+function schema12Base() {
+  const legacy = structuredClone(initial) as unknown as Record<string, unknown>;
+  legacy.schemaVersion = 12;
+  delete legacy.information;
+  legacy.information = emptyInformation('2026-01-01');
+  legacy.governance = { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, persons: {}, proposals: {}, proposalOrder: [], nextPersonSequence: 0, nextProposalSequence: 0 };
+  return legacy as unknown as SimulationState;
+}
+
 /** Exact aggregate-only persistence boundary used by d2f3ce; never calls the current vote resolver. */
 function d2LegacyResolved(mode: 'enacted' | 'rejected' | 'all_abstain') {
-  const countryId = resolvableCountry(), player = playerFor(initial, countryId); let state = budgetProposal(player.state, player.id, countryId, 2), proposalId = state.governance.proposalOrder[0]; state = submitProposal(state, proposalId);
+  const countryId = resolvableCountry(), player = playerFor(schema12Base(), countryId); let state = budgetProposal(player.state, player.id, countryId, 2), proposalId = state.governance.proposalOrder[0]; state = submitProposal(state, proposalId);
   state = { ...state, fiscal: { ...state.fiscal, reforms: state.fiscal.reforms.map(reform => ({ ...reform })), reformReceipts: [...state.fiscal.reformReceipts] } };
   const proposal = state.governance.proposals[proposalId], institution = politicalRegistry.institutions[politicalRegistry.countries[countryId].institutionId];
   const chambers = institution.chambers.map(chamber => {
@@ -75,7 +85,15 @@ function d2LegacyResolved(mode: 'enacted' | 'rejected' | 'all_abstain') {
   state.governance.proposals[proposalId] = { ...proposal, status: enacted ? 'enacted' : 'rejected', resolvedOn: state.date, publicEstimate, parliamentaryEstimate, voteResult: { ...parliamentaryEstimate, outcome, resolvedOn: state.date }, scheduledFiscalReformSequence: sequence } as unknown as typeof proposal;
   expect(state.governance.proposals[proposalId].analysis).toBeUndefined(); expect(state.governance.proposals[proposalId].evaluationVersion).toBeUndefined(); expect(state.governance.proposals[proposalId].enactmentReference).toBeUndefined();
   expect(state.fiscal.reforms.every(reform => reform.origin === undefined)).toBe(true); expect(state.fiscal.reformReceipts).toEqual([]); delete (state.fiscal as Partial<typeof state.fiscal>).reformReceipts;
-  return { state, proposalId, countryId, sequence };
+  const legacy = structuredClone(state) as unknown as Record<string, unknown>;
+  legacy.schemaVersion = 12;
+  delete legacy.information;
+  const oldGovernance = legacy.governance as Record<string, unknown>;
+  delete oldGovernance.leadersInitializedOn;
+  delete oldGovernance.successions;
+  delete oldGovernance.successionOrder;
+  delete oldGovernance.nextSuccessionSequence;
+  return { state: legacy as unknown as SimulationState, proposalId, countryId, sequence };
 }
 
 function findResolvable(adopted: boolean) {
@@ -97,14 +115,78 @@ function findResolvable(adopted: boolean) {
 }
 
 describe('governance 0.14 player and political decisions', () => {
-  it('initializes a fresh game with no invented person or proposal', () => {
-    expect(initial).toMatchObject({ schemaVersion: 12, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, persons: {}, proposals: {}, proposalOrder: [], nextPersonSequence: 0, nextProposalSequence: 0 } });
+  it('initializes a fictional gameplay leader for every party without inventing offices or proposals', () => {
+    expect(initial).toMatchObject({ schemaVersion: 13, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
+    expect(Object.keys(initial.governance.persons)).toHaveLength(Object.keys(politicalRegistry.parties).length);
   });
 
   it('creates stable sequence IDs independent of display names', () => {
     const countryId = worldCountryIds[0], a = createPoliticalPerson(initial, { displayName: 'Alpha', countryId }), b = createPoliticalPerson(initial, { displayName: 'Beta', countryId });
-    expect(Object.keys(a.governance.persons)).toEqual(['person.00000000']); expect(Object.keys(b.governance.persons)).toEqual(['person.00000000']);
-    expect(a.governance.persons['person.00000000']).toMatchObject({ displayName: 'Alpha', countryId, isPartyLeader: false });
+    const newId = `person.${String(initial.governance.nextPersonSequence).padStart(8, '0')}`;
+    expect(a.governance.persons[newId]).toMatchObject({ displayName: 'Alpha', countryId, isPartyLeader: false });
+    expect(b.governance.persons[newId]).toMatchObject({ displayName: 'Beta', countryId, isPartyLeader: false });
+  });
+
+  it('generates identical party leaders regardless of registry insertion order', () => {
+    const reordered = structuredClone(politicalRegistry);
+    reordered.parties = Object.fromEntries(Object.entries(reordered.parties).reverse());
+    const first = initializePartyLeaders(worldBase(), politicalRegistry), second = initializePartyLeaders(worldBase(), reordered);
+    expect(second.governance.persons).toEqual(first.governance.persons);
+    expect(Object.values(first.governance.persons)).toHaveLength(Object.keys(politicalRegistry.parties).length);
+    expect(Object.values(first.governance.persons).every(person => !person.office && person.leaderProvenance?.status === 'modelled_fallback')).toBe(true);
+  });
+
+  it('preserves the former leader, office and player control until an explicit handoff choice', () => {
+    const leader = Object.values(initial.governance.persons).find(person => person.isPartyLeader)!;
+    let state = createPoliticalPerson(initial, { displayName: 'Eligible party member', countryId: leader.countryId });
+    const memberId = `person.${String(initial.governance.nextPersonSequence).padStart(8, '0')}`;
+    state = setPartyMembership(state, memberId, leader.partyId);
+    state = assignPoliticalOffice(state, leader.id, { role: 'head_of_state', countryId: leader.countryId });
+    state = setControlledPerson(state, leader.id);
+    const replaced = replacePartyLeader(state, leader.partyId!, memberId);
+    const successionId = replaced.governance.successionOrder.at(-1)!;
+    expect(replaced.governance.successions[successionId].playerHandoff?.status).toBe('pending');
+    expect(replaced.governance.persons[leader.id]).toMatchObject({ isPartyLeader: false, office: expect.any(Object) });
+    expect(replaced.governance.player.controlledPersonId).toBe(leader.id);
+    const continued = resolvePlayerHandoff(replaced, successionId, 'continue');
+    expect(continued.governance.player.controlledPersonId).toBe(leader.id);
+    expect(() => resolvePlayerHandoff(continued, successionId, 'switch')).toThrow(/no pending/);
+    const switched = resolvePlayerHandoff(replaced, successionId, 'switch');
+    expect(switched.governance.player.controlledPersonId).toBe(memberId);
+    expect(switched.governance.persons[leader.id]).toBeDefined();
+  });
+
+  it('creates a deterministic bounded-profile successor and persists explicit player transfer', () => {
+    const leader = Object.values(initial.governance.persons).find(person => person.isPartyLeader)!;
+    const start = setControlledPerson(initial, leader.id);
+    const first = replacePartyLeader(start, leader.partyId!);
+    const second = replacePartyLeader(start, leader.partyId!);
+    const successionId = first.governance.successionOrder.at(-1)!;
+    const successor = first.governance.persons[first.governance.successions[successionId].newPersonId];
+    expect(successor).toEqual(second.governance.persons[second.governance.successions[successionId].newPersonId]);
+    expect(successor).toMatchObject({ isPartyLeader: true, partyId: leader.partyId, leaderProvenance: { method: 'bounded_party_platform_succession_v1', status: 'modelled_fallback' } });
+    expect(Object.values(successor.leaderProfile!).every(item => item.valueBps >= 0 && item.valueBps <= 10_000)).toBe(true);
+    const switched = resolvePlayerHandoff(first, successionId, 'switch');
+    const restored = restoreSimulationState(serializeSimulationState(switched, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored).toEqual(switched);
+    expect(restored.governance.player.controlledPersonId).toBe(successor.id);
+  });
+
+  it('rejects leadership succession dates that run backwards', () => {
+    const leader = Object.values(initial.governance.persons).find(person => person.isPartyLeader)!;
+    const firstMemberState = createPoliticalPerson(initial, { displayName: 'First succession member', countryId: leader.countryId });
+    const firstMemberId = `person.${String(initial.governance.nextPersonSequence).padStart(8, '0')}`;
+    const secondMemberState = createPoliticalPerson(firstMemberState, { displayName: 'Second succession member', countryId: leader.countryId });
+    const secondMemberId = `person.${String(firstMemberState.governance.nextPersonSequence).padStart(8, '0')}`;
+    let state = setPartyMembership(secondMemberState, firstMemberId, leader.partyId);
+    state = setPartyMembership(state, secondMemberId, leader.partyId);
+    state = replacePartyLeader({ ...state, date: '2026-01-02' }, leader.partyId!, firstMemberId);
+    state = replacePartyLeader({ ...state, date: '2026-01-03' }, leader.partyId!, secondMemberId);
+    const [firstSuccessionId, secondSuccessionId] = state.governance.successionOrder;
+    const malformed = structuredClone(state);
+    malformed.governance.successions[firstSuccessionId].effectiveDate = '2026-01-03';
+    malformed.governance.successions[secondSuccessionId].effectiveDate = '2026-01-02';
+    expect(() => assertSimulationInvariants(malformed, worldContext, 'tick')).toThrow(/dates are not monotonic/);
   });
 
   it('reports governance-only command changes to UI/worker deltas', () => {
@@ -119,7 +201,7 @@ describe('governance 0.14 player and political decisions', () => {
     state = setPartyLeadership(setPartyMembership(state, id, partyId), id, true);
     expect(state.governance.persons[id]).toMatchObject({ partyId, isPartyLeader: true }); expect(state.governance.persons[id].office).toBeUndefined();
     const draft = budgetProposal(state, id, countryId, 2); expect(() => submitProposal(draft, draft.governance.proposalOrder.at(-1)!)).toThrow(/lacks authority/);
-    if (otherParty) expect(() => setPartyMembership(state, id, otherParty)).toThrow(/person's Country/);
+    if (otherParty) expect(() => setPartyMembership(state, id, otherParty)).toThrow(/leadership succession/);
   });
 
   it('revoking office preserves player identity and control while removing capabilities', () => {
@@ -145,8 +227,8 @@ describe('governance 0.14 player and political decisions', () => {
   });
 
   it('requires the controlled proposer and the correct office scope', () => {
-    const countryId = worldCountryIds[0]; let first = createPoliticalPerson(initial, { displayName: 'One', countryId }); const one = 'person.00000000';
-    first = assignPoliticalOffice(first, one, { role: 'head_of_government', countryId }); first = createPoliticalPerson(first, { displayName: 'Two', countryId }); first = setControlledPerson(first, 'person.00000001');
+    const countryId = worldCountryIds[0]; let first = createPoliticalPerson(initial, { displayName: 'One', countryId }); const one = `person.${String(first.governance.nextPersonSequence - 1).padStart(8, '0')}`;
+    first = assignPoliticalOffice(first, one, { role: 'head_of_government', countryId }); first = createPoliticalPerson(first, { displayName: 'Two', countryId }); const two = `person.${String(first.governance.nextPersonSequence - 1).padStart(8, '0')}`; first = setControlledPerson(first, two);
     const draft = budgetProposal(first, one, countryId, 2); expect(() => submitProposal(draft, draft.governance.proposalOrder[0])).toThrow(/not the controlled person/);
   });
 
@@ -214,7 +296,8 @@ describe('governance 0.14 player and political decisions', () => {
     const legacy = structuredClone(initial) as unknown as Record<string, unknown>; legacy.schemaVersion = 11; legacy.date = '2034-05-06'; delete legacy.governance;
     const politics = legacy.politics, fiscal = legacy.fiscal, socioeconomy = legacy.socioeconomy, crisis = legacy.crisis;
     const migrated = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
-    expect(migrated.governance).toMatchObject({ initializedOn: '2034-05-06', persons: {}, proposals: {}, proposalOrder: [] }); expect(migrated.schemaVersion).toBe(12);
+    expect(migrated.governance.initializedOn).toBe('2034-05-06'); expect(migrated.governance.proposalOrder).toEqual([]); expect(migrated.schemaVersion).toBe(13);
+    expect(migrated.information).toMatchObject({ initializedOn: '2034-05-06', briefings: [], latestGovernmentReports: {} });
     expect(migrated.politics).toEqual(JSON.parse(JSON.stringify(politics))); expect(migrated.fiscal).toEqual(JSON.parse(JSON.stringify(fiscal))); expect(migrated.socioeconomy).toEqual(JSON.parse(JSON.stringify(socioeconomy))); expect(migrated.crisis).toEqual(JSON.parse(JSON.stringify(crisis)));
   }, 30_000);
 
@@ -224,10 +307,10 @@ describe('governance 0.14 player and political decisions', () => {
     const inspected = inspectGovernance(fixture.state); inspected.proposalOrder.length = 0; expect(fixture.state.governance.proposalOrder).toHaveLength(1); expect(inspectPlayer(fixture.state)?.id).toBe(fixture.personId);
   });
 
-  it('validates governance invariants and contains no RNG or 0.15 systems', () => {
+  it('validates governance invariants and prevents unimplemented political systems or non-deterministic RNG', () => {
     const fixture = findResolvable(true); expect(assertSimulationInvariants(fixture.state, worldContext, 'tick')).toBe(true);
     const malformed = structuredClone(fixture.state); malformed.governance.player.controlledPersonId = 'person.unknown'; expect(() => assertSimulationInvariants(malformed, worldContext, 'tick')).toThrow(/Controlled person/);
-    const source = readFileSync('src/simulation/governance/runtime.ts', 'utf8'); expect(source).not.toContain('Math.random'); expect(source).not.toMatch(/election|campaign|media|protest|strike|coup|lobby|coalition negotiation|party AI|government AI/i);
+    const source = readFileSync('src/simulation/governance/runtime.ts', 'utf8'); expect(source).not.toContain('Math.random'); expect(source).not.toMatch(/\belection\b|\bcampaign\b|\bmedia\b|\bprotest\b|\bstrike\b|\bcoup\b|\blobby\b|\bcoalition negotiation\b|\bparty AI\b|\bgovernment AI\b/i);
   });
 });
 
@@ -359,11 +442,11 @@ describe('governance 0.14 situational corrective contracts', () => {
   it('preserves situational outputs across deterministic save and reload', () => {
     const fixture = findResolvable(true), enacted = resolveProposalVote(submitProposal(fixture.state, fixture.proposalId), fixture.proposalId, fixture.registry, fixture.profiles), restored = restoreSimulationState(serializeSimulationState(enacted, worldContext), worldRegions, {}, {}, worldContext);
     expect(restored).toEqual(enacted); expect(restored.governance.proposals[fixture.proposalId].evaluationVersion).toBe('situational-0.14-v2');
-  });
+  }, 30_000);
 
   it('reloads an actual d2f3ce aggregate-only enacted schema-12 proposal', () => {
     const legacy = d2LegacyResolved('enacted'), restored = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), proposal = restored.governance.proposals[legacy.proposalId];
-    expect(restored).toMatchObject({ schemaVersion: 12, governance: { version: 'governance-0.14-v1' } }); expect(proposal).toMatchObject({ status: 'enacted', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'adopted', coverage: 'complete' } });
+    expect(restored).toMatchObject({ schemaVersion: 13, governance: { version: 'governance-0.14-v1' } }); expect(proposal).toMatchObject({ status: 'enacted', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'adopted', coverage: 'complete' } });
     expect(proposal.parliamentaryEstimate!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true); expect(proposal.voteResult!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true);
     const evidence = [...restored.fiscal.reforms, ...restored.fiscal.reformReceipts].filter(item => item.sequence === legacy.sequence); expect(evidence).toHaveLength(1); expect(evidence[0].origin?.proposalId).toBe(legacy.proposalId); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
   });

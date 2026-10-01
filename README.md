@@ -6,6 +6,8 @@ An original geopolitical, economic, social, political and military simulation, w
 
 The current validated milestone is **0.14** (save schema 12): player-character governance and political decisions integrate with the existing fiscal system. Current contracts, rationale, known limits and the locked roadmap are consolidated in the [canonical agent handoff](docs/agent-handoff.md). Agents must read it before implementation and must not begin milestone 0.15 without explicit instruction.
 
+Milestone **0.15 is under implementation and independent review** on a task branch; it is not yet an accepted milestone. Its candidate Government Information, briefing, fictional leadership, succession and playable interface contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with measured validation to be recorded in [the candidate validation report](docs/milestone-0.15-candidate-validation.md). Do not treat this candidate as changing the accepted-milestone status or canonical handoff.
+
 Earlier validated contracts remain part of the current architecture; this status does not replace their technical documentation. The 0.10 socioeconomic model is documented in [the model and migration contract](docs/socioeconomy-0.10.md) and [per-Country coverage](src/data/socioeconomic-coverage-report.json). `npm run economy:audit` verifies the reproducible report; `npm run benchmark:world` measures the actual monthly world runtime alongside the historical probe.
 
 ## Run

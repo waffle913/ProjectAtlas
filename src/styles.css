@@ -42,6 +42,11 @@ header small {
   color: #9aabb4;
   margin: 4px 0 0 35px;
 }
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 .clock {
   text-align: right;
 }
@@ -73,7 +78,7 @@ header small {
 .workspace {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: 66px minmax(0, 1fr) 340px;
 }
 .map {
   position: relative;
@@ -184,10 +189,12 @@ a {
 }
 @media (max-width: 800px) {
   .workspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: 60vh auto;
+    grid-template-columns: 52px 1fr;
+    grid-template-rows: minmax(50vh, 1fr) auto;
   }
+  .nav-rail { grid-row: 1 / span 2; }
   .panel {
+    grid-column: 2;
     border-left: 0;
     border-top: 1px solid #3a4c57;
   }
@@ -197,4 +204,117 @@ a {
   .clock strong {
     font-size: 11px;
   }
+  .header-tools { gap: 8px; }
+  .tablet-trigger { padding: 6px; font-size: 10px; }
+  .nav-rail button small { font-size: 7px; }
+}
+
+.nav-rail {
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 5px;
+  background: #152129;
+  border-right: 1px solid #334550;
+}
+.nav-rail button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 52px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #aab9bd;
+  cursor: pointer;
+}
+.nav-rail button.active { background: #263944; border-color: #526c76; color: #efc781; }
+.nav-rail button span { font-size: 18px; }
+.nav-rail button small { font-size: 8px; text-align: center; }
+.cockpit-section label, .tablet-panel label, .start-card label {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+  color: #b9c7cb;
+  font-size: 12px;
+}
+.cockpit-section input, .tablet-panel select, .start-card select {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #536975;
+  background: #111b21;
+  color: #e7eef0;
+}
+.panel button, .tablet-panel button, .start-card button {
+  padding: 8px 10px;
+  border: 1px solid #536975;
+  background: #263944;
+  color: #e7eef0;
+  cursor: pointer;
+}
+.panel button:disabled, .start-card button:disabled { opacity: .5; cursor: not-allowed; }
+.tablet-trigger {
+  border: 1px solid #536975;
+  background: #263944;
+  color: #e7eef0;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.tablet-panel {
+  position: fixed;
+  z-index: 1200;
+  top: 76px;
+  right: 12px;
+  bottom: 12px;
+  width: min(420px, calc(100vw - 24px));
+  overflow: auto;
+  padding: 18px;
+  background: #18242c;
+  border: 1px solid #536975;
+  box-shadow: 0 16px 50px #0009;
+}
+.tablet-header { display: flex; align-items: center; justify-content: space-between; }
+.tablet-header h2 { margin-top: 5px; }
+.briefing-item, .handoff-card {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #354b57;
+  background: #1d2c35;
+}
+.briefing-item p, .handoff-card p, .explanation p { margin: 0; line-height: 1.45; font-size: 12px; }
+.briefing-item small, .tablet-limit { color: #96a8ae; font-size: 10px; line-height: 1.5; }
+.severity { text-transform: uppercase; font-size: 9px; color: #9fb0b6; letter-spacing: .1em; }
+.severity-important, .severity-urgent { color: #efc781; }
+.explanation { display: grid; gap: 8px; padding-top: 8px; color: #cad6d9; }
+.muted { color: #9daeb4; font-size: 12px; line-height: 1.5; }
+.start-overlay {
+  position: fixed;
+  z-index: 1500;
+  inset: 76px 0 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: #0a1115c9;
+}
+.start-card {
+  width: min(600px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 28px;
+  background: #18242c;
+  border: 1px solid #536975;
+  box-shadow: 0 20px 70px #000b;
+}
+.start-card h1 { margin: 8px 0 12px; font-size: 24px; }
+.start-card p, .start-status, .leader-note span { color: #aab9bd; font-size: 12px; line-height: 1.5; }
+.leader-note { display: grid; gap: 5px; margin: 12px 0; padding: 12px; background: #1d2c35; }
+.primary-action { width: 100%; margin-top: 14px; background: #d6ad73 !important; color: #162129 !important; }
+@media (max-width: 520px) {
+  header { gap: 8px; }
+  header .brand { font-size: 14px; }
+  header .clock span { display: none; }
+  header .clock strong { font-size: 10px; }
+  .controls button { padding: 3px 5px; }
 }

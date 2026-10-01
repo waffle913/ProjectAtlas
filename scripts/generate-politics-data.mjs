@@ -16,6 +16,7 @@ const interestsByCountry = new Map();
 for (const item of interests.organizations) interestsByCountry.set(item.countryId, [...(interestsByCountry.get(item.countryId) ?? []), item]);
 const families = ['Civic Alliance', 'Social Forum', 'National League', 'Reform Movement', 'Democratic Union', 'Popular Assembly', 'Liberal Coalition', 'Community Congress', 'Green Initiative', 'Labour Front', 'Republican Group', 'Progressive List'];
 const sha = value => createHash('sha256').update(value).digest('hex');
+const shaSnapshot = path => sha(readFileSync(path, 'utf8').replace(/\r\n/g, '\n'));
 const provenance = (status, limitation, basis = source.source) => ({ status, referenceDate: source.referenceDate, retrievedAt: source.retrievedAt, source: basis.publisher, sourceUrl: basis.url, limitation });
 const partyId = (countryId, sourceId) => `party:${countryId}:${sha(sourceId).slice(0, 12)}`;
 const organizationId = (countryId, sourceId) => `organization:${countryId}:${sha(sourceId).slice(0, 12)}`;
@@ -42,7 +43,7 @@ const matchGovernment = (texts, parties) => {
   return { ids: [...matched].sort(), derivations };
 };
 
-const registry = { version: 'political-registry-0.13-v4', referenceDate: source.referenceDate, sourceSnapshotSha256: sha(readFileSync(inputPath)), organizedInterestsSourceSha256: sha(readFileSync(interestsPath)), ideologySourceSnapshotSha256: sha(readFileSync(ideologyPath)), countries: {}, institutions: {}, parties: {}, organizations: {} };
+const registry = { version: 'political-registry-0.13-v4', referenceDate: source.referenceDate, sourceSnapshotSha256: shaSnapshot(inputPath), organizedInterestsSourceSha256: shaSnapshot(interestsPath), ideologySourceSnapshotSha256: shaSnapshot(ideologyPath), countries: {}, institutions: {}, parties: {}, organizations: {} };
 for (const entity of [...entities.countries].sort((a, b) => a.id.localeCompare(b.id))) {
   const evidence = ipuByCountry.get(entity.id), institutionId = `institution:${entity.id}:national`, executiveSystem = executive(evidence);
   const allocations = evidence?.chambers.filter(chamber => chamber.election?.fullAllocation) ?? [];

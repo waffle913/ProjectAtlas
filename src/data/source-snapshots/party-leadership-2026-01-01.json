@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "referenceDate": "2026-01-01",
+  "mappings": [],
+  "reviewedSnapshots": [
+    {
+      "snapshotId": "ipu-parline-politics-2026-01-01",
+      "path": "src/data/source-snapshots/ipu-parline-politics-2026-01-01.json",
+      "publisher": "Inter-Parliamentary Union",
+      "url": "https://data.ipu.org/",
+      "retrievedAt": "2026-09-30",
+      "referenceDate": "2026-01-01",
+      "licence": "CC BY-NC-SA 4.0",
+      "attribution": "Inter-Parliamentary Union, IPU Parline.",
+      "limitations": "Country institutions, chambers, elections and party-seat evidence; it does not identify party leaders."
+    },
+    {
+      "snapshotId": "vparty-ideology-2022",
+      "path": "src/data/source-snapshots/vparty-ideology-2022.json",
+      "publisher": "V-Dem Institute",
+      "url": "https://v-dem.net/data/v-party-dataset/",
+      "retrievedAt": "2026-09-30",
+      "referenceDate": "2017-2019 historical observations; not a 2026 leadership observation",
+      "licence": "requires_confirmation",
+      "attribution": "Lindberg et al. (2022), V-Party v2, https://doi.org/10.23696/vpartydsv2.",
+      "limitations": "Historical party-position evidence; it does not identify individual party leaders."
+    },
+    {
+      "snapshotId": "wikidata-offices",
+      "path": "src/data/source-snapshots/wikidata-offices.json",
+      "publisher": "Wikidata Query Service",
+      "url": "https://query.wikidata.org/",
+      "retrievedAt": "2026-09-26",
+      "referenceDate": "2026-01-01",
+      "licence": "requires_confirmation",
+      "attribution": "Wikidata Query Service snapshot; source snapshot has no recorded dataset licence metadata.",
+      "limitations": "Public officeholder observations without a reviewed crosswalk to the fictional party IDs; not evidence of party leadership."
+    }
+  ],
+  "coverageStatus": "unavailable",
+  "limitation": "No pinned, licensing-cleared source and party crosswalk in the reviewed ProjectAtlas snapshots establishes a party leader applicable on 2026-01-01. No real-person leader mapping is asserted."
+}

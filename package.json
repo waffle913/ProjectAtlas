@@ -39,7 +39,11 @@
     "politics:data:generate": "node scripts/generate-politics-data.mjs",
     "politics:benchmark": "vitest run src/simulation/__tests__/politicsWorld.test.ts --reporter=verbose",
     "governance:audit": "vitest run src/simulation/__tests__/governance.test.ts --reporter=verbose",
-    "governance:benchmark": "vitest run src/simulation/__tests__/governanceWorld.test.ts --reporter=verbose"
+    "governance:benchmark": "vitest run src/simulation/__tests__/governanceWorld.test.ts --reporter=verbose",
+    "information:audit": "node scripts/party-leader-audit.mjs",
+    "information:audit:generate": "node scripts/party-leader-audit.mjs --write",
+    "information:test": "vitest run src/simulation/__tests__/information.test.ts --reporter=verbose",
+    "information:benchmark": "vitest run src/simulation/__tests__/informationWorld.test.ts --reporter=verbose"
   },
   "repository": {
     "type": "git",

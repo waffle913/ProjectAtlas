@@ -4,21 +4,69 @@ import { fiscalReformFingerprint, scheduleFiscalReform, validateFiscalReform } f
 import { dateValid } from '../fiscal/math';
 import { COHORT, POLITICAL_ISSUES, type PoliticalRegistry } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
+import { deterministicInteger } from '../rng';
+import { addProposalResultBriefing } from '../information/runtime';
 import { analyzeProposal, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalProposal, type ProposalAnalysis, type ProposalImpact, type PublicSupportEstimate } from './model';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalProposal, type ProposalAnalysis, type ProposalImpact, type PublicSupportEstimate } from './model';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
 const proposalId = (sequence: number) => `proposal.${sequence.toString().padStart(8, '0')}`;
+const successionId = (sequence: number) => `succession.${sequence.toString().padStart(8, '0')}`;
 const cloneGovernance = (state: SimulationState, governance: GovernanceState): SimulationState => ({ ...state, governance });
 const requireCountry = (state: SimulationState, countryId: string) => { if (!state.engine.fidelityByCountry[countryId]) throw new Error(`Unknown Country: ${countryId}`); };
 const requirePerson = (state: SimulationState, id: string) => { const person = state.governance.persons[id]; if (!person) throw new Error(`Unknown political person: ${id}`); return person; };
 const requireControlled = (state: SimulationState, id: string) => { if (state.governance.player.controlledPersonId !== id) throw new Error('The proposer is not the controlled person.'); return requirePerson(state, id); };
 const capabilitiesFor = (role: PoliticalOfficeRole): AuthorityCapability[] => role === 'head_of_government'
-  ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation']
+  ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information']
   : role === 'legislator' ? ['sponsor_legislation', 'vote_legislation'] : [];
 const authorityLimitation = 'Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule.';
+const leaderNameSyllables = ['Ari', 'Bel', 'Cor', 'Davi', 'Eli', 'Fari', 'Galen', 'Havi', 'Ira', 'Jori', 'Kavi', 'Lena', 'Mira', 'Navi', 'Oren', 'Pavi', 'Quin', 'Ravi', 'Sela', 'Tavi', 'Uma', 'Veli', 'Wren', 'Xavi', 'Yara', 'Zori'];
+const leaderFamilySyllables = ['Aven', 'Borin', 'Ceren', 'Dalen', 'Evar', 'Feron', 'Galen', 'Halen', 'Iven', 'Jorin', 'Kalen', 'Lorin', 'Maren', 'Nerin', 'Ovan', 'Peren', 'Qorin', 'Ralen', 'Soren', 'Talen', 'Uren', 'Varen', 'Walen', 'Xeren', 'Yorin', 'Zalen'];
+const LEADER_PROFILE_VARIATION_BPS = 250;
+const SOURCE_LEADER_LIMITATION = 'No pinned, licensing-cleared party-leadership source applicable on 2026-01-01 is available in the ProjectAtlas political registry. The gameplay identity is fictional and is not a sourced real-person analogue.';
+
+function fictionalLeaderName(state: SimulationState, partyId: string, eventKey: string, usedNames: Set<string>) {
+  for (let attempt = 0; attempt < 10_000; attempt += 1) {
+    const pick = (system: string, length: number) => deterministicInteger(state.engine.seed, { system, entityId: partyId, date: state.date, eventKey: `${eventKey}:${attempt}` }, 0, length);
+    const given = `${leaderNameSyllables[pick('party-leadership.given-a', leaderNameSyllables.length)]}${leaderNameSyllables[pick('party-leadership.given-b', leaderNameSyllables.length)].toLowerCase()}`;
+    const family = `${leaderFamilySyllables[pick('party-leadership.family-a', leaderFamilySyllables.length)]}${leaderFamilySyllables[pick('party-leadership.family-b', leaderFamilySyllables.length)].toLowerCase()}`;
+    const name = `${given} ${family}`;
+    if (!usedNames.has(name)) return name;
+  }
+  throw new Error(`Unable to produce a unique fictional leader identity for party ${partyId}.`);
+}
+
+function leaderProfileFor(partyId: string, personIdValue: string, state: SimulationState, succession: boolean, registry: PoliticalRegistry = politicalRegistry) {
+  const party = registry.parties[partyId];
+  if (!party) throw new Error(`Unknown political party: ${partyId}`);
+  return Object.fromEntries(POLITICAL_ISSUES.map(issue => {
+    const position = party.issuePositions[issue];
+    const variation = succession
+      ? deterministicInteger(state.engine.seed, { system: 'party-leadership.profile', entityId: partyId, date: state.date, eventKey: `${personIdValue}:${issue}` }, -LEADER_PROFILE_VARIATION_BPS, LEADER_PROFILE_VARIATION_BPS + 1)
+      : 0;
+    return [issue, {
+      valueBps: Math.max(0, Math.min(10_000, position.preferenceBps + variation)),
+      confidenceBps: position.confidenceBps,
+      status: succession || party.ideologicalBasis.status === 'modelled_fallback' ? 'modelled' as const : 'derived' as const,
+      limitation: succession
+        ? `Modelled bounded variation of at most ${LEADER_PROFILE_VARIATION_BPS} basis points around the validated fictional party position; this profile does not affect simulation decisions.`
+        : `Derived from the fictional party's validated position; no individual real-person belief is asserted. ${party.ideologicalBasis.limitation}`,
+    }];
+  }));
+}
+
+function leaderProvenance(partyId: string, method: 'party_platform_initial_v1' | 'bounded_party_platform_succession_v1', registry: PoliticalRegistry = politicalRegistry) {
+  return {
+    status: 'modelled_fallback' as const,
+    method,
+    sourcePartyId: registry.parties[partyId].sourceBasis.sourcePartyId,
+    referenceDate: registry.referenceDate,
+    sourceLeaderStatus: 'unavailable' as const,
+    limitation: SOURCE_LEADER_LIMITATION,
+  };
+}
 
 export function initializeGovernance(state: SimulationState): GovernanceState {
-  return state.governance?.initializedOn ? state.governance : { ...(state.governance ?? { version: 'governance-0.14-v1', player: {}, persons: {}, proposals: {}, proposalOrder: [], nextPersonSequence: 0, nextProposalSequence: 0 }), initializedOn: state.date };
+  return state.governance?.initializedOn ? state.governance : { ...(state.governance ?? { version: 'governance-0.14-v1', player: {}, persons: {}, proposals: {}, proposalOrder: [], nextPersonSequence: 0, nextProposalSequence: 0, successions: {}, successionOrder: [], nextSuccessionSequence: 0 }), initializedOn: state.date };
 }
 
 export function createPoliticalPerson(state: SimulationState, input: { displayName: string; countryId: string; createdOn?: string; status?: 'active' | 'inactive' }): SimulationState {
@@ -37,6 +85,7 @@ export function setControlledPerson(state: SimulationState, id?: string): Simula
 
 export function setPartyMembership(state: SimulationState, personIdValue: string, partyId?: string): SimulationState {
   const person = requirePerson(state, personIdValue);
+  if (person.isPartyLeader && partyId !== person.partyId) throw new Error('Replace a party leader through the leadership succession command before changing membership.');
   if (partyId && politicalRegistry.parties[partyId]?.countryId !== person.countryId) throw new Error('Party membership must reference a party in the person\'s Country.');
   const changed = { ...person, partyId, isPartyLeader: partyId ? person.isPartyLeader : false };
   return cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [person.id]: changed } });
@@ -45,7 +94,123 @@ export function setPartyMembership(state: SimulationState, personIdValue: string
 export function setPartyLeadership(state: SimulationState, personIdValue: string, isLeader: boolean): SimulationState {
   const person = requirePerson(state, personIdValue);
   if (isLeader && !person.partyId) throw new Error('A party leader must belong to a party.');
+  if (isLeader && person.partyId) return replacePartyLeader(state, person.partyId, person.id);
+  if (!isLeader && person.isPartyLeader && person.partyId) return replacePartyLeader(state, person.partyId);
   return cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [person.id]: { ...person, isPartyLeader: isLeader } } });
+}
+
+/** Replaces one party leader without deleting the former leader or changing player control. */
+export function replacePartyLeader(state: SimulationState, partyId: string, successorPersonId?: string): SimulationState {
+  const party = politicalRegistry.parties[partyId];
+  if (!party) throw new Error(`Unknown political party: ${partyId}`);
+  requireCountry(state, party.countryId);
+  const leaders = Object.values(state.governance.persons).filter(person => person.partyId === partyId && person.isPartyLeader && person.status === 'active');
+  if (leaders.length !== 1) throw new Error(`Party ${partyId} must have exactly one active leader before succession.`);
+  const previous = leaders[0];
+  let next = state, successor;
+  let selection: LeadershipSuccession['selection'];
+  if (successorPersonId) {
+    successor = requirePerson(state, successorPersonId);
+    if (successor.id === previous.id || successor.partyId !== partyId || successor.countryId !== party.countryId || successor.status !== 'active') throw new Error('An existing successor must be a different active member of the same party and Country.');
+    selection = 'existing_party_member';
+  } else {
+    const id = personId(state.governance.nextPersonSequence);
+    if (state.governance.persons[id]) throw new Error(`Political person sequence is already in use: ${id}.`);
+    const usedNames = new Set(Object.values(state.governance.persons).map(person => person.displayName));
+    successor = {
+      id,
+      displayName: fictionalLeaderName(state, partyId, `succession:${state.governance.nextSuccessionSequence}`, usedNames),
+      countryId: party.countryId,
+      createdOn: state.date,
+      partyId,
+      isPartyLeader: false,
+      status: 'active' as const,
+      leaderProfile: leaderProfileFor(partyId, id, state, true),
+      leaderProvenance: leaderProvenance(partyId, 'bounded_party_platform_succession_v1'),
+    };
+    next = cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [id]: successor }, nextPersonSequence: state.governance.nextPersonSequence + 1 });
+    selection = 'modelled_fallback';
+  }
+  const currentGovernance = next.governance;
+  const successorPerson = {
+    ...successor,
+    isPartyLeader: true,
+    leaderProfile: successor.leaderProfile ?? leaderProfileFor(partyId, successor.id, state, true),
+    leaderProvenance: successor.leaderProvenance ?? leaderProvenance(partyId, 'bounded_party_platform_succession_v1'),
+  };
+  const previousPerson = { ...currentGovernance.persons[previous.id], isPartyLeader: false };
+  const id = successionId(currentGovernance.nextSuccessionSequence);
+  const succession: LeadershipSuccession = {
+    id, partyId, countryId: party.countryId, previousPersonId: previous.id, newPersonId: successor.id,
+    effectiveDate: state.date, selection,
+    playerHandoff: state.governance.player.controlledPersonId === previous.id
+      ? { status: 'pending', previousPersonId: previous.id, successorPersonId: successor.id }
+      : undefined,
+  };
+  return cloneGovernance(next, {
+    ...currentGovernance,
+    persons: { ...currentGovernance.persons, [previous.id]: previousPerson, [successor.id]: successorPerson },
+    successions: { ...currentGovernance.successions, [id]: succession },
+    successionOrder: [...currentGovernance.successionOrder, id],
+    nextSuccessionSequence: currentGovernance.nextSuccessionSequence + 1,
+  });
+}
+
+export function resolvePlayerHandoff(state: SimulationState, successionIdValue: string, choice: 'continue' | 'switch'): SimulationState {
+  const succession = state.governance.successions[successionIdValue];
+  if (!succession?.playerHandoff || succession.playerHandoff.status !== 'pending') throw new Error('This leadership succession has no pending player handoff.');
+  if (state.governance.player.controlledPersonId !== succession.playerHandoff.previousPersonId) throw new Error('Player control changed before the handoff was resolved.');
+  const playerHandoff: NonNullable<LeadershipSuccession['playerHandoff']> = {
+    ...succession.playerHandoff,
+    status: choice === 'continue' ? 'continued' : 'switched',
+    decidedOn: state.date,
+  };
+  return {
+    ...state,
+    governance: {
+      ...state.governance,
+      player: { controlledPersonId: choice === 'switch' ? succession.playerHandoff.successorPersonId : state.governance.player.controlledPersonId },
+      successions: { ...state.governance.successions, [succession.id]: { ...succession, playerHandoff } },
+    },
+  };
+}
+
+/** Gives every registered gameplay party one deterministic fictional leader. */
+export function initializePartyLeaders(state: SimulationState, registry: PoliticalRegistry = politicalRegistry): SimulationState {
+  let next = { ...state, governance: initializeGovernance(state) };
+  const orderedParties = Object.values(registry.parties)
+    .filter(party => Boolean(next.engine.fidelityByCountry[party.countryId]))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  for (const party of orderedParties) {
+    const leaders = Object.values(next.governance.persons).filter(person => person.partyId === party.id && person.isPartyLeader && person.status === 'active');
+    if (leaders.length > 1) throw new Error(`Party ${party.id} has multiple active leaders.`);
+    if (leaders.length === 1) {
+      const existing = leaders[0];
+      if (existing.leaderProfile && existing.leaderProvenance) continue;
+      next = cloneGovernance(next, { ...next.governance, persons: { ...next.governance.persons, [existing.id]: {
+        ...existing,
+        leaderProfile: existing.leaderProfile ?? leaderProfileFor(party.id, existing.id, next, false, registry),
+        leaderProvenance: existing.leaderProvenance ?? leaderProvenance(party.id, 'party_platform_initial_v1', registry),
+      } } });
+      continue;
+    }
+    const id = personId(next.governance.nextPersonSequence);
+    if (next.governance.persons[id]) throw new Error(`Political person sequence is already in use: ${id}.`);
+    const usedNames = new Set(Object.values(next.governance.persons).map(person => person.displayName));
+    const leader = {
+      id,
+      displayName: fictionalLeaderName(next, party.id, 'initial', usedNames),
+      countryId: party.countryId,
+      createdOn: next.date,
+      partyId: party.id,
+      isPartyLeader: true,
+      status: 'active' as const,
+      leaderProfile: leaderProfileFor(party.id, id, next, false, registry),
+      leaderProvenance: leaderProvenance(party.id, 'party_platform_initial_v1', registry),
+    };
+    next = cloneGovernance(next, { ...next.governance, persons: { ...next.governance.persons, [id]: leader }, nextPersonSequence: next.governance.nextPersonSequence + 1 });
+  }
+  return { ...next, governance: { ...next.governance, leadersInitializedOn: next.date } };
 }
 
 export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[] }): SimulationState {
@@ -85,6 +250,10 @@ export function replaceDraftProposal(state: SimulationState, proposalIdValue: st
 }
 
 const hasCapability = (proposal: PoliticalProposal, person: ReturnType<typeof requirePerson>, capability: AuthorityCapability) => person.office?.countryId === proposal.countryId && person.office.authorityProfile.capabilities.includes(capability);
+export function hasPoliticalAuthority(state: SimulationState, personIdValue: string, countryId: string, capability: AuthorityCapability): boolean {
+  const person = state.governance.persons[personIdValue];
+  return Boolean(person?.status === 'active' && person.office?.countryId === countryId && person.office.authorityProfile.capabilities.includes(capability));
+}
 export function submitProposal(state: SimulationState, proposalIdValue: string): SimulationState {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || proposal.status !== 'draft') throw new Error('Only a draft proposal can be submitted.');
   const proposer = requireControlled(state, proposal.proposerPersonId);
@@ -156,7 +325,8 @@ export function resolveProposalVote(state: SimulationState, proposalIdValue: str
   let next = state, scheduledFiscalReformSequence: number | undefined, enactmentReference: PoliticalProposal['enactmentReference'];
   if (outcome === 'adopted') { scheduledFiscalReformSequence = state.fiscal.nextSequence; const reformInput = { countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...structuredClone(proposal.payload), origin: { type: 'governance_proposal' as const, proposalId: proposal.id, proposalFingerprint: proposal.submittedPayloadFingerprint! } }; enactmentReference = { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: fiscalReformFingerprint(reformInput) }; next = scheduleFiscalReform(state, reformInput); }
   const resolved: PoliticalProposal = { ...proposal, status: outcome === 'adopted' ? 'enacted' : outcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-0.14-v2', publicEstimate, parliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference };
-  return { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
+  next = { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
+  return addProposalResultBriefing(next, resolved);
 }
 
 export const inspectGovernance = (state: SimulationState) => structuredClone(state.governance);

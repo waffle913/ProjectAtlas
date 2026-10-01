@@ -2,6 +2,7 @@ import { emptyFiscal } from '../fiscal/model';
 import { emptyCrisis } from '../crisis/model';
 import { emptyPolitics } from '../politics/model';
 import { emptyGovernance } from '../governance/model';
+import { emptyInformation } from '../information/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 import { describe, expect, it } from 'vitest';
 import type { Country, RegionEntity, SimulationState } from '../../types';
@@ -21,7 +22,7 @@ const countries = new Set(['country.a', 'country.b']);
 const region: RegionEntity = { id: 'region.a', parentCountryId: 'country.a', initialOwnerCountryId: 'country.a', commonName: 'A', administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: ['geometry-a'] } };
 const context = { countryIds: countries, regionIds: new Set([region.id]), regions: [region] };
 const initial = (seed = 'seed.001'): SimulationState => ({
-  schemaVersion: 12, governance: emptyGovernance('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+  schemaVersion: 13, governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
   territoryOwnership: { 'territory.a': 'country.a' }, regionOwnership: { [region.id]: 'country.a' },
   populationByRegion: { [region.id]: 1_000 }, economicOutputByRegion: { [region.id]: 5_000 },
   bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},
@@ -150,8 +151,9 @@ describe('shared deterministic engine contracts', () => {
     const scheduler = createCoreScheduler();
     let state = requestFidelityTransition(initial(), 'country.a', 'Detailed', countries);
     state = scheduler.requestImmediate(markDirty(state, { domain: 'population', reason: 'fixture' }), 'engine.apply-fidelity-transitions', 'focus-changed');
-    const restored = restoreSimulationState(serializeSimulationState(state, context), [region], {}, {}, context);
-    expect(restored).toEqual(state);
+    const serialized = serializeSimulationState(state, context);
+    const restored = restoreSimulationState(serialized, [region], {}, {}, context);
+    expect(restored).toEqual(JSON.parse(serialized));
     expect(restored.engine.seed).toBe('seed.001');
     expect(simulationDiagnostics(restored, scheduler)).toMatchObject({ date: '2026-01-01', tick: 0, seed: 'seed.001', fidelityCounts: { Standard: 2 } });
   });

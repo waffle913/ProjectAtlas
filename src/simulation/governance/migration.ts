@@ -57,6 +57,7 @@ export function upgradeGovernanceSchema12(state: SimulationState): SimulationSta
     }
     proposals[id] = proposalChanged ? proposal : original; changed ||= proposalChanged;
   }
-  if (!changed && state.fiscal.reforms.every((reform, index) => reform.origin === reforms[index].origin) && receipts.length === state.fiscal.reformReceipts.length) return state;
-  return { ...state, governance: { ...state.governance, proposals }, fiscal: { ...state.fiscal, reforms, reformReceipts: receipts.sort((a, b) => a.sequence - b.sequence) } };
+  const hasSuccessionState = Boolean(state.governance.successions && state.governance.successionOrder && Number.isSafeInteger(state.governance.nextSuccessionSequence));
+  if (!changed && hasSuccessionState && state.fiscal.reforms.every((reform, index) => reform.origin === reforms[index].origin) && receipts.length === state.fiscal.reformReceipts.length) return state;
+  return { ...state, governance: { ...state.governance, proposals, successions: state.governance.successions ?? {}, successionOrder: state.governance.successionOrder ?? [], nextSuccessionSequence: state.governance.nextSuccessionSequence ?? 0 }, fiscal: { ...state.fiscal, reforms, reformReceipts: receipts.sort((a, b) => a.sequence - b.sequence) } };
 }

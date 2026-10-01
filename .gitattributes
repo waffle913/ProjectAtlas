@@ -3,3 +3,8 @@
 /src/data/fiscal-aggregates.json text eol=lf
 /src/data/fiscal-coverage-report.json text eol=lf
 /src/data/fiscal-initialization-report.json text eol=lf
+
+# Pinned data inputs and generated JSON use stable line endings for hashes and
+# byte-for-byte reproducibility on Windows as well as Unix.
+*.json text eol=lf
+*.geojson text eol=lf

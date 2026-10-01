@@ -1,10 +1,12 @@
-import { FiscalDebug } from './components/FiscalDebug';
-import { PoliticsDebug } from './components/PoliticsDebug';
+import { StartGame } from './components/StartGame';
+import { BriefingTablet } from './components/BriefingTablet';
+import { FiscalPolicy } from './components/FiscalPolicy';
 import { emptyFiscal } from './simulation/fiscal/model';
 import { emptyCrisis } from './simulation/crisis/model';
 import { emptyPolitics } from './simulation/politics/model';
 import { emptyGovernance } from './simulation/governance/model';
-import { emptySocioeconomy, inspectSocioeconomy, NO_SHOCK } from './simulation/socioeconomy/model';
+import { emptyInformation } from './simulation/information/model';
+import { emptySocioeconomy } from './simulation/socioeconomy/model';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
@@ -13,21 +15,21 @@ import { buildWorld } from "./data/geography";
 import { loadCountryData, type LoadedCountryData } from "./data/countryData";
 import { loadRegionData, type LoadedRegionData } from "./data/regionData";
 import { loadPopulationData, populationBaselineState, type LoadedPopulationData } from "./data/populationData";
-import { controlledBaselineAnnualOutput, controlledBaselinePopulation, simulatedPopulationByCountry, simulatedMonthlyOutputByCountry } from "./simulation/region";
 import { loadEconomicData, economicBaselineState, type LoadedEconomicData } from "./data/economicData";
 import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
 import { RegionPanel } from "./components/RegionPanel";
 import { SimulationClock } from "./simulation/clock";
-import { getAvailableCasusBelli, type AvailableCasusBelli } from "./simulation/diplomacy";
-import { isWarGoalSatisfied } from "./simulation/war";
 import { createEngineState } from "./simulation/state";
 import { assertSimulationInvariants } from "./simulation/invariants";
+import { setControlledPerson } from "./simulation/governance/runtime";
+import { hasGovernmentInformationAccess, inspectGovernmentReports } from "./simulation/information/runtime";
+import { politicalRegistry } from "./simulation/politics/registry";
 import { initializeNewGame } from "./simulation/initialization";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 12, governance: emptyGovernance('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
+  schemaVersion: 13, governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -81,6 +83,7 @@ export default function App() {
   const [mapZoom, setMapZoom] = useState(2);
   const [sim, setSim] = useState(initialState);
   const [loadError, setLoadError] = useState<string>();
+  const [activePage, setActivePage] = useState('overview');
   const clock = useRef(new SimulationClock(initialState));
   useEffect(() => {
     let active = true;
@@ -233,23 +236,26 @@ export default function App() {
         </button>
       </main>
     );
-  if (!world || !regionData || !populationData || !economicData)
+  if (!world || !countryData || !regionData || !populationData || !economicData)
     return (
       <main className="load-state">
         <p>Loading local country and Region assets…</p>
       </main>
     );
-  const countryName = (countryId: string) => world.countries.get(countryId)?.commonName ?? countryData?.registry.countries.find(country => country.id === countryId)?.commonName ?? countryId;
-  const regionName = (regionId: string) => regionData.regionsById.get(regionId)?.commonName ?? regionId;
-  const diplomacyContext = { countryIds: new Set(countryData!.registry.countries.map(country => country.id)), regionIds: new Set(regionData.registry.regions.map(region => region.id)) };
-  const activeClaimsMade = selected ? sim.claims.filter(claim => claim.status === 'active' && claim.claimantCountryId === selected).map(claim => ({ claim, regionName: regionName(claim.regionId) })) : [];
-  const foreignClaims = selected ? sim.claims.filter(claim => claim.status === 'active' && claim.claimantCountryId !== selected && sim.regionOwnership[claim.regionId] === selected).map(claim => ({ claim, claimantName: countryName(claim.claimantCountryId), regionName: regionName(claim.regionId) })) : [];
-  const availableCasusBelli: Array<{ cb: AvailableCasusBelli; targetName: string }> = selected ? countryData!.registry.countries.filter(country => country.id !== selected).flatMap(country => getAvailableCasusBelli(sim, selected, country.id, diplomacyContext).map(cb => ({ cb, targetName: country.commonName }))) : [];
-  const selectedRegionClaims = selectedRegionEntity ? sim.claims.filter(claim => claim.status === 'active' && claim.regionId === selectedRegionEntity.id).map(claim => ({ claim, claimantName: countryName(claim.claimantCountryId) })) : [];
-  const activeWars = selected ? sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).map(war => ({ war, attackerName: countryName(war.attackerCountryId), defenderName: countryName(war.defenderCountryId), targetRegionName: regionName(war.targetRegionId), objectiveSatisfied: isWarGoalSatisfied(sim, war.id) })) : [];
-  const selectedOccupation = selectedRegionEntity ? sim.occupationByRegion[selectedRegionEntity.id] : undefined;
-  const selectedOccupationWar = selectedOccupation ? sim.wars.find(war => war.id === selectedOccupation.warId) : undefined;
-  const selectedObjectiveWars = selectedRegionEntity ? sim.wars.filter(war => war.status === 'active' && war.targetRegionId === selectedRegionEntity.id).map(war => ({ war, attackerName: countryName(war.attackerCountryId), defenderName: countryName(war.defenderCountryId) })) : [];
+  const controlledPersonId = sim.governance.player.controlledPersonId;
+  const controlledPerson = controlledPersonId ? sim.governance.persons[controlledPersonId] : undefined;
+  const playerCountryId = controlledPerson?.countryId;
+  const playerCanReadGovernment = Boolean(controlledPerson && playerCountryId && hasGovernmentInformationAccess(sim, controlledPerson.id, playerCountryId));
+  const commitCommand = (next: SimulationState) => {
+    clock.current = new SimulationClock(next);
+    setSim(clock.current.snapshot());
+  };
+  const startAs = (personId: string) => commitCommand(setControlledPerson(sim, personId));
+  const navItems = [
+    ['overview', 'Overview', '⌂'], ['fiscal', 'Fiscality', '¤'], ['economy', 'Economy', '▥'],
+    ['politics', 'Politics', '⚑'], ['services', 'Health / services', '＋'],
+    ['security', 'Security', '◇'], ['diplomacy', 'Diplomacy', '⇄'], ['military', 'Military', '⚔'],
+  ];
   return (
     <main>
       <header>
@@ -258,11 +264,17 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.13 · NATIONAL POLITICS</small>
+          <small>MILESTONE 0.15 · GOVERNMENT INFORMATION</small>
         </div>
-        <Clock state={sim} onChange={changeClock} />
+        <div className="header-tools">
+          <Clock state={sim} onChange={changeClock} />
+          {controlledPerson && <BriefingTablet state={sim} onStateChange={commitCommand} />}
+        </div>
       </header>
       <div className="workspace">
+        <nav className="nav-rail" aria-label="Main navigation">
+          {navItems.map(([id, label, icon]) => <button key={id} className={activePage === id ? 'active' : ''} title={label} aria-label={label} onClick={() => setActivePage(id)}><span>{icon}</span><small>{label}</small></button>)}
+        </nav>
         <section className="map">
           <MapContainer
             center={[20, 0]}
@@ -348,16 +360,14 @@ export default function App() {
             )}
             {regionGeometry && mapZoom >= 4 && (
               <GeoJSON
-                key={`${selected}-${selectedRegion ?? "none"}-${mapZoom >= 5 ? "near" : "far"}-${Object.keys(sim.occupationByRegion).sort().join(',')}`}
+                key={`${selected}-${selectedRegion ?? "none"}-${mapZoom >= 5 ? "near" : "far"}`}
                 data={regionGeometry}
                 style={(feature) => {
                   const regionId = feature?.properties?.regionId as string;
                   const owner = sim.regionOwnership[regionId] ?? selected;
-                  const occupation = sim.occupationByRegion[regionId];
                   return {
-                    color: selectedRegion === regionId ? "#efc781" : occupation ? "#d66f62" : "#46545a",
-                    weight: selectedRegion === regionId ? 2.2 : occupation ? 1.8 : mapZoom >= 5 ? 0.9 : 0.55,
-                    dashArray: occupation ? "6 3" : undefined,
+                  color: selectedRegion === regionId ? "#efc781" : "#46545a",
+                  weight: selectedRegion === regionId ? 2.2 : mapZoom >= 5 ? 0.9 : 0.55,
                     fillColor: countryColour(owner),
                     fillOpacity: selectedRegion === regionId ? 0.82 : 0.56,
                   };
@@ -377,10 +387,20 @@ export default function App() {
             Local Natural Earth · select a country, then zoom to inspect Admin-1 Regions
           </div>
         </section>
-        {selectedRegionEntity ? (
+        {activePage === 'fiscal' && controlledPerson && playerCountryId ? (
+          <aside className="panel">
+            <FiscalPolicy state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} />
+          </aside>
+        ) : activePage === 'economy' ? (
+          <aside className="panel"><h2>Economic information</h2>
+            {playerCanReadGovernment && playerCountryId && controlledPerson ? inspectGovernmentReports(sim, playerCountryId, controlledPerson.id).map(report => <section key={report.id}><strong>Labour report · {report.asOfDate}</strong><p>{report.valueBps === undefined ? 'Unavailable' : `Unemployment ${(report.valueBps / 100).toFixed(2)}%`}</p><small>{report.coverage} · {report.limitation}</small></section>) : <p>Current internal economic reports are not available to an opposition person. No public unemployment report is currently implemented.</p>}
+          </aside>
+        ) : activePage === 'politics' ? (
+          <aside className="panel"><h2>Public political institutions</h2>
+            {selected ? <><p>{politicalRegistry.countries[selected]?.coverage.legislature ?? 'unavailable'} legislative coverage.</p>{politicalRegistry.countries[selected]?.partyIds.map(id => politicalRegistry.parties[id]).sort((a, b) => a.displayName.localeCompare(b.displayName)).map(party => <section key={party.id}><strong>{party.displayName}</strong><p>{party.governmentStatus === 'government' ? 'Government bloc' : party.governmentStatus === 'opposition' ? 'Opposition' : 'Government position unavailable'} · {party.currentSeats === null ? 'seat count unavailable' : `${party.currentSeats} seats`}</p><small>Fictional gameplay party · ideology basis {party.ideologicalBasis.status}</small></section>)}</> : <p>Select a Country on the map to inspect public political information.</p>}
+          </aside>
+        ) : activePage === 'overview' && selectedRegionEntity ? (
           <RegionPanel
-            socioeconomic={inspectSocioeconomy(sim, selectedRegionEntity.id)}
-            onCapacityShock={capacityBps => { clock.current.setEconomicShock(selectedRegionEntity.id, { ...NO_SHOCK, capacityBps }); setSim(clock.current.snapshot()); }}
             region={selectedRegionEntity}
             currentOwner={selectedRegionOwner}
             parentCountry={selectedCountry}
@@ -391,35 +411,17 @@ export default function App() {
               retrievedAt: regionData.registry.sourceSnapshot.retrievedAt,
             } : selectedRegionEntity.geographyMapping.source}
             onBack={() => setSelectedRegion(undefined)}
-            demographic={populationData.byRegionId.get(selectedRegionEntity.id)}
-            currentPopulation={sim.populationByRegion[selectedRegionEntity.id]}
-            economic={economicData.byRegionId.get(selectedRegionEntity.id)}
-            currentEconomicOutput={sim.economicOutputByRegion[selectedRegionEntity.id]}
-            activeClaims={selectedRegionClaims}
-            occupation={selectedOccupation ? { ...selectedOccupation, occupierName: countryName(selectedOccupation.occupierCountryId), war: selectedOccupationWar } : undefined}
-            objectiveWars={selectedObjectiveWars}
           />
-        ) : (
+        ) : activePage === 'overview' ? (
           <CountryPanel
-            fiscalDebug={selected ? <FiscalDebug key={selected} state={sim} countryId={selected} onReform={r => { clock.current.reformFiscal(r); setSim(clock.current.snapshot()); }} /> : undefined}
-            politicalDebug={selected ? <PoliticsDebug key={selected} state={sim} countryId={selected} /> : undefined}
             country={selectedCountry}
             factsRecord={selected ? countryData?.factsByCountryId.get(selected) : undefined}
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
-            simulatedPopulation={selected ? simulatedPopulationByCountry(sim, selected) : undefined}
-            simulatedMonthlyOutput={selected ? simulatedMonthlyOutputByCountry(sim, selected) : undefined}
-            controlledBaselinePopulation={selected ? controlledBaselinePopulation(sim, selected) : undefined}
-            controlledBaselinePopulationComplete={selected ? controlledBaselinePopulation(sim, selected) !== undefined : false}
-            controlledBaselineAnnualOutput={selected ? controlledBaselineAnnualOutput(sim, selected) : undefined}
-            controlledBaselineAnnualOutputComplete={selected ? controlledBaselineAnnualOutput(sim, selected) !== undefined : false}
-            activeClaimsMade={activeClaimsMade}
-            foreignClaims={foreignClaims}
-            availableCasusBelli={availableCasusBelli}
-            activeWars={activeWars}
           />
-        )}
+        ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is unavailable in milestone 0.15. ProjectAtlas does not generate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <p>Current recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}. Further diplomacy decisions are not implemented.</p>}</aside>}
       </div>
+      {!controlledPerson && <StartGame countries={countryData.registry.countries} leaders={Object.values(sim.governance.persons)} onPlay={startAs} />}
     </main>
   );
 }

@@ -3,6 +3,7 @@ import type { SocioeconomicState } from './simulation/socioeconomy/model';
 import type { CrisisState } from './simulation/crisis/model';
 import type { PoliticalState } from './simulation/politics/model';
 import type { GovernanceState } from './simulation/governance/model';
+import type { InformationState } from './simulation/information/model';
 export type EntityKind = 'sovereign' | 'dependency' | 'disputed' | 'other';
 
 export interface DataSource { name: string; url: string; datasetId: string; retrievedAt: string }
@@ -134,8 +135,9 @@ export interface SimulationEngineState {
   dirtyDomains: DirtyDomainRecord[];
 }
 export interface SimulationState {
-  schemaVersion: 12;
+  schemaVersion: 13;
   governance: GovernanceState;
+  information: InformationState;
   politics: PoliticalState;
   crisis: CrisisState;
   fiscal: FiscalState;
