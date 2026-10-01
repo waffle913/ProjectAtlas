@@ -3,6 +3,7 @@ import { PoliticsDebug } from './components/PoliticsDebug';
 import { emptyFiscal } from './simulation/fiscal/model';
 import { emptyCrisis } from './simulation/crisis/model';
 import { emptyPolitics } from './simulation/politics/model';
+import { emptyGovernance } from './simulation/governance/model';
 import { emptySocioeconomy, inspectSocioeconomy, NO_SHOCK } from './simulation/socioeconomy/model';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, useMap, useMapEvents } from "react-leaflet";
@@ -26,7 +27,7 @@ import { initializeNewGame } from "./simulation/initialization";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
+  schemaVersion: 12, governance: emptyGovernance('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,

@@ -1,6 +1,7 @@
 import { emptyFiscal } from '../fiscal/model';
 import { emptyCrisis } from '../crisis/model';
 import { emptyPolitics } from '../politics/model';
+import { emptyGovernance } from '../governance/model';
 import type { RegionEntity, SimulationState } from '../../types';
 import entityRegistry from '../../data/entity-registry.json';
 import regionRegistry from '../../data/region-registry.json';
@@ -19,7 +20,7 @@ export const worldContext = { regions: worldRegions, countryIds: new Set(worldCo
 export const worldInputs = { demographics, economics, national, facts: facts.countries } as unknown as InitializationData;
 export const worldPoliticalInputs = { countries: entityRegistry.countries, offices } as unknown as PoliticalInitializationData;
 export const worldBase = (): SimulationState => ({
-  schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+  schemaVersion: 12, governance: emptyGovernance('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
   territoryOwnership: Object.fromEntries(entityRegistry.territories.map(t => [t.id, t.initialOwnerCountryId])),
   regionOwnership: Object.fromEntries(worldRegions.map(r => [r.id, r.initialOwnerCountryId])),
   populationByRegion: Object.fromEntries(demographics.records.map(r => [r.regionId, r.status === 'unavailable' ? undefined : r.baselinePopulation])),

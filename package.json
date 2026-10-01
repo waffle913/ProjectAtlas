@@ -37,7 +37,9 @@
     "politics:audit:generate": "node scripts/politics-audit.mjs --write",
     "politics:sources:update": "node scripts/update-politics-source.mjs",
     "politics:data:generate": "node scripts/generate-politics-data.mjs",
-    "politics:benchmark": "vitest run src/simulation/__tests__/politicsWorld.test.ts --reporter=verbose"
+    "politics:benchmark": "vitest run src/simulation/__tests__/politicsWorld.test.ts --reporter=verbose",
+    "governance:audit": "vitest run src/simulation/__tests__/governance.test.ts --reporter=verbose",
+    "governance:benchmark": "vitest run src/simulation/__tests__/governanceWorld.test.ts --reporter=verbose"
   },
   "repository": {
     "type": "git",

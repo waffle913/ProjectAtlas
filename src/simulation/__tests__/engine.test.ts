@@ -1,6 +1,7 @@
 import { emptyFiscal } from '../fiscal/model';
 import { emptyCrisis } from '../crisis/model';
 import { emptyPolitics } from '../politics/model';
+import { emptyGovernance } from '../governance/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 import { describe, expect, it } from 'vitest';
 import type { Country, RegionEntity, SimulationState } from '../../types';
@@ -20,7 +21,7 @@ const countries = new Set(['country.a', 'country.b']);
 const region: RegionEntity = { id: 'region.a', parentCountryId: 'country.a', initialOwnerCountryId: 'country.a', commonName: 'A', administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: ['geometry-a'] } };
 const context = { countryIds: countries, regionIds: new Set([region.id]), regions: [region] };
 const initial = (seed = 'seed.001'): SimulationState => ({
-  schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+  schemaVersion: 12, governance: emptyGovernance('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
   territoryOwnership: { 'territory.a': 'country.a' }, regionOwnership: { [region.id]: 'country.a' },
   populationByRegion: { [region.id]: 1_000 }, economicOutputByRegion: { [region.id]: 5_000 },
   bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},

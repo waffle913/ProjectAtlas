@@ -209,7 +209,7 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
   }
   return { ...state, fiscal: { ...f, countries, regions, lastMonthlyDate: state.date } };
 }
-export function scheduleFiscalReform(state: SimulationState, input: Omit<FiscalReform, 'sequence'>): SimulationState {
+export function validateFiscalReform(state: SimulationState, input: Omit<FiscalReform, 'sequence'>) {
   if (!state.fiscal.initializedOn || !state.fiscal.countries[input.countryId]) throw new Error('Unknown fiscal Country.');
   if (!dateValid(input.effectiveDate) || input.effectiveDate < state.date) throw new Error('Fiscal reform cannot be retroactive.');
   if (!input.policy && !input.annualBudget) throw new Error('Empty reform.');
@@ -221,6 +221,9 @@ export function scheduleFiscalReform(state: SimulationState, input: Omit<FiscalR
     }
   }
   if (input.annualBudget) validateBudget(input.annualBudget);
+}
+export function scheduleFiscalReform(state: SimulationState, input: Omit<FiscalReform, 'sequence'>): SimulationState {
+  validateFiscalReform(state, input);
   const reform = { ...structuredClone(input), sequence: state.fiscal.nextSequence };
   return applyReforms({ ...state, fiscal: { ...state.fiscal, nextSequence: reform.sequence + 1, reforms: [...state.fiscal.reforms, reform].sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate) || a.sequence - b.sequence) } });
 }

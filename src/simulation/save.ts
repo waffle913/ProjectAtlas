@@ -5,6 +5,7 @@ import { emptySocioeconomy } from './socioeconomy/model';
 import { emptyPolitics } from './politics/model';
 import { initializePolitics, rebasePoliticsRegistry } from './politics/initialization';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
+import { emptyGovernance } from './governance/model';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
 import { assertSimulationInvariants, type InvariantContext } from './invariants';
@@ -13,7 +14,7 @@ import { cloneSimulationState, createEngineState } from './state';
 export interface LegacySimulationStateV1 { schemaVersion?: 1; date: string; paused: boolean; speed: 1 | 2 | 5; territoryOwnership: Record<string, string | undefined> }
 type DiplomacyFields = 'bilateralRelations' | 'claims' | 'explicitCasusBelli';
 type WarFields = 'wars' | 'occupationByRegion';
-type EngineFields = 'engine' | 'socioeconomy' | 'fiscal' | 'crisis' | 'politics';
+type EngineFields = 'engine' | 'socioeconomy' | 'fiscal' | 'crisis' | 'politics' | 'governance';
 export interface SimulationStateV2 extends Omit<SimulationState, 'schemaVersion' | 'populationByRegion' | 'economicOutputByRegion' | DiplomacyFields | WarFields | EngineFields> { schemaVersion: 2 }
 export interface SimulationStateV3 extends Omit<SimulationState, 'schemaVersion' | 'economicOutputByRegion' | DiplomacyFields | WarFields | EngineFields> { schemaVersion: 3 }
 export interface SimulationStateV4 extends Omit<SimulationState, 'schemaVersion' | DiplomacyFields | WarFields | EngineFields> { schemaVersion: 4 }
@@ -28,30 +29,31 @@ const countryIdsFor = (state: { territoryOwnership: Record<string, string | unde
   ].filter((id): id is string => Boolean(id)));
 const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
   const countryIds = countryIdsFor(state, regions, context);
-  const initialized = initializeFiscal(initializeSocioeconomy({ ...state, schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }, regions));
+  const initialized = initializeFiscal(initializeSocioeconomy({ ...state, schemaVersion: 12, governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }, regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
-  return { ...crisis, politics: initializePolitics(crisis, countryIds, regions) };
+  return { ...crisis, politics: initializePolitics(crisis, countryIds, regions), governance: emptyGovernance(crisis.date) };
 };
 const validationContext = (regions: RegionEntity[], context: DiplomacyContext): InvariantContext => ({ ...context, regions });
 
 export function migrateSimulationState(save: unknown, regions: RegionEntity[], baselinePopulation: Record<string, number | undefined> = {}, baselineEconomicOutput: Record<string, number | undefined> = {}, diplomacyContext?: DiplomacyContext): SimulationState {
   if (!save || typeof save !== 'object') throw new Error('Malformed simulation save.');
   const version = (save as { schemaVersion?: unknown }).schemaVersion;
-  if (version === 7 || version === 8 || version === 9 || version === 10 || version === 11) {
+  if (version === 7 || version === 8 || version === 9 || version === 10 || version === 11 || version === 12) {
     const current = save as SimulationState & { crisis?: SimulationState['crisis']; politics?: SimulationState['politics'] };
-    if (!diplomacyContext) throw new Error('A Country and Region registry context is required to validate a v7-v11 simulation save.');
+    if (!diplomacyContext) throw new Error('A Country and Region registry context is required to validate a v7-v12 simulation save.');
     if (!current.engine || typeof current.engine.seed !== 'string' || !Number.isSafeInteger(current.engine.tick) || !current.engine.fidelityByCountry || !Array.isArray(current.engine.pendingFidelityTransitions) || !Array.isArray(current.engine.recentFidelityTransitions) || !Array.isArray(current.engine.pendingImmediateUpdates) || !Array.isArray(current.engine.dirtyDomains)) throw new Error('Malformed v7 simulation engine state.');
     if (version >= 8 && (!current.socioeconomy || current.socioeconomy.modelVersion !== 'socioeconomy-0.10-v1')) throw new Error('Malformed or unsupported v8 socioeconomic model.');
     if (version >= 9 && !['fiscal-0.11-v1', 'fiscal-0.11-v2'].includes(current.fiscal?.version)) throw new Error('Malformed fiscal model.');
     if (version === 10 && current.crisis?.version !== 'crisis-0.12-v1') throw new Error('Malformed crisis model.');
-    if (version === 11 && (current.crisis?.version !== 'crisis-0.12-v1' || current.politics?.version !== 'politics-0.13-v1')) throw new Error('Malformed politics or crisis model.');
+    if (version >= 11 && (current.crisis?.version !== 'crisis-0.12-v1' || current.politics?.version !== 'politics-0.13-v1')) throw new Error('Malformed politics or crisis model.');
+    if (version === 12 && current.governance?.version !== 'governance-0.14-v1') throw new Error('Malformed governance model.');
     const fiscal = version >= 9 ? upgradeFiscalStateV1(current.fiscal, current.date) : emptyFiscal();
     const countryIds = countryIdsFor(current, regions, diplomacyContext);
     const crisis = version >= 10 ? current.crisis! : initializeCrisisState(emptyCrisis(), countryIds, current.date);
-    const base = { ...current, schemaVersion: 11 as const, politics: version === 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
+    const base = { ...current, schemaVersion: 12 as const, governance: version === 12 ? current.governance! : emptyGovernance(current.date), politics: version >= 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
     const upgraded = cloneSimulationState(base);
     const fiscalRestored = version >= 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
-    const savedRegistryVersion = version === 11 ? (current.politics as { registryVersion?: unknown }).registryVersion : undefined;
+    const savedRegistryVersion = version >= 11 ? (current.politics as { registryVersion?: unknown }).registryVersion : undefined;
     const hasNormalizedPolitics = savedRegistryVersion === 'political-registry-0.13-v4';
     // Early 0.13 schema-11 saves embedded mutable static registries. Rebuild their
     // deterministic opinion branch against the current pinned registry instead of

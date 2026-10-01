@@ -1,6 +1,7 @@
 import { emptyFiscal } from '../fiscal/model';
 import { emptyCrisis } from '../crisis/model';
 import { emptyPolitics } from '../politics/model';
+import { emptyGovernance } from '../governance/model';
 import { describe, expect, it } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { SimulationClock } from '../clock';
@@ -11,7 +12,7 @@ import { controlledBaselinePopulation, controlledBaselineAnnualOutput, simulated
 import { restoreSimulationState, serializeSimulationState } from '../save';
 
 const regions: RegionEntity[] = ['a', 'b'].map(id => ({ id, parentCountryId: id, initialOwnerCountryId: id, commonName: id, administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: [id] } }));
-const base = (): SimulationState => ({ schemaVersion: 11, politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: { a: 'a', b: 'b' }, populationByRegion: { a: 10000, b: 10000 }, economicOutputByRegion: { a: 12000000, b: 24000000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(['a', 'b']), socioeconomy: emptySocioeconomy() });
+const base = (): SimulationState => ({ schemaVersion: 12, governance: emptyGovernance('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: { a: 'a', b: 'b' }, populationByRegion: { a: 10000, b: 10000 }, economicOutputByRegion: { a: 12000000, b: 24000000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(['a', 'b']), socioeconomy: emptySocioeconomy() });
 const initialized = () => initializeSocioeconomy(base(), regions);
 
 describe('immutable cached UI snapshots', () => {
