@@ -109,6 +109,8 @@ export interface ImmediateFiscalPolicyCounterfactual {
   countryId: string; regionCount: number;
   currentKnownRevenue: number; proposedKnownRevenue: number;
   currentDisposableByIncome: number[]; proposedDisposableByIncome: number[];
+  currentTransfersByIncome: number[]; proposedTransfersByIncome: number[];
+  currentDirectTaxByIncome: number[]; proposedDirectTaxByIncome: number[];
   currentConsumptionTaxByIncome: number[]; proposedConsumptionTaxByIncome: number[];
   currentEmployerPayroll: number; proposedEmployerPayroll: number;
   currentCorporateTax: number; proposedCorporateTax: number;
@@ -121,18 +123,22 @@ export function evaluateImmediateFiscalPolicyCounterfactual(state: SimulationSta
   const country = state.fiscal.countries[countryId]; if (!country) throw new Error('Unknown fiscal Country.');
   validatePolicy(policy, countryId, evaluationDate);
   const regionIds = Object.keys(state.socioeconomy.regions).filter(id => state.regionOwnership[id] === countryId && state.socioeconomy.regions[id].economy).sort();
-  const currentDisposableByIncome = [0, 0, 0], proposedDisposableByIncome = [0, 0, 0], currentConsumptionTaxByIncome = [0, 0, 0], proposedConsumptionTaxByIncome = [0, 0, 0];
+  const currentDisposableByIncome = [0, 0, 0], proposedDisposableByIncome = [0, 0, 0], currentTransfersByIncome = [0, 0, 0], proposedTransfersByIncome = [0, 0, 0], currentDirectTaxByIncome = [0, 0, 0], proposedDirectTaxByIncome = [0, 0, 0], currentConsumptionTaxByIncome = [0, 0, 0], proposedConsumptionTaxByIncome = [0, 0, 0];
   let currentKnownRevenue = 0, proposedKnownRevenue = 0, currentEmployerPayroll = 0, proposedEmployerPayroll = 0, currentCorporateTax = 0, proposedCorporateTax = 0;
   const currentRevenueByCategory = Object.fromEntries(TAXES.map(category => [category, 0])) as Record<typeof TAXES[number], number>, proposedRevenueByCategory = { ...currentRevenueByCategory };
   for (const regionId of regionIds) {
-    const current = state.fiscal.regions[regionId] ?? taxRegion(state.socioeconomy.regions[regionId], countryId, country.policy), proposed = taxRegion(state.socioeconomy.regions[regionId], countryId, policy, current);
+    const current = state.fiscal.regions[regionId] ?? taxRegion(state.socioeconomy.regions[regionId], countryId, country.policy), proposedTaxOnly = taxRegion(state.socioeconomy.regions[regionId], countryId, policy, current);
+    // The counterfactual changes tax rules only. Existing transfers and public
+    // orders are held constant so an unrelated reform cannot silently remove
+    // pensions, income support or public procurement from household income.
+    const proposed = { ...proposedTaxOnly, grossIncome: [...current.grossIncome], transfers: [...current.transfers], disposable: current.disposable.map((value, index) => integer(value - (proposedTaxOnly.personal[index] - current.personal[index]) - (proposedTaxOnly.employee[index] - current.employee[index]))), privateResidual: current.privateResidual, publicOrders: current.publicOrders };
     currentKnownRevenue += sum(TAXES.map(key => current.taxes[key].collected)); proposedKnownRevenue += sum(TAXES.map(key => proposed.taxes[key].collected));
     for (const category of TAXES) { currentRevenueByCategory[category] += current.taxes[category].collected; proposedRevenueByCategory[category] += proposed.taxes[category].collected; }
-    for (let index = 0; index < 3; index++) { currentDisposableByIncome[index] += current.disposable[index]; proposedDisposableByIncome[index] += proposed.disposable[index]; currentConsumptionTaxByIncome[index] += current.consumptionTax[index]; proposedConsumptionTaxByIncome[index] += proposed.consumptionTax[index]; }
+    for (let index = 0; index < 3; index++) { currentDisposableByIncome[index] += current.disposable[index]; proposedDisposableByIncome[index] += proposed.disposable[index]; currentTransfersByIncome[index] += current.transfers[index]; proposedTransfersByIncome[index] += proposed.transfers[index]; currentDirectTaxByIncome[index] += current.personal[index] + current.employee[index]; proposedDirectTaxByIncome[index] += proposed.personal[index] + proposed.employee[index]; currentConsumptionTaxByIncome[index] += current.consumptionTax[index]; proposedConsumptionTaxByIncome[index] += proposed.consumptionTax[index]; }
     currentEmployerPayroll += current.taxes.employer.collected; proposedEmployerPayroll += proposed.taxes.employer.collected; currentCorporateTax += current.taxes.corporate.collected; proposedCorporateTax += proposed.taxes.corporate.collected;
   }
   const categoryCoverage = Object.fromEntries(TAXES.map(category => [category, country.policy[taxKind(category)] === null ? 'unavailable' : 'complete'])) as ImmediateFiscalPolicyCounterfactual['categoryCoverage'];
-  return { countryId, regionCount: regionIds.length, currentKnownRevenue, proposedKnownRevenue, currentDisposableByIncome, proposedDisposableByIncome, currentConsumptionTaxByIncome, proposedConsumptionTaxByIncome, currentEmployerPayroll, proposedEmployerPayroll, currentCorporateTax, proposedCorporateTax, currentRevenueByCategory, proposedRevenueByCategory, categoryCoverage };
+  return { countryId, regionCount: regionIds.length, currentKnownRevenue, proposedKnownRevenue, currentDisposableByIncome, proposedDisposableByIncome, currentTransfersByIncome, proposedTransfersByIncome, currentDirectTaxByIncome, proposedDirectTaxByIncome, currentConsumptionTaxByIncome, proposedConsumptionTaxByIncome, currentEmployerPayroll, proposedEmployerPayroll, currentCorporateTax, proposedCorporateTax, currentRevenueByCategory, proposedRevenueByCategory, categoryCoverage };
 }
 export function initializeFiscal(state: SimulationState): SimulationState {
   if (state.fiscal.initializedOn || !state.socioeconomy.initializedOn) return state;

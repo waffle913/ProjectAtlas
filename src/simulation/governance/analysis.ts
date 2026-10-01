@@ -74,11 +74,16 @@ export function analyzeProposal(state: SimulationState, proposal: PoliticalPropo
     if (supportedKinds.length) {
       const counterfactual = evaluateImmediateFiscalPolicyCounterfactual(state, proposal.countryId, proposal.payload.policy, proposal.effectiveDate), categories = supportedKinds.flatMap(kind => categoryKinds[kind]), revenueDelta = sum(categories.map(category => counterfactual.proposedRevenueByCategory[category] - counterfactual.currentRevenueByCategory[category]));
       if (revenueDelta) expectedConsequences.push(consequence('fiscal_sustainability', signed((ratio(revenueDelta, Math.max(1, totalRevenueFor(state, proposal.countryId)), 5_000) ?? 0) * (5_000 + (materialContext.fiscalDistress.valueBps ?? 0)) / 10_000), 9_000, 'complete', `fiscal.counterfactual.${categories.join('+')}`, 'Immediate known-tax revenue delta on current simulated bases.'));
-      const householdKinds = supportedKinds.some(kind => ['personal', 'consumption', 'payroll'].includes(kind));
-      if (householdKinds) {
+      const cashIncomeKinds = supportedKinds.some(kind => ['personal', 'payroll'].includes(kind));
+      if (cashIncomeKinds) {
         const deltas = counterfactual.proposedDisposableByIncome.map((value, index) => value - counterfactual.currentDisposableByIncome[index]), relative = deltas.map((delta, index) => ratio(delta, Math.max(1, counterfactual.currentDisposableByIncome[index])) ?? 0), average = Math.round(sum(relative) / relative.length);
         if (average) expectedConsequences.push(consequence('income_security', signed(average * 2), 8_500, 'complete', 'fiscal.counterfactual.household_disposable', 'Immediate disposable-income incidence on current household groups.'));
         const distribution = signed((relative[0] - relative[2]) * 2); if (distribution) expectedConsequences.push(consequence('fiscal_distribution', distribution, 8_000, 'partial', 'fiscal.counterfactual.income_group_incidence', 'Relative low-versus-high income disposable effect; ownership incidence and long-run responses unavailable.'));
+      }
+      if (supportedKinds.includes('consumption')) {
+        const burdenDeltas = counterfactual.proposedConsumptionTaxByIncome.map((value, index) => value - counterfactual.currentConsumptionTaxByIncome[index]), relativeBurden = burdenDeltas.map((delta, index) => ratio(delta, Math.max(1, counterfactual.currentDisposableByIncome[index])) ?? 0), averageBurden = Math.round(sum(relativeBurden) / relativeBurden.length);
+        if (averageBurden) expectedConsequences.push(consequence('income_security', signed(-averageBurden * 2), 8_500, 'complete', 'fiscal.counterfactual.consumption_tax_burden', 'Immediate change in consumption-tax purchasing-power burden on current household consumption; disposable cash income is held separate.'));
+        const distribution = signed((relativeBurden[2] - relativeBurden[0]) * 2); if (distribution) expectedConsequences.push(consequence('fiscal_distribution', distribution, 8_000, 'partial', 'fiscal.counterfactual.consumption_tax_incidence', 'Relative low-versus-high income consumption-tax burden on current consumption; behavioral responses are unavailable.'));
       }
       if (supportedKinds.includes('payroll')) unsupportedChanges.push({ path: 'policy.payroll.employment_response', coverage: 'partial', reason: 'Employer payroll-cost delta is measurable, but future employment response is not forecast.' });
       if (supportedKinds.includes('corporate')) unsupportedChanges.push({ path: 'policy.corporate.distributional_incidence', coverage: 'partial', reason: 'Corporate liability is measurable, but ownership and household incidence are unavailable.' });
@@ -123,9 +128,9 @@ function evaluateProfile(analysis: ProposalAnalysis, profile: PartyGoalProfile):
 }
 
 export function evaluatePartyProposal(state: SimulationState, proposal: PoliticalProposal, partyId: string, registry: PoliticalRegistry, profileOverride?: PartyGoalProfile, analysisOverride?: ProposalAnalysis): PartyProposalEvaluation {
-  const party = registry.parties[partyId]; if (!party) return { partyId, agreementBps: 5_000, confidenceBps: 0, coverage: 'unavailable', compromiseCostBps: 0, vote: 'abstain', positiveDrivers: [], negativeDrivers: ['Unknown party.'], tradeoffs: [], issueEvaluations: [] };
+  const party = registry.parties[partyId]; if (!party) return { partyId, agreementBps: 5_000, confidenceBps: 0, coverage: 'unavailable', compromiseCostBps: 0, vote: 'unknown', positiveDrivers: [], negativeDrivers: ['Unknown party.'], tradeoffs: [], issueEvaluations: [] };
   const result = evaluateProfile(analysisOverride ?? analyzeProposal(state, proposal), profileOverride ?? derivePartyGoalProfile(party));
-  const vote = result.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || result.coverage === 'unavailable' ? 'abstain' : result.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : result.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
+  const vote = result.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || result.coverage === 'unavailable' ? 'unknown' : result.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : result.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
   return { partyId, ...result, vote };
 }
 

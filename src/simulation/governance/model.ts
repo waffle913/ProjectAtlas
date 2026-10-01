@@ -52,9 +52,9 @@ export interface PartyGoalProfile { partyId: string; goals: Record<GovernanceGoa
 export interface PartyIssueEvaluation { goal: GovernanceGoal; currentOutcomeBps?: number; expectedOutcomeBps?: number; agreementBps: number; benefitBps: number; compromiseCostBps: number; severityBps: number; coverage: EvaluationCoverage }
 export interface PartyProposalEvaluation {
   partyId: string; agreementBps: number; confidenceBps: number; coverage: EvaluationCoverage; compromiseCostBps: number;
-  vote: 'yes' | 'no' | 'abstain'; positiveDrivers: string[]; negativeDrivers: string[]; tradeoffs: string[]; issueEvaluations: PartyIssueEvaluation[];
+  vote: 'yes' | 'no' | 'abstain' | 'unknown'; positiveDrivers: string[]; negativeDrivers: string[]; tradeoffs: string[]; issueEvaluations: PartyIssueEvaluation[];
 }
-export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; drivers: ProposalImpactDriver[] }
+export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
 export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: Array<PartyProposalEvaluation & { seats: number }> }
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' }
 export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' }

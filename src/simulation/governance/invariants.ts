@@ -2,6 +2,7 @@ import type { SimulationInvariant } from '../invariants';
 import { dateValid, validatePolicy } from '../fiscal/math';
 import { fiscalReformFingerprint, validateBudget } from '../fiscal/runtime';
 import { politicalRegistry } from '../politics/registry';
+import { GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint,
   type ChamberSupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis,
@@ -15,7 +16,9 @@ const finite = (value: unknown) => typeof value === 'number' && Number.isFinite(
 const coverage = (value: unknown) => ['complete', 'partial', 'unavailable'].includes(value as string);
 
 function validatePartyEvaluation(evaluation: PartyProposalEvaluation): boolean {
-  if (!evaluation.partyId || !bps(evaluation.agreementBps) || !bps(evaluation.confidenceBps) || !bps(evaluation.compromiseCostBps) || !coverage(evaluation.coverage) || !['yes', 'no', 'abstain'].includes(evaluation.vote)) return false;
+  if (!evaluation.partyId || !bps(evaluation.agreementBps) || !bps(evaluation.confidenceBps) || !bps(evaluation.compromiseCostBps) || !coverage(evaluation.coverage) || !['yes', 'no', 'abstain', 'unknown'].includes(evaluation.vote)) return false;
+  const expectedVote = evaluation.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || evaluation.coverage === 'unavailable' ? 'unknown' : evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
+  if (evaluation.vote !== expectedVote) return false;
   if (![evaluation.positiveDrivers, evaluation.negativeDrivers, evaluation.tradeoffs].every(list => Array.isArray(list) && list.every(item => typeof item === 'string'))) return false;
   return Array.isArray(evaluation.issueEvaluations) && evaluation.issueEvaluations.every(issue =>
     typeof issue.goal === 'string' && bps(issue.agreementBps) && signedBps(issue.benefitBps) && bps(issue.compromiseCostBps) && bps(issue.severityBps) && coverage(issue.coverage)
@@ -29,14 +32,20 @@ function validateChamber(chamber: ChamberSupportEstimate): boolean {
   if (chamber.coverage === 'complete' && chamber.unavailableSeats !== 0) return false;
   if (chamber.adopted !== undefined && (chamber.coverage !== 'complete' || chamber.adopted !== (chamber.yesSeats > chamber.noSeats))) return false;
   if (chamber.partyEvaluations && (!Array.isArray(chamber.partyEvaluations) || !chamber.partyEvaluations.every(item => nonNegative(item.seats) && validatePartyEvaluation(item)))) return false;
-  if (chamber.partyEvaluations && chamber.partyEvaluations.reduce((sum, item) => sum + item.seats, 0) !== chamber.yesSeats + chamber.noSeats + chamber.abstainSeats) return false;
+  if (!chamber.partyEvaluations) return chamber.coverage === 'unavailable' && chamber.adopted === undefined;
+  const seats = (vote: PartyProposalEvaluation['vote']) => chamber.partyEvaluations!.filter(item => item.vote === vote).reduce((sum, item) => sum + item.seats, 0), partySeats = chamber.partyEvaluations.reduce((sum, item) => sum + item.seats, 0);
+  if (chamber.yesSeats !== seats('yes') || chamber.noSeats !== seats('no') || chamber.abstainSeats !== seats('abstain')) return false;
+  if (chamber.totalSeats === undefined || partySeats > chamber.totalSeats || chamber.unavailableSeats !== seats('unknown') + chamber.totalSeats - partySeats) return false;
+  const knownSeats = chamber.yesSeats + chamber.noSeats + chamber.abstainSeats, expectedCoverage = chamber.unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
+  if (chamber.coverage !== expectedCoverage || (expectedCoverage === 'complete' ? chamber.adopted !== (chamber.yesSeats > chamber.noSeats) : chamber.adopted !== undefined)) return false;
   return true;
 }
 
 function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>): boolean {
   if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== 'modelled_procedure_v1' || !estimate.chambers.every(validateChamber)) return false;
   const sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => estimate.chambers.reduce((total, chamber) => total + chamber[field], 0);
-  return estimate.yesSeats === sum('yesSeats') && estimate.noSeats === sum('noSeats') && estimate.abstainSeats === sum('abstainSeats') && estimate.unavailableSeats === sum('unavailableSeats') && estimate.totalSeats === estimate.chambers.reduce((total, chamber) => total + (chamber.totalSeats ?? 0), 0);
+  const expectedCoverage = estimate.chambers.length > 0 && estimate.chambers.every(item => item.coverage === 'complete') ? 'complete' : estimate.chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
+  return estimate.coverage === expectedCoverage && estimate.yesSeats === sum('yesSeats') && estimate.noSeats === sum('noSeats') && estimate.abstainSeats === sum('abstainSeats') && estimate.unavailableSeats === sum('unavailableSeats') && estimate.totalSeats === estimate.chambers.reduce((total, chamber) => total + (chamber.totalSeats ?? 0), 0);
 }
 
 function validateAnalysis(analysis: ProposalAnalysis): boolean {
@@ -72,7 +81,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (proposal.submittedOn && proposal.submittedPayloadFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload })) errors.push(`Submitted proposal ${id} payload was modified.`);
     if (['enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.resolvedOn || !proposal.voteResult || proposal.voteResult.outcome !== (proposal.status === 'enacted' ? 'adopted' : proposal.status))) errors.push(`Invalid resolution lifecycle for ${id}.`);
     if (proposal.resolvedOn && (!dateValid(proposal.resolvedOn) || proposal.resolvedOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.resolvedOn > state.date)) errors.push(`Invalid resolution date for ${id}.`);
-    if (proposal.publicEstimate && (![proposal.publicEstimate.supportBps, proposal.publicEstimate.opposeBps, proposal.publicEstimate.neutralBps, proposal.publicEstimate.confidenceBps].every(bps) || proposal.publicEstimate.supportBps + proposal.publicEstimate.opposeBps + proposal.publicEstimate.neutralBps !== 10_000 || !coverage(proposal.publicEstimate.coverage) || !nonNegative(proposal.publicEstimate.representedPersons))) errors.push(`Invalid public estimate for ${id}.`);
+    if (proposal.publicEstimate && (![proposal.publicEstimate.supportBps, proposal.publicEstimate.opposeBps, proposal.publicEstimate.neutralBps, proposal.publicEstimate.unknownBps, proposal.publicEstimate.confidenceBps].every(bps) || proposal.publicEstimate.supportBps + proposal.publicEstimate.opposeBps + proposal.publicEstimate.neutralBps + proposal.publicEstimate.unknownBps !== 10_000 || !coverage(proposal.publicEstimate.coverage) || ![proposal.publicEstimate.representedPersons, proposal.publicEstimate.knownPersons, proposal.publicEstimate.unknownPersons].every(nonNegative) || proposal.publicEstimate.knownPersons + proposal.publicEstimate.unknownPersons !== proposal.publicEstimate.representedPersons || proposal.publicEstimate.coverage === 'complete' && proposal.publicEstimate.unknownPersons !== 0 || proposal.publicEstimate.coverage === 'unavailable' && proposal.publicEstimate.knownPersons !== 0)) errors.push(`Invalid public estimate for ${id}.`);
     if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate)) errors.push(`Invalid parliamentary estimate for ${id}.`);
     if (proposal.analysis && !validateAnalysis(proposal.analysis)) errors.push(`Invalid proposal analysis for ${id}.`);
     if (proposal.voteResult) {

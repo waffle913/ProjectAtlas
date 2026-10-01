@@ -16,6 +16,8 @@ import { analyzeProposal, derivePartyGoalProfile, evaluatePartyProposal, GOVERNA
 import type { GovernanceGoal, PartyGoalProfile } from '../governance/model';
 import type { FiscalProposalPayload } from '../governance/model';
 import type { TaxKind, TaxRule } from '../fiscal/model';
+import { evaluateImmediateFiscalPolicyCounterfactual } from '../fiscal/runtime';
+import { COHORT } from '../politics/model';
 
 const fullWorld = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
 let initial: SimulationState;
@@ -135,7 +137,7 @@ describe('governance 0.14 player and political decisions', () => {
 
   it('produces normalized public estimates and deterministic reconciled parliamentary estimates', () => {
     const fixture = findResolvable(true), proposal = fixture.state.governance.proposals[fixture.proposalId], publicEstimate = estimatePublicSupport(fixture.state, proposal), parliament = estimateParliamentarySupport(fixture.state, proposal, fixture.registry, fixture.profiles);
-    expect(publicEstimate.supportBps + publicEstimate.opposeBps + publicEstimate.neutralBps).toBe(10_000); expect(publicEstimate.representedPersons).toBeGreaterThan(0);
+    expect(publicEstimate.supportBps + publicEstimate.opposeBps + publicEstimate.neutralBps + publicEstimate.unknownBps).toBe(10_000); expect(publicEstimate.representedPersons).toBeGreaterThan(0);
     expect(parliament.yesSeats + parliament.noSeats + parliament.abstainSeats + parliament.unavailableSeats).toBe(parliament.totalSeats);
     expect(estimatePublicSupport(fixture.state, proposal)).toEqual(publicEstimate); expect(estimateParliamentarySupport(fixture.state, proposal, fixture.registry, fixture.profiles)).toEqual(parliament);
     const inspected = inspectProposalSupport(fixture.state, fixture.proposalId, fixture.registry, fixture.profiles); expect(inspected.informationStatus).toBe('engine_debug_reality'); expect(inspected.impact.drivers[0]?.source).toMatch(/^(policy|annualBudget)\./);
@@ -292,7 +294,7 @@ describe('governance 0.14 situational corrective contracts', () => {
     const countryId = resolvableCountry(), player = playerFor(initial, countryId), budget = player.state.fiscal.countries[countryId].annualBudget, made = draft(player.state, player.id, countryId, { annualBudget: { ...budget, infrastructure: budget.infrastructure * 2 } }), partyId = politicalRegistry.countries[countryId].partyIds[0], fallback = profile(partyId, {});
     for (const goal of Object.values(fallback.goals)) { goal.confidenceBps = 500; goal.status = 'modelled_fallback'; }
     const first = evaluatePartyProposal(made.state, made.proposal, partyId, politicalRegistry, fallback), second = evaluatePartyProposal(made.state, made.proposal, partyId, politicalRegistry, fallback);
-    expect(first).toEqual(second); expect(first.confidenceBps).toBeLessThan(GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps); expect(first.vote).toBe('abstain');
+    expect(first).toEqual(second); expect(first.confidenceBps).toBeLessThan(GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps); expect(first.vote).toBe('unknown');
   });
 
   it('centralizes the deterministic conversion from agreement to a vote', () => {
@@ -341,11 +343,76 @@ describe('governance 0.14 situational corrective contracts', () => {
 
   it('upgrades first-release schema-12 enactments without changing version strings', () => {
     const fixture = findResolvable(true), legacy = structuredClone(resolveProposalVote(submitProposal(fixture.state, fixture.proposalId), fixture.proposalId, fixture.registry, fixture.profiles)), proposal = legacy.governance.proposals[fixture.proposalId];
-    delete proposal.analysis; delete proposal.evaluationVersion; delete proposal.enactmentReference; delete proposal.submittedPayloadFingerprint; delete (proposal.publicEstimate as { confidenceBps?: number }).confidenceBps; delete (proposal.voteResult as { confidenceBps?: number }).confidenceBps;
+    delete proposal.analysis; delete proposal.evaluationVersion; delete proposal.enactmentReference; delete proposal.submittedPayloadFingerprint; delete (proposal.publicEstimate as { confidenceBps?: number }).confidenceBps; delete (proposal.publicEstimate as { unknownBps?: number }).unknownBps; delete (proposal.publicEstimate as { knownPersons?: number }).knownPersons; delete (proposal.publicEstimate as { unknownPersons?: number }).unknownPersons; delete (proposal.voteResult as { confidenceBps?: number }).confidenceBps;
     for (const reform of legacy.fiscal.reforms) delete reform.origin; delete (legacy.fiscal as Partial<typeof legacy.fiscal>).reformReceipts;
     const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext), upgraded = restored.governance.proposals[fixture.proposalId];
     expect(restored.schemaVersion).toBe(12); expect(restored.governance.version).toBe('governance-0.14-v1'); expect(restored.fiscal.version).toBe('fiscal-0.11-v2');
     expect(upgraded.evaluationVersion).toBe('legacy-0.14-v1'); expect(upgraded.enactmentReference).toBeDefined(); expect(restored.fiscal.reforms[0].origin?.proposalId).toBe(fixture.proposalId); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
+  });
+
+  it('upgrades legacy low-confidence abstentions to unknown voting coverage', () => {
+    const countryId = resolvableCountry(), player = playerFor(initial, countryId); let legacy = budgetProposal(player.state, player.id, countryId, 2), proposalId = legacy.governance.proposalOrder[0]; legacy = resolveProposalVote(submitProposal(legacy, proposalId), proposalId); const proposal = legacy.governance.proposals[proposalId];
+    proposal.status = 'rejected'; delete proposal.evaluationVersion; proposal.voteResult!.outcome = 'rejected'; delete proposal.voteResult!.reason;
+    for (const estimate of [proposal.parliamentaryEstimate!, proposal.voteResult!]) { for (const chamber of estimate.chambers) { for (const evaluation of chamber.partyEvaluations ?? []) evaluation.vote = 'abstain'; chamber.abstainSeats += chamber.unavailableSeats; chamber.unavailableSeats = 0; chamber.coverage = 'complete'; chamber.adopted = false; } estimate.abstainSeats += estimate.unavailableSeats; estimate.unavailableSeats = 0; estimate.coverage = 'complete'; }
+    delete (proposal.publicEstimate as { unknownBps?: number }).unknownBps; delete (proposal.publicEstimate as { knownPersons?: number }).knownPersons; delete (proposal.publicEstimate as { unknownPersons?: number }).unknownPersons;
+    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext), upgraded = restored.governance.proposals[proposalId];
+    expect(upgraded.status).toBe('unavailable'); expect(upgraded.voteResult).toMatchObject({ outcome: 'unavailable', reason: 'institutional_data_unavailable', coverage: 'unavailable' }); expect(upgraded.parliamentaryEstimate!.chambers.flatMap(item => item.partyEvaluations ?? []).every(item => item.vote === 'unknown')).toBe(true); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
+  });
+
+  it('holds transfers constant in a tax-only counterfactual', () => {
+    const made = taxDraft('personal', rule => { rule.bands![0].rateBps = Math.min(10_000, rule.bands![0].rateBps + 500); }), state = structuredClone(made.state), regionId = Object.keys(state.fiscal.regions).find(id => state.regionOwnership[id] === made.countryId)!;
+    const region = state.fiscal.regions[regionId]; region.transfers = [101, 202, 303]; region.disposable = region.disposable.map((value, index) => value + region.transfers[index]);
+    const result = evaluateImmediateFiscalPolicyCounterfactual(state, made.countryId, made.proposal.payload.policy!, made.proposal.effectiveDate);
+    expect(result.proposedTransfersByIncome).toEqual(result.currentTransfersByIncome); expect(result.currentTransfersByIncome.reduce((sum, value) => sum + value, 0)).toBeGreaterThanOrEqual(606);
+  });
+
+  it('attributes disposable-income change only to direct-tax incidence', () => {
+    const made = taxDraft('personal', rule => { rule.bands![0].rateBps = Math.min(10_000, rule.bands![0].rateBps + 500); }), state = structuredClone(made.state), regionId = Object.keys(state.fiscal.regions).find(id => state.regionOwnership[id] === made.countryId)!;
+    const region = state.fiscal.regions[regionId]; region.transfers = [111, 222, 333]; region.disposable = region.disposable.map((value, index) => value + region.transfers[index]);
+    const result = evaluateImmediateFiscalPolicyCounterfactual(state, made.countryId, made.proposal.payload.policy!, made.proposal.effectiveDate);
+    for (let index = 0; index < 3; index++) expect(result.proposedDisposableByIncome[index] - result.currentDisposableByIncome[index]).toBe(-(result.proposedDirectTaxByIncome[index] - result.currentDirectTaxByIncome[index]));
+  });
+
+  it('records both fiscal benefit and household burden for a VAT increase', () => {
+    const made = taxDraft('consumption', rule => { rule.rateBps = Math.min(10_000, (rule.rateBps ?? 0) + 2_000); }), consequences = analyzeProposal(made.state, made.proposal).expectedConsequences;
+    expect(consequences).toEqual(expect.arrayContaining([expect.objectContaining({ goal: 'fiscal_sustainability', source: expect.stringContaining('consumption') }), expect.objectContaining({ goal: 'income_security', source: 'fiscal.counterfactual.consumption_tax_burden' })]));
+    expect(consequences.find(item => item.source === 'fiscal.counterfactual.consumption_tax_burden')!.directionBps).toBeLessThan(0); expect(consequences.some(item => item.source === 'fiscal.counterfactual.consumption_tax_incidence')).toBe(true);
+  });
+
+  it('keeps unknown party evidence distinct from a real abstention', () => {
+    const countryId = resolvableCountry(), player = playerFor(initial, countryId), made = budgetProposal(player.state, player.id, countryId, 2), proposal = made.governance.proposals[made.governance.proposalOrder[0]], partyId = politicalRegistry.countries[countryId].partyIds[0], fallback = profile(partyId, {});
+    for (const goal of Object.values(fallback.goals)) { goal.confidenceBps = 500; goal.status = 'modelled_fallback'; }
+    expect(evaluatePartyProposal(made, proposal, partyId, politicalRegistry, fallback).vote).toBe('unknown');
+  });
+
+  it('makes an all-unknown chamber unavailable instead of rejected', () => {
+    const countryId = resolvableCountry(), player = playerFor(initial, countryId); let state = budgetProposal(player.state, player.id, countryId, 2), proposalId = state.governance.proposalOrder[0], estimate = estimateParliamentarySupport(state, state.governance.proposals[proposalId]);
+    expect(estimate.coverage).toBe('unavailable'); expect(estimate.yesSeats + estimate.noSeats + estimate.abstainSeats).toBe(0); expect(estimate.unavailableSeats).toBe(estimate.totalSeats); expect(estimate.chambers.flatMap(item => item.partyEvaluations ?? []).every(item => item.vote === 'unknown')).toBe(true);
+    state = resolveProposalVote(submitProposal(state, proposalId), proposalId); expect(state.governance.proposals[proposalId]).toMatchObject({ status: 'unavailable', voteResult: { outcome: 'unavailable', reason: 'institutional_data_unavailable' } });
+  });
+
+  it('counts a sufficiently known middle-range position as a real abstention', () => {
+    const countryId = resolvableCountry(), player = playerFor(initial, countryId), budget = player.state.fiscal.countries[countryId].annualBudget, made = draft(player.state, player.id, countryId, { annualBudget: { ...budget, infrastructure: budget.infrastructure + Math.max(1, Math.round(budget.infrastructure / 100)) } }), analysis = analyzeProposal(made.state, made.proposal), profiles: Record<string, PartyGoalProfile> = {};
+    const currentFiscal = Math.min(analysis.materialContext.fiscalSustainability.valueBps!, 10_000 - analysis.materialContext.fiscalDistress.valueBps!);
+    for (const partyId of politicalRegistry.countries[countryId].partyIds) profiles[partyId] = profile(partyId, { infrastructure: { idealPointBps: analysis.materialContext.infrastructure.valueBps!, importanceBps: 10_000, compromiseToleranceBps: 10_000, confidenceBps: 10_000 }, fiscal_sustainability: { idealPointBps: currentFiscal, importanceBps: 10_000, compromiseToleranceBps: 10_000, confidenceBps: 10_000 } });
+    const estimate = estimateParliamentarySupport(made.state, made.proposal, politicalRegistry, profiles, analysis); expect(estimate.coverage).toBe('complete'); expect(estimate.abstainSeats).toBe(estimate.totalSeats); expect(estimate.unavailableSeats).toBe(0); expect(estimate.chambers.flatMap(item => item.partyEvaluations ?? []).every(item => item.vote === 'abstain')).toBe(true);
+  });
+
+  it('keeps unknown public evidence out of the neutral bucket', () => {
+    const countryId = resolvableCountry(), player = playerFor(initial, countryId), state = structuredClone(budgetProposal(player.state, player.id, countryId, 2)), proposal = state.governance.proposals[state.governance.proposalOrder[0]];
+    for (const regional of Object.values(state.politics.regionalOpinion)) if (regional.countryId === countryId) for (const opinion of Object.values(regional.cohorts)) opinion[COHORT.engagement] = 0;
+    const estimate = estimatePublicSupport(state, proposal); expect(estimate.coverage).toBe('unavailable'); expect(estimate.knownPersons).toBe(0); expect(estimate.unknownPersons).toBe(estimate.representedPersons); expect(estimate.unknownBps).toBe(10_000); expect(estimate.neutralBps).toBe(0);
+  });
+
+  it('rejects party vote decisions that contradict confidence or agreement thresholds', () => {
+    const fixture = findResolvable(true), corrupted = structuredClone(resolveProposalVote(submitProposal(fixture.state, fixture.proposalId), fixture.proposalId, fixture.registry, fixture.profiles)), proposal = corrupted.governance.proposals[fixture.proposalId], evaluation = proposal.parliamentaryEstimate!.chambers[0].partyEvaluations![0]; evaluation.vote = 'unknown';
+    expect(() => assertSimulationInvariants(corrupted, worldContext, 'tick')).toThrow(/Invalid parliamentary estimate/);
+  });
+
+  it('rejects chamber seat buckets that disagree with party decisions', () => {
+    const fixture = findResolvable(true), corrupted = structuredClone(resolveProposalVote(submitProposal(fixture.state, fixture.proposalId), fixture.proposalId, fixture.registry, fixture.profiles)), proposal = corrupted.governance.proposals[fixture.proposalId], estimate = proposal.parliamentaryEstimate!, chamber = estimate.chambers[0], moved = chamber.partyEvaluations![0].seats;
+    chamber.yesSeats -= moved; chamber.abstainSeats += moved; estimate.yesSeats -= moved; estimate.abstainSeats += moved;
+    expect(() => assertSimulationInvariants(corrupted, worldContext, 'tick')).toThrow(/Invalid parliamentary estimate/);
   });
 
   it('keeps governance on-demand and material branches unchanged during evaluation', () => {

@@ -107,7 +107,7 @@ export function classifyProposalImpact(state: SimulationState, proposal: Politic
 }
 
 export function estimatePublicSupport(state: SimulationState, proposal: PoliticalProposal, analysisOverride?: ProposalAnalysis): PublicSupportEstimate {
-  const analysis = analysisOverride ?? analyzeProposal(state, proposal), impact = classifyProposalImpact(state, proposal, analysis); let yes = 0, no = 0, neutral = 0, representedPersons = 0, confidenceWeighted = 0;
+  const analysis = analysisOverride ?? analyzeProposal(state, proposal), impact = classifyProposalImpact(state, proposal, analysis); let yes = 0, no = 0, neutral = 0, unknown = 0, representedPersons = 0, knownPersons = 0, unknownPersons = 0, confidenceWeighted = 0;
   for (const [regionId, regional] of Object.entries(state.politics.regionalOpinion).sort(([a], [b]) => a.localeCompare(b))) {
     if (regional.countryId !== proposal.countryId) continue;
     const cohorts = state.socioeconomy.regions[regionId]?.cohorts ?? [];
@@ -115,11 +115,12 @@ export function estimatePublicSupport(state: SimulationState, proposal: Politica
       const persons = cohorts.find(item => `${item.income}:${item.orientation}` === cohortId)?.persons ?? 0; if (!persons) continue;
       const goals = {} as PartyGoalProfile['goals']; POLITICAL_ISSUES.forEach((issue, index) => { const ideal = opinion[COHORT.preferences][index], importance = opinion[COHORT.salience][index], confidence = Math.min(7_000, opinion[COHORT.engagement]); goals[issue] = { idealPointBps: ideal, importanceBps: importance, compromiseToleranceBps: Math.max(1_500, Math.min(9_000, Math.round(8_000 - importance * 0.4 - Math.abs(ideal - 5_000) * 0.2))), confidenceBps: confidence, status: 'modelled_fallback' }; }); goals.fiscal_sustainability = { idealPointBps: 8_500, importanceBps: 2_000, compromiseToleranceBps: 7_500, confidenceBps: 1_000, status: 'modelled_common_constraint' };
       const evaluation = evaluateProfileForPublic(analysis, { partyId: `cohort:${cohortId}`, goals }), engaged = Math.max(1, opinion[COHORT.engagement]), weight = persons * engaged; representedPersons += persons; confidenceWeighted += evaluation.confidenceBps * persons;
-      if (evaluation.confidenceBps >= GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps && evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps) yes += weight; else if (evaluation.confidenceBps >= GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps && evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps) no += weight; else neutral += weight;
+      const eligible = evaluation.confidenceBps >= GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps && evaluation.coverage !== 'unavailable';
+      if (!eligible) { unknown += weight; unknownPersons += persons; } else { knownPersons += persons; if (evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps) yes += weight; else if (evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps) no += weight; else neutral += weight; }
     }
   }
-  const totals = allocate(10_000, [yes, no, neutral || (!yes && !no ? 1 : 0)]);
-  return { supportBps: totals[0], opposeBps: totals[1], neutralBps: totals[2], confidenceBps: representedPersons ? Math.round(confidenceWeighted / representedPersons) : 0, coverage: representedPersons ? analysis.coverage : 'unavailable', representedPersons, drivers: impact.drivers };
+  const totals = allocate(10_000, [yes, no, neutral, unknown || (!yes && !no && !neutral ? 1 : 0)]), coverage = !representedPersons || !knownPersons ? 'unavailable' : unknownPersons || analysis.coverage !== 'complete' ? 'partial' : 'complete';
+  return { supportBps: totals[0], opposeBps: totals[1], neutralBps: totals[2], unknownBps: totals[3], confidenceBps: representedPersons ? Math.round(confidenceWeighted / representedPersons) : 0, coverage, representedPersons, knownPersons, unknownPersons, drivers: impact.drivers };
 }
 
 export function estimateParliamentarySupport(state: SimulationState, proposal: PoliticalProposal, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}, analysisOverride?: ProposalAnalysis): ParliamentarySupportEstimate {
@@ -127,11 +128,12 @@ export function estimateParliamentarySupport(state: SimulationState, proposal: P
   if (!institution || institution.legislatureKind === 'none' || institution.legislatureKind === 'unavailable' || !institution.chambers.length) return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'modelled_procedure_v1' };
   const analysis = analysisOverride ?? analyzeProposal(state, proposal), chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
     if (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined) return { chamberId: chamber.id, yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: chamber.totalSeats ?? 0, totalSeats: chamber.totalSeats, coverage: 'unavailable' };
-    let yesSeats = 0, noSeats = 0, abstainSeats = 0; const partyEvaluations: NonNullable<ChamberSupportEstimate['partyEvaluations']> = [];
-    for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) { const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profiles[partyId], analysis); partyEvaluations.push({ ...evaluation, seats }); if (evaluation.vote === 'yes') yesSeats += seats; else if (evaluation.vote === 'no') noSeats += seats; else abstainSeats += seats; }
-    const unavailableSeats = chamber.independentOtherSeats ?? 0, allocated = yesSeats + noSeats + abstainSeats + unavailableSeats;
-    const coverage = allocated === chamber.totalSeats ? unavailableSeats ? 'partial' : 'complete' : 'unavailable';
-    return { chamberId: chamber.id, yesSeats, noSeats, abstainSeats, unavailableSeats: coverage === 'unavailable' ? Math.max(unavailableSeats, chamber.totalSeats - yesSeats - noSeats - abstainSeats) : unavailableSeats, totalSeats: chamber.totalSeats, coverage, adopted: coverage === 'complete' ? yesSeats > noSeats : undefined, partyEvaluations };
+    let yesSeats = 0, noSeats = 0, abstainSeats = 0, unknownSeats = 0; const partyEvaluations: NonNullable<ChamberSupportEstimate['partyEvaluations']> = [];
+    for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) { const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profiles[partyId], analysis); partyEvaluations.push({ ...evaluation, seats }); if (evaluation.vote === 'yes') yesSeats += seats; else if (evaluation.vote === 'no') noSeats += seats; else if (evaluation.vote === 'abstain') abstainSeats += seats; else unknownSeats += seats; }
+    let unavailableSeats = unknownSeats + (chamber.independentOtherSeats ?? 0), allocated = yesSeats + noSeats + abstainSeats + unavailableSeats;
+    if (allocated !== chamber.totalSeats) unavailableSeats = Math.max(unavailableSeats, chamber.totalSeats - yesSeats - noSeats - abstainSeats);
+    const knownSeats = yesSeats + noSeats + abstainSeats, coverage = allocated !== chamber.totalSeats ? 'unavailable' : unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
+    return { chamberId: chamber.id, yesSeats, noSeats, abstainSeats, unavailableSeats, totalSeats: chamber.totalSeats, coverage, adopted: coverage === 'complete' ? yesSeats > noSeats : undefined, partyEvaluations };
   });
   const totalSeats = chambers.reduce((n, item) => n + (item.totalSeats ?? 0), 0), yesSeats = chambers.reduce((n, item) => n + item.yesSeats, 0), noSeats = chambers.reduce((n, item) => n + item.noSeats, 0), abstainSeats = chambers.reduce((n, item) => n + item.abstainSeats, 0), unavailableSeats = chambers.reduce((n, item) => n + item.unavailableSeats, 0);
   const coverage = chambers.every(item => item.coverage === 'complete') ? 'complete' : chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
