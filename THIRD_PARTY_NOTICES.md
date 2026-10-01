@@ -20,6 +20,14 @@ Citation: Staffan I. Lindberg et al. (2022), *Codebook Varieties of Party Identi
 
 The snapshot includes only explicitly reviewed Party Facts ID joins. ProjectAtlas retains the original ordinal labels and coder counts, then maps only semantically compatible variables into fictional historical priors. Party names are retained only for provenance and never drive classification.
 
+## Party Facts crosswalk and Wikidata chairperson claims
+
+`src/data/source-snapshots/partyfacts-wikidata-2026-10-01.json` contains only the 35 Party Facts rows whose IDs are already connected to ProjectAtlas parties by the reviewed V-Party/IPU identifier crosswalk. The source CSV is pinned to Party Facts repository commit `61e04e83a4eff4e285bdb724cc11cc8bdf4beb16`. Party Facts' repository `MIT` licence covers its software; no data licence was established for this crosswalk, so its data status remains **`requires_confirmation`**.
+
+`src/data/source-snapshots/wikidata-party-chairs-2026-10-01.json` contains the pinned Wikidata Query Service extract of `P488` chairperson statements and `P580`/`P582` tenure qualifiers for those exact party QIDs. Wikidata structured data is **CC0 1.0**; attribution is recorded in the snapshot. The query was retrieved on 2026-10-01, after the 2026-01-01 scenario date. A chair claim is treated as applicable to the scenario date only when its start qualifier is on or before that date and its end qualifier is absent or later. This is a dated inference from the pinned later extract, not evidence of what was knowable on the scenario date.
+
+`npm run information:audit` verifies the pinned inputs, stable-ID joins, dated claim selection, ambiguous/unavailable handling, and complete 948-party coverage. It does not make the Party Facts data licence clear or grant redistribution rights.
+
 ## Distribution
 
-Commercial distribution clearance must be resolved before release. The ISC licence for ProjectAtlas code does not authorize commercial use of IPU-derived data or override third-party publication terms. A distributor must review, attribute, replace, separately license, or remove affected datasets and derived outputs as required.
+Commercial distribution clearance must be resolved before release. The ISC licence for ProjectAtlas code does not authorize commercial use of IPU-derived data, clear the Party Facts crosswalk, or override third-party publication terms. A distributor must review, attribute, replace, separately license, or remove affected datasets and derived outputs as required.

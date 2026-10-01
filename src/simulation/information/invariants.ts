@@ -4,7 +4,7 @@ import { politicalRegistry } from '../politics/registry';
 import { CRISIS_TYPES } from '../crisis/model';
 import type { SimulationState } from '../../types';
 import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport } from './model';
-import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS } from './model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, referencedGovernmentReportIds } from './model';
 
 const validDate = (value: unknown): value is string => {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -150,8 +150,7 @@ export const informationInvariant: SimulationInvariant = {
       }
       if (!statusValues.has(briefing.fact.evidenceStatus)) errors.push(`Briefing ${briefing.id} has invalid evidence status.`);
     }
-    const referencedReportIds = new Set(Object.values(information.latestGovernmentReports).map(report => report.id));
-    for (const briefing of information.briefings) if (briefing.fact.reportId) referencedReportIds.add(briefing.fact.reportId);
+    const referencedReportIds = referencedGovernmentReportIds(information);
     if (Object.keys(information.governmentReportsById).some(id => !referencedReportIds.has(id)) || [...referencedReportIds].some(id => !information.governmentReportsById[id])) errors.push('Government report history does not match current and briefing references.');
     const governance = state.governance;
     if (governance.version !== GOVERNANCE_VERSION || !governance.successions || !Array.isArray(governance.successionOrder) || !Number.isSafeInteger(governance.nextSuccessionSequence) || governance.nextSuccessionSequence < 0 || new Set(governance.successionOrder).size !== governance.successionOrder.length || governance.successionOrder.some(id => !governance.successions[id]) || Object.keys(governance.successions).some(id => !governance.successionOrder.includes(id))) errors.push('Leadership succession order does not reconcile.');

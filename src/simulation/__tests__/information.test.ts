@@ -2,12 +2,15 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import type { SimulationState } from '../../types';
 import type { GovernmentReport, MinisterialBriefing } from '../information/model';
-import type { PoliticalProposal } from '../governance/model';
-import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, setControlledPerson } from '../governance/runtime';
+import type { GovernanceGoal, PartyGoalProfile, PoliticalProposal } from '../governance/model';
+import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, inspectProposalSupport, resolveProposalVote, setControlledPerson, submitProposal } from '../governance/runtime';
+import { derivePartyGoalProfile } from '../governance/analysis';
+import type { PoliticalRegistry } from '../politics/model';
+import { advanceSimulationDays } from '../engine';
 import { emptyGovernance } from '../governance/model';
 import { assertSimulationInvariants } from '../invariants';
 import { informationInvariant } from '../information/invariants';
-import { emptyInformation } from '../information/model';
+import { emptyInformation, referencedGovernmentReportIds } from '../information/model';
 import { addProposalResultBriefing, explainBriefing, hasGovernmentInformationAccess, inspectBriefings, inspectGovernmentProposalEstimates, inspectGovernmentReports, presentBriefing, produceGovernmentProposalEstimate, runInformationMonth } from '../information/runtime';
 import { initializeNewGame } from '../initialization';
 import { restoreSimulationState, serializeSimulationState } from '../save';
@@ -78,6 +81,60 @@ function parliamentaryProposal(state: SimulationState, outcome: 'adopted' | 'rej
     },
   };
   return proposal;
+}
+function approvedProposalWithBaseline() {
+  const reportState = runInformationMonth({
+    ...initial,
+    date: '2026-02-01',
+    socioeconomy: { ...initial.socioeconomy, lastMonthlyDate: '2026-02-01' },
+  });
+  for (const countryId of worldCountryIds) {
+    const institution = politicalRegistry.institutions[politicalRegistry.countries[countryId]?.institutionId];
+    const complete = institution?.chambers.length && institution.chambers.every(chamber =>
+      chamber.seatAllocationStatus === 'sourced' && chamber.totalSeats !== undefined
+      && (chamber.independentOtherSeats ?? 0) === 0
+      && Object.values(chamber.seatsByParty).reduce((sum, seats) => sum + seats, 0) === chamber.totalSeats,
+    );
+    if (!complete) continue;
+    const currentValueBps = reportState.information.latestGovernmentReports[countryId]?.valueBps;
+    if (currentValueBps === undefined) continue;
+    const baselineValueBps = currentValueBps >= 500 ? currentValueBps - 500 : currentValueBps + 500;
+    const baseline = report(countryId, '2026-01-01', baselineValueBps);
+    let state = withReports(initial, [baseline]);
+    const personState = createPoliticalPerson(state, { displayName: 'Temporal policy test proposer', countryId });
+    const proposerPersonId = `person.${String(personState.governance.nextPersonSequence - 1).padStart(8, '0')}`;
+    state = assignPoliticalOffice(setControlledPerson(personState, proposerPersonId), proposerPersonId, { role: 'head_of_government', countryId });
+    const budget = state.fiscal.countries[countryId].annualBudget;
+    state = createFiscalProposal(state, {
+      proposerPersonId,
+      countryId,
+      effectiveDate: '2026-02-01',
+      payload: { annualBudget: { ...budget, infrastructure: budget.infrastructure > 0 ? budget.infrastructure * 2 : 1 } },
+    });
+    const proposalId = state.governance.proposalOrder.at(-1)!;
+    const proposal = state.governance.proposals[proposalId];
+    const registry = structuredClone(politicalRegistry) as PoliticalRegistry;
+    const analysis = inspectProposalSupport(state, proposalId).analysis;
+    const profiles: Record<string, PartyGoalProfile> = {};
+    for (const partyId of registry.countries[countryId].partyIds) {
+      const overrides: Partial<Record<GovernanceGoal, Partial<PartyGoalProfile['goals'][GovernanceGoal]>>> = {};
+      for (const [goal, direction] of Object.entries(analysis.issueEffects) as Array<[GovernanceGoal, number]>) {
+        if (direction) overrides[goal] = {
+          idealPointBps: direction > 0 ? 10_000 : 0,
+          importanceBps: 10_000,
+          compromiseToleranceBps: 10_000,
+          confidenceBps: 10_000,
+          status: 'sourced_or_partial_prior',
+        };
+      }
+      profiles[partyId] = derivePartyGoalProfile(registry.parties[partyId], overrides);
+    }
+    const estimate = estimateParliamentarySupport(state, proposal, registry, profiles);
+    if (estimate.coverage !== 'complete' || !estimate.chambers.every(chamber => chamber.adopted)) continue;
+    state = resolveProposalVote(submitProposal(state, proposalId), proposalId, registry, profiles);
+    return { countryId, baseline, state, proposal: state.governance.proposals[proposalId] };
+  }
+  throw new Error('No complete chamber fixture could adopt a temporal-follow-up proposal.');
 }
 
 describe('government information and player briefings 0.15', () => {
@@ -198,7 +255,7 @@ describe('government information and player briefings 0.15', () => {
     )).toEqual([]);
   });
 
-  it('preserves incomplete chamber coverage and labels policy follow-up as temporal rather than causal', () => {
+  it('preserves incomplete chamber coverage and retains temporal policy baseline reports', () => {
     const countryId = 'country.sxojze';
     const baseline = report(countryId, '2026-01-01', 700);
     const source = parliamentaryProposal(initial, 'adopted');
@@ -224,40 +281,51 @@ describe('government information and player briefings 0.15', () => {
     const stateWithBaseline = {
       ...initial,
       information: { ...initial.information, latestGovernmentReports: { [countryId]: baseline }, governmentReportsById: { [baseline.id]: baseline } },
-      governance: { ...initial.governance, proposals: { ...initial.governance.proposals, [proposal.id]: proposal } },
     };
     const briefingState = addProposalResultBriefing(stateWithBaseline, proposal);
     const result = briefingState.information.briefings.at(-1)!;
     expect(result.fact.chamberResults?.[1]).toMatchObject({ chamberId: 'chamber:DE-UC01', outcome: 'unavailable', coverage: 'unavailable' });
     expect(result.fact.policyFollowUp).toBeUndefined();
 
-    const adopted = { ...proposal, id: 'proposal.adopted-temporal', status: 'enacted' as const, voteResult: { ...proposal.voteResult!, yesSeats: 100, noSeats: 50, abstainSeats: 0, unavailableSeats: 0, totalSeats: 150, outcome: 'adopted' as const, coverage: 'complete' as const, chambers: [{ chamberId: 'chamber:DE-LC01', yesSeats: 100, noSeats: 50, abstainSeats: 0, unavailableSeats: 0, totalSeats: 150, coverage: 'complete' as const, adopted: true }] } };
-    const adoptedState = { ...stateWithBaseline, governance: { ...stateWithBaseline.governance, proposals: { ...stateWithBaseline.governance.proposals, [adopted.id]: adopted } } };
-    const anchored = addProposalResultBriefing(adoptedState, adopted);
-    const anchor = anchored.information.briefings.at(-1)!.fact.policyFollowUp;
-    expect(anchor).toMatchObject({ proposalId: adopted.id, attributionStatus: 'temporal_only', baselineDate: '2026-01-01', baselineValueBps: 700 });
-    const date = '2026-03-01';
-    const regionIds = Object.entries(anchored.regionOwnership).filter(([, owner]) => owner === countryId).map(([id]) => id);
-    const regionId = regionIds.find(id => anchored.socioeconomy.regions[id]?.economy)!;
-    const regions = { ...anchored.socioeconomy.regions };
-    for (const id of regionIds) {
-      const item = regions[id];
-      if (item?.economy) regions[id] = { ...item, economy: { ...item.economy, labourForce: 0, unemployed: 0 } };
-    }
-    const region = regions[regionId]!;
-    const afterReports = runInformationMonth({
-      ...anchored,
-      date,
-      socioeconomy: {
-        ...anchored.socioeconomy,
-        lastMonthlyDate: date,
-        regions: { ...regions, [regionId]: { ...region, economy: { ...region.economy!, labourForce: 10_000, unemployed: 780 } } },
-      },
-    });
-    const labourBriefing = afterReports.information.briefings.find(item => item.fact.kind === 'labour_report')!;
-    expect(labourBriefing.fact.policyComparisons).toMatchObject([{ proposalId: adopted.id, attributionStatus: 'temporal_only', baselineValueBps: 700, currentValueBps: 780 }]);
-    expect(explainBriefing(afterReports, labourBriefing, Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!.id).join(' ')).toContain('not evidence that the measure caused the change');
-  });
+    const adopted = approvedProposalWithBaseline();
+    const adoptedBriefing = adopted.state.information.briefings.find(item =>
+      item.fact.kind === 'parliamentary_result' && item.fact.proposalId === adopted.proposal.id,
+    )!;
+    const anchor = adoptedBriefing.fact.policyFollowUp;
+    expect(anchor).toMatchObject({ proposalId: adopted.proposal.id, attributionStatus: 'temporal_only', baselineDate: '2026-01-01' });
+    const januaryReportId = anchor!.baselineReportId!;
+    const retainedBaseline = adopted.state.information.governmentReportsById[januaryReportId];
+    expect(retainedBaseline).toMatchObject({ asOfDate: '2026-01-01', valueBps: anchor!.baselineValueBps });
+    expect(referencedGovernmentReportIds(adopted.state.information)).toContain(januaryReportId);
+
+    const february = advanceSimulationDays(adopted.state, 31);
+    expect(february.date).toBe('2026-02-01');
+    const februaryBriefing = february.information.briefings.find(item =>
+      item.fact.kind === 'labour_report' && item.createdOn === '2026-02-01',
+    )!;
+    expect(februaryBriefing.fact.policyComparisons).toMatchObject([{
+      proposalId: adopted.proposal.id,
+      attributionStatus: 'temporal_only',
+      baselineDate: '2026-01-01',
+      baselineValueBps: anchor!.baselineValueBps,
+      currentValueBps: february.information.latestGovernmentReports[adopted.countryId].valueBps,
+    }]);
+    expect(assertSimulationInvariants(february, worldContext, 'save')).toBe(true);
+
+    const march = advanceSimulationDays(february, 28);
+    expect(march.date).toBe('2026-03-01');
+    expect(march.information.latestGovernmentReports[adopted.countryId].asOfDate).toBe('2026-03-01');
+    expect(march.information.governmentReportsById[januaryReportId]).toEqual(retainedBaseline);
+    expect(Object.keys(march.information.governmentReportsById)).toContain(januaryReportId);
+    expect(referencedGovernmentReportIds(march.information)).toContain(januaryReportId);
+    expect(assertSimulationInvariants(march, worldContext, 'save')).toBe(true);
+
+    const restored = restoreSimulationState(serializeSimulationState(march, worldContext), worldRegions, {}, {}, worldContext);
+    const restoredBriefing = restored.information.briefings.find(item => item.id === februaryBriefing.id)!;
+    expect(restored.information.governmentReportsById[januaryReportId]).toEqual(retainedBaseline);
+    expect(explainBriefing(restored, restoredBriefing, restored.governance.player.controlledPersonId!).join(' ')).toContain('not evidence that the measure caused the change');
+    expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
+  }, 30_000);
 
   it('creates one briefing on material report change, retains its report source, and round-trips it', () => {
     const countryId = reportingCountry();
@@ -322,6 +390,8 @@ describe('government information and player briefings 0.15', () => {
       expect(briefing.headline).toContain(`from ${from} to ${to}`);
       expect(briefing.headline).toContain(direction);
       expect(briefing.interpretation?.summary).toContain(direction === 'increased' ? 'worsened' : 'improved');
+      expect(briefing.interpretation?.summary).not.toMatch(/\d+% importance|party profile/i);
+      expect(explainBriefing(result, briefing, leader.id).join(' ')).toContain('No directly supported employment-policy lever');
       expect(briefing.fact).toMatchObject({ kind: 'labour_report', previousValueBps: previous, valueBps: current });
     });
 
@@ -394,7 +464,7 @@ describe('government information and player briefings 0.15', () => {
     expect(repeated.information.briefings.map(item => item.id)).toEqual(state.information.briefings.map(item => item.id));
   });
 
-  it('presents only supported levers in Guided mode and preserves fact-only Expert mode', () => {
+  it('does not recommend unsupported fiscal levers as employment solutions and preserves fact-only Expert mode', () => {
     const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
     const state = setControlledPerson(initial, executive.id);
     const countryId = executive.countryId;
@@ -412,9 +482,9 @@ describe('government information and player briefings 0.15', () => {
         basis: 'derived',
         summary: 'Employment conditions worsened between the two modelled reports.',
         relevantGoals: ['labour_protection', 'income_security'],
-        policyLevers: [{ mechanism: 'annual_budget', limitation: 'The existing budget route changes represented public allocations; direct employment effects are unavailable.' }],
-        tradeoffs: ['Changing annual allocations changes the represented budget composition; direct employment effects are unavailable.'],
-        limitations: ['No supported employment-policy instrument or hiring-response mechanism is modelled.'],
+        policyLevers: [],
+        tradeoffs: [],
+        limitations: ['No directly supported employment-policy lever or hiring-response mechanism is currently represented.'],
       },
       fact: { kind: 'labour_report', reportId: 'government-report:test', previousValueBps: 700, valueBps: 780, evidenceStatus: 'modelled' },
       pauseRequested: false,
@@ -423,9 +493,12 @@ describe('government information and player briefings 0.15', () => {
     const guided = presentBriefing(state, briefing, 'guided', executive.id);
     const standard = presentBriefing(state, briefing, 'standard', executive.id);
     const expert = presentBriefing(state, briefing, 'expert', executive.id);
-    expect(guided.guidedActions).toEqual([{ label: 'Review annual budget proposal', destination: 'fiscal' }]);
-    expect(guided.guidedLevers?.[0].explanation).toContain('direct employment effects are unavailable');
-    expect(guided.tradeoffs).toEqual(briefing.interpretation?.tradeoffs);
+    expect(guided.guidedActions).toBeUndefined();
+    expect(guided.guidedLevers).toBeUndefined();
+    expect(guided.tradeoffs).toEqual([]);
+    expect(guided.limitations).toEqual(briefing.interpretation?.limitations);
+    expect(guided.context).not.toContain('party profile');
+    expect(guided.context).not.toMatch(/\d+% importance/);
     expect(standard.guidedActions).toBeUndefined();
     expect(standard.guidedLevers).toBeUndefined();
     expect(standard.context).toBe(briefing.interpretation?.summary);

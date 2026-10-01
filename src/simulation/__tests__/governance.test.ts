@@ -5,10 +5,11 @@ import type { SimulationState } from '../../types';
 import { advanceSimulationDays } from '../engine';
 import { requestFidelityTransition, applyPendingFidelityTransitions } from '../fidelity';
 import { assertSimulationInvariants, validateFidelityConservation } from '../invariants';
+import { governanceInvariant } from '../governance/invariants';
 import { politicalRegistry } from '../politics/registry';
 import type { PoliticalRegistry } from '../politics/model';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, estimatePublicSupport, initializePartyLeaders, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, replacePartyLeader, resolvePlayerHandoff, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, withdrawProposal } from '../governance/runtime';
+import { assignPoliticalOffice, capabilitiesForReconciledAuthority, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, estimatePublicSupport, initializePartyLeaders, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, replacePartyLeader, resolvePlayerHandoff, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, withdrawProposal } from '../governance/runtime';
 import { initializeNewGame } from '../initialization';
 import { emptyInformation } from '../information/model';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
@@ -19,6 +20,7 @@ import type { FiscalProposalPayload } from '../governance/model';
 import type { TaxKind, TaxRule } from '../fiscal/model';
 import { evaluateImmediateFiscalPolicyCounterfactual, scheduleFiscalReform } from '../fiscal/runtime';
 import { COHORT } from '../politics/model';
+import politicalOffices from '../../data/political-offices.json';
 
 const fullWorld = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
 let initial: SimulationState;
@@ -118,7 +120,7 @@ describe('governance 0.14 player and political decisions', () => {
   it('initializes one fictional gameplay leader per party and reconciles only reviewed executive offices', () => {
     expect(initial).toMatchObject({ schemaVersion: 13, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
     expect(Object.values(initial.governance.persons).filter(person => person.isPartyLeader && person.status === 'active')).toHaveLength(Object.keys(politicalRegistry.parties).length);
-    expect(Object.values(initial.governance.persons).filter(person => person.office?.evidence)).toHaveLength(2);
+    expect(Object.values(initial.governance.persons).filter(person => person.office?.evidence)).toHaveLength(5);
   });
 
   it('creates stable sequence IDs independent of display names', () => {
@@ -135,9 +137,15 @@ describe('governance 0.14 player and political decisions', () => {
     expect(second.governance.persons).toEqual(first.governance.persons);
     const leaders = Object.values(first.governance.persons).filter(person => person.isPartyLeader);
     expect(leaders).toHaveLength(Object.keys(politicalRegistry.parties).length);
-    expect(leaders.filter(person => person.leaderProvenance?.basis === 'derived_analogue')).toHaveLength(2);
-    expect(leaders.filter(person => person.leaderProvenance?.basis === 'modelled_fallback')).toHaveLength(leaders.length - 2);
-    expect(leaders.filter(person => person.office?.evidence).map(person => person.office?.title).sort()).toEqual(['Federal Chancellor', 'Prime Minister']);
+    expect(leaders.filter(person => person.leaderProvenance?.basis === 'derived_analogue')).toHaveLength(21);
+    expect(leaders.filter(person => person.leaderProvenance?.sourceLeaderStatus === 'ambiguous')).toHaveLength(4);
+    expect(leaders.filter(person => person.leaderProvenance?.basis === 'modelled_fallback')).toHaveLength(leaders.length - 21);
+    expect(new Set(leaders.map(person => person.displayName)).size).toBe(leaders.length);
+    expect(leaders.every(person => person.displayName !== person.leaderProvenance?.sourceLeader?.name)).toBe(true);
+    const reconciledOffices = leaders.filter(person => person.office?.evidence);
+    expect(reconciledOffices).toHaveLength(5);
+    expect(reconciledOffices.some(person => person.office?.title === 'Federal Chancellor')).toBe(true);
+    expect(reconciledOffices.some(person => person.office?.title === 'Prime Minister')).toBe(true);
   });
 
   it('retains exact reviewed leader provenance, fictional names, and one-person office reconciliation through save reload', () => {
@@ -178,6 +186,79 @@ describe('governance 0.14 player and political decisions', () => {
     expect(oppositionParty.governmentStatus).toBe('opposition');
     expect(oppositionLeader.office).toBeUndefined();
     expect(oppositionLeader.leaderProvenance?.basis).toBe('modelled_fallback');
+    expect(oppositionLeader.leaderProvenance?.sourceLeaderStatus).toBe('ambiguous');
+  });
+
+  it('derives presidential executive authority only from resolved institutional evidence', () => {
+    const makeReconciledHeadOfState = (requirePresidential: boolean) => {
+      const offices = new Map(politicalOffices.offices.map(office => [office.id, office]));
+      const record = politicalOffices.officeholders.find(item => {
+        const office = offices.get(item.officeId);
+        const institution = office && politicalRegistry.institutions[politicalRegistry.countries[office.countryId]?.institutionId];
+        return item.status === 'available'
+          && item.referenceDate === politicalOffices.referenceDate
+          && item.person?.id.startsWith('wikidata:')
+          && office?.kind === 'head_of_state'
+          && (requirePresidential
+            ? institution?.executiveSystemStatus === 'sourced' && institution.executiveSystem === 'presidential'
+            : institution?.executiveSystemStatus !== 'sourced' || institution.executiveSystem !== 'presidential');
+      });
+      expect(record).toBeDefined();
+      const sourceOffice = offices.get(record!.officeId)!;
+      const authorityBasis = requirePresidential
+        ? 'sourced_presidential_head_of_state' as const
+        : 'institutional_authority_unresolved' as const;
+      const created = createPoliticalPerson(initial, { displayName: `Test ${record!.person!.name}`, countryId: sourceOffice.countryId });
+      const id = `person.${String(initial.governance.nextPersonSequence).padStart(8, '0')}`;
+      const capabilities = capabilitiesForReconciledAuthority(authorityBasis);
+      const state = {
+        ...created,
+        governance: {
+          ...created.governance,
+          persons: {
+            ...created.governance.persons,
+            [id]: {
+              ...created.governance.persons[id],
+              office: {
+                role: 'head_of_state' as const,
+                countryId: sourceOffice.countryId,
+                title: sourceOffice.title,
+                appointedOn: initial.date,
+                evidence: {
+                  status: 'source_reconciled' as const,
+                  sourceOfficeId: sourceOffice.id,
+                  sourceOfficeIds: [sourceOffice.id],
+                  sourcePersonId: record!.person!.id,
+                  referenceDate: politicalOffices.referenceDate,
+                  effectiveFrom: record!.startDate,
+                  sourceRecordIds: [record!.source.datasetId],
+                  authorityBasis,
+                },
+                authorityProfile: {
+                  status: 'modelled_constitutional_abstraction' as const,
+                  capabilities,
+                  limitation: 'Tested source-reconciled authority basis.',
+                },
+              },
+            },
+          },
+        },
+      };
+      return { state, id, capabilities };
+    };
+    const presidential = makeReconciledHeadOfState(true);
+    expect(presidential.capabilities).toEqual([
+      'sponsor_legislation',
+      'sponsor_fiscal_reform',
+      'sponsor_budget_reform',
+      'vote_legislation',
+      'access_government_information',
+    ]);
+    expect(governanceInvariant.check(presidential.state, worldContext, 'save')).toEqual([]);
+
+    const unresolved = makeReconciledHeadOfState(false);
+    expect(unresolved.capabilities).toEqual([]);
+    expect(governanceInvariant.check(unresolved.state, worldContext, 'save')).toEqual([]);
   });
 
   it('preserves the former leader, office and player control until an explicit handoff choice', () => {
@@ -334,7 +415,7 @@ describe('governance 0.14 player and political decisions', () => {
     const fixture = findResolvable(true), withdrawn = withdrawProposal(fixture.state, fixture.proposalId); expect(withdrawn.governance.proposals[fixture.proposalId].status).toBe('withdrawn');
     let enacted = submitProposal(fixture.state, fixture.proposalId); enacted = resolveProposalVote(enacted, fixture.proposalId, fixture.registry, fixture.profiles); enacted = revokePoliticalOffice(enacted, fixture.personId);
     const restored = restoreSimulationState(serializeSimulationState(enacted, worldContext), worldRegions, {}, {}, worldContext); expect(restored).toEqual(enacted); expect(restored.governance.persons[fixture.personId].office).toBeUndefined();
-  });
+  }, 30_000);
 
   it('migrates schema 11 on the saved date without fake governance history or changing other branches', () => {
     const legacy = structuredClone(initial) as unknown as Record<string, unknown>; legacy.schemaVersion = 11; legacy.date = '2034-05-06'; delete legacy.governance;

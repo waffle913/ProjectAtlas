@@ -41,7 +41,7 @@ export interface PoliticalPersonState {
   leaderProfile?: Record<string, { valueBps: number; confidenceBps: number; status: 'derived' | 'modelled'; limitation: string }>;
   leaderProvenance?: {
     basis: 'sourced_analogue' | 'derived_analogue' | 'modelled_fallback';
-    method: 'reviewed_primary_party_source_v1' | 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2';
+    method: 'reviewed_primary_party_source_v1' | 'reviewed_global_party_chair_snapshot_v1' | 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2';
     sourcePartyId: string;
     referenceDate: string;
     sourceLeaderStatus: 'sourced' | 'derived' | 'unavailable' | 'ambiguous';

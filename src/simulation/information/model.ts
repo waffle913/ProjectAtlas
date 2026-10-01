@@ -164,6 +164,24 @@ export interface InformationState {
   proposalEstimates: GovernmentProposalEstimate[];
 }
 
+export function referencedGovernmentReportIds(information: Pick<InformationState, 'latestGovernmentReports'> & { briefings: readonly MinisterialBriefing[] }): Set<string> {
+  const referenced = new Set(Object.values(information.latestGovernmentReports).map(report => report.id));
+  const proposalBriefings = new Map(information.briefings
+    .filter(briefing => briefing.fact.kind === 'parliamentary_result' && briefing.fact.proposalId)
+    .map(briefing => [briefing.fact.proposalId!, briefing]));
+  for (const briefing of information.briefings) {
+    if (briefing.fact.reportId) referenced.add(briefing.fact.reportId);
+    if (briefing.fact.policyFollowUp?.baselineReportId) referenced.add(briefing.fact.policyFollowUp.baselineReportId);
+    for (const comparison of briefing.fact.policyComparisons ?? []) {
+      const proposalBriefing = proposalBriefings.get(comparison.proposalId);
+      if (proposalBriefing?.fact.policyFollowUp?.baselineReportId) {
+        referenced.add(proposalBriefing.fact.policyFollowUp.baselineReportId);
+      }
+    }
+  }
+  return referenced;
+}
+
 export const emptyInformation = (initializedOn?: string): InformationState => ({
   version: INFORMATION_VERSION,
   initializedOn,

@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "referenceDate": "2026-01-01",
+  "retrievedAt": "2026-10-01",
+  "publisher": "Party Facts authors",
+  "sourceUrl": "https://github.com/hdigital/partyfactsdata/blob/61e04e83a4eff4e285bdb724cc11cc8bdf4beb16/import/wikipedia/wikidata.csv",
+  "sourceCommit": "61e04e83a4eff4e285bdb724cc11cc8bdf4beb16",
+  "sourceCsvSha256": "897c2ed7768299764aec4fe88991ba8e736a9a589eed07b57ce357ddfedb8045",
+  "licence": "requires_confirmation",
+  "attribution": "Party Facts authors; Paul Bederke, Holger Doering, and Sven Regel; 2019; DOI 10.1177/1354068818820671.",
+  "limitations": [
+    "This source is an identifier crosswalk, not evidence of party leadership.",
+    "The Party Facts repository LICENSE covers software; it is not treated as a data licence.",
+    "Only the 35 Party Facts IDs already joined to ProjectAtlas parties through the reviewed V-Party crosswalk are included; no name-based joins were added."
+  ],
+  "records": [
+    {
+      "country": "CAN",
+      "partyFactsId": 152,
+      "wikidataPartyId": "Q130765",
+      "name": "New Democratic Party",
+      "shortName": "NDP/English",
+      "nativeName": "Nouveau Parti démocratique"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 225,
+      "wikidataPartyId": "Q1322897",
+      "name": "Brazilian Social Democracy Party",
+      "shortName": "PSDB",
+      "nativeName": "Partido da Social Democracia Brasileira"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 356,
+      "wikidataPartyId": "Q657089",
+      "name": "Workers' Party",
+      "shortName": "PT",
+      "nativeName": "Partido dos Trabalhadores"
+    },
+    {
+      "country": "DEU",
+      "partyFactsId": 383,
+      "wikidataPartyId": "Q49768",
+      "name": "Social Democratic Party of Germany",
+      "shortName": "SPD",
+      "nativeName": "Sozialdemokratische Partei Deutschlands"
+    },
+    {
+      "country": "AUS",
+      "partyFactsId": 424,
+      "wikidataPartyId": "Q216082",
+      "name": "Australian Labor Party",
+      "shortName": "ALP",
+      "nativeName": "Australian Labor Party"
+    },
+    {
+      "country": "USA",
+      "partyFactsId": 432,
+      "wikidataPartyId": "Q29552",
+      "name": "Democratic Party",
+      "shortName": "D",
+      "nativeName": "Democratic Party"
+    },
+    {
+      "country": "FRA",
+      "partyFactsId": 433,
+      "wikidataPartyId": "Q205150",
+      "name": "National Rally",
+      "shortName": "RN",
+      "nativeName": "Rassemblement national"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 654,
+      "wikidataPartyId": "Q1322751",
+      "name": "Democratic Movement Party",
+      "shortName": "MDB",
+      "nativeName": "Movimento Democrático Brasileiro"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 723,
+      "wikidataPartyId": "Q2054789",
+      "name": "Brazilian Socialist Party",
+      "shortName": "PSB",
+      "nativeName": "Partido Socialista Brasileiro"
+    },
+    {
+      "country": "JPN",
+      "partyFactsId": 736,
+      "wikidataPartyId": "Q641600",
+      "name": "Japanese Communist Party",
+      "shortName": "JCP",
+      "nativeName": "日本共産党"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 781,
+      "wikidataPartyId": "Q732852",
+      "name": "Progressive Party",
+      "shortName": "PP",
+      "nativeName": "Progressistas"
+    },
+    {
+      "country": "USA",
+      "partyFactsId": 809,
+      "wikidataPartyId": "Q29468",
+      "name": "Republican Party",
+      "shortName": "GOP/Grand/Old/Party",
+      "nativeName": "Republican Party"
+    },
+    {
+      "country": "CAN",
+      "partyFactsId": 931,
+      "wikidataPartyId": "Q691730",
+      "name": "Green Party of Canada",
+      "nativeName": "Parti vert du Canada"
+    },
+    {
+      "country": "GBR",
+      "partyFactsId": 986,
+      "wikidataPartyId": "Q10658",
+      "name": "Scottish National Party",
+      "shortName": "SNP"
+    },
+    {
+      "country": "CAN",
+      "partyFactsId": 1004,
+      "wikidataPartyId": "Q488523",
+      "name": "Conservative Party of Canada",
+      "nativeName": "Parti conservateur du Canada"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 1009,
+      "wikidataPartyId": "Q1414708",
+      "name": "Democratic Labour Party",
+      "shortName": "PDT",
+      "nativeName": "Partido Democrático Trabalhista"
+    },
+    {
+      "country": "AUS",
+      "partyFactsId": 1209,
+      "wikidataPartyId": "Q781486",
+      "name": "Australian Greens"
+    },
+    {
+      "country": "DEU",
+      "partyFactsId": 1375,
+      "wikidataPartyId": "Q49762",
+      "name": "Christian Democratic Union",
+      "shortName": "CDU",
+      "nativeName": "Christlich Demokratische Union Deutschlands"
+    },
+    {
+      "country": "CAN",
+      "partyFactsId": 1428,
+      "wikidataPartyId": "Q735105",
+      "name": "Bloc Québécois",
+      "nativeName": "Bloc québécois"
+    },
+    {
+      "country": "FRA",
+      "partyFactsId": 1478,
+      "wikidataPartyId": "Q170972",
+      "name": "Socialist Party",
+      "shortName": "PS",
+      "nativeName": "Parti socialiste"
+    },
+    {
+      "country": "JPN",
+      "partyFactsId": 1515,
+      "wikidataPartyId": "Q1061354",
+      "name": "Komeito",
+      "nativeName": "公明党"
+    },
+    {
+      "country": "GBR",
+      "partyFactsId": 1516,
+      "wikidataPartyId": "Q9630",
+      "name": "Labour Party",
+      "shortName": "Lab",
+      "nativeName": "Labour Party"
+    },
+    {
+      "country": "DEU",
+      "partyFactsId": 1545,
+      "wikidataPartyId": "Q49764",
+      "name": "The Left",
+      "shortName": "DIE/LINKE",
+      "nativeName": "Die Linke"
+    },
+    {
+      "country": "GBR",
+      "partyFactsId": 1567,
+      "wikidataPartyId": "Q9626",
+      "name": "Conservative Party",
+      "shortName": "Con"
+    },
+    {
+      "country": "FRA",
+      "partyFactsId": 1595,
+      "wikidataPartyId": "Q173152",
+      "name": "Union for a Popular Movement",
+      "shortName": "UMP",
+      "nativeName": "Union pour un mouvement populaire"
+    },
+    {
+      "country": "DEU",
+      "partyFactsId": 1731,
+      "wikidataPartyId": "Q49763",
+      "name": "Christian Social Union of Bavaria",
+      "shortName": "CSU",
+      "nativeName": "Christlich-Soziale Union in Bayern"
+    },
+    {
+      "country": "CAN",
+      "partyFactsId": 1739,
+      "wikidataPartyId": "Q138345",
+      "name": "Liberal Party of Canada",
+      "shortName": "LPC/English",
+      "nativeName": "Parti libéral du Canada"
+    },
+    {
+      "country": "JPN",
+      "partyFactsId": 1746,
+      "wikidataPartyId": "Q232595",
+      "name": "Liberal Democratic Party",
+      "shortName": "PLD",
+      "nativeName": "自由民主党 / 自民党"
+    },
+    {
+      "country": "DEU",
+      "partyFactsId": 1816,
+      "wikidataPartyId": "Q49766",
+      "name": "Alliance '90/The Greens",
+      "shortName": "GRÜNE",
+      "nativeName": "Bündnis 90/Die Grünen"
+    },
+    {
+      "country": "DEU",
+      "partyFactsId": 1976,
+      "wikidataPartyId": "Q6721203",
+      "name": "Alternative for Germany",
+      "shortName": "AfD",
+      "nativeName": "Alternative für Deutschland"
+    },
+    {
+      "country": "JPN",
+      "partyFactsId": 2080,
+      "wikidataPartyId": "Q1027055",
+      "name": "Japan Restoration Party"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 4405,
+      "wikidataPartyId": "Q2731720",
+      "name": "Liberal Party",
+      "shortName": "PR",
+      "nativeName": "Partido Liberal"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 4613,
+      "wikidataPartyId": "Q2054750",
+      "name": "Social Democratic Party",
+      "shortName": "PSD",
+      "nativeName": "Partido Social Democrático"
+    },
+    {
+      "country": "JPN",
+      "partyFactsId": 6135,
+      "wikidataPartyId": "Q99233271",
+      "name": "Constitutional Democratic Party of Japan",
+      "shortName": "PDC"
+    },
+    {
+      "country": "BRA",
+      "partyFactsId": 7079,
+      "wikidataPartyId": "Q926973",
+      "name": "Republicanos",
+      "shortName": "PRB",
+      "nativeName": "Republicanos"
+    }
+  ]
+}

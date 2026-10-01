@@ -21,13 +21,42 @@ const requireControlled = (state: SimulationState, id: string) => { if (state.go
 const capabilitiesFor = (role: PoliticalOfficeRole): AuthorityCapability[] => role === 'head_of_government'
   ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information']
   : role === 'legislator' ? ['sponsor_legislation', 'vote_legislation'] : [];
+const executiveCapabilities: AuthorityCapability[] = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information'];
+export function capabilitiesForReconciledAuthority(authorityBasis: NonNullable<NonNullable<PoliticalPersonState['office']>['evidence']>['authorityBasis']): AuthorityCapability[] {
+  return authorityBasis === 'sourced_parliamentary_head_of_government' || authorityBasis === 'sourced_presidential_head_of_state'
+    ? [...executiveCapabilities]
+    : [];
+}
 const authorityLimitation = 'Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule.';
 const leaderNameSyllables = ['Ari', 'Bel', 'Cor', 'Davi', 'Eli', 'Fari', 'Galen', 'Havi', 'Ira', 'Jori', 'Kavi', 'Lena', 'Mira', 'Navi', 'Oren', 'Pavi', 'Quin', 'Ravi', 'Sela', 'Tavi', 'Uma', 'Veli', 'Wren', 'Xavi', 'Yara', 'Zori'];
 const leaderFamilySyllables = ['Aven', 'Borin', 'Ceren', 'Dalen', 'Evar', 'Feron', 'Galen', 'Halen', 'Iven', 'Jorin', 'Kalen', 'Lorin', 'Maren', 'Nerin', 'Ovan', 'Peren', 'Qorin', 'Ralen', 'Soren', 'Talen', 'Uren', 'Varen', 'Walen', 'Xeren', 'Yorin', 'Zalen'];
 const LEADER_PROFILE_VARIATION_BPS = 250;
 const SOURCE_LEADER_LIMITATION = 'No pinned, licensing-cleared party-leadership source applicable on 2026-01-01 is available in the ProjectAtlas political registry. The gameplay identity is fictional and is not a sourced real-person analogue.';
-const reviewedLeaderMappings = new Map(partyLeadershipSources.mappings.map(mapping => [mapping.partyId, mapping]));
+type ReviewedLeaderMapping = {
+  partyId: string;
+  sourcePartyId: string;
+  sourcePartyName: string;
+  partyFactsId: number;
+  wikidataPartyId: string;
+  sourcePersonId: string;
+  sourcePersonName: string;
+  fictionalAnalogueName?: string;
+  basis: 'derived_analogue';
+  sourceStatus: 'derived';
+  leaderRole: 'party_chairperson';
+  chairStatementId: string;
+  sourceRecordIds: string[];
+  referenceDate: string;
+  officeholderMatch?: { officeId: string; sourcePersonId: string; startDate: string; title: string };
+};
+const reviewedLeaderMappings = new Map<string, ReviewedLeaderMapping>(partyLeadershipSources.mappings.map(mapping => [mapping.partyId, {
+  ...mapping,
+  basis: 'derived_analogue' as const,
+  sourceStatus: 'derived' as const,
+  leaderRole: 'party_chairperson' as const,
+}]));
 const reviewedSourceLeaderIds = new Set(partyLeadershipSources.mappings.map(mapping => `wikidata:${mapping.sourcePersonId}`));
+const ambiguousSourceLeaderPartyIds = new Set(partyLeadershipSources.partyCandidates.filter(candidate => candidate.mappingStatus === 'ambiguous').map(candidate => candidate.partyId));
 const sourceOfficeById = new Map(politicalOffices.offices.map(office => [office.id, office]));
 type SourceOfficeholder = typeof politicalOffices.officeholders[number];
 
@@ -61,7 +90,6 @@ function leaderProfileFor(partyId: string, personIdValue: string, state: Simulat
   }));
 }
 
-type ReviewedLeaderMapping = typeof partyLeadershipSources.mappings[number];
 type LeaderProvenance = NonNullable<PoliticalPersonState['leaderProvenance']>;
 
 function leaderProvenance(
@@ -72,11 +100,11 @@ mappingOverride?: ReviewedLeaderMapping | null,
 ): LeaderProvenance {
 const mapping = mappingOverride === undefined ? reviewedLeaderMappings.get(partyId) : mappingOverride ?? undefined;
 if (mapping && mapping.referenceDate === registry.referenceDate
-  && (mapping.basis === 'sourced_analogue' || mapping.basis === 'derived_analogue')
-  && (mapping.sourceStatus === 'sourced' || mapping.sourceStatus === 'derived')) {
+  && mapping.basis === 'derived_analogue'
+  && mapping.sourceStatus === 'derived') {
   return {
     basis: mapping.basis,
-      method: 'reviewed_primary_party_source_v1' as const,
+      method: 'reviewed_global_party_chair_snapshot_v1' as const,
       sourcePartyId: registry.parties[partyId].sourceBasis.sourcePartyId,
       referenceDate: registry.referenceDate,
       sourceLeaderStatus: mapping.sourceStatus,
@@ -85,7 +113,7 @@ if (mapping && mapping.referenceDate === registry.referenceDate
         name: mapping.sourcePersonName,
         sourceRecordIds: [...mapping.sourceRecordIds],
       },
-      limitation: 'A derived, clearly fictional gameplay analogue reconciles reviewed party-leadership evidence with an exact, dated source-officeholder identity. Source identity is provenance only; no personal ideology is inferred.',
+      limitation: 'A fictional gameplay leader has an exact, dated Wikidata party-chair identity through stable Party Facts identifiers. Source identity is provenance only; no personal ideology is inferred.',
     };
   }
   return {
@@ -93,8 +121,10 @@ if (mapping && mapping.referenceDate === registry.referenceDate
     method,
     sourcePartyId: registry.parties[partyId].sourceBasis.sourcePartyId,
     referenceDate: registry.referenceDate,
-    sourceLeaderStatus: 'unavailable' as const,
-    limitation: SOURCE_LEADER_LIMITATION,
+    sourceLeaderStatus: ambiguousSourceLeaderPartyIds.has(partyId) ? 'ambiguous' as const : 'unavailable' as const,
+    limitation: ambiguousSourceLeaderPartyIds.has(partyId)
+      ? 'Multiple dated Party Facts/Wikidata chairperson identities match this party on 2026-01-01; the gameplay leader remains fictional and no source person is selected.'
+      : SOURCE_LEADER_LIMITATION,
   };
 }
 
@@ -146,10 +176,8 @@ function initializeSourceOfficeholders(state: SimulationState, registry: Politic
         : (system === 'parliamentary' || system === 'monarchy_parliamentary') && role === 'head_of_government'
           ? 'sourced_parliamentary_head_of_government'
           : 'institutional_authority_unresolved';
-    const capabilities: AuthorityCapability[] = authorityBasis === 'institutional_authority_unresolved'
-      ? []
-      : capabilitiesFor(role);
-    const mappedOfficeTitle = mapping?.officeholderMatch.officeId === selected.definition.id
+    const capabilities = capabilitiesForReconciledAuthority(authorityBasis);
+    const mappedOfficeTitle = mapping?.officeholderMatch?.officeId === selected.definition.id
       ? mapping.officeholderMatch.title
       : undefined;
     const title = mappedOfficeTitle ?? selected.definition.title;

@@ -5,7 +5,7 @@ import { estimateParliamentarySupport, estimatePublicSupport } from '../governan
 import { politicalRegistry } from '../politics/registry';
 import type { SchedulerTask, SimulationScheduler } from '../scheduler';
 import type { AdvisorAssistance, BriefingInterpretation, BriefingPresentation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport, InformationState, MinisterialBriefing, Portfolio } from './model';
-import { INFORMATION_MODEL, INFORMATION_VERSION, emptyInformation } from './model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, emptyInformation, referencedGovernmentReportIds } from './model';
 import { CRISIS_TYPES } from '../crisis/model';
 
 const reportId = (countryId: string, asOfDate: string) => `government-report:${countryId}:unemployment:${asOfDate}`;
@@ -23,16 +23,7 @@ function retainBriefingReports(
   latestReports: Record<string, GovernmentReport>,
   briefings: readonly MinisterialBriefing[],
 ): Record<string, GovernmentReport> {
-  const retainedIds = new Set(Object.values(latestReports).map(report => report.id));
-  for (const briefing of briefings) {
-    if (briefing.fact.reportId) retainedIds.add(briefing.fact.reportId);
-    if (briefing.fact.policyFollowUp?.baselineReportId) retainedIds.add(briefing.fact.policyFollowUp.baselineReportId);
-    for (const comparison of briefing.fact.policyComparisons ?? []) {
-      const proposalBriefing = briefings.find(item => item.fact.kind === 'parliamentary_result' && item.fact.proposalId === comparison.proposalId);
-      const baselineId = proposalBriefing?.fact.policyFollowUp?.baselineReportId;
-      if (baselineId) retainedIds.add(baselineId);
-    }
-  }
+  const retainedIds = referencedGovernmentReportIds({ latestGovernmentReports: latestReports, briefings });
   return Object.fromEntries([...retainedIds].sort().flatMap(id => reportsById[id] ? [[id, reportsById[id]] as const] : []));
 }
 
@@ -280,6 +271,7 @@ export function explainBriefing(state: SimulationState, briefing: MinisterialBri
       `The ${report.asOfDate} modelled unemployment report is ${(report.valueBps / 100).toFixed(2)}%${prior === undefined ? '' : `, compared with ${(prior / 100).toFixed(2)}% in the previous report`}.`,
       ...(briefing.fact.policyComparisons ?? []).map(comparison => `Since proposal ${comparison.proposalId} entered into force on ${comparison.effectiveDate}, unemployment moved from ${(comparison.baselineValueBps / 100).toFixed(2)}% on ${comparison.baselineDate} to ${(comparison.currentValueBps / 100).toFixed(2)}%. This is a temporal comparison, not evidence that the measure caused the change.`),
       `Coverage: ${report.coverage}. This change is temporal evidence, not isolated policy causation.`,
+      ...(briefing.interpretation?.limitations ?? []).map(limitation => `Limitation: ${limitation}`),
       report.limitation,
     ];
   }
@@ -353,24 +345,16 @@ function labourInterpretation(state: SimulationState, countryId: string, directi
   const leadingGoal = goals && [...relevantGoals]
     .map(goal => ({ goal, importanceBps: goals[goal].importanceBps }))
     .sort((a, b) => b.importanceBps - a.importanceBps || a.goal.localeCompare(b.goal))[0];
-  const partyContext = leadingGoal
-    ? ` The executive's existing party profile records ${(leadingGoal.importanceBps / 100).toFixed(0)}% importance for ${leadingGoal.goal.replaceAll('_', ' ')}.`
+  const goalContext = leadingGoal
+    ? ' This movement matters to the government’s employment and household-income objectives.'
     : '';
-  const limitation = 'ProjectAtlas has no supported employment-policy instrument or modelled hiring response; this movement does not identify its causes.';
-  const policyLevers = executive ? availableFiscalLevers(state, executive.id, countryId).map(mechanism => ({
-    mechanism,
-    limitation: mechanism === 'corporate_tax'
-      ? 'The existing corporate-tax route estimates represented liabilities and revenue only; employment and investment responses are not modelled.'
-      : 'The existing annual-budget route changes represented public allocations; direct employment effects are not modelled.',
-  })) : [];
+  const limitation = 'No directly supported employment-policy lever or hiring-response mechanism is currently represented; available fiscal proposals can be explored separately but cannot be recommended as an unemployment solution.';
   return {
     basis: goals ? 'derived' : 'modelled',
-    summary: `Employment conditions ${direction === 'increased' ? 'worsened' : 'improved'} between the two modelled unemployment reports.${partyContext}`,
+    summary: `Employment conditions ${direction === 'increased' ? 'worsened' : 'improved'} between the two modelled unemployment reports.${goalContext}`,
     relevantGoals: goals ? [...relevantGoals] : undefined,
-    policyLevers,
-    tradeoffs: policyLevers.map(lever => lever.mechanism === 'corporate_tax'
-      ? 'A corporate-tax reform changes represented tax liabilities and fiscal revenue; its effect on hiring and investment is unavailable.'
-      : 'Changing annual allocations changes the represented budget composition; direct employment effects are unavailable.'),
+    policyLevers: [],
+    tradeoffs: [],
     limitations: [limitation],
   };
 }
