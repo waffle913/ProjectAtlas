@@ -14,7 +14,7 @@
 - Tax-only counterfactuals preserve transfers and other non-tax flows; VAT burden uses consumption-tax incidence without changing disposable cash income.
 - Pure public and parliamentary estimates with party drivers/trade-offs plus defensive debug inspection.
 - Enactment exclusively through the validated fiscal reform queue, with immutable proposal origin, fingerprint and application receipt.
-- Strengthened governance invariant, schema 11 migration, deterministic schema-12 in-place upgrade, save/reload and fidelity conservation.
+- Strengthened governance invariant, schema 11 migration, deterministic schema-12 in-place upgrade including the original aggregate-only d2f3ce shape, save/reload and fidelity conservation.
 - Event-driven copy-on-write state with no new scheduler loop.
 
 ## Data coverage
@@ -27,12 +27,14 @@ The 948 parties comprise 20 sourced ideological bases, 15 partial bases and 913 
 
 ## Validation results
 
-- `npm run verify`: passed; data audit clean, production build succeeded, 27 test files and 245 tests passed. Production bundle: 3,689.65 kB, 311.76 kB gzip.
-- `npm run governance:audit`: passed; 51 governance contract tests.
-- `npm run governance:benchmark`: passed; 252 Countries, 281 chambers, 57 procedurally resolvable Countries, 8 Countries with differentiated ideological evidence, 0 overlap Countries, 195 procedurally unavailable Countries, 0 fresh-game persons, 0 fresh-game proposals, 24,130,605-byte fresh save, 0.0182 ms cached governance snapshot path, 260.14 ms serialization and 13.542 ms mean on-demand full proposal inspection (20 calls).
+- `npm run verify`: passed; data audit clean, production build succeeded, 27 test files and 249 tests passed. Production bundle: 3,690.12 kB, 311.86 kB gzip.
+- `npm run governance:audit`: passed; 55 governance contract tests.
+- `npm run governance:benchmark`: passed; 252 Countries, 281 chambers, 57 procedurally resolvable Countries, 8 Countries with differentiated ideological evidence, 0 overlap Countries, 195 procedurally unavailable Countries, 0 fresh-game persons, 0 fresh-game proposals, 24,130,605-byte fresh save, 0.0434 ms cached governance snapshot path, 270.83 ms serialization and 13.719 ms mean on-demand full proposal inspection (20 calls).
 - `npm run politics:audit`: passed; 252 Countries, 948 fictional parties (20 sourced, 15 partial, 913 fallback), 20 dynamic organizations, 281 chambers and 31,736 represented seats. Its three test files passed 24 tests.
-- `npm run politics:benchmark`: passed. Three-year political benchmark: 1,095 days in 89,389.08 ms, 12 ticks/s, 97.22 ms weekly changed snapshot, 369.96 ms coincident monthly/weekly snapshot, 519.33 ms reload and 30,175,307-byte save.
-- `npm run benchmark:world`: passed. Baseline: 58,466 ticks/s (62.43 ms). Socioeconomy: 651 ticks/s, 27.16 ms snapshot and 15,820,573-byte save. Cached daily UI path: 0.0156 ms ordinary-day mean, 117.96 ms monthly-day mean and 1,420.99 ms total. Fiscal: 162 ticks/s, 410.69 ms monthly snapshot-day mean and 23,804,040-byte ten-year save.
+- `npm run politics:benchmark`: passed. Three-year political benchmark: 1,095 days in 88,952.04 ms, 12 ticks/s, 111.78 ms weekly changed snapshot, 378.24 ms coincident monthly/weekly snapshot, 520.53 ms reload and 30,175,307-byte save.
+- `npm run benchmark:world`: passed. Baseline: 56,749 ticks/s (64.32 ms). Socioeconomy: 638 ticks/s, 28.95 ms snapshot and 15,820,573-byte save. Cached daily UI path: 0.0146 ms ordinary-day mean, 125.48 ms monthly-day mean and 1,510.93 ms total. Fiscal: 153 ticks/s, 322.69 ms monthly snapshot-day mean and 23,804,040-byte ten-year save.
 - `rg -n "Math\\.random" src`: only test guards contain the literal search string; simulation runtime contains no use.
+
+The schema-12 compatibility suite uses a hand-built d2f3ce persistence fixture rather than the current vote resolver. It covers aggregate-only enacted, rejected and all-abstain results, exact-once fiscal ownership, absence of fabricated party evaluations, deterministic upgraded round-trip, malformed aggregate rejection and strict current situational-v2 invariants.
 
 No 0.15 interface, notification or information/perception system is included.

@@ -25,24 +25,30 @@ function validatePartyEvaluation(evaluation: PartyProposalEvaluation): boolean {
     && (issue.currentOutcomeBps === undefined || bps(issue.currentOutcomeBps)) && (issue.expectedOutcomeBps === undefined || bps(issue.expectedOutcomeBps)));
 }
 
-function validateChamber(chamber: ChamberSupportEstimate): boolean {
+function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: boolean): boolean {
   if (!chamber.chamberId || ![chamber.yesSeats, chamber.noSeats, chamber.abstainSeats, chamber.unavailableSeats].every(nonNegative) || !coverage(chamber.coverage)) return false;
   const allocated = chamber.yesSeats + chamber.noSeats + chamber.abstainSeats + chamber.unavailableSeats;
   if (chamber.totalSeats !== undefined && (!nonNegative(chamber.totalSeats) || allocated !== chamber.totalSeats)) return false;
   if (chamber.coverage === 'complete' && chamber.unavailableSeats !== 0) return false;
   if (chamber.adopted !== undefined && (chamber.coverage !== 'complete' || chamber.adopted !== (chamber.yesSeats > chamber.noSeats))) return false;
   if (chamber.partyEvaluations && (!Array.isArray(chamber.partyEvaluations) || !chamber.partyEvaluations.every(item => nonNegative(item.seats) && validatePartyEvaluation(item)))) return false;
-  if (!chamber.partyEvaluations) return chamber.coverage === 'unavailable' && chamber.adopted === undefined;
+  if (!chamber.partyEvaluations) {
+    if (!legacyAggregateOnly) return false;
+    if (chamber.totalSeats === undefined) return chamber.coverage === 'unavailable' && chamber.adopted === undefined && allocated === 0;
+    const knownSeats = chamber.yesSeats + chamber.noSeats + chamber.abstainSeats, expectedCoverage = chamber.unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
+    return chamber.coverage === expectedCoverage && (expectedCoverage === 'complete' ? chamber.adopted === (chamber.yesSeats > chamber.noSeats) : chamber.adopted === undefined);
+  }
   const seats = (vote: PartyProposalEvaluation['vote']) => chamber.partyEvaluations!.filter(item => item.vote === vote).reduce((sum, item) => sum + item.seats, 0), partySeats = chamber.partyEvaluations.reduce((sum, item) => sum + item.seats, 0);
   if (chamber.yesSeats !== seats('yes') || chamber.noSeats !== seats('no') || chamber.abstainSeats !== seats('abstain')) return false;
-  if (chamber.totalSeats === undefined || partySeats > chamber.totalSeats || chamber.unavailableSeats !== seats('unknown') + chamber.totalSeats - partySeats) return false;
+  if (chamber.totalSeats === undefined) return chamber.partyEvaluations.length === 0 && chamber.coverage === 'unavailable' && chamber.adopted === undefined && allocated === 0;
+  if (partySeats > chamber.totalSeats || chamber.unavailableSeats !== seats('unknown') + chamber.totalSeats - partySeats) return false;
   const knownSeats = chamber.yesSeats + chamber.noSeats + chamber.abstainSeats, expectedCoverage = chamber.unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
   if (chamber.coverage !== expectedCoverage || (expectedCoverage === 'complete' ? chamber.adopted !== (chamber.yesSeats > chamber.noSeats) : chamber.adopted !== undefined)) return false;
   return true;
 }
 
-function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>): boolean {
-  if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== 'modelled_procedure_v1' || !estimate.chambers.every(validateChamber)) return false;
+function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, legacyAggregateOnly = false): boolean {
+  if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== 'modelled_procedure_v1' || !estimate.chambers.every(chamber => validateChamber(chamber, legacyAggregateOnly))) return false;
   const sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => estimate.chambers.reduce((total, chamber) => total + chamber[field], 0);
   const expectedCoverage = estimate.chambers.length > 0 && estimate.chambers.every(item => item.coverage === 'complete') ? 'complete' : estimate.chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
   return estimate.coverage === expectedCoverage && estimate.yesSeats === sum('yesSeats') && estimate.noSeats === sum('noSeats') && estimate.abstainSeats === sum('abstainSeats') && estimate.unavailableSeats === sum('unavailableSeats') && estimate.totalSeats === estimate.chambers.reduce((total, chamber) => total + (chamber.totalSeats ?? 0), 0);
@@ -82,10 +88,11 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (['enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.resolvedOn || !proposal.voteResult || proposal.voteResult.outcome !== (proposal.status === 'enacted' ? 'adopted' : proposal.status))) errors.push(`Invalid resolution lifecycle for ${id}.`);
     if (proposal.resolvedOn && (!dateValid(proposal.resolvedOn) || proposal.resolvedOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.resolvedOn > state.date)) errors.push(`Invalid resolution date for ${id}.`);
     if (proposal.publicEstimate && (![proposal.publicEstimate.supportBps, proposal.publicEstimate.opposeBps, proposal.publicEstimate.neutralBps, proposal.publicEstimate.unknownBps, proposal.publicEstimate.confidenceBps].every(bps) || proposal.publicEstimate.supportBps + proposal.publicEstimate.opposeBps + proposal.publicEstimate.neutralBps + proposal.publicEstimate.unknownBps !== 10_000 || !coverage(proposal.publicEstimate.coverage) || ![proposal.publicEstimate.representedPersons, proposal.publicEstimate.knownPersons, proposal.publicEstimate.unknownPersons].every(nonNegative) || proposal.publicEstimate.knownPersons + proposal.publicEstimate.unknownPersons !== proposal.publicEstimate.representedPersons || proposal.publicEstimate.coverage === 'complete' && proposal.publicEstimate.unknownPersons !== 0 || proposal.publicEstimate.coverage === 'unavailable' && proposal.publicEstimate.knownPersons !== 0)) errors.push(`Invalid public estimate for ${id}.`);
-    if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate)) errors.push(`Invalid parliamentary estimate for ${id}.`);
+    const legacyAggregateOnly = proposal.evaluationVersion === 'legacy-0.14-v1' && ['enacted', 'rejected', 'unavailable'].includes(proposal.status);
+    if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly)) errors.push(`Invalid parliamentary estimate for ${id}.`);
     if (proposal.analysis && !validateAnalysis(proposal.analysis)) errors.push(`Invalid proposal analysis for ${id}.`);
     if (proposal.voteResult) {
-      if (!validateParliamentary(proposal.voteResult) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
+      if (!validateParliamentary(proposal.voteResult, legacyAggregateOnly) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
       if (proposal.voteResult.outcome === 'adopted' && (proposal.voteResult.coverage !== 'complete' || !proposal.voteResult.chambers.length || !proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Adopted vote ${id} is not supported by every complete chamber.`);
       if (proposal.voteResult.outcome === 'rejected' && (proposal.voteResult.coverage !== 'complete' || proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Rejected vote ${id} is inconsistent with its chambers.`);
       if (proposal.voteResult.outcome === 'unavailable' && !proposal.voteResult.reason) errors.push(`Unavailable vote ${id} has no reason.`);

@@ -11,6 +11,13 @@ function upgradeChamber(original: ChamberSupportEstimate): ChamberSupportEstimat
   const completeAllocation = original.totalSeats !== undefined && partySeats + residualSeats === original.totalSeats, coverage = !completeAllocation || !knownSeats && unavailableSeats ? 'unavailable' : unavailableSeats ? 'partial' : 'complete';
   return { ...original, yesSeats, noSeats, abstainSeats, unavailableSeats, coverage, adopted: coverage === 'complete' ? yesSeats > noSeats : undefined, partyEvaluations };
 }
+function unavailableLegacyAbstention<T extends ParliamentarySupportEstimate>(original: T): T {
+  const chambers = original.chambers.map(chamber => chamber.partyEvaluations === undefined
+    ? { ...chamber, abstainSeats: 0, unavailableSeats: chamber.unavailableSeats + chamber.abstainSeats, coverage: 'unavailable' as const, adopted: undefined }
+    : chamber);
+  const sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => chambers.reduce((total, chamber) => total + chamber[field], 0);
+  return { ...original, chambers, yesSeats: sum('yesSeats'), noSeats: sum('noSeats'), abstainSeats: sum('abstainSeats'), unavailableSeats: sum('unavailableSeats'), coverage: 'unavailable' };
+}
 function upgradeParliamentary<T extends ParliamentarySupportEstimate>(original: T): T {
   const chambers = original.chambers.map(upgradeChamber), sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => chambers.reduce((total, chamber) => total + chamber[field], 0), coverage = chambers.length > 0 && chambers.every(item => item.coverage === 'complete') ? 'complete' : chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
   return { ...original, chambers, yesSeats: sum('yesSeats'), noSeats: sum('noSeats'), abstainSeats: sum('abstainSeats'), unavailableSeats: sum('unavailableSeats'), totalSeats: chambers.reduce((total, chamber) => total + (chamber.totalSeats ?? 0), 0), coverage };
@@ -32,7 +39,13 @@ export function upgradeGovernanceSchema12(state: SimulationState): SimulationSta
     if (proposal.parliamentaryEstimate) { const upgraded = upgradeParliamentary(proposal.parliamentaryEstimate); if (JSON.stringify(upgraded) !== JSON.stringify(proposal.parliamentaryEstimate)) { proposal.parliamentaryEstimate = upgraded; proposalChanged = true; } }
     if (proposal.voteResult) { const upgraded = upgradeParliamentary(proposal.voteResult); if (JSON.stringify(upgraded) !== JSON.stringify(proposal.voteResult)) { proposal.voteResult = upgraded; proposalChanged = true; } }
     if (proposal.voteResult && proposal.voteResult.confidenceBps === undefined) { proposal.voteResult.confidenceBps = proposal.parliamentaryEstimate?.confidenceBps ?? 0; proposalChanged = true; }
-    if (proposal.voteResult?.outcome === 'rejected' && proposal.voteResult.coverage !== 'complete') { proposal.voteResult.outcome = 'unavailable'; proposal.voteResult.reason = 'institutional_data_unavailable'; proposal.status = 'unavailable'; proposalChanged = true; }
+    const aggregateOnly = Boolean(proposal.voteResult?.chambers.some(chamber => chamber.partyEvaluations === undefined));
+    const ambiguousAggregateRejection = aggregateOnly && proposal.voteResult?.outcome === 'rejected' && proposal.voteResult.yesSeats === 0 && proposal.voteResult.noSeats === 0;
+    if (ambiguousAggregateRejection) {
+      if (proposal.parliamentaryEstimate) proposal.parliamentaryEstimate = unavailableLegacyAbstention(proposal.parliamentaryEstimate);
+      proposal.voteResult = { ...unavailableLegacyAbstention(proposal.voteResult!), outcome: 'unavailable', reason: 'institutional_data_unavailable' };
+      proposal.status = 'unavailable'; proposalChanged = true;
+    } else if (proposal.voteResult?.outcome === 'rejected' && proposal.voteResult.coverage !== 'complete') { proposal.voteResult.outcome = 'unavailable'; proposal.voteResult.reason = 'institutional_data_unavailable'; proposal.status = 'unavailable'; proposalChanged = true; }
     if (proposal.voteResult?.outcome === 'unavailable' && !proposal.voteResult.reason) { proposal.voteResult.reason = 'institutional_data_unavailable'; proposalChanged = true; }
     if (['enacted', 'rejected', 'unavailable'].includes(proposal.status) && !proposal.evaluationVersion) { proposal.evaluationVersion = 'legacy-0.14-v1'; proposalChanged = true; }
     if (proposal.status === 'enacted' && proposal.scheduledFiscalReformSequence !== undefined && !proposal.enactmentReference) {

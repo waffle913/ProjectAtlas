@@ -16,7 +16,7 @@ import { analyzeProposal, derivePartyGoalProfile, evaluatePartyProposal, GOVERNA
 import type { GovernanceGoal, PartyGoalProfile } from '../governance/model';
 import type { FiscalProposalPayload } from '../governance/model';
 import type { TaxKind, TaxRule } from '../fiscal/model';
-import { evaluateImmediateFiscalPolicyCounterfactual } from '../fiscal/runtime';
+import { evaluateImmediateFiscalPolicyCounterfactual, scheduleFiscalReform } from '../fiscal/runtime';
 import { COHORT } from '../politics/model';
 
 const fullWorld = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
@@ -56,6 +56,26 @@ function taxDraft(kind: TaxKind, mutate: (rule: TaxRule) => void, present = true
 }
 function profile(partyId: string, overrides: Partial<Record<GovernanceGoal, Partial<PartyGoalProfile['goals'][GovernanceGoal]>>>): PartyGoalProfile {
   return derivePartyGoalProfile(politicalRegistry.parties[partyId], overrides);
+}
+
+/** Exact aggregate-only persistence boundary used by d2f3ce; never calls the current vote resolver. */
+function d2LegacyResolved(mode: 'enacted' | 'rejected' | 'all_abstain') {
+  const countryId = resolvableCountry(), player = playerFor(initial, countryId); let state = budgetProposal(player.state, player.id, countryId, 2), proposalId = state.governance.proposalOrder[0]; state = submitProposal(state, proposalId);
+  state = { ...state, fiscal: { ...state.fiscal, reforms: state.fiscal.reforms.map(reform => ({ ...reform })), reformReceipts: [...state.fiscal.reformReceipts] } };
+  const proposal = state.governance.proposals[proposalId], institution = politicalRegistry.institutions[politicalRegistry.countries[countryId].institutionId];
+  const chambers = institution.chambers.map(chamber => {
+    const totalSeats = chamber.totalSeats!;
+    return { chamberId: chamber.id, yesSeats: mode === 'enacted' ? totalSeats : 0, noSeats: mode === 'rejected' ? totalSeats : 0, abstainSeats: mode === 'all_abstain' ? totalSeats : 0, unavailableSeats: 0, totalSeats, coverage: 'complete' as const, adopted: mode === 'enacted' };
+  });
+  const sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => chambers.reduce((total, chamber) => total + chamber[field], 0), totalSeats = chambers.reduce((total, chamber) => total + chamber.totalSeats, 0);
+  const parliamentaryEstimate = { yesSeats: sum('yesSeats'), noSeats: sum('noSeats'), abstainSeats: sum('abstainSeats'), unavailableSeats: 0, totalSeats, chambers, coverage: 'complete' as const, confidenceBps: mode === 'all_abstain' ? 500 : 8_000, procedure: 'modelled_procedure_v1' as const };
+  const publicEstimate = { supportBps: mode === 'enacted' ? 7_000 : 2_000, opposeBps: mode === 'enacted' ? 2_000 : 7_000, neutralBps: 1_000, coverage: 'complete' as const, representedPersons: 1_000_000, drivers: [] };
+  const enacted = mode === 'enacted', outcome = enacted ? 'adopted' as const : 'rejected' as const, sequence = enacted ? state.fiscal.nextSequence : undefined;
+  if (enacted) state = scheduleFiscalReform(state, { countryId, effectiveDate: proposal.effectiveDate, ...structuredClone(proposal.payload) });
+  state.governance.proposals[proposalId] = { ...proposal, status: enacted ? 'enacted' : 'rejected', resolvedOn: state.date, publicEstimate, parliamentaryEstimate, voteResult: { ...parliamentaryEstimate, outcome, resolvedOn: state.date }, scheduledFiscalReformSequence: sequence } as unknown as typeof proposal;
+  expect(state.governance.proposals[proposalId].analysis).toBeUndefined(); expect(state.governance.proposals[proposalId].evaluationVersion).toBeUndefined(); expect(state.governance.proposals[proposalId].enactmentReference).toBeUndefined();
+  expect(state.fiscal.reforms.every(reform => reform.origin === undefined)).toBe(true); expect(state.fiscal.reformReceipts).toEqual([]); delete (state.fiscal as Partial<typeof state.fiscal>).reformReceipts;
+  return { state, proposalId, countryId, sequence };
 }
 
 function findResolvable(adopted: boolean) {
@@ -341,22 +361,39 @@ describe('governance 0.14 situational corrective contracts', () => {
     expect(restored).toEqual(enacted); expect(restored.governance.proposals[fixture.proposalId].evaluationVersion).toBe('situational-0.14-v2');
   });
 
-  it('upgrades first-release schema-12 enactments without changing version strings', () => {
-    const fixture = findResolvable(true), legacy = structuredClone(resolveProposalVote(submitProposal(fixture.state, fixture.proposalId), fixture.proposalId, fixture.registry, fixture.profiles)), proposal = legacy.governance.proposals[fixture.proposalId];
-    delete proposal.analysis; delete proposal.evaluationVersion; delete proposal.enactmentReference; delete proposal.submittedPayloadFingerprint; delete (proposal.publicEstimate as { confidenceBps?: number }).confidenceBps; delete (proposal.publicEstimate as { unknownBps?: number }).unknownBps; delete (proposal.publicEstimate as { knownPersons?: number }).knownPersons; delete (proposal.publicEstimate as { unknownPersons?: number }).unknownPersons; delete (proposal.voteResult as { confidenceBps?: number }).confidenceBps;
-    for (const reform of legacy.fiscal.reforms) delete reform.origin; delete (legacy.fiscal as Partial<typeof legacy.fiscal>).reformReceipts;
-    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext), upgraded = restored.governance.proposals[fixture.proposalId];
-    expect(restored.schemaVersion).toBe(12); expect(restored.governance.version).toBe('governance-0.14-v1'); expect(restored.fiscal.version).toBe('fiscal-0.11-v2');
-    expect(upgraded.evaluationVersion).toBe('legacy-0.14-v1'); expect(upgraded.enactmentReference).toBeDefined(); expect(restored.fiscal.reforms[0].origin?.proposalId).toBe(fixture.proposalId); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
+  it('reloads an actual d2f3ce aggregate-only enacted schema-12 proposal', () => {
+    const legacy = d2LegacyResolved('enacted'), restored = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), proposal = restored.governance.proposals[legacy.proposalId];
+    expect(restored).toMatchObject({ schemaVersion: 12, governance: { version: 'governance-0.14-v1' } }); expect(proposal).toMatchObject({ status: 'enacted', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'adopted', coverage: 'complete' } });
+    expect(proposal.parliamentaryEstimate!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true); expect(proposal.voteResult!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true);
+    const evidence = [...restored.fiscal.reforms, ...restored.fiscal.reformReceipts].filter(item => item.sequence === legacy.sequence); expect(evidence).toHaveLength(1); expect(evidence[0].origin?.proposalId).toBe(legacy.proposalId); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
   });
 
-  it('upgrades legacy low-confidence abstentions to unknown voting coverage', () => {
-    const countryId = resolvableCountry(), player = playerFor(initial, countryId); let legacy = budgetProposal(player.state, player.id, countryId, 2), proposalId = legacy.governance.proposalOrder[0]; legacy = resolveProposalVote(submitProposal(legacy, proposalId), proposalId); const proposal = legacy.governance.proposals[proposalId];
-    proposal.status = 'rejected'; delete proposal.evaluationVersion; proposal.voteResult!.outcome = 'rejected'; delete proposal.voteResult!.reason;
-    for (const estimate of [proposal.parliamentaryEstimate!, proposal.voteResult!]) { for (const chamber of estimate.chambers) { for (const evaluation of chamber.partyEvaluations ?? []) evaluation.vote = 'abstain'; chamber.abstainSeats += chamber.unavailableSeats; chamber.unavailableSeats = 0; chamber.coverage = 'complete'; chamber.adopted = false; } estimate.abstainSeats += estimate.unavailableSeats; estimate.unavailableSeats = 0; estimate.coverage = 'complete'; }
-    delete (proposal.publicEstimate as { unknownBps?: number }).unknownBps; delete (proposal.publicEstimate as { knownPersons?: number }).knownPersons; delete (proposal.publicEstimate as { unknownPersons?: number }).unknownPersons;
-    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext), upgraded = restored.governance.proposals[proposalId];
-    expect(upgraded.status).toBe('unavailable'); expect(upgraded.voteResult).toMatchObject({ outcome: 'unavailable', reason: 'institutional_data_unavailable', coverage: 'unavailable' }); expect(upgraded.parliamentaryEstimate!.chambers.flatMap(item => item.partyEvaluations ?? []).every(item => item.vote === 'unknown')).toBe(true); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
+  it('reloads a meaningful d2f3ce aggregate-only rejection without fabricating party evidence', () => {
+    const legacy = d2LegacyResolved('rejected'), restored = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), proposal = restored.governance.proposals[legacy.proposalId];
+    expect(proposal).toMatchObject({ status: 'rejected', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'rejected', coverage: 'complete' } });
+    expect(proposal.parliamentaryEstimate!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true); expect(proposal.voteResult!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
+  });
+
+  it('conservatively makes a d2f3ce all-abstain rejection unavailable', () => {
+    const legacy = d2LegacyResolved('all_abstain'), restored = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), proposal = restored.governance.proposals[legacy.proposalId];
+    expect(proposal).toMatchObject({ status: 'unavailable', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'unavailable', reason: 'institutional_data_unavailable', coverage: 'unavailable', abstainSeats: 0 } });
+    expect(proposal.voteResult!.unavailableSeats).toBe(proposal.voteResult!.totalSeats); expect(proposal.voteResult!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
+  });
+
+  it('round-trips the upgraded aggregate-only save deterministically', () => {
+    const legacy = d2LegacyResolved('enacted'), first = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), serialized = serializeSimulationState(first, worldContext), second = restoreSimulationState(serialized, worldRegions, {}, {}, worldContext);
+    expect(second).toEqual(first); expect(serializeSimulationState(second, worldContext)).toBe(serialized);
+  });
+
+  it('rejects malformed aggregate-only legacy chamber totals', () => {
+    const legacy = d2LegacyResolved('rejected'), proposal = legacy.state.governance.proposals[legacy.proposalId], chamber = proposal.voteResult!.chambers[0]; chamber.totalSeats! += 1;
+    expect(() => restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext)).toThrow(/Invalid vote result/);
+  });
+
+  it('does not let a situational-v2 proposal use aggregate-only compatibility', () => {
+    const fixture = findResolvable(true), state = structuredClone(resolveProposalVote(submitProposal(fixture.state, fixture.proposalId), fixture.proposalId, fixture.registry, fixture.profiles)), proposal = state.governance.proposals[fixture.proposalId];
+    delete proposal.parliamentaryEstimate!.chambers[0].partyEvaluations; delete proposal.voteResult!.chambers[0].partyEvaluations;
+    expect(proposal.evaluationVersion).toBe('situational-0.14-v2'); expect(() => assertSimulationInvariants(state, worldContext, 'tick')).toThrow(/Invalid parliamentary estimate|Invalid vote result/);
   });
 
   it('holds transfers constant in a tax-only counterfactual', () => {
