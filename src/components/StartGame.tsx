@@ -46,8 +46,17 @@ export function StartGame({ countries, leaders, onPlay }: {
       </label>
       {selectedPerson && <div className="leader-note">
         <strong>{selectedPerson.displayName}</strong>
-        <span>{selectedPerson.leaderProvenance?.status === 'modelled_fallback' ? 'Modelled fictional leader; source-leader evidence unavailable.' : 'Fictional gameplay person.'}</span>
-        <span>{office ? `${office.role.replaceAll('_', ' ')} · ${office.authorityProfile.capabilities.join(', ')}` : 'No public office is currently assigned; no executive powers are inferred.'}</span>
+        <span>{selectedPerson.leaderProvenance?.basis === 'modelled_fallback'
+          ? 'Modelled fictional leader; party-leadership source evidence is unavailable.'
+          : selectedPerson.leaderProvenance?.sourceLeader
+            ? `Fictional gameplay analogue of ${selectedPerson.leaderProvenance.sourceLeader.name}; source identity is provenance only.`
+            : 'Fictional gameplay party leader.'}</span>
+        <span>{office
+          ? `Reconciled gameplay office: ${office.title}${office.authorityProfile.capabilities.length
+            ? ` · powers: ${office.authorityProfile.capabilities.join(', ')}`
+            : ' · no gameplay executive capabilities are assigned under current institutional coverage'}.`
+          : 'No public office is reconciled to this leader; no executive powers are inferred.'}</span>
+        {office?.authorityProfile.capabilities.length === 0 && <small>{office.authorityProfile.limitation}</small>}
       </div>}
       <button className="primary-action" disabled={!selectedPerson} onClick={() => selectedPerson && onPlay(selectedPerson.id)}>Play this person</button>
     </div>

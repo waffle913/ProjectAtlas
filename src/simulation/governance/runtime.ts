@@ -1,13 +1,16 @@
 import type { SimulationState } from '../../types';
-import { allocate } from '../socioeconomy/model';
 import { fiscalReformFingerprint, scheduleFiscalReform, validateFiscalReform } from '../fiscal/runtime';
 import { dateValid } from '../fiscal/math';
-import { COHORT, POLITICAL_ISSUES, type PoliticalRegistry } from '../politics/model';
+import { POLITICAL_ISSUES, type PoliticalRegistry } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
 import { deterministicInteger } from '../rng';
 import { addProposalResultBriefing } from '../information/runtime';
-import { analyzeProposal, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalProposal, type ProposalAnalysis, type ProposalImpact, type PublicSupportEstimate } from './model';
+import partyLeadershipSources from '../../data/source-snapshots/party-leadership-2026-01-01.json';
+import politicalOffices from '../../data/political-offices.json';
+import { analyzeProposal } from './analysis';
+import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type ProposalAnalysis, type ProposalImpact, type PublicSupportEstimate } from './model';
+export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
 const proposalId = (sequence: number) => `proposal.${sequence.toString().padStart(8, '0')}`;
 const successionId = (sequence: number) => `succession.${sequence.toString().padStart(8, '0')}`;
@@ -23,6 +26,10 @@ const leaderNameSyllables = ['Ari', 'Bel', 'Cor', 'Davi', 'Eli', 'Fari', 'Galen'
 const leaderFamilySyllables = ['Aven', 'Borin', 'Ceren', 'Dalen', 'Evar', 'Feron', 'Galen', 'Halen', 'Iven', 'Jorin', 'Kalen', 'Lorin', 'Maren', 'Nerin', 'Ovan', 'Peren', 'Qorin', 'Ralen', 'Soren', 'Talen', 'Uren', 'Varen', 'Walen', 'Xeren', 'Yorin', 'Zalen'];
 const LEADER_PROFILE_VARIATION_BPS = 250;
 const SOURCE_LEADER_LIMITATION = 'No pinned, licensing-cleared party-leadership source applicable on 2026-01-01 is available in the ProjectAtlas political registry. The gameplay identity is fictional and is not a sourced real-person analogue.';
+const reviewedLeaderMappings = new Map(partyLeadershipSources.mappings.map(mapping => [mapping.partyId, mapping]));
+const reviewedSourceLeaderIds = new Set(partyLeadershipSources.mappings.map(mapping => `wikidata:${mapping.sourcePersonId}`));
+const sourceOfficeById = new Map(politicalOffices.offices.map(office => [office.id, office]));
+type SourceOfficeholder = typeof politicalOffices.officeholders[number];
 
 function fictionalLeaderName(state: SimulationState, partyId: string, eventKey: string, usedNames: Set<string>) {
   for (let attempt = 0; attempt < 10_000; attempt += 1) {
@@ -54,15 +61,154 @@ function leaderProfileFor(partyId: string, personIdValue: string, state: Simulat
   }));
 }
 
-function leaderProvenance(partyId: string, method: 'party_platform_initial_v1' | 'bounded_party_platform_succession_v1', registry: PoliticalRegistry = politicalRegistry) {
+type ReviewedLeaderMapping = typeof partyLeadershipSources.mappings[number];
+type LeaderProvenance = NonNullable<PoliticalPersonState['leaderProvenance']>;
+
+function leaderProvenance(
+partyId: string,
+method: 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2',
+registry: PoliticalRegistry = politicalRegistry,
+mappingOverride?: ReviewedLeaderMapping | null,
+): LeaderProvenance {
+const mapping = mappingOverride === undefined ? reviewedLeaderMappings.get(partyId) : mappingOverride ?? undefined;
+if (mapping && mapping.referenceDate === registry.referenceDate
+  && (mapping.basis === 'sourced_analogue' || mapping.basis === 'derived_analogue')
+  && (mapping.sourceStatus === 'sourced' || mapping.sourceStatus === 'derived')) {
   return {
-    status: 'modelled_fallback' as const,
+    basis: mapping.basis,
+      method: 'reviewed_primary_party_source_v1' as const,
+      sourcePartyId: registry.parties[partyId].sourceBasis.sourcePartyId,
+      referenceDate: registry.referenceDate,
+      sourceLeaderStatus: mapping.sourceStatus,
+      sourceLeader: {
+        id: `wikidata:${mapping.sourcePersonId}`,
+        name: mapping.sourcePersonName,
+        sourceRecordIds: [...mapping.sourceRecordIds],
+      },
+      limitation: 'A derived, clearly fictional gameplay analogue reconciles reviewed party-leadership evidence with an exact, dated source-officeholder identity. Source identity is provenance only; no personal ideology is inferred.',
+    };
+  }
+  return {
+    basis: 'modelled_fallback' as const,
     method,
     sourcePartyId: registry.parties[partyId].sourceBasis.sourcePartyId,
     referenceDate: registry.referenceDate,
     sourceLeaderStatus: 'unavailable' as const,
     limitation: SOURCE_LEADER_LIMITATION,
   };
+}
+
+function initializeSourceOfficeholders(state: SimulationState, registry: PoliticalRegistry): SimulationState {
+  if (state.date !== registry.referenceDate || state.date !== politicalOffices.referenceDate) return state;
+  const grouped = new Map<string, Array<{ record: SourceOfficeholder; definition: typeof politicalOffices.offices[number] }>>();
+  for (const record of politicalOffices.officeholders) {
+    if (record.status !== 'available' || record.referenceDate !== state.date || !record.startDate || record.startDate > state.date || !record.person?.id) continue;
+    if (!reviewedSourceLeaderIds.has(record.person.id)) continue;
+    const definition = sourceOfficeById.get(record.officeId);
+    if (!definition || !['head_of_government', 'head_of_state'].includes(definition.kind) || !state.engine.fidelityByCountry[definition.countryId]) continue;
+    const key = `${definition.countryId}:${record.person.id}`;
+    const roles = grouped.get(key) ?? [];
+    roles.push({ record, definition });
+    grouped.set(key, roles);
+  }
+
+  let next = state;
+  for (const [, records] of [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    const firstRecord = records[0];
+    if (!firstRecord?.record.person?.id) continue;
+    records.sort((a, b) => a.definition.kind.localeCompare(b.definition.kind) || a.definition.id.localeCompare(b.definition.id));
+    const countryId = firstRecord.definition.countryId;
+    const sourcePersonId = firstRecord.record.person.id;
+    const sourceQid = sourcePersonId.startsWith('wikidata:') ? sourcePersonId.slice('wikidata:'.length) : undefined;
+    const mapping = sourceQid
+      ? [...reviewedLeaderMappings.values()].find(item => item.sourcePersonId === sourceQid && item.referenceDate === state.date)
+      : undefined;
+    const partyLeader = Object.values(next.governance.persons).find(person =>
+      person.countryId === countryId && person.leaderProvenance?.sourceLeader?.id === sourcePersonId);
+    const alreadyMaterialized = Object.values(next.governance.persons).find(person =>
+      person.countryId === countryId && person.office?.evidence?.sourcePersonId === sourcePersonId);
+    let person = partyLeader ?? alreadyMaterialized;
+    if (person?.office && !person.office.evidence) continue;
+
+    const country = registry.countries[countryId];
+    const institution = country ? registry.institutions[country.institutionId] : undefined;
+    const system = institution?.executiveSystemStatus === 'sourced' ? institution.executiveSystem : 'unavailable';
+    const preferredRole = system === 'presidential'
+      ? 'head_of_state'
+      : system === 'parliamentary' || system === 'monarchy_parliamentary' ? 'head_of_government' : undefined;
+    const selected = records.find(item => item.definition.kind === preferredRole)
+      ?? records.find(item => item.definition.kind === 'head_of_government')
+      ?? records[0];
+    const role = selected.definition.kind as PoliticalOfficeRole;
+    const authorityBasis: NonNullable<NonNullable<PoliticalPersonState['office']>['evidence']>['authorityBasis'] =
+      system === 'presidential' && role === 'head_of_state'
+        ? 'sourced_presidential_head_of_state'
+        : (system === 'parliamentary' || system === 'monarchy_parliamentary') && role === 'head_of_government'
+          ? 'sourced_parliamentary_head_of_government'
+          : 'institutional_authority_unresolved';
+    const capabilities: AuthorityCapability[] = authorityBasis === 'institutional_authority_unresolved'
+      ? []
+      : capabilitiesFor(role);
+    const mappedOfficeTitle = mapping?.officeholderMatch.officeId === selected.definition.id
+      ? mapping.officeholderMatch.title
+      : undefined;
+    const title = mappedOfficeTitle ?? selected.definition.title;
+    const capabilityLimitation = authorityBasis === 'sourced_parliamentary_head_of_government'
+      ? 'A dated source officeholder match and sourced parliamentary/monarchy-parliamentary system support this generic modelled executive gameplay profile. It is not a complete legal powers inventory.'
+      : authorityBasis === 'sourced_presidential_head_of_state'
+        ? 'A dated source officeholder match and sourced presidential system support this generic modelled executive gameplay profile. It is not a complete legal powers inventory.'
+        : 'The officeholder identity is reconciled, but available institutional evidence does not resolve this office\'s gameplay authority. No executive capabilities are inferred; this does not assert that the real office has no powers.';
+    const sourceOfficeIds = records.map(item => item.definition.id).sort();
+    const sourceRecordIds = [...new Set([
+      ...(mapping?.sourceRecordIds ?? []),
+      ...records.map(item => item.record.source.datasetId),
+    ])].sort();
+    const office = {
+      role,
+      countryId,
+      title,
+      appointedOn: state.date,
+      evidence: {
+        status: 'source_reconciled' as const,
+        sourceOfficeId: selected.definition.id,
+        sourceOfficeIds,
+        sourcePersonId,
+        referenceDate: state.date,
+        effectiveFrom: selected.record.startDate,
+        sourceRecordIds,
+        authorityBasis,
+      },
+      authorityProfile: {
+        status: 'modelled_constitutional_abstraction' as const,
+        capabilities,
+        limitation: capabilityLimitation,
+      },
+    };
+    if (!person) {
+      const id = personId(next.governance.nextPersonSequence);
+      if (next.governance.persons[id]) throw new Error(`Political person sequence is already in use: ${id}.`);
+      const usedNames = new Set(Object.values(next.governance.persons).map(item => item.displayName));
+      person = {
+        id,
+        displayName: fictionalLeaderName(next, `officeholder:${sourcePersonId}`, `initial-officeholder:${countryId}`, usedNames),
+        countryId,
+        createdOn: state.date,
+        isPartyLeader: false,
+        status: 'active',
+      };
+      next = cloneGovernance(next, {
+        ...next.governance,
+        persons: { ...next.governance.persons, [id]: { ...person, office } },
+        nextPersonSequence: next.governance.nextPersonSequence + 1,
+      });
+    } else {
+      next = cloneGovernance(next, {
+        ...next.governance,
+        persons: { ...next.governance.persons, [person.id]: { ...person, office } },
+      });
+    }
+  }
+  return next;
 }
 
 export function initializeGovernance(state: SimulationState): GovernanceState {
@@ -126,7 +272,7 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
       isPartyLeader: false,
       status: 'active' as const,
       leaderProfile: leaderProfileFor(partyId, id, state, true),
-      leaderProvenance: leaderProvenance(partyId, 'bounded_party_platform_succession_v1'),
+      leaderProvenance: leaderProvenance(partyId, 'bounded_party_platform_succession_v2', politicalRegistry, null),
     };
     next = cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [id]: successor }, nextPersonSequence: state.governance.nextPersonSequence + 1 });
     selection = 'modelled_fallback';
@@ -136,7 +282,7 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
     ...successor,
     isPartyLeader: true,
     leaderProfile: successor.leaderProfile ?? leaderProfileFor(partyId, successor.id, state, true),
-    leaderProvenance: successor.leaderProvenance ?? leaderProvenance(partyId, 'bounded_party_platform_succession_v1'),
+    leaderProvenance: successor.leaderProvenance ?? leaderProvenance(partyId, 'bounded_party_platform_succession_v2', politicalRegistry, null),
   };
   const previousPerson = { ...currentGovernance.persons[previous.id], isPartyLeader: false };
   const id = successionId(currentGovernance.nextSuccessionSequence);
@@ -186,31 +332,44 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
     if (leaders.length > 1) throw new Error(`Party ${party.id} has multiple active leaders.`);
     if (leaders.length === 1) {
       const existing = leaders[0];
-      if (existing.leaderProfile && existing.leaderProvenance) continue;
+      const mapping = next.date === registry.referenceDate ? reviewedLeaderMappings.get(party.id) : undefined;
+      const sourcePersonId = mapping ? `wikidata:${mapping.sourcePersonId}` : undefined;
+      const canReconcile = Boolean(mapping && (existing.createdOn === next.date || existing.leaderProvenance?.sourceLeader?.id === sourcePersonId));
+      if (existing.leaderProfile && existing.leaderProvenance && !canReconcile) continue;
+      const provenance = canReconcile
+        ? existing.leaderProvenance?.sourceLeader?.id === sourcePersonId
+          ? existing.leaderProvenance
+          : leaderProvenance(party.id, 'party_platform_initial_v2', registry, mapping)
+        : existing.leaderProvenance ?? leaderProvenance(party.id, 'party_platform_initial_v2', registry, null);
       next = cloneGovernance(next, { ...next.governance, persons: { ...next.governance.persons, [existing.id]: {
         ...existing,
+        displayName: canReconcile ? mapping?.fictionalAnalogueName ?? existing.displayName : existing.displayName,
         leaderProfile: existing.leaderProfile ?? leaderProfileFor(party.id, existing.id, next, false, registry),
-        leaderProvenance: existing.leaderProvenance ?? leaderProvenance(party.id, 'party_platform_initial_v1', registry),
+        leaderProvenance: provenance,
       } } });
       continue;
     }
     const id = personId(next.governance.nextPersonSequence);
     if (next.governance.persons[id]) throw new Error(`Political person sequence is already in use: ${id}.`);
     const usedNames = new Set(Object.values(next.governance.persons).map(person => person.displayName));
+    const mapping = next.date === registry.referenceDate ? reviewedLeaderMappings.get(party.id) : undefined;
     const leader = {
       id,
-      displayName: fictionalLeaderName(next, party.id, 'initial', usedNames),
+      displayName: mapping?.fictionalAnalogueName ?? fictionalLeaderName(next, party.id, 'initial', usedNames),
       countryId: party.countryId,
       createdOn: next.date,
       partyId: party.id,
       isPartyLeader: true,
       status: 'active' as const,
       leaderProfile: leaderProfileFor(party.id, id, next, false, registry),
-      leaderProvenance: leaderProvenance(party.id, 'party_platform_initial_v1', registry),
+      leaderProvenance: leaderProvenance(party.id, 'party_platform_initial_v2', registry, mapping ?? null),
     };
     next = cloneGovernance(next, { ...next.governance, persons: { ...next.governance.persons, [id]: leader }, nextPersonSequence: next.governance.nextPersonSequence + 1 });
   }
-  return { ...next, governance: { ...next.governance, leadersInitializedOn: next.date } };
+  if (!next.governance.leadersInitializedOn && orderedParties.length > 0) {
+    next = { ...next, governance: { ...next.governance, leadersInitializedOn: next.date } };
+  }
+  return initializeSourceOfficeholders(next, registry);
 }
 
 export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[] }): SimulationState {
@@ -219,7 +378,8 @@ export function assignPoliticalOffice(state: SimulationState, personIdValue: str
   if (person.countryId !== input.countryId || !dateValid(appointedOn) || appointedOn > state.date || !state.governance.initializedOn || appointedOn < state.governance.initializedOn || appointedOn < person.createdOn) throw new Error('Office scope or appointment date is invalid.');
   const capabilities = [...new Set(input.capabilities ?? capabilitiesFor(input.role))].sort();
   if (capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item))) throw new Error('Unknown authority capability.');
-  const office = { role: input.role, countryId: input.countryId, appointedOn, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities, limitation: authorityLimitation } };
+  const title = input.role === 'head_of_government' ? 'Head of Government' : input.role === 'head_of_state' ? 'Head of State' : 'Legislator';
+  const office = { role: input.role, countryId: input.countryId, title, appointedOn, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities, limitation: authorityLimitation } };
   return cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [person.id]: { ...person, office } } });
 }
 
@@ -267,47 +427,6 @@ export function withdrawProposal(state: SimulationState, proposalIdValue: string
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || !['draft', 'submitted'].includes(proposal.status)) throw new Error('Proposal cannot be withdrawn.');
   requireControlled(state, proposal.proposerPersonId);
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, status: 'withdrawn', resolvedOn: state.date } } });
-}
-
-export function classifyProposalImpact(state: SimulationState, proposal: PoliticalProposal, analysisOverride?: ProposalAnalysis): ProposalImpact {
-  const analysis = analysisOverride ?? analyzeProposal(state, proposal), issueDirectionsBps = Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, analysis.issueEffects[issue]])) as ProposalImpact['issueDirectionsBps'];
-  const drivers = analysis.expectedConsequences.filter(item => POLITICAL_ISSUES.includes(item.goal as never)).map(item => ({ issue: item.goal as typeof POLITICAL_ISSUES[number], directionBps: item.directionBps, source: item.source, explanation: item.explanation }));
-  return { issueDirectionsBps, drivers, method: 'fiscal_delta_v1', limitation: analysis.limitations.join(' ') };
-}
-
-export function estimatePublicSupport(state: SimulationState, proposal: PoliticalProposal, analysisOverride?: ProposalAnalysis): PublicSupportEstimate {
-  const analysis = analysisOverride ?? analyzeProposal(state, proposal), impact = classifyProposalImpact(state, proposal, analysis); let yes = 0, no = 0, neutral = 0, unknown = 0, representedPersons = 0, knownPersons = 0, unknownPersons = 0, confidenceWeighted = 0;
-  for (const [regionId, regional] of Object.entries(state.politics.regionalOpinion).sort(([a], [b]) => a.localeCompare(b))) {
-    if (regional.countryId !== proposal.countryId) continue;
-    const cohorts = state.socioeconomy.regions[regionId]?.cohorts ?? [];
-    for (const [cohortId, opinion] of Object.entries(regional.cohorts).sort(([a], [b]) => a.localeCompare(b))) {
-      const persons = cohorts.find(item => `${item.income}:${item.orientation}` === cohortId)?.persons ?? 0; if (!persons) continue;
-      const goals = {} as PartyGoalProfile['goals']; POLITICAL_ISSUES.forEach((issue, index) => { const ideal = opinion[COHORT.preferences][index], importance = opinion[COHORT.salience][index], confidence = Math.min(7_000, opinion[COHORT.engagement]); goals[issue] = { idealPointBps: ideal, importanceBps: importance, compromiseToleranceBps: Math.max(1_500, Math.min(9_000, Math.round(8_000 - importance * 0.4 - Math.abs(ideal - 5_000) * 0.2))), confidenceBps: confidence, status: 'modelled_fallback' }; }); goals.fiscal_sustainability = { idealPointBps: 8_500, importanceBps: 2_000, compromiseToleranceBps: 7_500, confidenceBps: 1_000, status: 'modelled_common_constraint' };
-      const evaluation = evaluateProfileForPublic(analysis, { partyId: `cohort:${cohortId}`, goals }), engaged = Math.max(1, opinion[COHORT.engagement]), weight = persons * engaged; representedPersons += persons; confidenceWeighted += evaluation.confidenceBps * persons;
-      const eligible = evaluation.confidenceBps >= GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps && evaluation.coverage !== 'unavailable';
-      if (!eligible) { unknown += weight; unknownPersons += persons; } else { knownPersons += persons; if (evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps) yes += weight; else if (evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps) no += weight; else neutral += weight; }
-    }
-  }
-  const totals = allocate(10_000, [yes, no, neutral, unknown || (!yes && !no && !neutral ? 1 : 0)]), coverage = !representedPersons || !knownPersons ? 'unavailable' : unknownPersons || analysis.coverage !== 'complete' ? 'partial' : 'complete';
-  return { supportBps: totals[0], opposeBps: totals[1], neutralBps: totals[2], unknownBps: totals[3], confidenceBps: representedPersons ? Math.round(confidenceWeighted / representedPersons) : 0, coverage, representedPersons, knownPersons, unknownPersons, drivers: impact.drivers };
-}
-
-export function estimateParliamentarySupport(state: SimulationState, proposal: PoliticalProposal, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}, analysisOverride?: ProposalAnalysis): ParliamentarySupportEstimate {
-  const institution = registry.institutions[registry.countries[proposal.countryId]?.institutionId];
-  if (!institution || institution.legislatureKind === 'none' || institution.legislatureKind === 'unavailable' || !institution.chambers.length) return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'modelled_procedure_v1' };
-  const analysis = analysisOverride ?? analyzeProposal(state, proposal), chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
-    if (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined) return { chamberId: chamber.id, yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: chamber.totalSeats ?? 0, totalSeats: chamber.totalSeats, coverage: 'unavailable', partyEvaluations: [] };
-    let yesSeats = 0, noSeats = 0, abstainSeats = 0, unknownSeats = 0; const partyEvaluations: NonNullable<ChamberSupportEstimate['partyEvaluations']> = [];
-    for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) { const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profiles[partyId], analysis); partyEvaluations.push({ ...evaluation, seats }); if (evaluation.vote === 'yes') yesSeats += seats; else if (evaluation.vote === 'no') noSeats += seats; else if (evaluation.vote === 'abstain') abstainSeats += seats; else unknownSeats += seats; }
-    let unavailableSeats = unknownSeats + (chamber.independentOtherSeats ?? 0), allocated = yesSeats + noSeats + abstainSeats + unavailableSeats;
-    if (allocated !== chamber.totalSeats) unavailableSeats = Math.max(unavailableSeats, chamber.totalSeats - yesSeats - noSeats - abstainSeats);
-    const knownSeats = yesSeats + noSeats + abstainSeats, coverage = allocated !== chamber.totalSeats ? 'unavailable' : unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
-    return { chamberId: chamber.id, yesSeats, noSeats, abstainSeats, unavailableSeats, totalSeats: chamber.totalSeats, coverage, adopted: coverage === 'complete' ? yesSeats > noSeats : undefined, partyEvaluations };
-  });
-  const totalSeats = chambers.reduce((n, item) => n + (item.totalSeats ?? 0), 0), yesSeats = chambers.reduce((n, item) => n + item.yesSeats, 0), noSeats = chambers.reduce((n, item) => n + item.noSeats, 0), abstainSeats = chambers.reduce((n, item) => n + item.abstainSeats, 0), unavailableSeats = chambers.reduce((n, item) => n + item.unavailableSeats, 0);
-  const coverage = chambers.every(item => item.coverage === 'complete') ? 'complete' : chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
-  const confidenceWeight = chambers.reduce((sum, chamber) => sum + (chamber.partyEvaluations ?? []).reduce((partySum, evaluation) => partySum + evaluation.confidenceBps * evaluation.seats, 0), 0);
-  return { yesSeats, noSeats, abstainSeats, unavailableSeats, totalSeats, chambers, coverage, confidenceBps: totalSeats ? Math.round(confidenceWeight / totalSeats) : 0, procedure: 'modelled_procedure_v1' };
 }
 
 export function inspectProposalSupport(state: SimulationState, proposalIdValue: string, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}) {

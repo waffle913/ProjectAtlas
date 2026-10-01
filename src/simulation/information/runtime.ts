@@ -1,7 +1,10 @@
 import type { SimulationState } from '../../types';
 import type { PoliticalProposal } from '../governance/model';
+import { analyzeProposal, derivePartyGoalProfile } from '../governance/analysis';
+import { estimateParliamentarySupport, estimatePublicSupport } from '../governance/estimates';
+import { politicalRegistry } from '../politics/registry';
 import type { SchedulerTask, SimulationScheduler } from '../scheduler';
-import type { AdvisorAssistance, BriefingPresentation, GovernmentReport, InformationState, MinisterialBriefing, Portfolio } from './model';
+import type { AdvisorAssistance, BriefingInterpretation, BriefingPresentation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport, InformationState, MinisterialBriefing, Portfolio } from './model';
 import { INFORMATION_MODEL, INFORMATION_VERSION, emptyInformation } from './model';
 import { CRISIS_TYPES } from '../crisis/model';
 
@@ -21,7 +24,15 @@ function retainBriefingReports(
   briefings: readonly MinisterialBriefing[],
 ): Record<string, GovernmentReport> {
   const retainedIds = new Set(Object.values(latestReports).map(report => report.id));
-  for (const briefing of briefings) if (briefing.fact.reportId) retainedIds.add(briefing.fact.reportId);
+  for (const briefing of briefings) {
+    if (briefing.fact.reportId) retainedIds.add(briefing.fact.reportId);
+    if (briefing.fact.policyFollowUp?.baselineReportId) retainedIds.add(briefing.fact.policyFollowUp.baselineReportId);
+    for (const comparison of briefing.fact.policyComparisons ?? []) {
+      const proposalBriefing = briefings.find(item => item.fact.kind === 'parliamentary_result' && item.fact.proposalId === comparison.proposalId);
+      const baselineId = proposalBriefing?.fact.policyFollowUp?.baselineReportId;
+      if (baselineId) retainedIds.add(baselineId);
+    }
+  }
   return Object.fromEntries([...retainedIds].sort().flatMap(id => reportsById[id] ? [[id, reportsById[id]] as const] : []));
 }
 
@@ -49,15 +60,68 @@ export function inspectPublicBriefings(state: SimulationState, countryId: string
   return state.information.briefings.filter(item => item.countryId === countryId && item.access === 'public').map(item => structuredClone(item));
 }
 
+const chamberDisplayName = (countryId: string, chamberId: string) => {
+  const institution = politicalRegistry.institutions[politicalRegistry.countries[countryId]?.institutionId];
+  return institution?.chambers.find(chamber => chamber.id === chamberId)?.displayName ?? chamberId;
+};
+
+function chamberBriefingResult(countryId: string, chamber: {
+  chamberId: string;
+  yesSeats: number;
+  noSeats: number;
+  abstainSeats: number;
+  unavailableSeats: number;
+  totalSeats?: number;
+  coverage: 'complete' | 'partial' | 'unavailable';
+  adopted?: boolean;
+}): ChamberBriefingResult {
+  return {
+    chamberId: chamber.chamberId,
+    displayName: chamberDisplayName(countryId, chamber.chamberId),
+    outcome: chamber.coverage === 'complete' && chamber.adopted !== undefined ? chamber.adopted ? 'adopted' : 'rejected' : 'unavailable',
+    yesSeats: chamber.yesSeats,
+    noSeats: chamber.noSeats,
+    abstainSeats: chamber.abstainSeats,
+    unavailableSeats: chamber.unavailableSeats,
+    totalSeats: chamber.totalSeats,
+    coverage: chamber.coverage,
+  };
+}
+
+function parliamentaryHeadline(outcome: 'adopted' | 'rejected' | 'unavailable', chambers: ChamberBriefingResult[]): string {
+  if (chambers.length === 1 && chambers[0].coverage === 'complete') {
+    const chamber = chambers[0];
+    if (outcome === 'unavailable') return `The overall decision is unavailable. ${chamber.displayName} recorded ${chamber.yesSeats} votes in favour and ${chamber.noSeats} against.`;
+    return `${chamber.displayName} ${outcome} the proposal by ${chamber.yesSeats} votes to ${chamber.noSeats}.`;
+  }
+  if (chambers.length > 1) {
+    const results = chambers.map(chamber => chamber.outcome === 'unavailable'
+      ? `${chamber.displayName}: result unavailable (${chamber.coverage} coverage)`
+      : `${chamber.displayName}: ${chamber.outcome}`);
+    const decision = outcome === 'adopted' ? 'The legislature adopted the proposal.'
+      : outcome === 'rejected' ? 'The legislature rejected the proposal.'
+        : 'The overall parliamentary decision is unavailable.';
+    return `${decision} Chamber results: ${results.join('; ')}.`;
+  }
+  return `Parliamentary result ${outcome}; no chamber-level vote record is available. Aggregate seat totals are not presented as a single vote.`;
+}
+
 export function addProposalResultBriefing(state: SimulationState, proposal: PoliticalProposal): SimulationState {
   if (!['enacted', 'rejected', 'unavailable'].includes(proposal.status) || !proposal.voteResult) return state;
   const outcome = proposal.voteResult.outcome;
   const yes = proposal.voteResult.yesSeats, no = proposal.voteResult.noSeats;
-  const resultText = outcome === 'adopted'
-    ? `Parliament adopted the fiscal reform by ${yes} votes to ${no}.`
-    : outcome === 'rejected'
-      ? `Parliament rejected the fiscal reform by ${yes} votes to ${no}.`
-      : `Parliamentary evaluation is unavailable (${yes} recorded yes votes and ${no} recorded no votes).`;
+  const chamberResults = proposal.voteResult.chambers.map(chamber => chamberBriefingResult(proposal.countryId, chamber));
+  const unicameralComplete = chamberResults.length === 1 && chamberResults[0].coverage === 'complete';
+  const baseline = state.information.latestGovernmentReports[proposal.countryId];
+  const hasComparableBaseline = baseline?.valueBps !== undefined && baseline.asOfDate <= proposal.effectiveDate;
+  const policyFollowUp = outcome === 'adopted' ? {
+    proposalId: proposal.id,
+    effectiveDate: proposal.effectiveDate,
+    baselineReportId: hasComparableBaseline ? baseline.id : undefined,
+    baselineDate: hasComparableBaseline ? baseline.asOfDate : undefined,
+    baselineValueBps: hasComparableBaseline ? baseline.valueBps : undefined,
+    attributionStatus: hasComparableBaseline ? 'temporal_only' as const : 'unavailable' as const,
+  } : undefined;
   const id = briefingId('proposal_result', proposal.countryId, proposal.id);
   const briefing: MinisterialBriefing = {
     id,
@@ -68,15 +132,24 @@ export function addProposalResultBriefing(state: SimulationState, proposal: Poli
     severity: 'advisory',
     createdOn: proposal.voteResult.resolvedOn,
     sourceId: proposal.id,
-    headline: resultText,
-    interpretation: undefined,
+    headline: `${executiveBriefingPrefix(state, proposal.countryId, 'Parliamentary briefing')} ${parliamentaryHeadline(outcome, chamberResults)}`,
+    interpretation: {
+      basis: 'derived',
+      summary: outcome === 'unavailable'
+        ? 'The legislative record does not establish a complete chamber-level decision.'
+        : `The recorded chamber result is ${outcome}; it does not establish the wider causal effects of the proposal.`,
+      tradeoffs: [],
+      limitations: ['Only the existing 0.14 chamber-level vote result is summarized; this briefing does not recalculate or combine chamber votes.'],
+    },
     fact: {
       kind: 'parliamentary_result',
       proposalId: proposal.id,
       outcome,
-      yesSeats: yes,
-      noSeats: no,
+      yesSeats: unicameralComplete ? yes : undefined,
+      noSeats: unicameralComplete ? no : undefined,
       effectiveDate: outcome === 'adopted' ? proposal.effectiveDate : undefined,
+      chamberResults,
+      policyFollowUp,
       evidenceStatus: proposal.voteResult.coverage === 'complete' ? 'modelled' : 'partial',
     },
     pauseRequested: false,
@@ -84,23 +157,111 @@ export function addProposalResultBriefing(state: SimulationState, proposal: Poli
   return { ...state, information: addBriefing(state.information, briefing) };
 }
 
+const estimateId = (countryId: string, proposalId: string, date: string) => `government-proposal-estimate:${countryId}:${proposalId}:${date}`;
+
+export function produceGovernmentProposalEstimate(state: SimulationState, proposalId: string, personId: string): SimulationState {
+  const proposal = state.governance.proposals[proposalId];
+  if (!proposal) throw new Error(`Unknown political proposal: ${proposalId}`);
+  if (!hasGovernmentInformationAccess(state, personId, proposal.countryId)) throw new Error('Government office access is required to estimate proposal reactions.');
+  if (!['draft', 'submitted'].includes(proposal.status)) throw new Error('Only an unresolved proposal can receive a Government Information estimate.');
+
+  const analysis = analyzeProposal(state, proposal);
+  const publicEstimate = estimatePublicSupport(state, proposal, analysis);
+  const parliament = estimateParliamentarySupport(state, proposal, politicalRegistry, {}, analysis);
+  const chambers = parliament.chambers.map(chamber => chamberBriefingResult(proposal.countryId, chamber));
+  const coverage = analysis.coverage === 'unavailable' || publicEstimate.coverage === 'unavailable' || parliament.coverage === 'unavailable'
+    ? 'unavailable'
+    : analysis.coverage === 'partial' || publicEstimate.coverage === 'partial' || parliament.coverage === 'partial' ? 'partial' : 'complete';
+  const report: GovernmentProposalEstimate = {
+    id: estimateId(proposal.countryId, proposal.id, state.date),
+    countryId: proposal.countryId,
+    proposalId: proposal.id,
+    requestedOn: state.date,
+    requestedByPersonId: personId,
+    coverage,
+    confidenceBps: Math.min(publicEstimate.confidenceBps, parliament.confidenceBps),
+    publicEstimate: {
+      supportBps: publicEstimate.supportBps,
+      opposeBps: publicEstimate.opposeBps,
+      neutralBps: publicEstimate.neutralBps,
+      unknownBps: publicEstimate.unknownBps,
+      confidenceBps: publicEstimate.confidenceBps,
+      coverage: publicEstimate.coverage,
+    },
+    parliamentaryEstimate: {
+      yesSeats: parliament.yesSeats,
+      noSeats: parliament.noSeats,
+      abstainSeats: parliament.abstainSeats,
+      unavailableSeats: parliament.unavailableSeats,
+      totalSeats: parliament.totalSeats,
+      confidenceBps: parliament.confidenceBps,
+      coverage: parliament.coverage,
+      chambers,
+    },
+    directPolicyChanges: analysis.directPolicyChanges.map(change => ({
+      path: change.path,
+      before: change.before,
+      after: change.after,
+      delta: change.delta,
+      coverage: change.coverage,
+      explanation: change.explanation,
+    })),
+    expectedConsequences: analysis.expectedConsequences.map(item => ({
+      goal: item.goal,
+      directionBps: item.directionBps === 0 ? 0 : item.directionBps,
+      magnitudeBps: item.magnitudeBps,
+      confidenceBps: item.confidenceBps,
+      coverage: item.coverage,
+      explanation: item.explanation,
+    })),
+    unsupportedChanges: analysis.unsupportedChanges.map(change => ({ ...change })),
+    limitations: [...analysis.limitations],
+    provenance: {
+      status: 'derived',
+      engine: 'situational-0.14-v2',
+      source: 'governance.proposal-analysis',
+      limitation: 'An on-demand model estimate from existing 0.14 mechanisms; it is not a vote, policy outcome, forecast, or causal effect beyond the listed mechanisms.',
+    },
+  };
+  const proposalEstimates = [
+    ...state.information.proposalEstimates.filter(item => item.id !== report.id),
+    report,
+  ].slice(-INFORMATION_MODEL.proposalEstimateHistoryLimit);
+  return { ...state, information: { ...state.information, proposalEstimates } };
+}
+
+export function inspectGovernmentProposalEstimates(state: SimulationState, countryId: string, personId: string): GovernmentProposalEstimate[] {
+  if (!hasGovernmentInformationAccess(state, personId, countryId)) return [];
+  return state.information.proposalEstimates
+    .filter(report => report.countryId === countryId)
+    .map(report => structuredClone(report));
+}
+
+export function inspectGovernmentProposalEstimate(state: SimulationState, reportId: string, personId: string): GovernmentProposalEstimate | undefined {
+  const report = state.information.proposalEstimates.find(item => item.id === reportId);
+  if (!report || !hasGovernmentInformationAccess(state, personId, report.countryId)) return undefined;
+  return structuredClone(report);
+}
+
 export function explainProposal(state: SimulationState, proposalId: string, personId?: string): string[] {
   const proposal = state.governance.proposals[proposalId];
   if (!proposal) throw new Error(`Unknown political proposal: ${proposalId}`);
   if (!personId || !hasGovernmentInformationAccess(state, personId, proposal.countryId)) {
     if (!proposal.voteResult) return ['No public parliamentary result is available for this proposal.'];
-    return [`Public record: ${proposal.voteResult.outcome} (${proposal.voteResult.yesSeats} yes seats, ${proposal.voteResult.noSeats} no seats). The public record does not establish an isolated policy cause.`];
+    const briefing = state.information.briefings.find(item => item.fact.kind === 'parliamentary_result' && item.fact.proposalId === proposalId);
+    return [briefing?.headline ?? `Public record: ${proposal.voteResult.outcome}. The public record does not establish an isolated policy cause.`];
   }
 
-  const analysis = proposal.analysis;
-  if (!analysis) return ['No saved proposal analysis is available; the proposal has not been evaluated with material evidence.'];
+  const report = state.information.proposalEstimates.filter(item => item.proposalId === proposalId).at(-1);
+  if (!report) return ['No dated Government Information estimate is available; request one while the proposal is unresolved.'];
   const lines = [
-    ...analysis.directPolicyChanges.map(change => `${change.explanation} Evidence coverage: ${change.coverage}.`),
-    ...analysis.expectedConsequences.map(item => `${item.explanation} Evidence coverage: ${item.coverage}; confidence ${item.confidenceBps} basis points.`),
-    ...analysis.unsupportedChanges.map(change => `${change.path}: the model cannot currently estimate this effect reliably (${change.coverage}). ${change.reason}`),
-    ...analysis.limitations.map(limitation => `Limitation: ${limitation}`),
+    `Government estimate dated ${report.requestedOn}: ${report.coverage} coverage; conservative confidence ${report.confidenceBps} basis points.`,
+    ...report.directPolicyChanges.map(change => `${change.explanation} Evidence coverage: ${change.coverage}.`),
+    ...report.expectedConsequences.map(item => `${item.explanation} Evidence coverage: ${item.coverage}; confidence ${item.confidenceBps} basis points.`),
+    ...report.unsupportedChanges.map(change => `${change.path}: the model cannot currently estimate this effect reliably (${change.coverage}). ${change.reason}`),
+    ...report.limitations.map(limitation => `Limitation: ${limitation}`),
   ];
-  return lines.length ? lines : ['The current evaluation identifies no supported material effect for this proposal.'];
+  return lines;
 }
 
 export function explainBriefing(state: SimulationState, briefing: MinisterialBriefing, personId: string): string[] {
@@ -117,6 +278,7 @@ export function explainBriefing(state: SimulationState, briefing: MinisterialBri
     const prior = briefing.fact.previousValueBps;
     return [
       `The ${report.asOfDate} modelled unemployment report is ${(report.valueBps / 100).toFixed(2)}%${prior === undefined ? '' : `, compared with ${(prior / 100).toFixed(2)}% in the previous report`}.`,
+      ...(briefing.fact.policyComparisons ?? []).map(comparison => `Since proposal ${comparison.proposalId} entered into force on ${comparison.effectiveDate}, unemployment moved from ${(comparison.baselineValueBps / 100).toFixed(2)}% on ${comparison.baselineDate} to ${(comparison.currentValueBps / 100).toFixed(2)}%. This is a temporal comparison, not evidence that the measure caused the change.`),
       `Coverage: ${report.coverage}. This change is temporal evidence, not isolated policy causation.`,
       report.limitation,
     ];
@@ -135,14 +297,81 @@ export function explainBriefing(state: SimulationState, briefing: MinisterialBri
   return ['No deeper causal explanation is available for this briefing.'];
 }
 
-export function presentBriefing(briefing: MinisterialBriefing, assistance: AdvisorAssistance): BriefingPresentation {
+function availableFiscalLevers(state: SimulationState, personId: string, countryId: string): Array<'corporate_tax' | 'annual_budget'> {
+  const person = state.governance.persons[personId];
+  const capabilities = person?.office?.countryId === countryId ? person.office.authorityProfile.capabilities : [];
+  if (!hasGovernmentInformationAccess(state, personId, countryId) || !capabilities.includes('sponsor_legislation')) return [];
+  const levers: Array<'corporate_tax' | 'annual_budget'> = [];
+  if (capabilities.includes('sponsor_fiscal_reform') && typeof state.fiscal.countries[countryId]?.policy.corporate?.rateBps === 'number') levers.push('corporate_tax');
+  if (capabilities.includes('sponsor_budget_reform') && state.fiscal.countries[countryId]?.annualBudget) levers.push('annual_budget');
+  return levers;
+}
+
+export function presentBriefing(state: SimulationState, briefing: MinisterialBriefing, assistance: AdvisorAssistance, personId: string): BriefingPresentation {
+  const available = new Set(availableFiscalLevers(state, personId, briefing.countryId));
+  const policyLevers = (briefing.interpretation?.policyLevers ?? []).filter(lever => available.has(lever.mechanism));
   return {
     headline: briefing.headline,
-    context: assistance === 'expert' ? undefined : briefing.interpretation,
-    guidedActions: assistance === 'guided' && briefing.eventType === 'proposal_result' && briefing.fact.outcome === 'rejected'
-      ? ['Open proposal']
+    context: assistance === 'expert' ? undefined : briefing.interpretation?.summary,
+    guidedActions: assistance === 'guided' && policyLevers.length
+      ? [...new Set(policyLevers.map(lever => lever.mechanism))].map(mechanism => ({
+        label: mechanism === 'corporate_tax' ? 'Review corporate-tax proposal' : 'Review annual budget proposal',
+        destination: 'fiscal' as const,
+      }))
       : undefined,
+    guidedLevers: assistance === 'guided' && policyLevers.length
+      ? policyLevers.map(lever => ({
+        label: lever.mechanism === 'corporate_tax' ? 'Corporate-tax proposal' : 'Annual budget proposal',
+        explanation: lever.limitation,
+      }))
+      : undefined,
+    tradeoffs: assistance === 'guided' ? briefing.interpretation?.tradeoffs : undefined,
+    limitations: assistance === 'guided' ? briefing.interpretation?.limitations : undefined,
     tellMeMoreAvailable: true,
+  };
+}
+
+function currentExecutive(state: SimulationState, countryId: string) {
+  const controlledId = state.governance.player.controlledPersonId;
+  const controlled = controlledId ? state.governance.persons[controlledId] : undefined;
+  if (controlled && controlled.countryId === countryId && hasGovernmentInformationAccess(state, controlled.id, countryId)) return controlled;
+  return Object.values(state.governance.persons)
+    .filter(person => person.countryId === countryId && hasGovernmentInformationAccess(state, person.id, countryId))
+    .sort((a, b) => a.id.localeCompare(b.id))[0];
+}
+
+function executiveBriefingPrefix(state: SimulationState, countryId: string, fallback: string): string {
+  const title = currentExecutive(state, countryId)?.office?.title;
+  return title && !['Head of Government', 'Head of State', 'Legislator'].includes(title) ? `${title}:` : `${fallback}:`;
+}
+
+function labourInterpretation(state: SimulationState, countryId: string, direction: 'increased' | 'decreased'): BriefingInterpretation {
+  const executive = currentExecutive(state, countryId);
+  const party = executive?.partyId ? politicalRegistry.parties[executive.partyId] : undefined;
+  const goals = party ? derivePartyGoalProfile(party).goals : undefined;
+  const relevantGoals = ['labour_protection', 'income_security'] as const;
+  const leadingGoal = goals && [...relevantGoals]
+    .map(goal => ({ goal, importanceBps: goals[goal].importanceBps }))
+    .sort((a, b) => b.importanceBps - a.importanceBps || a.goal.localeCompare(b.goal))[0];
+  const partyContext = leadingGoal
+    ? ` The executive's existing party profile records ${(leadingGoal.importanceBps / 100).toFixed(0)}% importance for ${leadingGoal.goal.replaceAll('_', ' ')}.`
+    : '';
+  const limitation = 'ProjectAtlas has no supported employment-policy instrument or modelled hiring response; this movement does not identify its causes.';
+  const policyLevers = executive ? availableFiscalLevers(state, executive.id, countryId).map(mechanism => ({
+    mechanism,
+    limitation: mechanism === 'corporate_tax'
+      ? 'The existing corporate-tax route estimates represented liabilities and revenue only; employment and investment responses are not modelled.'
+      : 'The existing annual-budget route changes represented public allocations; direct employment effects are not modelled.',
+  })) : [];
+  return {
+    basis: goals ? 'derived' : 'modelled',
+    summary: `Employment conditions ${direction === 'increased' ? 'worsened' : 'improved'} between the two modelled unemployment reports.${partyContext}`,
+    relevantGoals: goals ? [...relevantGoals] : undefined,
+    policyLevers,
+    tradeoffs: policyLevers.map(lever => lever.mechanism === 'corporate_tax'
+      ? 'A corporate-tax reform changes represented tax liabilities and fiscal revenue; its effect on hiring and investment is unavailable.'
+      : 'Changing annual allocations changes the represented budget composition; direct employment effects are unavailable.'),
+    limitations: [limitation],
   };
 }
 
@@ -191,13 +420,40 @@ function monthlyReports(state: SimulationState): SimulationState {
     const materiallyChanged = previous?.valueBps !== undefined && valueBps !== undefined
       && Math.abs(valueBps - previousValueBps!) >= INFORMATION_MODEL.materialUnemploymentChangeBps;
     if (!materiallyChanged || previous?.asOfDate === state.date) continue;
+    const policyComparisons = briefings.briefings
+      .filter(item => item.countryId === countryId && item.fact.kind === 'parliamentary_result' && item.fact.outcome === 'adopted' && item.fact.policyFollowUp?.attributionStatus === 'temporal_only')
+      .flatMap(item => {
+        const anchor = item.fact.policyFollowUp!;
+        if (!anchor.baselineReportId || anchor.baselineDate === undefined || anchor.baselineValueBps === undefined || anchor.effectiveDate > state.date || anchor.baselineDate > anchor.effectiveDate) return [];
+        const baselineReport = governmentReportsById[anchor.baselineReportId];
+        if (!baselineReport || baselineReport.valueBps !== anchor.baselineValueBps) return [];
+        return [{
+          proposalId: anchor.proposalId,
+          effectiveDate: anchor.effectiveDate,
+          baselineDate: anchor.baselineDate,
+          baselineValueBps: anchor.baselineValueBps,
+          currentValueBps: valueBps!,
+          attributionStatus: 'temporal_only' as const,
+        }];
+      })
+      .slice(-16);
+    const executive = currentExecutive(state, countryId);
+    const movement = valueBps! > previousValueBps! ? 'increased' : 'decreased';
+    const comparisonText = policyComparisons.map(comparison => ` Since the measure entered into force on ${comparison.effectiveDate}, unemployment moved from ${(comparison.baselineValueBps / 100).toFixed(2)}% to ${(comparison.currentValueBps / 100).toFixed(2)}%; this is a temporal comparison, not evidence of causation.`).join('');
     const id = briefingId('labour_report', countryId, report.id);
     briefings = addBriefing(briefings, {
       id, countryId, portfolio: 'economy', access: 'government', eventType: 'labour_report',
       severity: 'advisory', createdOn: state.date, sourceId: report.id,
-      headline: `The new monthly labour report records unemployment at ${(valueBps! / 100).toFixed(2)}%, compared with ${(previousValueBps! / 100).toFixed(2)}% in the previous report.`,
-      interpretation: 'This is a change between modelled monthly reports, not an isolated causal estimate of any one policy.',
-      fact: { kind: 'labour_report', reportId: report.id, previousValueBps: previous.valueBps, valueBps, evidenceStatus: coverage === 'complete' ? 'modelled' : 'partial' },
+      headline: `${executiveBriefingPrefix(state, countryId, 'Government briefing')} New labour figures are available. Unemployment has ${movement} from ${(previousValueBps! / 100).toFixed(2)}% to ${(valueBps! / 100).toFixed(2)}% since the previous report.${comparisonText}`,
+      interpretation: labourInterpretation(state, countryId, movement),
+      fact: {
+        kind: 'labour_report',
+        reportId: report.id,
+        previousValueBps: previous.valueBps,
+        valueBps,
+        policyComparisons,
+        evidenceStatus: coverage === 'complete' ? 'modelled' : 'partial',
+      },
       pauseRequested: false,
     });
   }
@@ -217,8 +473,13 @@ function monthlyReports(state: SimulationState): SimulationState {
         severity: episode.severity === 'severe' || episode.severity === 'critical' ? 'important' : 'advisory',
         createdOn: state.date,
         sourceId: episode.id,
-        headline: `The ${type.replaceAll('_', ' ')} monitor recorded a ${episode.severity} activation.`,
-        interpretation: 'This is a monitor event about recorded material conditions, not a new cause or an isolated forecast.',
+        headline: `${executiveBriefingPrefix(state, countryId, 'Government briefing')} the ${type.replaceAll('_', ' ')} monitor recorded a ${episode.severity} activation.`,
+        interpretation: {
+          basis: 'modelled',
+          summary: 'The monitor reports recorded material conditions; it does not identify a new cause or predict outcomes outside represented mechanisms.',
+          tradeoffs: [],
+          limitations: ['The monitor is not an independent causal or forecast model.'],
+        },
         fact: { kind: 'crisis_activation', crisisType: type, crisisSeverity: episode.severity, evidenceStatus: 'modelled' },
         pauseRequested: false,
       });
@@ -245,6 +506,9 @@ export function registerInformationTasks(scheduler: SimulationScheduler) {
 }
 
 export function initializeInformationState(state: SimulationState): SimulationState {
-  if (state.information?.version === INFORMATION_VERSION && state.information.initializedOn) return state;
+  if (state.information?.version === INFORMATION_VERSION && state.information.initializedOn) {
+    if (state.information.proposalEstimates !== undefined) return state;
+    return { ...state, information: { ...state.information, proposalEstimates: [] } };
+  }
   return { ...state, information: emptyInformation(state.date) };
 }

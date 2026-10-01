@@ -10,7 +10,18 @@ export type PoliticalOfficeRole = 'head_of_government' | 'head_of_state' | 'legi
 export interface PoliticalOfficeState {
   role: PoliticalOfficeRole;
   countryId: string;
+  title: string;
   appointedOn: string;
+  evidence?: {
+    status: 'source_reconciled';
+    sourceOfficeId: string;
+    sourceOfficeIds: string[];
+    sourcePersonId: string;
+    referenceDate: string;
+    effectiveFrom?: string;
+    sourceRecordIds: string[];
+    authorityBasis: 'sourced_parliamentary_head_of_government' | 'sourced_presidential_head_of_state' | 'institutional_authority_unresolved';
+  };
   authorityProfile: {
     status: 'modelled_constitutional_abstraction';
     capabilities: AuthorityCapability[];
@@ -29,11 +40,16 @@ export interface PoliticalPersonState {
   status: 'active' | 'inactive';
   leaderProfile?: Record<string, { valueBps: number; confidenceBps: number; status: 'derived' | 'modelled'; limitation: string }>;
   leaderProvenance?: {
-    status: 'modelled_fallback';
-    method: 'party_platform_initial_v1' | 'bounded_party_platform_succession_v1';
+    basis: 'sourced_analogue' | 'derived_analogue' | 'modelled_fallback';
+    method: 'reviewed_primary_party_source_v1' | 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2';
     sourcePartyId: string;
     referenceDate: string;
-    sourceLeaderStatus: 'unavailable';
+    sourceLeaderStatus: 'sourced' | 'derived' | 'unavailable' | 'ambiguous';
+    sourceLeader?: {
+      id: string;
+      name: string;
+      sourceRecordIds: string[];
+    };
     limitation: string;
   };
 }

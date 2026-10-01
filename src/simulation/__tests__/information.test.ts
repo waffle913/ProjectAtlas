@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import type { SimulationState } from '../../types';
 import type { GovernmentReport, MinisterialBriefing } from '../information/model';
 import type { PoliticalProposal } from '../governance/model';
@@ -7,7 +8,7 @@ import { emptyGovernance } from '../governance/model';
 import { assertSimulationInvariants } from '../invariants';
 import { informationInvariant } from '../information/invariants';
 import { emptyInformation } from '../information/model';
-import { addProposalResultBriefing, explainBriefing, hasGovernmentInformationAccess, inspectBriefings, inspectGovernmentReports, presentBriefing, runInformationMonth } from '../information/runtime';
+import { addProposalResultBriefing, explainBriefing, hasGovernmentInformationAccess, inspectBriefings, inspectGovernmentProposalEstimates, inspectGovernmentReports, presentBriefing, produceGovernmentProposalEstimate, runInformationMonth } from '../information/runtime';
 import { initializeNewGame } from '../initialization';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { politicalRegistry } from '../politics/registry';
@@ -21,7 +22,9 @@ beforeAll(() => {
 
 const reportingCountry = () => worldCountryIds.find(countryId => worldRegions.some(region =>
   initial.regionOwnership[region.id] === countryId && initial.socioeconomy.regions[region.id]?.economy,
-))!;
+)
+  && !Object.values(initial.governance.persons).some(person => person.countryId === countryId && person.office?.authorityProfile.capabilities.includes('access_government_information')),
+)!;
 const leaderFor = (countryId: string) => Object.values(initial.governance.persons).find(person => person.countryId === countryId && person.isPartyLeader)!;
 function report(countryId: string, asOfDate: string, valueBps?: number): GovernmentReport {
   return {
@@ -78,6 +81,34 @@ function parliamentaryProposal(state: SimulationState, outcome: 'adopted' | 'rej
 }
 
 describe('government information and player briefings 0.15', () => {
+  it('creates dated proposal estimates only for an authorized executive and persists their 0.14 provenance', () => {
+    const countryId = 'country.sxojze';
+    const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    const opposition = Object.values(initial.governance.persons).find(person => person.partyId === 'party:country.sxojze:6244f2d93a49' && person.isPartyLeader)!;
+    const budget = initial.fiscal.countries[countryId].annualBudget;
+    const drafted = createFiscalProposal(initial, {
+      proposerPersonId: executive.id,
+      countryId,
+      effectiveDate: '2026-02-01',
+      payload: { annualBudget: { ...budget, infrastructure: budget.infrastructure + 1 } },
+    });
+    const proposalId = drafted.governance.proposalOrder.at(-1)!;
+    const estimated = produceGovernmentProposalEstimate(drafted, proposalId, executive.id);
+    const [report] = inspectGovernmentProposalEstimates(estimated, countryId, executive.id);
+    expect(report).toMatchObject({
+      proposalId,
+      requestedOn: initial.date,
+      requestedByPersonId: executive.id,
+      provenance: { status: 'derived', engine: 'situational-0.14-v2', source: 'governance.proposal-analysis' },
+    });
+    expect(estimated.governance.proposals[proposalId].analysis).toBeUndefined();
+    expect(inspectGovernmentProposalEstimates(estimated, countryId, opposition.id)).toEqual([]);
+    expect(() => produceGovernmentProposalEstimate(drafted, proposalId, opposition.id)).toThrow(/Government office access/);
+    expect(informationInvariant.check(estimated, worldContext, 'save')).toEqual([]);
+    const restored = restoreSimulationState(serializeSimulationState(estimated, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored.information.proposalEstimates).toEqual(estimated.information.proposalEstimates);
+  });
+
   it('keeps internal reports unavailable to opposition and grants access only through an office capability', () => {
     const countryId = reportingCountry();
     const person = leaderFor(countryId);
@@ -125,10 +156,107 @@ describe('government information and player briefings 0.15', () => {
       eventType: 'proposal_result',
       severity: 'advisory',
       pauseRequested: false,
-      fact: { kind: 'parliamentary_result', outcome, yesSeats: proposal.voteResult!.yesSeats, noSeats: proposal.voteResult!.noSeats },
+      fact: { kind: 'parliamentary_result', outcome, chamberResults: [], yesSeats: undefined, noSeats: undefined },
     });
+    expect(briefing.headline).toContain('Aggregate seat totals are not presented as a single vote.');
     expect(inspectBriefings(briefed, proposal.countryId, 'uncontrolled-person')).toEqual([briefing]);
     expect(briefed.paused).toBe(base.paused);
+  });
+
+  it('reports bicameral results chamber by chamber when summed seats would contradict a required chamber', () => {
+    const base = initial;
+    const countryId = 'country.sxojze';
+    const source = parliamentaryProposal(base, 'rejected');
+    const proposal: PoliticalProposal = {
+      ...source,
+      id: 'proposal.bicameral-rejection',
+      countryId,
+      voteResult: {
+        ...source.voteResult!,
+        yesSeats: 101,
+        noSeats: 52,
+        totalSeats: 153,
+        chambers: [
+          { chamberId: 'chamber:DE-LC01', yesSeats: 100, noSeats: 50, abstainSeats: 0, unavailableSeats: 0, totalSeats: 150, coverage: 'complete', adopted: true },
+          { chamberId: 'chamber:DE-UC01', yesSeats: 1, noSeats: 2, abstainSeats: 0, unavailableSeats: 0, totalSeats: 3, coverage: 'complete', adopted: false },
+        ],
+        outcome: 'rejected',
+      },
+    };
+    const state = { ...base, governance: { ...base.governance, proposals: { ...base.governance.proposals, [proposal.id]: proposal } } };
+    const briefing = addProposalResultBriefing(state, proposal).information.briefings.at(-1)!;
+    expect(briefing.headline).toContain('The legislature rejected the proposal.');
+    expect(briefing.headline).toContain('German Bundestag: adopted');
+    expect(briefing.headline).toContain('Federal Council: rejected');
+    expect(briefing.headline).not.toContain('101');
+    expect(briefing.fact).toMatchObject({ outcome: 'rejected', yesSeats: undefined, noSeats: undefined });
+    expect(briefing.fact.chamberResults?.map(chamber => chamber.outcome)).toEqual(['adopted', 'rejected']);
+    expect(informationInvariant.check(
+      { ...state, information: { ...state.information, briefings: [briefing], governmentReportsById: {}, latestGovernmentReports: {} } },
+      worldContext,
+      'tick',
+    )).toEqual([]);
+  });
+
+  it('preserves incomplete chamber coverage and labels policy follow-up as temporal rather than causal', () => {
+    const countryId = 'country.sxojze';
+    const baseline = report(countryId, '2026-01-01', 700);
+    const source = parliamentaryProposal(initial, 'adopted');
+    const proposal: PoliticalProposal = {
+      ...source,
+      id: 'proposal.temporal-follow-up',
+      countryId,
+      voteResult: {
+        ...source.voteResult!,
+        chambers: [
+          { chamberId: 'chamber:DE-LC01', yesSeats: 100, noSeats: 50, abstainSeats: 0, unavailableSeats: 0, totalSeats: 150, coverage: 'complete', adopted: true },
+          { chamberId: 'chamber:DE-UC01', yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 3, totalSeats: 3, coverage: 'unavailable' },
+        ],
+        yesSeats: 100,
+        noSeats: 50,
+        unavailableSeats: 3,
+        totalSeats: 153,
+        coverage: 'partial',
+        outcome: 'unavailable',
+      },
+      status: 'unavailable',
+    };
+    const stateWithBaseline = {
+      ...initial,
+      information: { ...initial.information, latestGovernmentReports: { [countryId]: baseline }, governmentReportsById: { [baseline.id]: baseline } },
+      governance: { ...initial.governance, proposals: { ...initial.governance.proposals, [proposal.id]: proposal } },
+    };
+    const briefingState = addProposalResultBriefing(stateWithBaseline, proposal);
+    const result = briefingState.information.briefings.at(-1)!;
+    expect(result.fact.chamberResults?.[1]).toMatchObject({ chamberId: 'chamber:DE-UC01', outcome: 'unavailable', coverage: 'unavailable' });
+    expect(result.fact.policyFollowUp).toBeUndefined();
+
+    const adopted = { ...proposal, id: 'proposal.adopted-temporal', status: 'enacted' as const, voteResult: { ...proposal.voteResult!, yesSeats: 100, noSeats: 50, abstainSeats: 0, unavailableSeats: 0, totalSeats: 150, outcome: 'adopted' as const, coverage: 'complete' as const, chambers: [{ chamberId: 'chamber:DE-LC01', yesSeats: 100, noSeats: 50, abstainSeats: 0, unavailableSeats: 0, totalSeats: 150, coverage: 'complete' as const, adopted: true }] } };
+    const adoptedState = { ...stateWithBaseline, governance: { ...stateWithBaseline.governance, proposals: { ...stateWithBaseline.governance.proposals, [adopted.id]: adopted } } };
+    const anchored = addProposalResultBriefing(adoptedState, adopted);
+    const anchor = anchored.information.briefings.at(-1)!.fact.policyFollowUp;
+    expect(anchor).toMatchObject({ proposalId: adopted.id, attributionStatus: 'temporal_only', baselineDate: '2026-01-01', baselineValueBps: 700 });
+    const date = '2026-03-01';
+    const regionIds = Object.entries(anchored.regionOwnership).filter(([, owner]) => owner === countryId).map(([id]) => id);
+    const regionId = regionIds.find(id => anchored.socioeconomy.regions[id]?.economy)!;
+    const regions = { ...anchored.socioeconomy.regions };
+    for (const id of regionIds) {
+      const item = regions[id];
+      if (item?.economy) regions[id] = { ...item, economy: { ...item.economy, labourForce: 0, unemployed: 0 } };
+    }
+    const region = regions[regionId]!;
+    const afterReports = runInformationMonth({
+      ...anchored,
+      date,
+      socioeconomy: {
+        ...anchored.socioeconomy,
+        lastMonthlyDate: date,
+        regions: { ...regions, [regionId]: { ...region, economy: { ...region.economy!, labourForce: 10_000, unemployed: 780 } } },
+      },
+    });
+    const labourBriefing = afterReports.information.briefings.find(item => item.fact.kind === 'labour_report')!;
+    expect(labourBriefing.fact.policyComparisons).toMatchObject([{ proposalId: adopted.id, attributionStatus: 'temporal_only', baselineValueBps: 700, currentValueBps: 780 }]);
+    expect(explainBriefing(afterReports, labourBriefing, Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!.id).join(' ')).toContain('not evidence that the measure caused the change');
   });
 
   it('creates one briefing on material report change, retains its report source, and round-trips it', () => {
@@ -159,6 +287,67 @@ describe('government information and player briefings 0.15', () => {
     const roundTrip = JSON.parse(JSON.stringify(nextMonth)) as SimulationState;
     expect(assertSimulationInvariants(roundTrip, worldContext, 'reload')).toBe(true);
     expect(roundTrip.information.briefings).toEqual(nextMonth.information.briefings);
+  });
+
+  it.each([
+      [700, 780, 'increased', '7.00%', '7.80%'],
+      [700, 600, 'decreased', '7.00%', '6.00%'],
+    ] as const)('briefs on a material unemployment movement from %s to %s basis points', (previous, current, direction, from, to) => {
+      const countryId = reportingCountry();
+      const leader = leaderFor(countryId);
+      const appointed = assignPoliticalOffice(initial, leader.id, { role: 'head_of_government', countryId });
+      const date = '2026-02-01';
+      const regionEntries = Object.entries(appointed.regionOwnership).filter(([, ownerId]) => ownerId === countryId);
+      const firstRegionId = regionEntries.find(([regionId]) => appointed.socioeconomy.regions[regionId]?.economy)?.[0];
+      expect(firstRegionId).toBeDefined();
+      const regions = { ...appointed.socioeconomy.regions };
+      for (const [regionId] of regionEntries) {
+        const region = regions[regionId];
+        if (region?.economy) regions[regionId] = { ...region, economy: { ...region.economy, labourForce: 0, unemployed: 0 } };
+      }
+      const first = regions[firstRegionId!]!;
+      regions[firstRegionId!] = { ...first, economy: { ...first.economy!, labourForce: 10_000, unemployed: current * 10_000 / 10_000 } };
+      const prior = report(countryId, '2026-01-01', previous);
+      const result = runInformationMonth({
+        ...appointed,
+        date,
+        socioeconomy: { ...appointed.socioeconomy, lastMonthlyDate: date, regions },
+        information: {
+          ...appointed.information,
+          latestGovernmentReports: { [countryId]: prior },
+          governmentReportsById: { [prior.id]: prior },
+        },
+      });
+      const briefing = result.information.briefings[0];
+      expect(briefing.headline).toContain(`from ${from} to ${to}`);
+      expect(briefing.headline).toContain(direction);
+      expect(briefing.interpretation?.summary).toContain(direction === 'increased' ? 'worsened' : 'improved');
+      expect(briefing.fact).toMatchObject({ kind: 'labour_report', previousValueBps: previous, valueBps: current });
+    });
+
+    it('does not create attention spam for a two-basis-point unemployment movement', () => {
+      const countryId = reportingCountry();
+      const leader = leaderFor(countryId);
+      const appointed = assignPoliticalOffice(initial, leader.id, { role: 'head_of_government', countryId });
+      const date = '2026-02-01';
+      const regionEntries = Object.entries(appointed.regionOwnership).filter(([, ownerId]) => ownerId === countryId);
+      const firstRegionId = regionEntries.find(([regionId]) => appointed.socioeconomy.regions[regionId]?.economy)?.[0]!;
+      const regions = { ...appointed.socioeconomy.regions };
+      for (const [regionId] of regionEntries) {
+        const region = regions[regionId];
+        if (region?.economy) regions[regionId] = { ...region, economy: { ...region.economy, labourForce: 0, unemployed: 0 } };
+      }
+      const first = regions[firstRegionId]!;
+      regions[firstRegionId] = { ...first, economy: { ...first.economy!, labourForce: 10_000, unemployed: 702 } };
+      const prior = report(countryId, '2026-01-01', 700);
+      const result = runInformationMonth({
+        ...appointed,
+        date,
+        socioeconomy: { ...appointed.socioeconomy, lastMonthlyDate: date, regions },
+        information: { ...appointed.information, latestGovernmentReports: { [countryId]: prior }, governmentReportsById: { [prior.id]: prior } },
+      });
+      expect(result.information.briefings).toEqual([]);
+      expect(result.information.latestGovernmentReports[countryId].valueBps).toBe(702);
   });
 
   it('briefs on a newly active crisis using its canonical monitor record', () => {
@@ -205,32 +394,55 @@ describe('government information and player briefings 0.15', () => {
     expect(repeated.information.briefings.map(item => item.id)).toEqual(state.information.briefings.map(item => item.id));
   });
 
-  it('changes only presentation depth across Guided, Standard and Expert assistance', () => {
-    const proposal = parliamentaryProposal(initial, 'rejected');
+  it('presents only supported levers in Guided mode and preserves fact-only Expert mode', () => {
+    const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    const state = setControlledPerson(initial, executive.id);
+    const countryId = executive.countryId;
     const briefing: MinisterialBriefing = {
       id: 'briefing:test',
-      countryId: proposal.countryId,
-      portfolio: 'finance',
-      access: 'public',
-      eventType: 'proposal_result',
+      countryId,
+      portfolio: 'economy',
+      access: 'government',
+      eventType: 'labour_report',
       severity: 'advisory',
       createdOn: initial.date,
-      sourceId: proposal.id,
-      headline: 'Parliament rejected the reform by 152 votes to 161.',
-      interpretation: 'The recorded result is not an isolated causal estimate.',
-      fact: { kind: 'parliamentary_result', proposalId: proposal.id, outcome: 'rejected', yesSeats: 152, noSeats: 161, evidenceStatus: 'modelled' },
+      sourceId: 'government-report:test',
+      headline: 'Prime Minister: New labour figures are available. Unemployment has increased from 7.00% to 7.80%.',
+      interpretation: {
+        basis: 'derived',
+        summary: 'Employment conditions worsened between the two modelled reports.',
+        relevantGoals: ['labour_protection', 'income_security'],
+        policyLevers: [{ mechanism: 'annual_budget', limitation: 'The existing budget route changes represented public allocations; direct employment effects are unavailable.' }],
+        tradeoffs: ['Changing annual allocations changes the represented budget composition; direct employment effects are unavailable.'],
+        limitations: ['No supported employment-policy instrument or hiring-response mechanism is modelled.'],
+      },
+      fact: { kind: 'labour_report', reportId: 'government-report:test', previousValueBps: 700, valueBps: 780, evidenceStatus: 'modelled' },
       pauseRequested: false,
     };
     const before = JSON.stringify(initial);
-    const guided = presentBriefing(briefing, 'guided');
-    const standard = presentBriefing(briefing, 'standard');
-    const expert = presentBriefing(briefing, 'expert');
-    expect(guided.guidedActions).toEqual(['Open proposal']);
+    const guided = presentBriefing(state, briefing, 'guided', executive.id);
+    const standard = presentBriefing(state, briefing, 'standard', executive.id);
+    const expert = presentBriefing(state, briefing, 'expert', executive.id);
+    expect(guided.guidedActions).toEqual([{ label: 'Review annual budget proposal', destination: 'fiscal' }]);
+    expect(guided.guidedLevers?.[0].explanation).toContain('direct employment effects are unavailable');
+    expect(guided.tradeoffs).toEqual(briefing.interpretation?.tradeoffs);
     expect(standard.guidedActions).toBeUndefined();
+    expect(standard.guidedLevers).toBeUndefined();
+    expect(standard.context).toBe(briefing.interpretation?.summary);
     expect(expert.context).toBeUndefined();
+    expect(expert.guidedActions).toBeUndefined();
+    expect(guided.headline).toContain('Unemployment has increased');
+    expect([guided, standard, expert].every(result => result.headline === briefing.headline)).toBe(true);
     expect([guided, standard, expert].every(result => result.tellMeMoreAvailable)).toBe(true);
     expect(JSON.stringify(initial)).toBe(before);
     expect(Object.keys(politicalRegistry.parties).length).toBeGreaterThan(0);
+  });
+
+  it('keeps the normal FiscalPolicy UI off the engine-debug Reality support API', () => {
+    const source = readFileSync(new URL('../../components/FiscalPolicy.tsx', import.meta.url), 'utf8');
+    expect(source).not.toMatch(/inspectProposalSupport/);
+    expect(source).toContain('produceGovernmentProposalEstimate');
+    expect(source).toContain('inspectGovernmentProposalEstimates');
   });
 
   it('does not expose detailed proposal analysis to an opposition leader through Tell Me More', () => {
@@ -239,7 +451,7 @@ describe('government information and player briefings 0.15', () => {
     const briefing = addProposalResultBriefing(state, proposal).information.briefings[0];
     expect(explainBriefing(state, briefing, leaderFor(proposal.countryId).id).join(' ')).toContain('Public record');
     const officeHolder = assignPoliticalOffice(setControlledPerson(state, leaderFor(proposal.countryId).id), leaderFor(proposal.countryId).id, { role: 'head_of_government', countryId: proposal.countryId });
-    expect(explainBriefing(officeHolder, briefing, leaderFor(proposal.countryId).id).join(' ')).toContain('No saved proposal analysis');
+    expect(explainBriefing(officeHolder, briefing, leaderFor(proposal.countryId).id).join(' ')).toContain('No dated Government Information estimate');
   });
 
   it('migrates a schema-12 governance save on its saved date without fabricating past reports', () => {
@@ -274,7 +486,7 @@ describe('government information and player briefings 0.15', () => {
       schemaVersion: 13,
       date,
       engine: { tick: 4321, seed: 'schema-12-information-migration' },
-      information: { initializedOn: date, latestGovernmentReports: {}, governmentReportsById: {}, briefings: [] },
+      information: { initializedOn: date, latestGovernmentReports: {}, governmentReportsById: {}, briefings: [], proposalEstimates: [] },
     });
     expect(migrated.fiscal).toEqual(expectedFiscal);
     expect(migrated.governance.persons[personId]).toMatchObject(expectedPerson);
@@ -288,6 +500,18 @@ describe('government information and player briefings 0.15', () => {
     malformed.information.initializedOn = undefined;
     expect(() => restoreSimulationState(serializeSimulationState(malformed), worldRegions, {}, {}, worldContext))
       .toThrow(/Malformed government information state/);
+  });
+
+  it('adds an empty estimate collection to a prior schema-13 save without inventing reports or evaluations', () => {
+    const previousSave = structuredClone(initial);
+    delete (previousSave.information as Partial<typeof previousSave.information>).proposalEstimates;
+    const restored = restoreSimulationState(JSON.stringify(previousSave), worldRegions, {}, {}, worldContext);
+    expect(restored.information.proposalEstimates).toEqual([]);
+    expect(restored.information.latestGovernmentReports).toEqual({});
+    expect(restored.information.briefings).toEqual([]);
+    expect(restored.date).toBe(initial.date);
+    expect(restored.engine.tick).toBe(initial.engine.tick);
+    expect(restored.engine.seed).toBe(initial.engine.seed);
   });
 
   it('starts information state empty on an arbitrary migration date without fabricating past reports', () => {

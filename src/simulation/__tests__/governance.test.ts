@@ -115,9 +115,10 @@ function findResolvable(adopted: boolean) {
 }
 
 describe('governance 0.14 player and political decisions', () => {
-  it('initializes a fictional gameplay leader for every party without inventing offices or proposals', () => {
+  it('initializes one fictional gameplay leader per party and reconciles only reviewed executive offices', () => {
     expect(initial).toMatchObject({ schemaVersion: 13, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
-    expect(Object.keys(initial.governance.persons)).toHaveLength(Object.keys(politicalRegistry.parties).length);
+    expect(Object.values(initial.governance.persons).filter(person => person.isPartyLeader && person.status === 'active')).toHaveLength(Object.keys(politicalRegistry.parties).length);
+    expect(Object.values(initial.governance.persons).filter(person => person.office?.evidence)).toHaveLength(2);
   });
 
   it('creates stable sequence IDs independent of display names', () => {
@@ -132,8 +133,51 @@ describe('governance 0.14 player and political decisions', () => {
     reordered.parties = Object.fromEntries(Object.entries(reordered.parties).reverse());
     const first = initializePartyLeaders(worldBase(), politicalRegistry), second = initializePartyLeaders(worldBase(), reordered);
     expect(second.governance.persons).toEqual(first.governance.persons);
-    expect(Object.values(first.governance.persons)).toHaveLength(Object.keys(politicalRegistry.parties).length);
-    expect(Object.values(first.governance.persons).every(person => !person.office && person.leaderProvenance?.status === 'modelled_fallback')).toBe(true);
+    const leaders = Object.values(first.governance.persons).filter(person => person.isPartyLeader);
+    expect(leaders).toHaveLength(Object.keys(politicalRegistry.parties).length);
+    expect(leaders.filter(person => person.leaderProvenance?.basis === 'derived_analogue')).toHaveLength(2);
+    expect(leaders.filter(person => person.leaderProvenance?.basis === 'modelled_fallback')).toHaveLength(leaders.length - 2);
+    expect(leaders.filter(person => person.office?.evidence).map(person => person.office?.title).sort()).toEqual(['Federal Chancellor', 'Prime Minister']);
+  });
+
+  it('retains exact reviewed leader provenance, fictional names, and one-person office reconciliation through save reload', () => {
+    const state = initializePartyLeaders(worldBase());
+    const chancellor = Object.values(state.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    expect(chancellor).toMatchObject({
+      displayName: 'Friedrich Merzen',
+      isPartyLeader: true,
+      leaderProvenance: {
+        basis: 'derived_analogue',
+        sourceLeaderStatus: 'derived',
+        sourceLeader: { id: 'wikidata:Q566257', name: 'Friedrich Merz' },
+      },
+      office: {
+        role: 'head_of_government',
+        title: 'Federal Chancellor',
+        evidence: { status: 'source_reconciled', sourcePersonId: 'wikidata:Q566257', effectiveFrom: '2025-05-06' },
+      },
+    });
+    expect(Object.values(state.governance.persons).filter(person =>
+      person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257'
+      || person.office?.evidence?.sourcePersonId === 'wikidata:Q566257',
+    )).toHaveLength(1);
+    const restored = restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored.governance.persons[chancellor.id]).toEqual(chancellor);
+  });
+
+  it('starts a verified government leader with executive authority but leaves opposition leaders without it', () => {
+    const state = initializePartyLeaders(worldBase());
+    const governmentParty = politicalRegistry.parties['party:country.sxojze:08a93106ca5f'];
+    const oppositionParty = politicalRegistry.parties['party:country.sxojze:6244f2d93a49'];
+    const governmentLeader = Object.values(state.governance.persons).find(person => person.partyId === governmentParty.id && person.isPartyLeader)!;
+    const oppositionLeader = Object.values(state.governance.persons).find(person => person.partyId === oppositionParty.id && person.isPartyLeader)!;
+    expect(governmentParty.governmentStatus).toBe('government');
+    expect(governmentLeader.office?.evidence?.authorityBasis).toBe('sourced_parliamentary_head_of_government');
+    expect(governmentLeader.office?.authorityProfile.capabilities).toContain('access_government_information');
+    expect(governmentLeader.office?.authorityProfile.capabilities).toContain('sponsor_fiscal_reform');
+    expect(oppositionParty.governmentStatus).toBe('opposition');
+    expect(oppositionLeader.office).toBeUndefined();
+    expect(oppositionLeader.leaderProvenance?.basis).toBe('modelled_fallback');
   });
 
   it('preserves the former leader, office and player control until an explicit handoff choice', () => {
@@ -164,7 +208,7 @@ describe('governance 0.14 player and political decisions', () => {
     const successionId = first.governance.successionOrder.at(-1)!;
     const successor = first.governance.persons[first.governance.successions[successionId].newPersonId];
     expect(successor).toEqual(second.governance.persons[second.governance.successions[successionId].newPersonId]);
-    expect(successor).toMatchObject({ isPartyLeader: true, partyId: leader.partyId, leaderProvenance: { method: 'bounded_party_platform_succession_v1', status: 'modelled_fallback' } });
+    expect(successor).toMatchObject({ isPartyLeader: true, partyId: leader.partyId, leaderProvenance: { method: 'bounded_party_platform_succession_v2', basis: 'modelled_fallback', sourceLeaderStatus: 'unavailable' } });
     expect(Object.values(successor.leaderProfile!).every(item => item.valueBps >= 0 && item.valueBps <= 10_000)).toBe(true);
     const switched = resolvePlayerHandoff(first, successionId, 'switch');
     const restored = restoreSimulationState(serializeSimulationState(switched, worldContext), worldRegions, {}, {}, worldContext);

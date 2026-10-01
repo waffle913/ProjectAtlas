@@ -268,7 +268,7 @@ export default function App() {
         </div>
         <div className="header-tools">
           <Clock state={sim} onChange={changeClock} />
-          {controlledPerson && <BriefingTablet state={sim} onStateChange={commitCommand} />}
+          {controlledPerson && <BriefingTablet state={sim} onStateChange={commitCommand} onNavigate={setActivePage} />}
         </div>
       </header>
       <div className="workspace">

@@ -1,11 +1,13 @@
 import type { EvaluationCoverage } from '../governance/model';
+import type { PoliticalIssue } from '../politics/model';
 
 export const INFORMATION_VERSION = 'information-0.15-v1' as const;
 export const INFORMATION_MODEL = Object.freeze({
   version: INFORMATION_VERSION,
   schedulerPriority: 350,
   briefingHistoryLimit: 256,
-  materialUnemploymentChangeBps: 100,
+  proposalEstimateHistoryLimit: 256,
+  materialUnemploymentChangeBps: 50,
 });
 
 export const PORTFOLIOS = ['finance', 'economy', 'interior_security', 'social_health', 'foreign_affairs', 'defense'] as const;
@@ -26,6 +28,36 @@ export interface GovernmentReport {
   limitation: string;
 }
 
+export interface ChamberBriefingResult {
+  chamberId: string;
+  displayName: string;
+  outcome: 'adopted' | 'rejected' | 'unavailable';
+  yesSeats: number;
+  noSeats: number;
+  abstainSeats: number;
+  unavailableSeats: number;
+  totalSeats?: number;
+  coverage: EvaluationCoverage;
+}
+
+export interface PolicyFollowUpAnchor {
+  proposalId: string;
+  effectiveDate: string;
+  baselineReportId?: string;
+  baselineDate?: string;
+  baselineValueBps?: number;
+  attributionStatus: 'temporal_only' | 'supported_counterfactual' | 'unavailable';
+}
+
+export interface PolicyTemporalComparison {
+  proposalId: string;
+  effectiveDate: string;
+  baselineDate: string;
+  baselineValueBps: number;
+  currentValueBps: number;
+  attributionStatus: 'temporal_only' | 'supported_counterfactual';
+}
+
 export interface BriefingFact {
   kind: 'parliamentary_result' | 'labour_report' | 'crisis_activation';
   proposalId?: string;
@@ -36,9 +68,24 @@ export interface BriefingFact {
   effectiveDate?: string;
   previousValueBps?: number;
   valueBps?: number;
+  chamberResults?: ChamberBriefingResult[];
+  policyFollowUp?: PolicyFollowUpAnchor;
+  policyComparisons?: PolicyTemporalComparison[];
   crisisType?: 'fiscal_stress' | 'public_service_degradation' | 'household_distress' | 'transfer_system_stress' | 'infrastructure_degradation';
   crisisSeverity?: 'low' | 'moderate' | 'severe' | 'critical';
   evidenceStatus: 'sourced' | 'derived' | 'modelled' | 'partial' | 'unavailable';
+}
+
+export interface BriefingInterpretation {
+  basis: 'derived' | 'modelled' | 'unavailable';
+  summary: string;
+  relevantGoals?: PoliticalIssue[];
+  policyLevers?: Array<{
+    mechanism: 'corporate_tax' | 'annual_budget';
+    limitation: string;
+  }>;
+  tradeoffs: string[];
+  limitations: string[];
 }
 
 export interface MinisterialBriefing {
@@ -51,9 +98,61 @@ export interface MinisterialBriefing {
   createdOn: string;
   sourceId: string;
   headline: string;
-  interpretation?: string;
+  interpretation?: BriefingInterpretation;
   fact: BriefingFact;
   pauseRequested: boolean;
+}
+
+export interface GovernmentProposalEstimate {
+  id: string;
+  countryId: string;
+  proposalId: string;
+  requestedOn: string;
+  requestedByPersonId: string;
+  coverage: EvaluationCoverage;
+  confidenceBps: number;
+  publicEstimate: {
+    supportBps: number;
+    opposeBps: number;
+    neutralBps: number;
+    unknownBps: number;
+    confidenceBps: number;
+    coverage: EvaluationCoverage;
+  };
+  parliamentaryEstimate: {
+    yesSeats: number;
+    noSeats: number;
+    abstainSeats: number;
+    unavailableSeats: number;
+    totalSeats: number;
+    confidenceBps: number;
+    coverage: EvaluationCoverage;
+    chambers: ChamberBriefingResult[];
+  };
+  directPolicyChanges: Array<{
+    path: string;
+    before?: number | string | null;
+    after?: number | string | null;
+    delta?: number;
+    coverage: EvaluationCoverage;
+    explanation: string;
+  }>;
+  expectedConsequences: Array<{
+    goal: string;
+    directionBps: number;
+    magnitudeBps: number;
+    confidenceBps: number;
+    coverage: EvaluationCoverage;
+    explanation: string;
+  }>;
+  unsupportedChanges: Array<{ path: string; reason: string; coverage: 'partial' | 'unavailable' }>;
+  limitations: string[];
+  provenance: {
+    status: 'derived';
+    engine: 'situational-0.14-v2';
+    source: 'governance.proposal-analysis';
+    limitation: string;
+  };
 }
 
 export interface InformationState {
@@ -62,6 +161,7 @@ export interface InformationState {
   latestGovernmentReports: Record<string, GovernmentReport>;
   governmentReportsById: Record<string, GovernmentReport>;
   briefings: MinisterialBriefing[];
+  proposalEstimates: GovernmentProposalEstimate[];
 }
 
 export const emptyInformation = (initializedOn?: string): InformationState => ({
@@ -70,11 +170,20 @@ export const emptyInformation = (initializedOn?: string): InformationState => ({
   latestGovernmentReports: {},
   governmentReportsById: {},
   briefings: [],
+  proposalEstimates: [],
 });
+
+export interface GuidedBriefingAction {
+  label: string;
+  destination: 'fiscal';
+}
 
 export interface BriefingPresentation {
   headline: string;
   context?: string;
-  guidedActions?: string[];
+  guidedActions?: GuidedBriefingAction[];
+  guidedLevers?: Array<{ label: string; explanation: string }>;
+  tradeoffs?: string[];
+  limitations?: string[];
   tellMeMoreAvailable: true;
 }

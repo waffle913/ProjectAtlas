@@ -4,7 +4,11 @@ import { resolvePlayerHandoff } from '../simulation/governance/runtime';
 import { inspectBriefings, inspectGovernmentReports, explainBriefing, presentBriefing } from '../simulation/information/runtime';
 import type { AdvisorAssistance } from '../simulation/information/model';
 
-export function BriefingTablet({ state, onStateChange }: { state: SimulationState; onStateChange: (state: SimulationState) => void }) {
+export function BriefingTablet({ state, onStateChange, onNavigate }: {
+  state: SimulationState;
+  onStateChange: (state: SimulationState) => void;
+  onNavigate: (destination: 'fiscal') => void;
+}) {
   const [open, setOpen] = useState(false);
   const [assistance, setAssistance] = useState<AdvisorAssistance>(() => {
     const saved = localStorage.getItem('projectatlas-advisor-assistance');
@@ -38,16 +42,19 @@ export function BriefingTablet({ state, onStateChange }: { state: SimulationStat
         <small>{report.coverage} coverage · {report.limitation}</small>
       </article>)}</section>}
       {briefings.length ? briefings.map(briefing => {
-        const presentation = presentBriefing(briefing, assistance);
+        const presentation = personId ? presentBriefing(state, briefing, assistance, personId) : undefined;
         const isExpanded = expanded === briefing.id;
         return <article className="briefing-item" key={briefing.id}>
           <span className={`severity severity-${briefing.severity}`}>{briefing.severity} · {briefing.access}</span>
-          <strong>{presentation.headline}</strong>
+          <strong>{presentation?.headline ?? briefing.headline}</strong>
           <small>{briefing.createdOn} · {briefing.portfolio.replaceAll('_', ' ')}</small>
-          {presentation.context && <p>{presentation.context}</p>}
-          {presentation.tellMeMoreAvailable && <button onClick={() => setExpanded(isExpanded ? undefined : briefing.id)}>Tell me more</button>}
+          {presentation?.context && <p>{presentation.context}</p>}
+          {presentation?.guidedLevers?.map((lever, index) => <p key={`${briefing.id}-lever-${index}`}><strong>{lever.label}</strong> · {lever.explanation}</p>)}
+          {presentation?.tradeoffs?.map((tradeoff, index) => <p key={`${briefing.id}-tradeoff-${index}`}>Trade-off: {tradeoff}</p>)}
+          {presentation?.limitations?.map((limitation, index) => <small key={`${briefing.id}-limitation-${index}`}>Limitation: {limitation}</small>)}
+          {presentation?.tellMeMoreAvailable && <button onClick={() => setExpanded(isExpanded ? undefined : briefing.id)}>Tell me more</button>}
           {isExpanded && <div className="explanation">{explainBriefing(state, briefing, personId!).map((line, index) => <p key={`${briefing.id}-${index}`}>{line}</p>)}</div>}
-          {presentation.guidedActions?.map(action => <button key={action} onClick={() => setExpanded(briefing.id)}>{action}</button>)}
+          {presentation?.guidedActions?.map(action => <button key={`${action.destination}:${action.label}`} onClick={() => onNavigate(action.destination)}>{action.label}</button>)}
         </article>;
       }) : <p className="muted">No new briefings. Public parliamentary results and reports explicitly shared with your office appear here.</p>}
       <small className="tablet-limit">Assistance changes presentation only. It does not change canonical state or simulation outcomes.</small>
