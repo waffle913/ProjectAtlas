@@ -972,3 +972,27 @@ runtime files, their tests, README and this corrective record.
 An exact implementation-SHA/Ubuntu/Windows receipt will be appended only
 after actual CI verification; a documentation-only receipt commit is then
 verified separately before reporting the final branch HEAD.
+
+### Verified implementation delivery receipt
+
+Final simulation implementation SHA:
+`1cdca7459642c1b13482684e473e870531cfe30f`.
+Its parent is the exact independently reviewed
+`a20b1525963d6995c0f8f56a3ecb53f1800cca91`; branch:
+`waffle913-milestone-015-government-information`.
+
+Actual [Actions run 37027810166](https://github.com/waffle913/ProjectAtlas/actions/runs/37027810166)
+has `headSha` equal to that implementation SHA and conclusion `success`.
+Logs were read, not inferred from local tests: fresh checkout, `npm ci`,
+Node **22.23.3**, unchanged complete one-worker verification on both jobs.
+
+| Exact-SHA job | Conclusion | Actual tests / test-run duration |
+|---|---|---|
+| Ubuntu, job `110906806662` | `success` | 478/478, 30 files, 309.87 s |
+| Windows, job `110906806463` | `success` | 478/478, 30 files, 378.68 s |
+
+This receipt is committed separately without further implementation changes
+so it records already-executed CI truthfully. Its documentation-only branch
+HEAD and that HEAD's separate exact-SHA CI results are reported at final
+handoff; embedding a document's own commit SHA would change that SHA.
+No main merge, 0.16 work or self-declared 0.15 acceptance occurred.
