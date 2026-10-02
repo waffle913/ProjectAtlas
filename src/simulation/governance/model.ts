@@ -92,13 +92,26 @@ export interface ProposalAnalysis {
 export interface PartyIssuePreference { idealPointBps: number; importanceBps: number; compromiseToleranceBps: number; confidenceBps: number; status: 'sourced_or_partial_prior' | 'modelled_fallback' | 'modelled_common_constraint' }
 export interface PartyGoalProfile { partyId: string; goals: Record<GovernanceGoal, PartyIssuePreference> }
 export interface PartyIssueEvaluation { goal: GovernanceGoal; currentOutcomeBps?: number; expectedOutcomeBps?: number; agreementBps: number; benefitBps: number; compromiseCostBps: number; severityBps: number; coverage: EvaluationCoverage }
+export interface PartyInternalVoteDistribution {
+  method: 'continuous_issue_distribution_v1';
+  yesBps: number; noBps: number; abstainBps: number; unknownBps: number;
+  agreementMeanBps: number; agreementHalfSpreadBps: number;
+  coverage: EvaluationCoverage;
+  status: 'modelled_common_prior' | 'unavailable';
+  limitation: string;
+}
+export interface PartySeatAllocation { yesSeats: number; noSeats: number; abstainSeats: number; unknownSeats: number }
 export interface PartyProposalEvaluation {
   partyId: string; agreementBps: number; confidenceBps: number; coverage: EvaluationCoverage; compromiseCostBps: number;
+  /** Central profile decision, not every seat's vote under the plurality model. */
   vote: 'yes' | 'no' | 'abstain' | 'unknown'; positiveDrivers: string[]; negativeDrivers: string[]; tradeoffs: string[]; issueEvaluations: PartyIssueEvaluation[];
+  decisionModel?: 'internal_distribution_v1';
+  internalDistribution?: PartyInternalVoteDistribution;
 }
+export interface PartyChamberEvaluation extends PartyProposalEvaluation { seats: number; seatAllocation?: PartySeatAllocation }
 export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
-export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: Array<PartyProposalEvaluation & { seats: number }> }
-export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' }
+export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: PartyChamberEvaluation[] }
+export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1' }
 export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' }
 export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
 export interface PoliticalProposal {
@@ -119,7 +132,7 @@ export interface PoliticalProposal {
   scheduledFiscalReformSequence?: number;
   enactmentReference?: { fiscalReformSequence: number; reformFingerprint: string };
   analysis?: ProposalAnalysis;
-  evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2';
+  evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1';
 }
 
 export interface GovernanceState {

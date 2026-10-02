@@ -4,9 +4,10 @@ import { fiscalReformFingerprint, validateBudget } from '../fiscal/runtime';
 import { politicalRegistry } from '../politics/registry';
 import { persistedOfficeEvidenceErrors } from './officeEvidence';
 import { GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
+import { allocatePartySeats, INTERNAL_PARTY_DISTRIBUTION_MODEL } from './internalPartyDistribution';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint,
-  type ChamberSupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis,
+  type ChamberSupportEstimate, type PartyChamberEvaluation, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis,
 } from './model';
 
 const safe = (fn: () => void) => { try { fn(); return false; } catch { return true; } };
@@ -26,20 +27,46 @@ function validatePartyEvaluation(evaluation: PartyProposalEvaluation): boolean {
     && (issue.currentOutcomeBps === undefined || bps(issue.currentOutcomeBps)) && (issue.expectedOutcomeBps === undefined || bps(issue.expectedOutcomeBps)));
 }
 
-function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: boolean): boolean {
+function validateInternalAllocation(evaluation: PartyChamberEvaluation): boolean {
+  const distribution = evaluation.internalDistribution, allocation = evaluation.seatAllocation;
+  if (evaluation.decisionModel !== 'internal_distribution_v1' || !distribution || !allocation
+    || distribution.method !== INTERNAL_PARTY_DISTRIBUTION_MODEL.method
+    || ![distribution.yesBps, distribution.noBps, distribution.abstainBps, distribution.unknownBps, distribution.agreementMeanBps, distribution.agreementHalfSpreadBps].every(bps)
+    || distribution.agreementHalfSpreadBps > INTERNAL_PARTY_DISTRIBUTION_MODEL.maxAggregateAgreementHalfSpreadBps
+    || distribution.yesBps + distribution.noBps + distribution.abstainBps + distribution.unknownBps !== 10_000
+    || !coverage(distribution.coverage) || typeof distribution.limitation !== 'string' || !distribution.limitation.trim()) return false;
+  const unknown = evaluation.vote === 'unknown';
+  if (distribution.status !== (unknown ? 'unavailable' : 'modelled_common_prior')
+    || distribution.coverage !== (unknown ? 'unavailable' : evaluation.coverage)
+    || (unknown ? distribution.unknownBps !== 10_000 || distribution.yesBps !== 0 || distribution.noBps !== 0 || distribution.abstainBps !== 0 : distribution.unknownBps !== 0)) return false;
+  if (![allocation.yesSeats, allocation.noSeats, allocation.abstainSeats, allocation.unknownSeats].every(nonNegative)
+    || allocation.yesSeats + allocation.noSeats + allocation.abstainSeats + allocation.unknownSeats !== evaluation.seats) return false;
+  const expected = allocatePartySeats(evaluation.seats, distribution);
+  return allocation.yesSeats === expected.yesSeats && allocation.noSeats === expected.noSeats
+    && allocation.abstainSeats === expected.abstainSeats && allocation.unknownSeats === expected.unknownSeats;
+}
+
+function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: boolean, plurality: boolean): boolean {
   if (!chamber.chamberId || ![chamber.yesSeats, chamber.noSeats, chamber.abstainSeats, chamber.unavailableSeats].every(nonNegative) || !coverage(chamber.coverage)) return false;
   const allocated = chamber.yesSeats + chamber.noSeats + chamber.abstainSeats + chamber.unavailableSeats;
   if (chamber.totalSeats !== undefined && (!nonNegative(chamber.totalSeats) || allocated !== chamber.totalSeats)) return false;
   if (chamber.coverage === 'complete' && chamber.unavailableSeats !== 0) return false;
   if (chamber.adopted !== undefined && (chamber.coverage !== 'complete' || chamber.adopted !== (chamber.yesSeats > chamber.noSeats))) return false;
   if (chamber.partyEvaluations && (!Array.isArray(chamber.partyEvaluations) || !chamber.partyEvaluations.every(item => nonNegative(item.seats) && validatePartyEvaluation(item)))) return false;
+  if (chamber.partyEvaluations?.some(item => plurality ? !validateInternalAllocation(item)
+    : item.decisionModel !== undefined || item.internalDistribution !== undefined || item.seatAllocation !== undefined)) return false;
+  if (plurality && chamber.partyEvaluations && new Set(chamber.partyEvaluations.map(item => item.partyId)).size !== chamber.partyEvaluations.length) return false;
   if (!chamber.partyEvaluations) {
     if (!legacyAggregateOnly) return false;
     if (chamber.totalSeats === undefined) return chamber.coverage === 'unavailable' && chamber.adopted === undefined && allocated === 0;
     const knownSeats = chamber.yesSeats + chamber.noSeats + chamber.abstainSeats, expectedCoverage = chamber.unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
     return chamber.coverage === expectedCoverage && (expectedCoverage === 'complete' ? chamber.adopted === (chamber.yesSeats > chamber.noSeats) : chamber.adopted === undefined);
   }
-  const seats = (vote: PartyProposalEvaluation['vote']) => chamber.partyEvaluations!.filter(item => item.vote === vote).reduce((sum, item) => sum + item.seats, 0), partySeats = chamber.partyEvaluations.reduce((sum, item) => sum + item.seats, 0);
+  const allocationField = { yes: 'yesSeats', no: 'noSeats', abstain: 'abstainSeats', unknown: 'unknownSeats' } as const;
+  const seats = (vote: PartyProposalEvaluation['vote']) => plurality
+    ? chamber.partyEvaluations!.reduce((sum, item) => sum + item.seatAllocation![allocationField[vote]], 0)
+    : chamber.partyEvaluations!.filter(item => item.vote === vote).reduce((sum, item) => sum + item.seats, 0);
+  const partySeats = chamber.partyEvaluations.reduce((sum, item) => sum + item.seats, 0);
   if (chamber.yesSeats !== seats('yes') || chamber.noSeats !== seats('no') || chamber.abstainSeats !== seats('abstain')) return false;
   if (chamber.totalSeats === undefined) return chamber.partyEvaluations.length === 0 && chamber.coverage === 'unavailable' && chamber.adopted === undefined && allocated === 0;
   if (partySeats > chamber.totalSeats || chamber.unavailableSeats !== seats('unknown') + chamber.totalSeats - partySeats) return false;
@@ -48,8 +75,9 @@ function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: b
   return true;
 }
 
-function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, legacyAggregateOnly = false): boolean {
-  if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== 'modelled_procedure_v1' || !estimate.chambers.every(chamber => validateChamber(chamber, legacyAggregateOnly))) return false;
+function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, legacyAggregateOnly: boolean, plurality: boolean): boolean {
+  const procedure = plurality ? 'internal_party_distribution_v1' : 'modelled_procedure_v1';
+  if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== procedure || !Array.isArray(estimate.chambers) || !estimate.chambers.every(chamber => validateChamber(chamber, legacyAggregateOnly, plurality))) return false;
   const sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => estimate.chambers.reduce((total, chamber) => total + chamber[field], 0);
   const expectedCoverage = estimate.chambers.length > 0 && estimate.chambers.every(item => item.coverage === 'complete') ? 'complete' : estimate.chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
   return estimate.coverage === expectedCoverage && estimate.yesSeats === sum('yesSeats') && estimate.noSeats === sum('noSeats') && estimate.abstainSeats === sum('abstainSeats') && estimate.unavailableSeats === sum('unavailableSeats') && estimate.totalSeats === estimate.chambers.reduce((total, chamber) => total + (chamber.totalSeats ?? 0), 0);
@@ -119,10 +147,12 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (proposal.resolvedOn && (!dateValid(proposal.resolvedOn) || proposal.resolvedOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.resolvedOn > state.date)) errors.push(`Invalid resolution date for ${id}.`);
     if (proposal.publicEstimate && (![proposal.publicEstimate.supportBps, proposal.publicEstimate.opposeBps, proposal.publicEstimate.neutralBps, proposal.publicEstimate.unknownBps, proposal.publicEstimate.confidenceBps].every(bps) || proposal.publicEstimate.supportBps + proposal.publicEstimate.opposeBps + proposal.publicEstimate.neutralBps + proposal.publicEstimate.unknownBps !== 10_000 || !coverage(proposal.publicEstimate.coverage) || ![proposal.publicEstimate.representedPersons, proposal.publicEstimate.knownPersons, proposal.publicEstimate.unknownPersons].every(nonNegative) || proposal.publicEstimate.knownPersons + proposal.publicEstimate.unknownPersons !== proposal.publicEstimate.representedPersons || proposal.publicEstimate.coverage === 'complete' && proposal.publicEstimate.unknownPersons !== 0 || proposal.publicEstimate.coverage === 'unavailable' && proposal.publicEstimate.knownPersons !== 0)) errors.push(`Invalid public estimate for ${id}.`);
     const legacyAggregateOnly = proposal.evaluationVersion === 'legacy-0.14-v1' && ['enacted', 'rejected', 'unavailable'].includes(proposal.status);
-    if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly)) errors.push(`Invalid parliamentary estimate for ${id}.`);
+    const plurality = proposal.evaluationVersion === 'plurality-0.15-v1';
+    if (proposal.evaluationVersion !== undefined && !['legacy-0.14-v1', 'situational-0.14-v2', 'plurality-0.15-v1'].includes(proposal.evaluationVersion)) errors.push(`Invalid evaluation version for ${id}.`);
+    if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly, plurality)) errors.push(`Invalid parliamentary estimate for ${id}.`);
     if (proposal.analysis && !validateAnalysis(proposal.analysis)) errors.push(`Invalid proposal analysis for ${id}.`);
     if (proposal.voteResult) {
-      if (!validateParliamentary(proposal.voteResult, legacyAggregateOnly) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
+      if (!validateParliamentary(proposal.voteResult, legacyAggregateOnly, plurality) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
       if (proposal.voteResult.outcome === 'adopted' && (proposal.voteResult.coverage !== 'complete' || !proposal.voteResult.chambers.length || !proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Adopted vote ${id} is not supported by every complete chamber.`);
       if (proposal.voteResult.outcome === 'rejected' && (proposal.voteResult.coverage !== 'complete' || proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Rejected vote ${id} is inconsistent with its chambers.`);
       if (proposal.voteResult.outcome === 'unavailable' && !proposal.voteResult.reason) errors.push(`Unavailable vote ${id} has no reason.`);
@@ -130,6 +160,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
       if (proposal.voteResult.reason === 'effective_date_expired' && state.date <= proposal.effectiveDate) errors.push(`Proposal ${id} is falsely marked expired.`);
     }
     if (proposal.evaluationVersion === 'situational-0.14-v2' && (!proposal.analysis || !proposal.publicEstimate || !proposal.parliamentaryEstimate || !proposal.voteResult)) errors.push(`Situational evaluation ${id} is incomplete.`);
+    if (plurality && (!proposal.analysis || !proposal.publicEstimate || !proposal.parliamentaryEstimate || !proposal.voteResult)) errors.push(`Plurality evaluation ${id} is incomplete.`);
     if (proposal.status === 'enacted') {
       const sequence = proposal.scheduledFiscalReformSequence, expectedFingerprint = fiscalReformFingerprint({ countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...proposal.payload });
       if (sequence === undefined || !nonNegative(sequence) || sequence >= state.fiscal.nextSequence || reformSequences.has(sequence) || !proposal.enactmentReference || proposal.enactmentReference.fiscalReformSequence !== sequence || proposal.enactmentReference.reformFingerprint !== expectedFingerprint) errors.push(`Enacted proposal ${id} has an invalid fiscal enactment reference.`);

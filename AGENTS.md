@@ -101,22 +101,24 @@ implemented, and validated before being treated as current behavior.
 - At scenario start, playable party leaders are fictional analogues derived
   from real leaders as a reference, never copies of the real person's
   identity; the real source name remains provenance/debug metadata only.
+- New parliamentary resolutions use continuous aggregate internal plurality
+  independently per issue/goal, not one persistent global faction axis or
+  individual MPs. The common prior is modelled, not observed faction data.
+  Deterministic largest remainder allocates exact party seats across
+  YES/NO/ABSTAIN/UNKNOWN; insufficient evidence remains UNKNOWN. Central
+  evaluation is retained but no longer assigns every seat. New records use
+  `plurality-0.15-v1` / `internal_party_distribution_v1`; historical 0.14
+  block/aggregate votes are preserved without adding distributions.
 
 **Documented design intent, not yet implemented -- do not claim as current
 behavior until planned, implemented, and validated separately:**
 
-- A continuous aggregated internal distribution per party per issue/axis
-  (radical/extremist wing, mainstream, intermediate positions, moderate/
-  pragmatic wing) that lets a single party's seats split across
-  YES/NO/ABSTAIN/UNKNOWN in a vote. Today, parties still vote as deterministic
-  blocks (see the 0.14 contract above); this remains the validated behavior
-  until a scoped change implements and validates otherwise.
 - Generating post-replacement party leaders from party structure, internal
   factions, power balance, and context rather than a fixed list.
 - Weighing situational institutional interest -- majority/opposition status,
   executive control, chamber control, institutional levers gained or lost,
   power balance, internal faction balance, and material consequences of a
-  proposal -- beyond today's deterministic-block plus situational-evaluation
+  proposal -- beyond the existing material-goal situational evaluation
   model, and never via a flat fixed "opposition" malus.
 
 ## Player, politics, diplomacy, war, and trade direction

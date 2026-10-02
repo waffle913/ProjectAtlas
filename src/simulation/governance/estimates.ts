@@ -2,7 +2,8 @@ import type { SimulationState } from '../../types';
 import { allocate } from '../socioeconomy/model';
 import { COHORT, POLITICAL_ISSUES, type PoliticalRegistry } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
-import { analyzeProposal, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
+import { analyzeProposal, derivePartyGoalProfile, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
+import { allocatePartySeats, evaluatePartyInternalVoteDistribution } from './internalPartyDistribution';
 import type {
   ChamberSupportEstimate,
   PartyGoalProfile,
@@ -93,7 +94,7 @@ export function estimateParliamentarySupport(
 ): ParliamentarySupportEstimate {
   const institution = registry.institutions[registry.countries[proposal.countryId]?.institutionId];
   if (!institution || institution.legislatureKind === 'none' || institution.legislatureKind === 'unavailable' || !institution.chambers.length) {
-    return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'modelled_procedure_v1' };
+    return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'internal_party_distribution_v1' };
   }
   const analysis = analysisOverride ?? analyzeProposal(state, proposal);
   const chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
@@ -103,12 +104,15 @@ export function estimateParliamentarySupport(
     let yesSeats = 0, noSeats = 0, abstainSeats = 0, unknownSeats = 0;
     const partyEvaluations: NonNullable<ChamberSupportEstimate['partyEvaluations']> = [];
     for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) {
-      const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profiles[partyId], analysis);
-      partyEvaluations.push({ ...evaluation, seats });
-      if (evaluation.vote === 'yes') yesSeats += seats;
-      else if (evaluation.vote === 'no') noSeats += seats;
-      else if (evaluation.vote === 'abstain') abstainSeats += seats;
-      else unknownSeats += seats;
+      const party = registry.parties[partyId], profile = profiles[partyId] ?? (party ? derivePartyGoalProfile(party) : undefined);
+      const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profile, analysis);
+      const internalDistribution = evaluatePartyInternalVoteDistribution(analysis, profile, evaluation);
+      const seatAllocation = allocatePartySeats(seats, internalDistribution);
+      partyEvaluations.push({ ...evaluation, decisionModel: 'internal_distribution_v1', internalDistribution, seats, seatAllocation });
+      yesSeats += seatAllocation.yesSeats;
+      noSeats += seatAllocation.noSeats;
+      abstainSeats += seatAllocation.abstainSeats;
+      unknownSeats += seatAllocation.unknownSeats;
     }
     let unavailableSeats = unknownSeats + (chamber.independentOtherSeats ?? 0);
     const allocated = yesSeats + noSeats + abstainSeats + unavailableSeats;
@@ -143,6 +147,6 @@ export function estimateParliamentarySupport(
     chambers,
     coverage,
     confidenceBps: totalSeats ? Math.round(confidenceWeight / totalSeats) : 0,
-    procedure: 'modelled_procedure_v1',
+    procedure: 'internal_party_distribution_v1',
   };
 }

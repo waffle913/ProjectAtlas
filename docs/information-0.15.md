@@ -12,7 +12,7 @@ Public parliamentary outcomes are represented as public briefing facts sourced f
 
 ### Proposal reactions and exact content
 
-Government proposal estimates do not call `analyzeProposal`, `estimatePublicSupport` or `estimateParliamentarySupport`. Those APIs read canonical political/material Reality and remain available to engine/debug inspection and canonical vote resolution only; the latter is unchanged. No polling, party-response report or government-visible proposal counterfactual channel currently exists. Therefore public reactions are entirely `UNKNOWN` (not neutral), chamber reactions are unavailable (not abstention), confidence is zero, and no material consequences are forecast. Published static chamber sizes can identify how many seats have unknown responses, not how they will vote. A fresh unemployment report is not evidence about a proposal reaction.
+Government proposal estimates do not call `analyzeProposal`, `estimatePublicSupport` or `estimateParliamentarySupport`. Those APIs read canonical political/material Reality and remain available to engine/debug inspection and canonical vote resolution only. Canonical parliamentary resolution now uses the versioned plurality model below; that does not unlock government-visible predictions. No polling, party-response report or government-visible proposal counterfactual channel currently exists. Therefore public reactions are entirely `UNKNOWN` (not neutral), chamber reactions are unavailable (not abstention), confidence is zero, and no material consequences are forecast. Published static chamber sizes can identify how many seats have unknown responses, not how they will vote. A fresh unemployment report is not evidence about a proposal reaction.
 
 Each persisted estimate records the analyzed effective date/payload and their deterministic governance fingerprint. IDs include this fingerprint and request date, allowing changed draft content to be re-estimated on the same day. Inspectors mark a content mismatch as `stale`; the normal UI and deeper explanation filter such records out of current estimates. Older fingerprinted estimates remain bounded historical evidence. The fiscal screen selects the controlled person's unresolved canonical proposal in the Country, defaulting deterministically to the latest proposal in canonical order when local selection is absent or invalid; it can resume drafts and submitted proposals after navigation or reload without generating duplicates.
 
@@ -69,6 +69,55 @@ The start overlay keeps Country first and offers two routes: Country -> Party ->
 
 Both routes ultimately invoke the existing `setControlledPerson`; they neither create an office nor change membership, leadership or capabilities. The UI displays fictional names, office titles, modelled capabilities and their limitations, including explicit no-office, unresolved-authority and unavailable-membership messages. Source real names remain provenance/debug metadata. Opposition leaders remain selectable without receiving executive access; unresolved executive officeholders remain selectable without inferred powers. Countries lacking both eligible party leaders and reconciled executives remain unavailable rather than receiving invented people or parties.
 
+## Internal party plurality (candidate, pending independent review)
+
+New parliamentary evaluations use `continuous_issue_distribution_v1`, with
+`internal_party_distribution_v1` procedure and `plurality-0.15-v1` resolved
+records. The existing causal evaluator still supplies the central agreement,
+confidence and decision. Central `vote` is not multiplied by every party seat.
+
+Every distinct evaluable goal is varied independently while all other goals
+stay at their central preference. Five ephemeral quadrature points represent
+radical, firm, mainstream, pragmatic and moderate positions with weights
+1,000/2,000/4,000/2,000/1,000 bps. Preference half-spread is 1,800 bps and
+tolerance half-spread 1,600 bps. Radical preferences move away from neutral;
+moderation approaches neutral without crossing it; neutral ideals stay
+neutral. Importance and confidence are unchanged: uncertainty never creates
+heterogeneity. These are evaluation points, not saved factions or MPs.
+
+Per-goal agreement-delta means and variances are summed independently. A
+triangular aggregate integrates the unchanged YES >= 6,000 and NO <= 4,000
+thresholds; half-width is integer sqrt(6 * variance), capped at 4,000 bps.
+The shape is explicitly `modelled_common_prior`, not observed party faction
+shares. A party can split differently by proposal, or remain unanimous.
+Missing profiles, unavailable evaluations or confidence below 3,000 produce
+100% UNKNOWN, not ABSTAIN. Known shares sum to 10,000 with zero UNKNOWN.
+
+The existing exact BigInt largest-remainder allocator assigns party seats.
+Stable tie order is YES, NO, ABSTAIN, UNKNOWN; sorted party IDs keep insertion
+order irrelevant. Chamber totals sum those allocations. Independent/other
+and residual seats remain unavailable. Adoption still requires complete
+coverage and YES > NO in every required chamber. Public-support estimation,
+Government Information access, fiscal enqueueing, authority and scheduling
+are unchanged. There is no new RNG, scheduler task or persistent party state.
+
+Global schema 13 and governance v1 stay unchanged. Distribution fields are
+optional/versioned proposal-result metadata, not a new canonical subsystem.
+The governance invariant validates their method, provenance, shares, exact
+allocations, chamber totals and compatible version/procedure. Historical
+`legacy-0.14-v1` and `situational-0.14-v2` results retain the old validation
+path and reject new distribution fields. Ordinary reload never recomputes
+historical votes. A genuine parent-generated situational-v2 fixture and the
+existing aggregate schema-12 fixtures cover this boundary. Only an unresolved
+proposal's future resolution uses the new algorithm after reload.
+
+Production evidence still has no overlap between the 57 Countries with
+complete procedural coverage and the eight with ideological evidence.
+Plurality does not invent confidence or sourced party profiles to clear this
+gap; explicitly synthetic known-profile tests/benchmarks demonstrate splits.
+Deeper institutional self-interest and faction/context successor generation
+remain separate, unimplemented blocks.
+
 ## Persistence, invariants and validation
 
 Save schema 13 adds information state, leader provenance, leadership succession and a stable sequence. Schema-12 migration preserves date, tick, seed, fiscal and governance state, initializes information empty on the saved date, and deterministically fills missing party leaders without fabricating past briefings. The information invariant checks dates, references, provenance/status, unavailable values, access classification, source links, bounded history, leader uniqueness and succession/player-control consistency. Existing governance invariants remain enabled.
@@ -87,5 +136,5 @@ Ordinary v3/schema-13 reload does not call leadership initialization, current-ma
 - Fiscal UI exposes the existing corporate-tax and annual infrastructure-budget proposal paths through governance commands; unsupported instruments are not presented as working controls.
 - The current model has no supported urgent briefing source, so automatic urgent pause is not exercised.
 - Proposal reactions and government-visible counterfactual consequences are unavailable, not canonical Reality relabelled as estimates. No crisis-report sensor channel or Public Perception layer is implemented.
-- Continuous intra-party distributions, split-seat votes, deeper institutional self-interest and faction/context-derived successor profiles remain design debt, not implemented mechanics. The validated party-block vote and bounded party-platform successor behavior remain unchanged.
+- Internal plurality and split-seat votes are implemented candidate behavior using modelled common priors, not observed faction shares. Deeper institutional self-interest and faction/context-derived successor profiles remain design debt; bounded party-platform succession is unchanged.
 - Measurement timings and the save comparison are workload-specific and are not performance thresholds or universal device guarantees.

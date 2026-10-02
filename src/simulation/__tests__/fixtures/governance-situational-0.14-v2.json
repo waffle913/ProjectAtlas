@@ -1,0 +1,517 @@
+{
+  "referenceCommit": "81109d98a685398c8938eb2b1931634f4c4bcabe",
+  "limitation": "Synthetic test profiles resolved by the actual parent 0.14 evaluator; not observed party votes.",
+  "person": {
+    "id": "person.00001287",
+    "displayName": "Player Person",
+    "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+    "createdOn": "2026-01-01",
+    "isPartyLeader": false,
+    "status": "active",
+    "office": {
+      "role": "head_of_government",
+      "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+      "title": "Head of Government",
+      "appointedOn": "2026-01-01",
+      "authorityProfile": {
+        "status": "modelled_constitutional_abstraction",
+        "capabilities": [
+          "access_government_information",
+          "sponsor_budget_reform",
+          "sponsor_fiscal_reform",
+          "sponsor_legislation",
+          "vote_legislation"
+        ],
+        "limitation": "Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule."
+      }
+    }
+  },
+  "proposal": {
+    "id": "proposal.00000000",
+    "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+    "proposerPersonId": "person.00001287",
+    "createdOn": "2026-01-01",
+    "kind": "fiscal_reform",
+    "payload": {
+      "annualBudget": {
+        "health": 67514741,
+        "education": 67514741,
+        "pensions": 90019654,
+        "incomeSupport": 45009827,
+        "infrastructure": 90019654,
+        "administration": 22504914
+      }
+    },
+    "status": "enacted",
+    "effectiveDate": "2026-02-01",
+    "submittedOn": "2026-01-01",
+    "submittedPayloadFingerprint": "d1de770d76bc5ec5",
+    "resolvedOn": "2026-01-01",
+    "analysis": {
+      "version": "proposal-analysis-0.14-v2",
+      "directPolicyChanges": [
+        {
+          "path": "annualBudget.infrastructure",
+          "before": 45009827,
+          "after": 90019654,
+          "delta": 45009827,
+          "coverage": "complete",
+          "explanation": "Explicit annual appropriation change."
+        }
+      ],
+      "materialContext": {
+        "unemployment": {
+          "valueBps": 500,
+          "coverage": "complete",
+          "source": "socioeconomy.current_employment"
+        },
+        "fiscalSustainability": {
+          "valueBps": 10000,
+          "coverage": "complete",
+          "source": "fiscal.current_revenue_and_spending"
+        },
+        "incomeSecurity": {
+          "valueBps": 10000,
+          "coverage": "complete",
+          "source": "socioeconomy.current_basic_needs_coverage"
+        },
+        "fiscalDistribution": {
+          "valueBps": 2803,
+          "coverage": "complete",
+          "source": "fiscal.current_low_to_high_disposable_income_ratio"
+        },
+        "publicServices": {
+          "valueBps": 10000,
+          "coverage": "complete",
+          "source": "fiscal.current_health_education_coverage"
+        },
+        "infrastructure": {
+          "valueBps": 10000,
+          "coverage": "complete",
+          "source": "fiscal.current_infrastructure_coverage"
+        },
+        "fiscalDistress": {
+          "valueBps": 0,
+          "coverage": "complete",
+          "source": "fiscal.deficit_arrears_debt_pressure"
+        }
+      },
+      "expectedConsequences": [
+        {
+          "goal": "infrastructure",
+          "directionBps": 2500,
+          "magnitudeBps": 2500,
+          "confidenceBps": 8000,
+          "coverage": "complete",
+          "source": "annualBudget.infrastructure",
+          "explanation": "Infrastructure appropriation direction weighted by current capacity and backlog."
+        },
+        {
+          "goal": "fiscal_sustainability",
+          "directionBps": -4000,
+          "magnitudeBps": 4000,
+          "confidenceBps": 8500,
+          "coverage": "complete",
+          "source": "annualBudget.total",
+          "explanation": "Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+        }
+      ],
+      "issueEffects": {
+        "fiscal_distribution": 0,
+        "public_services": 0,
+        "labour_protection": 0,
+        "income_security": 0,
+        "infrastructure": 2500,
+        "public_order": 0,
+        "fiscal_sustainability": -4000
+      },
+      "coverage": "complete",
+      "unsupportedChanges": [],
+      "limitations": [
+        "Only immediate fiscal consequences available from 0.11 are evaluated; no GDP, growth, inflation or future unemployment forecast is invented."
+      ],
+      "genuinelyNeutral": false
+    },
+    "evaluationVersion": "situational-0.14-v2",
+    "publicEstimate": {
+      "supportBps": 0,
+      "opposeBps": 0,
+      "neutralBps": 10000,
+      "unknownBps": 0,
+      "confidenceBps": 3759,
+      "coverage": "complete",
+      "representedPersons": 83352,
+      "knownPersons": 83352,
+      "unknownPersons": 0,
+      "drivers": [
+        {
+          "issue": "infrastructure",
+          "directionBps": 2500,
+          "source": "annualBudget.infrastructure",
+          "explanation": "Infrastructure appropriation direction weighted by current capacity and backlog."
+        }
+      ]
+    },
+    "parliamentaryEstimate": {
+      "yesSeats": 28,
+      "noSeats": 0,
+      "abstainSeats": 0,
+      "unavailableSeats": 0,
+      "totalSeats": 28,
+      "chambers": [
+        {
+          "chamberId": "chamber:AD-LC01",
+          "yesSeats": 28,
+          "noSeats": 0,
+          "abstainSeats": 0,
+          "unavailableSeats": 0,
+          "totalSeats": 28,
+          "coverage": "complete",
+          "adopted": true,
+          "partyEvaluations": [
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:0d35a0491f61",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 5
+            },
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:159bc5e3b5bc",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 3
+            },
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:da94fc3acca4",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 17
+            },
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:fbc947cec4c0",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 3
+            }
+          ]
+        }
+      ],
+      "coverage": "complete",
+      "confidenceBps": 8308,
+      "procedure": "modelled_procedure_v1"
+    },
+    "voteResult": {
+      "yesSeats": 28,
+      "noSeats": 0,
+      "abstainSeats": 0,
+      "unavailableSeats": 0,
+      "totalSeats": 28,
+      "chambers": [
+        {
+          "chamberId": "chamber:AD-LC01",
+          "yesSeats": 28,
+          "noSeats": 0,
+          "abstainSeats": 0,
+          "unavailableSeats": 0,
+          "totalSeats": 28,
+          "coverage": "complete",
+          "adopted": true,
+          "partyEvaluations": [
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:0d35a0491f61",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 5
+            },
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:159bc5e3b5bc",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 3
+            },
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:da94fc3acca4",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 17
+            },
+            {
+              "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:fbc947cec4c0",
+              "agreementBps": 7462,
+              "confidenceBps": 8308,
+              "coverage": "complete",
+              "compromiseCostBps": 0,
+              "positiveDrivers": [
+                "fiscal_sustainability: Immediate appropriation pressure relative to current revenue; no macroeconomic forecast."
+              ],
+              "negativeDrivers": [],
+              "tradeoffs": [],
+              "issueEvaluations": [
+                {
+                  "goal": "infrastructure",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 10000,
+                  "agreementBps": 5000,
+                  "benefitBps": 0,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                },
+                {
+                  "goal": "fiscal_sustainability",
+                  "currentOutcomeBps": 10000,
+                  "expectedOutcomeBps": 6000,
+                  "agreementBps": 9000,
+                  "benefitBps": 4000,
+                  "compromiseCostBps": 0,
+                  "severityBps": 0,
+                  "coverage": "complete"
+                }
+              ],
+              "vote": "yes",
+              "seats": 3
+            }
+          ]
+        }
+      ],
+      "coverage": "complete",
+      "confidenceBps": 8308,
+      "procedure": "modelled_procedure_v1",
+      "outcome": "adopted",
+      "resolvedOn": "2026-01-01"
+    },
+    "scheduledFiscalReformSequence": 0,
+    "enactmentReference": {
+      "fiscalReformSequence": 0,
+      "reformFingerprint": "36c4143f88149193"
+    }
+  },
+  "reform": {
+    "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+    "effectiveDate": "2026-02-01",
+    "annualBudget": {
+      "health": 67514741,
+      "education": 67514741,
+      "pensions": 90019654,
+      "incomeSupport": 45009827,
+      "infrastructure": 90019654,
+      "administration": 22504914
+    },
+    "origin": {
+      "type": "governance_proposal",
+      "proposalId": "proposal.00000000",
+      "proposalFingerprint": "d1de770d76bc5ec5"
+    },
+    "sequence": 0
+  }
+}

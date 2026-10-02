@@ -3,6 +3,11 @@
 **Status: implementation evidence for independent review; 0.15 is not accepted.**
 The canonical handoff remains at accepted milestone 0.14.
 
+The earlier sections retain the previous corrective-pass evidence through
+`81109d98a685398c8938eb2b1931634f4c4bcabe`. The current scoped internal-party
+plurality block and its separately executed validation are recorded in the
+final section below.
+
 ## Revision and scope
 
 - Required base: `99013c9cd8476ff44e46f9eb57bb060fd9cb4b6f`.
@@ -164,10 +169,10 @@ scope.
 Urgent automatic pause remains unimplemented/unexercised end-to-end:
 `pauseRequested` is reserved, with no legitimate urgent event source. Adopted
 and rejected proposal regression fixtures now start unpaused and remain so.
-Continuous intra-party distributions/split-seat votes, deeper institutional
-self-interest and faction/context-based successors remain explicit design
-debt. The validated deterministic party-block vote and bounded party-platform
-successor mechanics were not expanded in this corrective pass.
+At that corrective parent, continuous intra-party distributions/split-seat
+votes, deeper institutional self-interest and faction/context successors
+remained explicit design debt. The new scoped plurality block below implements
+only the first item; bounded party-platform succession remains unchanged.
 
 ## Principal files
 
@@ -330,12 +335,128 @@ state workloads.
   presented as functional.
 - Current briefing triggers are advisory or important. Automatic urgent pause
   is not exercised or claimed implemented end-to-end.
-- Party-block voting and bounded party-platform successor profiles remain
-  known debt; continuous internal plurality/split-seat votes, deeper
-  institutional interest and faction/context successors are not implemented.
+- At that corrective parent, continuous plurality/split-seat votes, deeper
+  institutional interest and faction/context successors were not implemented.
+  The subsequent plurality-only candidate block is recorded below.
 - Initialization and coincident snapshots remain significant measured costs;
   no causal mechanism, provenance or save identity was traded for benchmark
   gains.
 
 This report records candidate implementation and validation evidence only.
 Acceptance remains subject to independent review.
+
+## Scoped internal-party plurality candidate
+
+Reviewed parent: `81109d98a685398c8938eb2b1931634f4c4bcabe`; unchanged task
+branch and required original base. This block follows the 1,258-line
+`ProjectAtlas-0.15-internal-party-distribution-reference.md` behavior contract.
+The no-code plan preceded edits. Implementation and actual-diff review are
+separate passes; this remains an implementation candidate, not acceptance.
+
+### Contract and technical adaptations
+
+The reference distribution, constants, independent goal moments, triangular
+integration, confidence gates and largest-remainder semantics are followed.
+Quadrature elements are additionally frozen, rather than freezing only their
+container. A narrow `Pick` type passes central agreement/confidence/coverage
+without widening the unchanged causal evaluator. Fixed quadrature weights
+are aggregated directly; no zero-weight fallback is needed or introduced.
+Malformed vote shares fail explicitly before the existing allocator. Versioned
+invariants additionally reject duplicate party entries, unknown evaluation
+versions and new fields in old-mode records. None changes the reference
+distribution or creates a new political mechanism.
+
+Only exact seat results and compact distribution metadata are saved, not
+quadrature points, MPs or named factions. New resolutions use
+`plurality-0.15-v1`; new parliamentary estimates use
+`internal_party_distribution_v1`. The central vote remains evidence about
+the central evaluation, not an allocation. UNKNOWN is never abstention.
+Government Information forecasts remain unavailable; canonical debug
+inspection and resolution do not become government-visible predictions.
+The public estimator, causal analysis, authority, proposal fingerprints,
+exact-once fiscal queue and scheduler are unchanged.
+
+Global schema 13, governance v1 and information v3 remain unchanged. Optional
+result fields are interpreted by evaluation version; no historical backfill
+or new migration is introduced. The genuine parent-generated situational-v2
+fixture captures an enacted proposal, its person and matching queued reform.
+It uses explicit synthetic profiles and is not evidence of real party votes.
+That record round-trips unchanged without distributions, as do the existing
+aggregate schema-12 fixtures. An unresolved saved proposal's future vote can
+use plurality without rewriting already resolved history.
+
+The 12 changed files are `AGENTS.md`, `.github\copilot-instructions.md`,
+`docs\information-0.15.md`, this validation record,
+`src\simulation\governance\model.ts`, `estimates.ts`, `runtime.ts`,
+`invariants.ts`, new `internalPartyDistribution.ts`,
+`src\simulation\__tests__\governance.test.ts`, `governanceWorld.test.ts` and
+new `fixtures\governance-situational-0.14-v2.json`. No source snapshots,
+Country/Region identities, office ingestion, start/UI routes, fiscal/crisis
+mechanisms, handoff acceptance or 0.16 systems are changed.
+
+### Executed validation
+
+These are the pre-commit runs for this block, not reused historical results.
+The required post-commit `npm run verify` is additionally run and reported
+with the exact final SHA in the delivery report.
+
+| Command | Actual result |
+|---|---|
+| `npx tsc -b --pretty false` | Passed before focused tests and before full governance validation. |
+| `npx vitest run src\simulation\__tests__\governance.test.ts -t 'independent issue plurality\|situational outputs\|situational-v2\|d2f3ce\|aggregate-only' --maxWorkers=1 --reporter=verbose` | 16 passed, 65 skipped; 25.36 s. |
+| `npx vitest run src\simulation\__tests__\governance.test.ts -t 'corrupt distributions' --maxWorkers=1` | Final expanded corruption check: one passed, 80 skipped; 7.65 s. |
+| `npm run governance:audit` | 81 passed; 70.46 s. Nine new tests cover the A-M acceptance cases alongside preserved historical tests. |
+| `npm run governance:benchmark` | One passed; 7.98 s; actual split allocation, representative resolved save and exact full-world round-trip. |
+| `npm run information:test` | 30 passed; 20.34 s; access, non-leakage, unavailable predictions, briefings, retention and migrations. |
+| `npm run information:audit` | Passed; 948 parties, 7 derived, 1 ambiguous, 940 unavailable, no missing reviewed analogue; 342 reconciled executives from 392 records. |
+| `npm run fiscal:audit` | 19 passed across two files; 3.97 s; unchanged 252-Country coverage. |
+| `npm run politics:audit` | 24 passed across three files; 114.39 s. Three-year simulation 87,954.73 ms, 12 ticks/s, 583.24 ms reload; 33,547,440-byte save. |
+| `npm run benchmark:world` | Four passed; 45.59 s. Ten socioeconomic years 5,994.66 ms (609 ticks/s); ten fiscal years 23,328.53 ms (156 ticks/s); existing checksums unchanged. |
+| `npm run verify` | Passed; data audits, TypeScript/Vite build and 306 tests across 29 files; test phase 127.95 s. Existing large-chunk warning remains. |
+
+Full actual diff inspection includes the new helper, captured historical
+JSON and test/benchmark changes. Built-in `rg` for `Math\.random` in
+`src\simulation\governance` (`*.ts`) has no matches. `git diff --check`
+passes. A final focused corruption check covers both historic central-vote/
+seat reconciliation and invalid plurality-version rejection.
+
+### Performance and save bytes
+
+Audits/benchmarks ran sequentially, not alongside another heavy workload.
+The same production 20-inspection measurement is 12.730 ms mean versus the
+previous recorded 13.921 ms; machine noise prevents claiming an optimization.
+The separate 20-call synthetic known-profile workload is 12.522 ms mean.
+Production profiles remain evidence-limited; synthetic confidence is marked
+test-only and is not installed in production.
+
+| Measurement | Bytes |
+|---|---:|
+| Initial world save, no proposals | 27,268,062 (unchanged) |
+| Representative submitted world | 27,269,304 |
+| Representative resolved plurality world | 27,283,363 |
+| Resolution delta versus that submitted world | 14,059 |
+| Total delta versus initial world, including synthetic person/proposal/briefing | 15,301 |
+| Resolved proposal record | 13,435 |
+| Additional distribution/decision/allocation fields in both estimate and result | 4,800 |
+
+The 4,800-byte figure removes only those fields from a measurement copy; that
+undecorated copy is not a valid old save or a rewritten historical result.
+Snapshot reuse is 0.0335 ms; initial serialization is 269.38 ms. These are
+workload-specific costs, not universal limits. There is no MP-sized state,
+new scheduler task, faction update loop or RNG cost.
+
+### Unchanged evidence limits
+
+Complete procedural coverage still spans 57 Countries and ideological
+evidence eight, with zero production overlap; this implementation does not
+manufacture voting evidence. Internal distribution shape is a modelled
+common prior, not a sourced estimate of faction proportions. Leader coverage
+remains seven derived / zero directly sourced, one ambiguous and 940
+unavailable, with all seven reviewed fictional analogue names. No mapping
+was removed or changed in this block.
+
+IPU remains CC BY-NC-SA 4.0; Party Facts, V-Party and relevant primary-source
+licences remain `requires_confirmation`, blocking commercial release.
+Deeper institutional self-interest and faction/context successors remain
+unimplemented. No 0.16 work, main merge or independent-acceptance claim is
+included.

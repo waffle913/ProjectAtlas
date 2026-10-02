@@ -63,19 +63,22 @@ Already implemented (candidate, pending review):
 - Initial playable party leaders are fictional analogues derived from real
   leaders as reference, never copies of the real identity; the real name
   stays provenance/debug metadata only.
+- New parliamentary resolutions use continuous aggregate plurality,
+  independently per issue/goal, without persistent global factions or
+  individual MPs. The common prior is modelled, not sourced faction data.
+  Deterministic largest remainder conserves exact party seats across
+  YES/NO/ABSTAIN/UNKNOWN; insufficient evidence stays UNKNOWN. Central vote
+  is not a seat allocation. New records use `plurality-0.15-v1` /
+  `internal_party_distribution_v1`; historical 0.14 votes stay unchanged.
 
 Documented design intent, NOT yet implemented -- do not claim as current
 behavior until separately planned/implemented/validated:
-- Continuous aggregated internal party distribution per issue/axis
-  (radical/extremist, mainstream, intermediate, moderate/pragmatic) that
-  splits a party's seats across YES/NO/ABSTAIN/UNKNOWN in a vote. Parties
-  still vote as deterministic blocks today (0.14 contract above).
 - Generating post-replacement leaders from party structure/internal
   factions/power balance/context rather than a fixed list.
 - Situational institutional-interest weighting (majority/opposition,
   executive/chamber control, institutional levers, power balance, faction
-  balance, material consequences) beyond today's deterministic-block +
-  situational-evaluation model; never a flat fixed "opposition" malus.
+  balance, material consequences) beyond existing material-goal situational
+  evaluation; never a flat fixed "opposition" malus.
 
 ## Future direction and scope
 
