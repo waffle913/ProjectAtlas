@@ -90,7 +90,7 @@ behavior until separately planned/implemented/validated:
 
 ## Mandatory agent workflow
 
-- For changes touching canonical state, migration/save, the political model, multiple domains, or performance: first produce a no-code PLAN (touched files/contracts, causal dependencies, schema/migration impact, invariants, tests/audits, regression risks).
+- For changes touching canonical state, migration/save, the political model, multiple domains, or performance: before editing, establish and record a no-code plan covering affected contracts, dependencies, migrations, invariants, tests and risks. If the task is unambiguous and within the authorized scope, continue directly with implementation without waiting for user approval. Stop only for a material design ambiguity or an out-of-scope decision.
 - Then implement the smallest coherent, independently reviewable block. Do not swallow a whole milestone in one change; do not broadly refactor a validated milestone to ease current work.
 - Separate IMPLEMENTATION and REVIEW passes: implementation must not treat its own reasoning as proof of correctness; review must re-read the actual diff and actively hunt regressions -- conservation, determinism, saves/migrations, provenance, stale data, `unknown != zero`, `unknown != abstain`, Reality -> Government Information leaks.
 - On conflict with a validated contract, or material design ambiguity: preserve the validated contract, flag the ambiguity, do not invent behavior.

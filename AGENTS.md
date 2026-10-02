@@ -140,9 +140,11 @@ Future trade follows production -> needs -> aggregate trade -> prices -> depende
 For any change touching canonical state, migration/save behavior, the
 political model, multiple domains, or performance:
 
-1. First produce a no-code PLAN: touched files/contracts, causal
-   dependencies, schema/migration impact, invariants, and tests/audits to
-   run, plus regression risks.
+1. Before editing, establish and record a no-code plan covering affected
+   contracts, dependencies, migrations, invariants, tests and risks. If the
+   task is unambiguous and within the authorized scope, continue directly
+   with implementation without waiting for user approval. Stop only for a
+   material design ambiguity or an out-of-scope decision.
 2. Only then implement the smallest coherent, independently reviewable
    block. Do not swallow an entire milestone in one change, and do not
    broadly refactor a validated milestone merely to make current work easier.
