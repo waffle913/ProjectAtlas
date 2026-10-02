@@ -421,7 +421,7 @@ export default function App() {
           />
         ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is unavailable in milestone 0.15. ProjectAtlas does not generate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <p>Current recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}. Further diplomacy decisions are not implemented.</p>}</aside>}
       </div>
-      {!controlledPerson && <StartGame countries={countryData.registry.countries} leaders={Object.values(sim.governance.persons)} onPlay={startAs} />}
+      {!controlledPerson && <StartGame countries={countryData.registry.countries} persons={Object.values(sim.governance.persons)} onPlay={startAs} />}
     </main>
   );
 }

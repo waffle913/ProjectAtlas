@@ -2,7 +2,7 @@ import type { SimulationInvariant } from '../invariants';
 import { dateValid, validatePolicy } from '../fiscal/math';
 import { fiscalReformFingerprint, validateBudget } from '../fiscal/runtime';
 import { politicalRegistry } from '../politics/registry';
-import politicalOffices from '../../data/political-offices.json';
+import { persistedOfficeEvidenceErrors } from './officeEvidence';
 import { GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint,
@@ -15,9 +15,6 @@ const signedBps = (value: unknown) => Number.isSafeInteger(value) && (value as n
 const nonNegative = (value: unknown) => Number.isSafeInteger(value) && (value as number) >= 0;
 const finite = (value: unknown) => typeof value === 'number' && Number.isFinite(value);
 const coverage = (value: unknown) => ['complete', 'partial', 'unavailable'].includes(value as string);
-const officeholdersById = new Map(politicalOffices.officeholders.map(item => [item.officeId, item]));
-const officeDefinitionsById = new Map(politicalOffices.offices.map(item => [item.id, item]));
-const executiveCapabilities = ['access_government_information', 'sponsor_budget_reform', 'sponsor_fiscal_reform', 'sponsor_legislation', 'vote_legislation'] as const;
 
 function validatePartyEvaluation(evaluation: PartyProposalEvaluation): boolean {
   if (!evaluation.partyId || !bps(evaluation.agreementBps) || !bps(evaluation.confidenceBps) || !bps(evaluation.compromiseCostBps) || !coverage(evaluation.coverage) || !['yes', 'no', 'abstain', 'unknown'].includes(evaluation.vote)) return false;
@@ -91,31 +88,8 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (person.office && (!['head_of_government', 'head_of_state', 'legislator'].includes(person.office.role) || person.office.countryId !== person.countryId || !person.office.title?.trim() || !dateValid(person.office.appointedOn) || person.office.appointedOn < g.initializedOn || person.office.appointedOn < person.createdOn || person.office.appointedOn > state.date || person.office.authorityProfile.status !== 'modelled_constitutional_abstraction' || !person.office.authorityProfile.limitation || person.office.authorityProfile.capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item)))) errors.push(`Malformed office for ${id}.`);
     if (person.office?.evidence) {
       const evidence = person.office.evidence;
-      const officeholder = officeholdersById.get(evidence.sourceOfficeId);
-      const office = officeDefinitionsById.get(evidence.sourceOfficeId);
-      const institution = politicalRegistry.institutions[politicalRegistry.countries[person.countryId]?.institutionId];
-      const system = institution?.executiveSystemStatus === 'sourced' ? institution.executiveSystem : 'unavailable';
-      const expectedAuthorityBasis = system === 'presidential' && person.office.role === 'head_of_state'
-        ? 'sourced_presidential_head_of_state'
-        : (system === 'parliamentary' || system === 'monarchy_parliamentary') && person.office.role === 'head_of_government'
-          ? 'sourced_parliamentary_head_of_government'
-          : 'institutional_authority_unresolved';
-      if (evidence.status !== 'source_reconciled' || !Array.isArray(evidence.sourceOfficeIds) || !evidence.sourceOfficeIds.includes(evidence.sourceOfficeId) || !Array.isArray(evidence.sourceRecordIds) || !evidence.sourceRecordIds.length
-        || !evidence.sourcePersonId.startsWith('wikidata:') || !dateValid(evidence.referenceDate) || evidence.referenceDate !== politicalOffices.referenceDate || evidence.referenceDate > state.date
-        || evidence.effectiveFrom !== undefined && (!dateValid(evidence.effectiveFrom) || evidence.effectiveFrom > evidence.referenceDate)
-        || !officeholder || officeholder.status !== 'available' || officeholder.person?.id !== evidence.sourcePersonId || officeholder.referenceDate !== evidence.referenceDate || officeholder.startDate !== evidence.effectiveFrom
-        || !office || office.countryId !== person.countryId || office.kind !== person.office.role || !evidence.sourceRecordIds.includes(officeholder.source.datasetId)
-        || evidence.sourceOfficeIds.some(officeId => {
-          const record = officeholdersById.get(officeId), definition = officeDefinitionsById.get(officeId);
-          return !record || record.status !== 'available' || record.person?.id !== evidence.sourcePersonId || record.referenceDate !== evidence.referenceDate || !definition || definition.countryId !== person.countryId;
-        })) errors.push(`Office ${id} has invalid source reconciliation evidence.`);
-      if (evidence.authorityBasis !== expectedAuthorityBasis
-        || evidence.authorityBasis === 'institutional_authority_unresolved' && person.office.authorityProfile.capabilities.length !== 0
-        || evidence.authorityBasis === 'sourced_parliamentary_head_of_government' && (person.office.role !== 'head_of_government' || executiveCapabilities.some(capability => !person.office!.authorityProfile.capabilities.includes(capability)) || person.office.authorityProfile.capabilities.length !== executiveCapabilities.length)
-        || evidence.authorityBasis === 'sourced_presidential_head_of_state' && (person.office.role !== 'head_of_state' || executiveCapabilities.some(capability => !person.office!.authorityProfile.capabilities.includes(capability)) || person.office.authorityProfile.capabilities.length !== executiveCapabilities.length)
-        || !['institutional_authority_unresolved', 'sourced_parliamentary_head_of_government', 'sourced_presidential_head_of_state'].includes(evidence.authorityBasis)) errors.push(`Office ${id} has capabilities inconsistent with its institutional evidence.`);
+      errors.push(...persistedOfficeEvidenceErrors(person, state.date));
       trackSourceIdentity(evidence.sourcePersonId, person.countryId, id);
-      if (person.displayName === officeholder?.person?.name) errors.push(`Officeholder ${id} uses its source person's name as gameplay identity.`);
     }
     if (person.leaderProvenance) {
       const provenance = person.leaderProvenance;

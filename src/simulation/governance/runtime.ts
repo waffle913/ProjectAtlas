@@ -7,6 +7,9 @@ import { deterministicInteger } from '../rng';
 import { addProposalResultBriefing } from '../information/runtime';
 import partyLeadershipSources from '../../data/source-snapshots/party-leadership-2026-01-01.json';
 import politicalOffices from '../../data/political-offices.json';
+import { assertInitialOfficeReconciliation } from './initialOfficeEvidence';
+import { capabilitiesForReconciledAuthority, executiveAuthorityBasis } from './officeEvidence';
+export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal } from './analysis';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type ProposalAnalysis, type ProposalImpact, type PublicSupportEstimate } from './model';
@@ -21,12 +24,6 @@ const requireControlled = (state: SimulationState, id: string) => { if (state.go
 const capabilitiesFor = (role: PoliticalOfficeRole): AuthorityCapability[] => role === 'head_of_government'
   ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information']
   : role === 'legislator' ? ['sponsor_legislation', 'vote_legislation'] : [];
-const executiveCapabilities: AuthorityCapability[] = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information'];
-export function capabilitiesForReconciledAuthority(authorityBasis: NonNullable<NonNullable<PoliticalPersonState['office']>['evidence']>['authorityBasis']): AuthorityCapability[] {
-  return authorityBasis === 'sourced_parliamentary_head_of_government' || authorityBasis === 'sourced_presidential_head_of_state'
-    ? [...executiveCapabilities]
-    : [];
-}
 const authorityLimitation = 'Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule.';
 const leaderNameSyllables = ['Ari', 'Bel', 'Cor', 'Davi', 'Eli', 'Fari', 'Galen', 'Havi', 'Ira', 'Jori', 'Kavi', 'Lena', 'Mira', 'Navi', 'Oren', 'Pavi', 'Quin', 'Ravi', 'Sela', 'Tavi', 'Uma', 'Veli', 'Wren', 'Xavi', 'Yara', 'Zori'];
 const leaderFamilySyllables = ['Aven', 'Borin', 'Ceren', 'Dalen', 'Evar', 'Feron', 'Galen', 'Halen', 'Iven', 'Jorin', 'Kalen', 'Lorin', 'Maren', 'Nerin', 'Ovan', 'Peren', 'Qorin', 'Ralen', 'Soren', 'Talen', 'Uren', 'Varen', 'Walen', 'Xeren', 'Yorin', 'Zalen'];
@@ -173,12 +170,7 @@ function initializeSourceOfficeholders(state: SimulationState, registry: Politic
       ?? records.find(item => item.definition.kind === 'head_of_government')
       ?? records[0];
     const role = selected.definition.kind as PoliticalOfficeRole;
-    const authorityBasis: NonNullable<NonNullable<PoliticalPersonState['office']>['evidence']>['authorityBasis'] =
-      system === 'presidential' && role === 'head_of_state'
-        ? 'sourced_presidential_head_of_state'
-        : (system === 'parliamentary' || system === 'monarchy_parliamentary') && role === 'head_of_government'
-          ? 'sourced_parliamentary_head_of_government'
-          : 'institutional_authority_unresolved';
+    const authorityBasis = executiveAuthorityBasis(system, role);
     const capabilities = capabilitiesForReconciledAuthority(authorityBasis);
     const mappedOfficeTitle = mapping?.officeholderMatch?.officeId === selected.definition.id
       ? mapping.officeholderMatch.title
@@ -240,6 +232,7 @@ function initializeSourceOfficeholders(state: SimulationState, registry: Politic
       });
     }
   }
+  assertInitialOfficeReconciliation(next, registry);
   return next;
 }
 

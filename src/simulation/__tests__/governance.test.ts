@@ -24,6 +24,8 @@ import { evaluateImmediateFiscalPolicyCounterfactual, scheduleFiscalReform } fro
 import { COHORT } from '../politics/model';
 import politicalOffices from '../../data/political-offices.json';
 import { StartGame } from '../../components/StartGame';
+import { assertInitialOfficeReconciliation } from '../governance/initialOfficeEvidence';
+import { selectableStartingCountryIds, startingPersonCandidates } from '../governance/selection';
 
 const fullWorld = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
 let initial: SimulationState;
@@ -188,7 +190,7 @@ describe('governance 0.14 player and political decisions', () => {
     const canadianLeaders = Object.values(state.governance.persons).filter(person => person.countryId === 'country.1aj872z' && person.isPartyLeader);
     const markup = renderToStaticMarkup(createElement(StartGame, {
       countries: [{ id: 'country.1aj872z', commonName: 'Canada' }],
-      leaders: canadianLeaders,
+      persons: canadianLeaders,
       onPlay: () => undefined,
     }));
     expect(markup).toContain('Yves-François Blancheval');
@@ -196,6 +198,91 @@ describe('governance 0.14 player and political decisions', () => {
     expect(markup).not.toContain('Yves-François Blanchet');
     expect(markup).not.toContain('Pierre Poilievre');
     expect(markup).not.toContain('Don Davies');
+  });
+
+  it('offers both canonical starting routes without duplicate people or inferred offices/membership', () => {
+    const persons = Object.values(initial.governance.persons);
+    const leader = persons.find(person => person.isPartyLeader && !person.office)!;
+    const executive = persons.find(person => person.office?.evidence && !person.partyId)!;
+    const combined = persons.find(person => person.isPartyLeader && person.office?.evidence)!;
+    const leaderCandidates = startingPersonCandidates(persons, leader.countryId, 'party_leader', leader.partyId);
+    expect(leaderCandidates.find(person => person.id === leader.id)).toBe(leader);
+    expect(startingPersonCandidates(persons, leader.countryId, 'officeholder').some(person => person.id === leader.id)).toBe(false);
+    expect(startingPersonCandidates(persons, executive.countryId, 'officeholder').find(person => person.id === executive.id)).toBe(executive);
+    expect(startingPersonCandidates(persons, executive.countryId, 'party_leader').some(person => person.id === executive.id)).toBe(false);
+    expect(startingPersonCandidates(persons, combined.countryId, 'party_leader', combined.partyId).find(person => person.id === combined.id)).toBe(combined);
+    expect(startingPersonCandidates([...persons, combined], combined.countryId, 'officeholder').filter(person => person.id === combined.id)).toEqual([combined]);
+    expect(startingPersonCandidates([...persons].reverse(), combined.countryId, 'officeholder')).toEqual(startingPersonCandidates(persons, combined.countryId, 'officeholder'));
+    const inactive = { ...executive, status: 'inactive' as const };
+    expect(startingPersonCandidates([inactive], executive.countryId, 'officeholder')).toEqual([]);
+    expect(executive.partyId).toBeUndefined();
+    expect(leader.office).toBeUndefined();
+  });
+
+  it('renders reconciled officeholders even without Country party coverage and states unresolved authority explicitly', () => {
+    const persons = Object.values(initial.governance.persons);
+    const noPartyCountry = persons.find(person => person.office?.evidence && !politicalRegistry.countries[person.countryId]?.partyIds.length)!;
+    expect(noPartyCountry).toBeDefined();
+    expect(selectableStartingCountryIds(persons).has(noPartyCountry.countryId)).toBe(true);
+    const unresolved = persons.find(person => person.office?.evidence?.authorityBasis === 'institutional_authority_unresolved' && !person.partyId)!;
+    for (const executive of [noPartyCountry, unresolved]) {
+      const markup = renderToStaticMarkup(createElement(StartGame, {
+        countries: [{ id: executive.countryId, commonName: 'Officeholder route fixture' }],
+        persons: [executive], onPlay: () => undefined, initialPath: 'officeholder',
+      }));
+      expect(markup).toContain(executive.displayName);
+      expect(markup).toContain(executive.office!.title);
+      expect(markup).toContain('Current public officeholder');
+      expect(markup).not.toContain('3. Fictional party leader');
+      expect(markup.split(`value="${executive.id}"`)).toHaveLength(2);
+      expect(markup).toContain('Party membership unavailable');
+      expect(markup).not.toContain('disabled=""');
+      expect(markup).not.toContain(politicalOffices.officeholders.find(record => record.person?.id === executive.office!.evidence!.sourcePersonId)!.person!.name);
+    }
+    const unresolvedMarkup = renderToStaticMarkup(createElement(StartGame, {
+      countries: [{ id: unresolved.countryId, commonName: 'Unresolved authority fixture' }],
+      persons: [unresolved], onPlay: () => undefined, initialPath: 'officeholder',
+    }));
+    expect(unresolvedMarkup).toContain('no gameplay executive capabilities are assigned');
+    const resolved = persons.find(person => person.office?.evidence && person.office.authorityProfile.capabilities.length)!;
+    const resolvedMarkup = renderToStaticMarkup(createElement(StartGame, {
+      countries: [{ id: resolved.countryId, commonName: 'Resolved authority fixture' }],
+      persons: [resolved], onPlay: () => undefined, initialPath: 'officeholder',
+    }));
+    expect(resolvedMarkup).toContain('modelled capabilities');
+    for (const capability of resolved.office!.authorityProfile.capabilities) expect(resolvedMarkup).toContain(capability);
+  });
+
+  it('selects the same person through either route by changing only canonical player control', () => {
+    const persons = Object.values(initial.governance.persons);
+    const samples = [
+      persons.find(person => person.isPartyLeader && !person.office)!,
+      persons.find(person => person.office?.evidence && !person.partyId)!,
+      persons.find(person => person.isPartyLeader && person.office?.evidence)!,
+    ];
+    for (const person of samples) {
+      for (const path of ['party_leader', 'officeholder'] as const) {
+        const candidate = startingPersonCandidates(persons, person.countryId, path, person.partyId).find(item => item.id === person.id);
+        if (!candidate) continue;
+        const selected = setControlledPerson(initial, candidate.id);
+        expect(selected.governance.player.controlledPersonId).toBe(person.id);
+        expect({ ...selected, governance: { ...selected.governance, player: { ...selected.governance.player, controlledPersonId: initial.governance.player.controlledPersonId } } }).toEqual(initial);
+        expect(selected.governance.persons[person.id]).toBe(person);
+      }
+    }
+    const markup = renderToStaticMarkup(createElement(StartGame, {
+      countries: [{ id: samples[0].countryId, commonName: 'Leader without office fixture' }],
+      persons: [samples[0]], onPlay: () => undefined,
+    }));
+    expect(markup).toContain('No public office is reconciled to this leader; no executive powers are inferred');
+    for (const path of ['party_leader', 'officeholder'] as const) {
+      const combinedMarkup = renderToStaticMarkup(createElement(StartGame, {
+        countries: [{ id: samples[2].countryId, commonName: 'Combined canonical identity fixture' }],
+        persons: [samples[2], samples[2]], onPlay: () => undefined, initialPath: path,
+      }));
+      expect(combinedMarkup.split(`value="${samples[2].id}"`)).toHaveLength(2);
+      expect(combinedMarkup).toContain(samples[2].displayName);
+    }
   });
 
   it('preserves schema-13 persisted identity/provenance even when it differs from current mappings', () => {
@@ -250,6 +337,69 @@ describe('governance 0.14 player and political decisions', () => {
     const archived = structuredClone(initial);
     Object.assign(archived.politics, { registryVersion: 'future-or-incompatible-registry' });
     expect(() => restoreSimulationState(JSON.stringify(archived), worldRegions, {}, {}, worldContext)).toThrow(/explicit versioned migration/);
+  });
+
+  it('preserves historical office evidence absent from the installed source snapshot without mutating saved history', () => {
+    const archived = structuredClone(advanceSimulationDays(initial, 5));
+    const executive = Object.values(archived.governance.persons).find(person => person.office?.evidence?.authorityBasis === 'institutional_authority_unresolved' && !person.partyId)!;
+    const evidence = executive.office!.evidence!;
+    evidence.sourcePersonId = 'wikidata:Q999999999999';
+    evidence.sourceOfficeId = 'archived-office-fixture';
+    evidence.sourceOfficeIds = [evidence.sourceOfficeId, 'archived-secondary-office-fixture'];
+    evidence.sourceRecordIds = ['archived-office-source-v0'];
+    evidence.referenceDate = '2025-12-01';
+    evidence.effectiveFrom = '2024-02-01';
+    evidence.authorityBasis = 'sourced_parliamentary_head_of_government';
+    executive.office!.role = 'head_of_government';
+    executive.office!.authorityProfile.capabilities = capabilitiesForReconciledAuthority(evidence.authorityBasis);
+    executive.office!.authorityProfile.limitation = 'Historical test authority classification; fictional archived evidence, not an observed constitutional fact.';
+    executive.office!.title = 'Historical fictional executive';
+    archived.governance.player.controlledPersonId = executive.id;
+    expect(politicalOffices.officeholders.some(record => record.person?.id === evidence.sourcePersonId)).toBe(false);
+    for (const referenceDate of ['2025-12-01', '2026-01-05']) {
+      evidence.referenceDate = referenceDate;
+      const restored = restoreSimulationState(serializeSimulationState(archived, worldContext), worldRegions, {}, {}, worldContext);
+      expect(restored).toEqual(archived);
+      expect(restored.governance.persons[executive.id]).toEqual(executive);
+      expect(restored.governance).toEqual(archived.governance);
+      expect(restored.engine).toEqual(archived.engine);
+      expect(restored.date).toBe(archived.date);
+    }
+  }, 30_000);
+
+  it('keeps strict current-source reconciliation in new-game initialization', () => {
+    const malformed = structuredClone(initial);
+    const executive = Object.values(malformed.governance.persons).find(person => person.office?.evidence && !person.partyId)!;
+    executive.office!.evidence!.sourcePersonId = 'wikidata:Q999999999999';
+    expect(() => initializeNewGame(malformed, worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs))
+      .toThrow(/current initialization sources/);
+    const realName = structuredClone(initial);
+    const holder = Object.values(realName.governance.persons).find(person => person.office?.evidence && !person.partyId)!;
+    holder.displayName = politicalOffices.officeholders.find(record => record.person?.id === holder.office!.evidence!.sourcePersonId)!.person!.name;
+    expect(() => initializeNewGame(realName, worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs))
+      .toThrow(/source person's name/);
+  }, 30_000);
+
+  it('rejects internally inconsistent persisted office identity, dates and authority without source lookups', () => {
+    const source = Object.values(initial.governance.persons).find(person => person.office?.evidence && !person.partyId)!;
+    const cases = [
+      (person: typeof source) => { person.office!.countryId = 'country.invalid'; },
+      (person: typeof source) => { person.office!.evidence!.sourcePersonId = 'wikidata:not-a-QID'; },
+      (person: typeof source) => { person.office!.evidence!.sourceRecordIds = ['']; },
+      (person: typeof source) => { person.office!.evidence!.sourceOfficeIds = []; },
+      (person: typeof source) => { person.office!.evidence!.referenceDate = '2027-01-01'; },
+      (person: typeof source) => { person.office!.evidence!.effectiveFrom = '2027-01-01'; },
+      (person: typeof source) => { person.office!.evidence!.authorityBasis = 'sourced_parliamentary_head_of_government'; person.office!.role = 'head_of_state'; },
+    ];
+    for (const corrupt of cases) {
+      const person = structuredClone(source);
+      corrupt(person);
+      const invalid = { ...initial, governance: { ...initial.governance, persons: { ...initial.governance.persons, [person.id]: person } } };
+      expect(governanceInvariant.check(invalid, worldContext, 'save').length).toBeGreaterThan(0);
+    }
+    const mixed = structuredClone(Object.values(initial.governance.persons).find(person => person.office?.evidence && person.leaderProvenance?.sourceLeader)!);
+    mixed.office!.evidence!.sourcePersonId = 'wikidata:Q999999999999';
+    expect(governanceInvariant.check({ ...initial, governance: { ...initial.governance, persons: { ...initial.governance.persons, [mixed.id]: mixed } } }, worldContext, 'save').join(' ')).toContain('persisted source');
   });
 
   it('retains exact reviewed leader provenance, fictional names, and one-person office reconciliation through save reload', () => {
@@ -367,7 +517,9 @@ describe('governance 0.14 player and political decisions', () => {
     const invalid = structuredClone(unresolved.state);
     invalid.governance.persons[unresolved.id].office!.evidence!.authorityBasis = 'sourced_presidential_head_of_state';
     invalid.governance.persons[unresolved.id].office!.authorityProfile.capabilities = capabilitiesForReconciledAuthority('sourced_presidential_head_of_state');
-    expect(governanceInvariant.check(invalid, worldContext, 'save').join(' ')).toContain('capabilities inconsistent with its institutional evidence');
+    expect(() => assertInitialOfficeReconciliation(invalid)).toThrow(/capabilities inconsistent with its institutional evidence/);
+    invalid.governance.persons[unresolved.id].office!.evidence!.authorityBasis = 'institutional_authority_unresolved';
+    expect(governanceInvariant.check(invalid, worldContext, 'save').join(' ')).toContain('persisted authority basis');
   });
 
   it('preserves the former leader, office and player control until an explicit handoff choice', () => {
