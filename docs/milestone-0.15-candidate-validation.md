@@ -884,3 +884,28 @@ diff is limited to the two runtime files, their two test files, README and
 this report; the accepted handoff is untouched. Exact-SHA Ubuntu/Windows
 Actions verification must be reported after push, separately from these
 local results. This follow-up neither accepts 0.15 nor starts 0.16.
+
+### CI resource isolation after the sovereignty correction
+
+The six-file sovereignty correction was committed and pushed as
+`e9d44134f1cd0250b7638ef52eacd94bb57ac6ab`, directly after the reviewed
+`c1087f8452426dd66bab1d3c0c85c33af87cc746`. Actions run
+[37020376478](https://github.com/waffle913/ProjectAtlas/actions/runs/37020376478)
+really passed 467/467 on Ubuntu (Node 22.23.3, 183.17 s test-run duration).
+Windows failed twice, both solely at the unchanged fiscal world test's
+60-second deadline: 466 passed / one timeout, 231.09 s and 240.89 s overall
+test-run durations. These failures are not reported as successful validation.
+
+A separate CI-only follow-up limits Vitest to one worker so full-world
+workloads do not contend across test files. The workflow still runs the
+entire `verify` chain, fresh `npm ci`, both OS jobs and Node 22. The exact
+command `npm run verify -- -- --maxWorkers=1` was executed locally and its
+output confirmed `npm test -- --maxWorkers=1`, then
+`vitest run --maxWorkers=1`. Data audit, production build and all 467 tests
+in 30 files passed, exit 0, 358.19 s test-run duration. The extra separator
+forwards the argument through the nested npm command; no package script,
+test selection, assertion, timeout, benchmark threshold or simulation code
+is changed by this follow-up. Serial execution takes longer overall but
+retains each benchmark's original deadline. The only additional files are
+the existing workflow and this report. Both exact-final-SHA jobs must still
+be verified after the follow-up is pushed.

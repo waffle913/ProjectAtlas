@@ -18,4 +18,5 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run verify
+      # Forward the worker limit through verify's nested npm test command.
+      - run: npm run verify -- -- --maxWorkers=1
