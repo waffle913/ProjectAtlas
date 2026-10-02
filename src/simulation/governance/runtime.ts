@@ -395,6 +395,7 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
 
 export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[] }): SimulationState {
   const person = requirePerson(state, personIdValue); requireCountry(state, input.countryId);
+  if (person.status !== 'active') throw new Error('Only an active person may receive a political office.');
   const appointedOn = input.appointedOn ?? state.date;
   if (person.countryId !== input.countryId || !dateValid(appointedOn) || appointedOn > state.date || !state.governance.initializedOn || appointedOn < state.governance.initializedOn || appointedOn < person.createdOn) throw new Error('Office scope or appointment date is invalid.');
   const capabilities = [...new Set(input.capabilities ?? capabilitiesFor(input.role))].sort();
@@ -430,7 +431,7 @@ export function replaceDraftProposal(state: SimulationState, proposalIdValue: st
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, effectiveDate, payload: structuredClone(payload) } } });
 }
 
-const hasCapability = (proposal: PoliticalProposal, person: ReturnType<typeof requirePerson>, capability: AuthorityCapability) => person.office?.countryId === proposal.countryId && person.office.authorityProfile.capabilities.includes(capability);
+const hasCapability = (proposal: PoliticalProposal, person: ReturnType<typeof requirePerson>, capability: AuthorityCapability) => person.status === 'active' && person.office?.countryId === proposal.countryId && person.office.authorityProfile.capabilities.includes(capability);
 export function hasPoliticalAuthority(state: SimulationState, personIdValue: string, countryId: string, capability: AuthorityCapability): boolean {
   const person = state.governance.persons[personIdValue];
   return Boolean(person?.status === 'active' && person.office?.countryId === countryId && person.office.authorityProfile.capabilities.includes(capability));

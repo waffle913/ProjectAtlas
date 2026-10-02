@@ -93,9 +93,12 @@ shares. A party can split differently by proposal, or remain unanimous.
 Missing profiles, unavailable evaluations or confidence below 3,000 produce
 100% UNKNOWN, not ABSTAIN. Known shares sum to 10,000 with zero UNKNOWN.
 
-The existing exact BigInt largest-remainder allocator assigns party seats.
-Stable tie order is YES, NO, ABSTAIN, UNKNOWN; sorted party IDs keep insertion
-order irrelevant. Chamber totals sum those allocations. Independent/other
+An exact BigInt largest-remainder specialization assigns new party seats.
+Equal remainders use a stable hash of proposal, chamber, party and vote-bucket
+identities, without systematic YES/NO priority. New estimates/results carry
+`seatApportionment: identity_hash_v1`. Unmarked previously saved candidate
+results retain their original YES/NO/ABSTAIN/UNKNOWN tie order; the generic
+allocator's historical contract is unchanged. Chamber totals sum those allocations. Independent/other
 and residual seats remain unavailable. Adoption still requires complete
 coverage and YES > NO in every required chamber. Public-support estimation,
 Government Information access, fiscal enqueueing, authority and scheduling
@@ -104,7 +107,10 @@ are unchanged. There is no new RNG, scheduler task or persistent party state.
 Global schema 13 and governance v1 stay unchanged. Distribution fields are
 optional/versioned proposal-result metadata, not a new canonical subsystem.
 The governance invariant validates their method, provenance, shares, exact
-allocations, chamber totals and compatible version/procedure. Historical
+allocations, chamber totals and compatible version/procedure.
+Plurality resolution also requires exact equality between the saved
+parliamentary estimate and the parliamentary part of the recorded result,
+excluding only outcome, resolution date and reason. Historical
 `legacy-0.14-v1` and `situational-0.14-v2` results retain the old validation
 path and reject new distribution fields. Ordinary reload never recomputes
 historical votes. A genuine parent-generated situational-v2 fixture and the

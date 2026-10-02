@@ -1,6 +1,7 @@
 import type { SimulationState } from '../../types';
-import { CATEGORIES, TAXES, type Budget, type TaxCategory, type TaxKind } from '../fiscal/model';
-import { evaluateImmediateFiscalPolicyCounterfactual } from '../fiscal/runtime';
+import { CATEGORIES, TAXES, type TaxCategory, type TaxKind } from '../fiscal/model';
+import { evaluateImmediateFiscalPolicyCounterfactual, monthlyBudgetForDate } from '../fiscal/runtime';
+import { roundHalfAwayFromZero, scaledRatioSigned } from '../integerMath';
 import { sum } from '../fiscal/math';
 import { POLITICAL_ISSUES, type PoliticalParty, type PoliticalRegistry } from '../politics/model';
 import type { CoveredMetric, DirectPolicyChange, EvaluationCoverage, ExpectedConsequence, GovernanceGoal, PartyGoalProfile, PartyIssueEvaluation, PartyIssuePreference, PartyProposalEvaluation, PoliticalProposal, ProposalAnalysis, ProposalMaterialContext, UnsupportedProposalChange } from './model';
@@ -8,16 +9,15 @@ import type { CoveredMetric, DirectPolicyChange, EvaluationCoverage, ExpectedCon
 export const GOVERNANCE_GOALS = [...POLITICAL_ISSUES, 'fiscal_sustainability'] as const satisfies readonly GovernanceGoal[];
 export const GOVERNANCE_VOTE_THRESHOLDS = Object.freeze({ yesAgreementBps: 6_000, noAgreementBps: 4_000, minimumConfidenceBps: 3_000 });
 const clamp = (value: number) => Math.max(0, Math.min(10_000, Math.round(value)));
-const signed = (value: number) => Math.max(-10_000, Math.min(10_000, Math.round(value)));
-const ratio = (numerator: number, denominator: number, scale = 10_000) => denominator > 0 ? Math.round(numerator * scale / denominator) : undefined;
+const signed = (value: number) => Math.max(-10_000, Math.min(10_000, roundHalfAwayFromZero(value)));
+const ratio = (numerator: number, denominator: number, scale = 10_000) => denominator > 0 ? scaledRatioSigned(numerator, scale, denominator) : undefined;
 const metric = (valueBps: number | undefined, source: string, limitation?: string): CoveredMetric => valueBps === undefined ? { coverage: 'unavailable', source, limitation: limitation ?? 'Required material denominator or observation is unavailable.' } : { valueBps: clamp(valueBps), coverage: 'complete', source, limitation };
-const monthlyBudget = (budget: Budget) => Math.round(sum(CATEGORIES.map(key => budget[key])) / 12);
 
 export function materialContextForProposal(state: SimulationState, proposal: PoliticalProposal): ProposalMaterialContext {
   const country = state.fiscal.countries[proposal.countryId], regions = Object.keys(state.socioeconomy.regions).filter(id => state.regionOwnership[id] === proposal.countryId).sort();
   let labourForce = 0, unemployed = 0, people = 0, needsWeighted = 0, needsPeople = 0; const personsByIncome = [0, 0, 0], disposableByIncome = [0, 0, 0];
   for (const id of regions) { const region = state.socioeconomy.regions[id]; if (!region?.economy) continue; labourForce += region.economy.labourForce; unemployed += region.economy.unemployed; people += region.population ?? 0; if (region.economy.basicNeedsCoverageBps !== null) { needsWeighted += region.economy.basicNeedsCoverageBps * (region.population ?? 0); needsPeople += region.population ?? 0; } const fiscal = state.fiscal.regions[id]; for (const cohort of region.cohorts) { const index = cohort.income === 'low' ? 0 : cohort.income === 'middle' ? 1 : 2; personsByIncome[index] += cohort.persons; } for (let index = 0; index < 3; index++) disposableByIncome[index] += fiscal?.disposable[index] ?? region.economy.incomeByGroup[index]; }
-  const account = country?.account, knownRevenue = account?.knownTaxRevenue ?? sum(Object.values(state.fiscal.regions).filter(region => region.owner === proposal.countryId).flatMap(region => TAXES.map(category => region.taxes[category].collected))), totalRevenue = account?.totalRevenue ?? (country ? knownRevenue + country.revenueCalibration.monthlyAmount : 0), spending = account?.totalSpending ?? (country ? monthlyBudget(country.annualBudget) : 0);
+  const account = country?.account, knownRevenue = account?.knownTaxRevenue ?? sum(Object.values(state.fiscal.regions).filter(region => region.owner === proposal.countryId).flatMap(region => TAXES.map(category => region.taxes[category].collected))), totalRevenue = account?.totalRevenue ?? (country ? knownRevenue + country.revenueCalibration.monthlyAmount : 0), spending = account?.totalSpending ?? (country ? sum(Object.values(monthlyBudgetForDate(country.annualBudget, state.date))) : 0);
   const fiscalSustainability = ratio(Math.min(totalRevenue, spending), spending), deficit = Math.max(0, spending - totalRevenue), deficitStress = totalRevenue > 0 ? ratio(deficit, totalRevenue) : deficit > 0 ? 10_000 : 0, unpaid = account?.stress.unpaidCommitments ?? (country ? sum(Object.values(country.arrears)) + country.interestArrears : 0), unpaidStress = totalRevenue > 0 ? ratio(unpaid, totalRevenue) : unpaid > 0 ? 10_000 : 0;
   const services = country ? [country.services.health.coverageBps, country.services.education.coverageBps].filter((value): value is number => value !== null) : [], publicCoverage = services.length ? Math.round(sum(services) / services.length) : undefined, infrastructureCoverage = country?.services.infrastructure.coverageBps ?? undefined;
   return {
@@ -50,7 +50,7 @@ const contextOutcome = (context: ProposalMaterialContext, goal: GovernanceGoal):
   return { valueBps: Math.min(context.fiscalSustainability.valueBps, 10_000 - context.fiscalDistress.valueBps), coverage: context.fiscalSustainability.coverage === 'complete' && context.fiscalDistress.coverage === 'complete' ? 'complete' : 'partial', source: 'fiscal.current_financing_and_distress', limitation: 'Composite goal outcome combines present financing coverage with deficit, arrears and debt pressure; it is not a forecast.' };
 };
 const consequence = (goal: GovernanceGoal, directionBps: number, confidenceBps: number, coverage: EvaluationCoverage, source: string, explanation: string): ExpectedConsequence => ({ goal, directionBps: signed(directionBps), magnitudeBps: Math.abs(signed(directionBps)), confidenceBps: clamp(confidenceBps), coverage, source, explanation });
-const budgetDirection = (delta: number, baseline: number, severityBps: number) => signed((ratio(delta, Math.max(1, baseline), 5_000) ?? 0) * (5_000 + severityBps) / 10_000);
+const budgetDirection = (delta: number, baseline: number, severityBps: number) => signed(scaledRatioSigned(ratio(delta, Math.max(1, baseline), 5_000)!, 5_000 + severityBps, 10_000));
 
 export function analyzeProposal(state: SimulationState, proposal: PoliticalProposal): ProposalAnalysis {
   const country = state.fiscal.countries[proposal.countryId]; if (!country) throw new Error('Proposal Country has no fiscal state.');
@@ -73,15 +73,15 @@ export function analyzeProposal(state: SimulationState, proposal: PoliticalPropo
     const changedKinds = (Object.keys(categoryKinds) as TaxKind[]).filter(kind => JSON.stringify(country.policy[kind]) !== JSON.stringify(proposal.payload.policy![kind])), supportedKinds = changedKinds.filter(kind => country.policy[kind] !== null && proposal.payload.policy![kind] !== null);
     if (supportedKinds.length) {
       const counterfactual = evaluateImmediateFiscalPolicyCounterfactual(state, proposal.countryId, proposal.payload.policy, proposal.effectiveDate), categories = supportedKinds.flatMap(kind => categoryKinds[kind]), revenueDelta = sum(categories.map(category => counterfactual.proposedRevenueByCategory[category] - counterfactual.currentRevenueByCategory[category]));
-      if (revenueDelta) expectedConsequences.push(consequence('fiscal_sustainability', signed((ratio(revenueDelta, Math.max(1, totalRevenueFor(state, proposal.countryId)), 5_000) ?? 0) * (5_000 + (materialContext.fiscalDistress.valueBps ?? 0)) / 10_000), 9_000, 'complete', `fiscal.counterfactual.${categories.join('+')}`, 'Immediate known-tax revenue delta on current simulated bases.'));
+      if (revenueDelta) expectedConsequences.push(consequence('fiscal_sustainability', signed(scaledRatioSigned(ratio(revenueDelta, Math.max(1, totalRevenueFor(state, proposal.countryId)), 5_000)!, 5_000 + (materialContext.fiscalDistress.valueBps ?? 0), 10_000)), 9_000, 'complete', `fiscal.counterfactual.${categories.join('+')}`, 'Immediate known-tax revenue delta on current simulated bases.'));
       const cashIncomeKinds = supportedKinds.some(kind => ['personal', 'payroll'].includes(kind));
       if (cashIncomeKinds) {
-        const deltas = counterfactual.proposedDisposableByIncome.map((value, index) => value - counterfactual.currentDisposableByIncome[index]), relative = deltas.map((delta, index) => ratio(delta, Math.max(1, counterfactual.currentDisposableByIncome[index])) ?? 0), average = Math.round(sum(relative) / relative.length);
+        const deltas = counterfactual.proposedDisposableByIncome.map((value, index) => value - counterfactual.currentDisposableByIncome[index]), relative = deltas.map((delta, index) => ratio(delta, Math.max(1, counterfactual.currentDisposableByIncome[index])) ?? 0), average = scaledRatioSigned(sum(relative), 1, relative.length);
         if (average) expectedConsequences.push(consequence('income_security', signed(average * 2), 8_500, 'complete', 'fiscal.counterfactual.household_disposable', 'Immediate disposable-income incidence on current household groups.'));
         const distribution = signed((relative[0] - relative[2]) * 2); if (distribution) expectedConsequences.push(consequence('fiscal_distribution', distribution, 8_000, 'partial', 'fiscal.counterfactual.income_group_incidence', 'Relative low-versus-high income disposable effect; ownership incidence and long-run responses unavailable.'));
       }
       if (supportedKinds.includes('consumption')) {
-        const burdenDeltas = counterfactual.proposedConsumptionTaxByIncome.map((value, index) => value - counterfactual.currentConsumptionTaxByIncome[index]), relativeBurden = burdenDeltas.map((delta, index) => ratio(delta, Math.max(1, counterfactual.currentDisposableByIncome[index])) ?? 0), averageBurden = Math.round(sum(relativeBurden) / relativeBurden.length);
+        const burdenDeltas = counterfactual.proposedConsumptionTaxByIncome.map((value, index) => value - counterfactual.currentConsumptionTaxByIncome[index]), relativeBurden = burdenDeltas.map((delta, index) => ratio(delta, Math.max(1, counterfactual.currentDisposableByIncome[index])) ?? 0), averageBurden = scaledRatioSigned(sum(relativeBurden), 1, relativeBurden.length);
         if (averageBurden) expectedConsequences.push(consequence('income_security', signed(-averageBurden * 2), 8_500, 'complete', 'fiscal.counterfactual.consumption_tax_burden', 'Immediate change in consumption-tax purchasing-power burden on current household consumption; disposable cash income is held separate.'));
         const distribution = signed((relativeBurden[2] - relativeBurden[0]) * 2); if (distribution) expectedConsequences.push(consequence('fiscal_distribution', distribution, 8_000, 'partial', 'fiscal.counterfactual.consumption_tax_incidence', 'Relative low-versus-high income consumption-tax burden on current consumption; behavioral responses are unavailable.'));
       }
@@ -122,7 +122,7 @@ function evaluateProfile(analysis: ProposalAnalysis, profile: PartyGoalProfile):
     issueEvaluations.push({ goal: consequence.goal, currentOutcomeBps: currentOutcome, expectedOutcomeBps: expectedOutcome, agreementBps: issueAgreement, benefitBps, compromiseCostBps, severityBps: severityFor(analysis, consequence.goal), coverage: consequence.coverage });
   }
   if (positiveDrivers.length && negativeDrivers.length) tradeoffs.push(`Positive objectives (${positiveDrivers.length}) are weighed against adverse or compromise costs (${negativeDrivers.length}).`);
-  const confidenceBps = weights ? clamp(confidenceWeight / weights) : 0, agreementBps = weights ? clamp(5_000 + weighted / weights) : 5_000, compromiseCostBps = weights ? clamp(compromiseWeighted / weights) : 0;
+  const confidenceBps = weights ? clamp(confidenceWeight / weights) : 0, agreementBps = weights ? clamp(5_000 + scaledRatioSigned(weighted, 1, weights)) : 5_000, compromiseCostBps = weights ? clamp(compromiseWeighted / weights) : 0;
   const evaluable = issueEvaluations.filter(item => item.coverage !== 'unavailable').length, coverage: EvaluationCoverage = !evaluable ? 'unavailable' : analysis.coverage === 'complete' && evaluable === issueEvaluations.length ? 'complete' : 'partial';
   return { agreementBps, confidenceBps, coverage, compromiseCostBps, positiveDrivers, negativeDrivers, tradeoffs, issueEvaluations };
 }

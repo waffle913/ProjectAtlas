@@ -1,4 +1,6 @@
 import { allocate } from '../socioeconomy/model';
+import { deterministicFingerprint } from '../fingerprint';
+import { scaledRatioSigned } from '../integerMath';
 import { evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
 import type { GovernanceGoal, PartyGoalProfile, PartyInternalVoteDistribution, PartyIssuePreference, PartyProposalEvaluation, PartySeatAllocation, ProposalAnalysis } from './model';
 
@@ -79,7 +81,7 @@ export function evaluatePartyInternalVoteDistribution(analysis: ProposalAnalysis
       weightBps: sample.weightBps,
     }));
     const weight = samples.reduce((sum, item) => sum + item.weightBps, 0);
-    const mean = Math.round(samples.reduce((sum, item) => sum + item.value * item.weightBps, 0) / weight);
+    const mean = scaledRatioSigned(samples.reduce((sum, item) => sum + item.value * item.weightBps, 0), 1, weight);
     aggregateMeanDelta += mean;
     aggregateVariance += Math.round(samples.reduce((sum, item) => sum + (item.value - mean) ** 2 * item.weightBps, 0) / weight);
   }
@@ -98,11 +100,23 @@ export function evaluatePartyInternalVoteDistribution(analysis: ProposalAnalysis
   };
 }
 
-export function allocatePartySeats(seats: number, distribution: PartyInternalVoteDistribution): PartySeatAllocation {
+export function allocatePartySeats(seats: number, distribution: PartyInternalVoteDistribution, identity?: { proposalId: string; chamberId: string; partyId: string }): PartySeatAllocation {
   const shares = [distribution.yesBps, distribution.noBps, distribution.abstainBps, distribution.unknownBps];
   if (shares.some(value => !Number.isSafeInteger(value) || value < 0 || value > 10_000) || shares.reduce((sum, value) => sum + value, 0) !== 10_000) {
     throw new Error('Invalid internal party vote shares; expected exactly 10,000 basis points.');
   }
-  const [yesSeats, noSeats, abstainSeats, unknownSeats] = allocate(seats, shares);
+  if (!Number.isSafeInteger(seats) || seats < 0) throw new Error('Invalid party seat count.');
+  if (identity && Object.values(identity).some(value => !value.trim())) throw new Error('Missing seat-apportionment identity.');
+  // No marker/identity means the historical candidate allocator; never reinterpret stored ties.
+  const allocated = identity ? shares.map(value => Number(BigInt(seats) * BigInt(value) / 10_000n)) : allocate(seats, shares);
+  if (identity) {
+    const buckets = ['yes', 'no', 'abstain', 'unknown'] as const;
+    const order = shares.map((value, index) => ({ index, remainder: BigInt(seats) * BigInt(value) % 10_000n,
+      hash: deterministicFingerprint([identity.proposalId, identity.chamberId, identity.partyId, buckets[index]]) }))
+      .sort((a, b) => a.remainder === b.remainder ? a.hash.localeCompare(b.hash) || buckets[a.index].localeCompare(buckets[b.index]) : a.remainder > b.remainder ? -1 : 1);
+    const remaining = seats - allocated.reduce((sum, value) => sum + value, 0);
+    for (let index = 0; index < remaining; index++) allocated[order[index].index]++;
+  }
+  const [yesSeats, noSeats, abstainSeats, unknownSeats] = allocated;
   return { yesSeats, noSeats, abstainSeats, unknownSeats };
 }

@@ -94,7 +94,7 @@ export function estimateParliamentarySupport(
 ): ParliamentarySupportEstimate {
   const institution = registry.institutions[registry.countries[proposal.countryId]?.institutionId];
   if (!institution || institution.legislatureKind === 'none' || institution.legislatureKind === 'unavailable' || !institution.chambers.length) {
-    return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'internal_party_distribution_v1' };
+    return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'internal_party_distribution_v1', seatApportionment: 'identity_hash_v1' };
   }
   const analysis = analysisOverride ?? analyzeProposal(state, proposal);
   const chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
@@ -107,7 +107,7 @@ export function estimateParliamentarySupport(
       const party = registry.parties[partyId], profile = profiles[partyId] ?? (party ? derivePartyGoalProfile(party) : undefined);
       const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profile, analysis);
       const internalDistribution = evaluatePartyInternalVoteDistribution(analysis, profile, evaluation);
-      const seatAllocation = allocatePartySeats(seats, internalDistribution);
+      const seatAllocation = allocatePartySeats(seats, internalDistribution, { proposalId: proposal.id, chamberId: chamber.id, partyId });
       partyEvaluations.push({ ...evaluation, decisionModel: 'internal_distribution_v1', internalDistribution, seats, seatAllocation });
       yesSeats += seatAllocation.yesSeats;
       noSeats += seatAllocation.noSeats;
@@ -148,5 +148,6 @@ export function estimateParliamentarySupport(
     coverage,
     confidenceBps: totalSeats ? Math.round(confidenceWeight / totalSeats) : 0,
     procedure: 'internal_party_distribution_v1',
+    seatApportionment: 'identity_hash_v1',
   };
 }

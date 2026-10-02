@@ -460,3 +460,195 @@ licences remain `requires_confirmation`, blocking commercial release.
 Deeper institutional self-interest and faction/context successors remain
 unimplemented. No 0.16 work, main merge or independent-acceptance claim is
 included.
+
+## Foundation hardening audit after plurality candidate
+
+This corrective starts exactly at `b8e512aba762325220159bed9479185f43a7ab9f`
+on `waffle913-milestone-015-government-information`. It repairs the supplied
+foundation audit, not a new feature or acceptance of 0.15. Earlier reports
+above describe their actual candidates and are not retroactively corrected.
+The attachment and required contracts were read before editing, and the plan
+recorded affected files, causal dependencies, migration/identity risks,
+invariants, regression tests and performance checks.
+
+### Findings, regressions and calculation boundaries
+
+Test names below identify actual Vitest cases in
+`src\simulation\__tests__`; parameterized names expand into separate cases.
+
+| Finding / milestone | Exact repair | Regression case | Future calculation or corruption-only; save boundary |
+|---|---|---|---|
+| Platform fixture reads / 0.14-0.15 | Relative JSON module imports in both governance suites, rather than Windows filesystem literals. | `preserves situational outputs across deterministic save and reload` and governance world benchmark | Test portability only; historical JSON untouched. |
+| Biased integer RNG and truncated wide spans / 0.8 | Exact rejection limit on 32-bit draws, stable retry suffix; compose 53 bits for wider spans. Explicitly reject spans beyond 2^53 and exhausted retries. | `preserves the exact parent uint32 and accepted small-range fixtures`, `rejects biased first samples instead of reducing them modulo the span`, `supports full uint32, wide safe ranges and negative bounds independent of order` | Narrow future RNG change described below; no recorded event replay. |
+| Date normalization / core, fiscal, politics, crisis, information, diplomacy, war | One dependency-free strict UTC/calendar predicate; no invalid-date `toISOString` exception. Existing fiscal alias retained. | `rejects invalid date %s`, `admits real leap days only`, politics date corruption and crisis `snapshot-date` / `state-date` cases, monthly-budget invalid date | Reject corruption/impossible calendar dates, not valid history. |
+| Signed proposal arithmetic / 0.14-0.15 | BigInt signed ratios with half-away-from-zero rounding, symmetric signed averages/scaling, round weighted agreement delta before adding 5,000; signed quadrature means. | `rounds signed half ratios symmetrically for %s`, `scales safely beyond Number intermediate precision and rejects invalid/unsafe inputs`, `rounds signed central agreement deltas symmetrically before adding the neutral center` | Future calculations only; stored analyses/results are not recomputed. |
+| Divergent monthly budget / 0.11-0.14 | Export and reuse the fiscal category-wise dated monthly allocation, including its remainder convention. Governance no-ledger context uses the same helper. | `conserves every annual category through the canonical dated monthly appropriation`, `uses dated fiscal monthly spending rather than rounded annual totals before the first booking` | Future context calculation; booked accounts and historical appropriations unchanged. |
+| Stale counterfactual legal baseline / 0.11-0.14 | Recompute both current-law and proposed taxes on the same current socioeconomic bases and sovereign owner; hold booked transfers, orders and private residual constant. | `compares B with current same-day law A rather than a booked older ledger`, `uses the new sovereign current law without rewriting the booked owner or non-tax flows`, existing transfer/incidence tests | Future pure analysis only, no ledger mutation or early monthly booking. |
+| Inactive authority / 0.14 | Private capability check requires active status; assigning an office to an inactive person throws; invariant rejects inactive + office. | `denies inactive officeholders submission, resolution and assignment without transferring player control` | Reject invalid authority/corruption; active former leaders without office remain controllable. |
+| Engine metadata / 0.8 | Boolean pause, allowed speed, nonempty string seed, nonnegative safe ticks; transition identities/sequences/ticks/dates, bounded recent history, immediate keys, dirty-domain/reason/entity shape and exact normalized-set uniqueness. | `rejects malformed engine metadata: %s` | Corruption-only; no scheduler, clock, dirty normalization or queue behavior changed. |
+| Missing permanent Region identity keys / 0.9 | Own-property completeness for ownership/population/output; occupation remains sparse. Rehydrate JSON-omitted unavailable keys, never values. | `requires every permanent identity key in %s, including unavailable values`, `rehydrates unavailable permanent keys on reload without inventing baseline observations` | Corruption-only in canonical state; unavailable JSON compatibility detailed below. |
+| Floating political ratios/signed tax term / 0.13 | Reuse socioeconomic exact nonnegative ratios; round the high-income half tax term with explicit negative symmetry and middle-income quarter term to nearest. | `uses exact large-quantity experience ratios and preserves missing observations`, existing material-condition and deterministic opinion tests | Future opinion calculations; no recalculation of saved opinion/history. |
+| Unreconciled national support/history / 0.13 | One pure stored-region/cohort aggregation shared by initialization, weekly update, registry rebase and invariant; check region uniqueness, bounded dated history and unique integer driver indexes. | `rejects a forged national aggregate even when its sum stays exactly 10,000`, `rejects malformed political history: %s`, `rejects duplicate cohort driver indexes and strict invalid organization/politics dates`, `validates stored political ownership until the scheduled weekly transfer reconciliation` | Corruption-only reconciliation uses stored weekly assignments, not a premature sovereignty remap. |
+| Unchecked crisis derived evidence / 0.12 | Runtime/invariant share severity thresholds, danger/recovery predicates and persistence contribution; reconcile current/maximum severity and activation snapshot identities, dates, pressure components, chance/roll bounds and sums. | `rejects corrupted derived crisis evidence: %s` | Corruption-only; identical valid crisis formulas/cadence, no new crisis causes or effects. |
+| YES-first parliamentary ties / 0.15 | New specialist largest-remainder ties rank stable proposal/chamber/party/bucket fingerprints; generic allocator unchanged. | `breaks exact odd-seat ties by stable identities, not YES/NO bucket priority`, existing insertion-order/conservation tests, `preserves unmarked candidate plurality ties across reload using their historical allocator` | Future marked allocations only; unmarked candidate histories keep their historical allocator. |
+| Independently valid but contradictory estimate/result / 0.15 | Exact canonical JSON equality of the parliamentary record, excluding only outcome/date/reason. Not a probabilistic fingerprint equality. | `rejects independently valid plurality records that differ between estimate and result` | Reject plurality corruption, retain old 0.14 validation paths. |
+| Information ratio/stale wording/incomplete headline / 0.15 | Exact unemployment report ratio; version-neutral recorded-result wording; include nonzero unicameral abstentions. | `reports exact large labour-force ratios from the accessible reporting boundary`, `reports split unicameral plurality abstentions with version-neutral limitations` | Future reports/presentation only; no Reality access expansion or historical briefing rewrite. |
+| Extra unknown/duplicate war snapshot Regions / limited-war foundation | Reject any snapshot target outside permanent registry and duplicate targets. | `rejects extra unknown/duplicate CB snapshot targets: %s`, all diplomacy/war tests | Corruption-only; no changes to CB windows, occupation, sovereignty or outcomes. |
+| Missing platform CI / delivery | Minimal Ubuntu + Windows matrix: checkout/setup-node v4, `npm ci`, `npm run verify`; latest Node 22 meets pinned dependency engines. | Committed `.github\workflows\verify.yml` | Guardrail only; local checks are Windows/Node 24.21.0, not claimed Linux/Node 22 execution. |
+
+No proven finding was dismissed. The audit's explicitly non-defective
+contracts remain: booked fiscal owners can lag mid-period sovereignty,
+future-dated claims/CBs remain legally date-gated, service capacity remains
+gradual, crisis parameters remain modelled, missing evidence/UNKNOWN stays
+unavailable, generic allocation ties remain ordered, and old 0.14 results are
+not reinterpreted.
+
+### Reference adaptations and saved-state compatibility
+
+Global schema remains 13. New estimates/results add the optional
+`seatApportionment: identity_hash_v1` method marker. The supplied neutral
+tie rule is used for future calculations, but absence of the marker keeps the
+original candidate allocator when validating saved plurality results.
+Backfilling a new method onto old records would silently reinterpret exact
+odd-seat ties, so it is deliberately not performed. The generic socioeconomic
+allocator is unchanged. The unmarked-candidate regression is a constructed
+compatibility record; it is not claimed as a captured pre-patch production
+save. The actual captured `situational-0.14-v2` fixture stays byte-identical:
+Git blob `a339183cd96d03dbd4128d39d0a1ac611c8f5de0`.
+
+JSON has always omitted `undefined` properties. Migration/reload now restores
+registered ownership/population/output identity keys with `undefined` before
+validation while retaining every saved value and extra key (unknown extras
+are still rejected). This does not copy scenario baselines, infer a sovereign
+owner or turn unavailable into zero. Older JSON cannot distinguish an omitted
+unavailable field from a deleted field; that format limitation is explicit.
+Live state and serialization with context reject missing identity keys.
+Date, tick, seed, state values and recorded votes remain untouched; no
+schema-12 replay or fictional party evidence is introduced.
+
+RNG retry zero is byte-for-byte the former hash input. `uint32` and float
+outputs do not change. Existing <=32-bit integer draws change only if the
+first sample lies in the formerly biased rejection zone. Wider draws were
+previously restricted incorrectly to 32 bits; new <=53-bit spans sample their
+actual range, and larger spans fail explicitly. This can change those narrow
+future stochastic decisions after reload, never saved decisions/history.
+The finite 128-attempt guard raises an explicit error, not a biased fallback.
+
+The first expanded focused run found the information test using raw
+`JSON.parse(JSON.stringify(state))` as a substitute for canonical reload.
+That bypass loses unavailable identity keys; the regression now exercises
+`serializeSimulationState` / `restoreSimulationState` directly. Subsequent
+focused-test failures were test API/fixture mistakes, corrected before the
+required complete validation; none was counted as a pass.
+
+### Executed validation and performance
+
+The complete ordered pre-commit validation is recorded below. The delivery
+report separately identifies the exact final SHA checked after committing;
+this pre-commit table does not substitute for that run. Previous candidate
+measurements above remain the before reference; sequential after-patch runs
+use the same workloads.
+There is no new daily scan: national reconciliation runs in the existing
+invariant path, with aggregation otherwise restricted to initialization,
+registry rebase and the existing weekly update.
+
+Every required ordered command below exited 0. They ran sequentially on
+Windows, Node 24.21.0, without a concurrent heavy workload. PowerShell uses
+the Windows `npm.cmd` / `npx.cmd` entry points for these commands.
+
+| Exact command | Actual result |
+|---|---|
+| `npx tsc -b --pretty false` | Passed. |
+| `npm run economy:audit` | 5 tests / 1 file; audit command 5,707 ms. |
+| `npm run fiscal:audit` | 22 tests / 2 files; 4,933 ms. |
+| `npm run crisis:audit` | 37 tests / 1 file; 2,495 ms. |
+| `npm run crisis:benchmark` | 2 tests / 1 file; 17,726 ms. |
+| `npm run politics:audit` | 36 tests / 3 files, including its own world benchmark; 123,732 ms. |
+| `npm run politics:benchmark` | 3 tests / 1 file; 119,876 ms. |
+| `npm run governance:audit` | 87 tests / 1 file; 78,263 ms. |
+| `npm run governance:benchmark` | 1 test / 1 file; 8,998 ms. |
+| `npm run information:test` | 32 tests / 1 file; 22,707 ms. |
+| `npm run information:audit` | Passed; 948 parties, 7 derived, 1 ambiguous, 940 unavailable, zero missing analogues; 650 ms. |
+| `npm run information:benchmark` | 1 test / 1 file; 9,323 ms. |
+| `npm run benchmark:world` | 4 tests / 1 file; 46,685 ms. |
+| `npm run verify` | Data audit, TypeScript/Vite build and 390 tests / 30 files passed; 145,168 ms command, 131.08 s test phase. The existing Vite large-chunk warning remains, not an error. |
+| `git diff --check` | Passed after the complete ordered sequence and manual diff review. |
+| `npx vitest run src\simulation\__tests__\foundationMath.test.ts src\simulation\__tests__\engine.test.ts src\simulation\__tests__\diplomacy.test.ts src\simulation\__tests__\war.test.ts --maxWorkers=1 --reporter=verbose` | Final focused foundation pass: 80 tests / 4 files, 2.93 s; helpers 14, engine 44, diplomacy 10, war 12. |
+
+The final six governance hardening cases also passed separately with
+`npx vitest run src\simulation\__tests__\governance.test.ts -t 'unmarked candidate|dated fiscal|inactive officeholders|rounds signed|exact odd-seat|independently valid plurality' --maxWorkers=1`
+(6 passed / 81 skipped, 9.44 s). No timeout occurred in the complete ordered
+validation. Earlier focused failures are disclosed above, not counted as
+successful runs.
+
+Actual runtime and test diffs were reread, including every new helper and
+the CI workflow. Searches of affected runtime paths found no `Math.random`,
+`setInterval`, new independent scheduler or clock. The only matching
+randomness text in the combined runtime/test search is an existing negative
+source assertion. No Windows-only fixture read remains in the changed
+governance suites. Source data, manifests, Country/Region IDs and
+`docs\agent-handoff.md` have no diff.
+
+| Same benchmark metric | Before reference | After hardening |
+|---|---:|---:|
+| Ten-year socioeconomic simulation | 5,994.66 ms; 609 ticks/s | 6,179.19 ms; 591 ticks/s |
+| Ten-year fiscal simulation | 23,328.53 ms; 156 ticks/s | 23,143.61 ms; 158 ticks/s |
+| Three-year political simulation | 87,954.73 ms; 12 ticks/s | 91,673.82 ms; 12 ticks/s |
+| Political reload | 583.24 ms | 646.91 ms |
+| Governance production inspection mean, 20 calls | 12.730 ms | 13.092 ms |
+| Synthetic known-profile inspection mean, 20 calls | 12.522 ms | 12.659 ms |
+| Full-cap information monthly report, 2,048 briefings / 252 Countries / 83 new emissions | 67.74 ms | 66.04 ms |
+| Initial governance snapshot / serialization | 0.0335 / 269.38 ms | 0.0401 / 312.55 ms |
+| Five-year crisis simulation | Not claimed as a paired baseline | 8,489.25 ms; 74,340 Country/crisis evaluations |
+
+Before world/governance numbers are the captured plurality-candidate runs;
+politics is its recorded audit, and the unchanged information workload uses
+the prior final-139 information reference. These single-run measurements
+are not statistical optimization claims. Political runtime is approximately
+4.2% higher; exact-ratio/invariant work is retained rather than trading away
+correctness. The bare ten-year scheduler/registry benchmark is 81.21 ms
+(44,943 ticks/s); it is not a proxy for full fiscal or political work.
+
+| Save metric | Before bytes | After bytes |
+|---|---:|---:|
+| Initial full-world governance save | 27,268,062 | 27,268,062 |
+| Representative submitted world | 27,269,304 | 27,269,304 |
+| Representative resolved plurality world | 27,283,363 | 27,283,456 |
+| Resolved proposal record | 13,435 | 13,513 |
+| Distribution fields across estimate/result | 4,800 | 4,800 |
+| Three-year political world | 33,547,440 | 33,547,440 |
+| Full-cap retained information workload | 17,771,032 | 17,771,032 |
+
+The resolved world grows by 93 bytes (method markers and the complete
+abstention headline), not persistent MP/faction state. Resolution delta from
+submitted state is 14,152 bytes; complete delta from initial world is 15,394
+bytes. Economy and fiscal world saves stay at 16,055,485 and 24,038,952 bytes,
+respectively. Their checksums are exactly unchanged:
+`212dc47e790b4de352fb30c66289ea279eda2f5d80dfd42531bf67af1a87a415`
+and `1468ad67591f6b854dd4ba14ff1e32e1d5fe17cb10d22eb8faa00ee549cd7611`.
+
+Source coverage/licences are unchanged: 948 parties, seven derived reviewed
+analogue names, zero directly observed gameplay leader identities, one
+ambiguous and 940 unavailable mappings; 342 reconciled executive identities
+from 392 records. IPU remains CC BY-NC-SA 4.0; Party Facts, V-Party and relevant
+primary licences remain `requires_confirmation`, a commercial-release
+blocker. No source data, permanent IDs, UI authority, Public Perception,
+institutional-interest gameplay or successor/faction features are added.
+The handoff stays at accepted 0.14; no 0.16 work or main merge is authorized.
+
+### Complete changed-file inventory
+
+All paths below are relative to the repository. No data snapshot, manifest,
+permanent-ID registry, UI component, agent instruction or accepted handoff
+is modified by this corrective.
+
+| Area | Files |
+|---|---|
+| Shared foundation | `src\simulation\date.ts`, `integerMath.ts`, `fingerprint.ts`, `rng.ts`, `invariants.ts`, `save.ts`, `diplomacy.ts`, `war.ts` (all under `src\simulation`) |
+| Fiscal | `src\simulation\fiscal\math.ts`, `src\simulation\fiscal\runtime.ts` |
+| Politics | `src\simulation\politics\aggregation.ts`, `initialization.ts`, `runtime.ts`, `invariants.ts` (all under `src\simulation\politics`) |
+| Crisis | `src\simulation\crisis\derived.ts`, `runtime.ts`, `invariants.ts` (all under `src\simulation\crisis`) |
+| Governance | `src\simulation\governance\analysis.ts`, `estimates.ts`, `internalPartyDistribution.ts`, `invariants.ts`, `model.ts`, `runtime.ts` (all under `src\simulation\governance`) |
+| Government Information | `src\simulation\information\invariants.ts`, `src\simulation\information\runtime.ts` |
+| Tests | `src\simulation\__tests__\foundationMath.test.ts`, `engine.test.ts`, `fiscal.test.ts`, `politics.test.ts`, `crisis.test.ts`, `war.test.ts`, `governance.test.ts`, `governanceWorld.test.ts`, `information.test.ts` (all under `src\simulation\__tests__`) |
+| CI and evidence | `.github\workflows\verify.yml`, `docs\information-0.15.md`, `docs\milestone-0.15-candidate-validation.md` |

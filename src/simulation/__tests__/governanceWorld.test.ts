@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { performance } from 'node:perf_hooks';
-import { readFileSync } from 'node:fs';
+import historical from './fixtures/governance-situational-0.14-v2.json';
 import { describe, expect, it } from 'vitest';
 import { initializeNewGame } from '../initialization';
 import { politicalRegistry } from '../politics/registry';
@@ -22,7 +22,6 @@ describe('full-world governance and leadership 0.15 benchmark', () => {
     const parties = Object.values(politicalRegistry.parties), ideology = { sourced: parties.filter(item => item.ideologicalBasis.status === 'sourced').length, partial: parties.filter(item => item.ideologicalBasis.status === 'partial').length, fallback: parties.filter(item => item.ideologicalBasis.status === 'modelled_fallback').length };
     const analysisCountry = Object.values(politicalRegistry.countries).find(country => country.partyIds.length)!.countryId; let evaluated = createPoliticalPerson(state, { displayName: 'Benchmark actor', countryId: analysisCountry }); const actorId = `person.${String(evaluated.governance.nextPersonSequence - 1).padStart(8, '0')}`; evaluated = setControlledPerson(evaluated, actorId); evaluated = assignPoliticalOffice(evaluated, actorId, { role: 'head_of_government', countryId: analysisCountry }); const budget = evaluated.fiscal.countries[analysisCountry].annualBudget; evaluated = createFiscalProposal(evaluated, { proposerPersonId: actorId, countryId: analysisCountry, effectiveDate: '2026-02-01', payload: { annualBudget: { ...budget, infrastructure: budget.infrastructure * 2 } } });
     const proposalId = evaluated.governance.proposalOrder[0], analysisCalls = 20; t = performance.now(); for (let index = 0; index < analysisCalls; index++) inspectProposalSupport(evaluated, proposalId); const analysisMeanMs = (performance.now() - t) / analysisCalls;
-    const historical = JSON.parse(readFileSync('src\\simulation\\__tests__\\fixtures\\governance-situational-0.14-v2.json', 'utf8')) as { person: { countryId: string } };
     const representativeCountry = historical.person.countryId;
     let representative = createPoliticalPerson(state, { displayName: 'Synthetic plurality benchmark actor', countryId: representativeCountry });
     const representativeActor = `person.${String(representative.governance.nextPersonSequence - 1).padStart(8, '0')}`;

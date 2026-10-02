@@ -28,7 +28,8 @@ import { assertInitialOfficeReconciliation } from '../governance/initialOfficeEv
 import { selectableStartingCountryIds, startingPersonCandidates } from '../governance/selection';
 import { allocatePartySeats, evaluatePartyInternalVoteDistribution, INTERNAL_PARTY_DISTRIBUTION_MODEL } from '../governance/internalPartyDistribution';
 
-const historicalSituational = JSON.parse(readFileSync('src\\simulation\\__tests__\\fixtures\\governance-situational-0.14-v2.json', 'utf8')) as {
+import historicalFixture from './fixtures/governance-situational-0.14-v2.json';
+const historicalSituational = historicalFixture as {
   referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal; reform: FiscalReform;
 };
 
@@ -915,6 +916,93 @@ describe('governance 0.14 situational corrective contracts', () => {
   });
 
   describe('governance 0.15 independent issue plurality', () => {
+    it('denies inactive officeholders submission, resolution and assignment without transferring player control', () => {
+      const fixture = findResolvable(true), draftState = structuredClone(fixture.state), id = fixture.personId;
+      draftState.governance.persons[id].status = 'inactive';
+      expect(() => submitProposal(draftState, fixture.proposalId)).toThrow();
+      expect(() => assignPoliticalOffice(draftState, id, { countryId: fixture.countryId, role: 'head_of_government' })).toThrow(/active/);
+      expect(governanceInvariant.check(draftState, worldContext, 'save').join(' ')).toContain('Inactive person');
+      const submitted = structuredClone(submitProposal(fixture.state, fixture.proposalId)); submitted.governance.persons[id].status = 'inactive';
+      expect(() => resolveProposalVote(submitted, fixture.proposalId, fixture.registry, fixture.profiles)).toThrow();
+      const former = revokePoliticalOffice(fixture.state, id);
+      expect(setControlledPerson(former, id).governance.player.controlledPersonId).toBe(id);
+      expect(former.governance.persons[id].status).toBe('active'); expect(former.governance.persons[id].office).toBeUndefined();
+    });
+
+    it('rounds signed central agreement deltas symmetrically before adding the neutral center', () => {
+      const goals = distributionProfile();
+      for (const preference of Object.values(goals.goals)) { preference.idealPointBps = 10_000; preference.importanceBps = 10_000; preference.compromiseToleranceBps = 10_000; }
+      for (const delta of [1, 3]) {
+        const up = evaluateProfileForPublic(distributionAnalysis({ fiscal_distribution: delta, infrastructure: 0 }), goals);
+        const down = evaluateProfileForPublic(distributionAnalysis({ fiscal_distribution: -delta, infrastructure: 0 }), goals);
+        expect(up.agreementBps - 5_000).toBe(5_000 - down.agreementBps);
+      }
+    });
+
+    it('uses dated fiscal monthly spending rather than rounded annual totals before the first booking', () => {
+      const countryId = resolvableCountry(), player = playerFor(structuredClone(initial), countryId), country = player.state.fiscal.countries[countryId], budget = country.annualBudget;
+      for (const key of Object.keys(budget) as Array<keyof typeof budget>) budget[key] = 1;
+      country.revenueCalibration.monthlyAmount = 1; country.debt = 0;
+      for (const region of Object.values(player.state.fiscal.regions).filter(item => item.owner === countryId)) for (const tax of Object.values(region.taxes)) tax.collected = 0;
+      const made = draft(player.state, player.id, countryId, { annualBudget: { ...budget, infrastructure: 2 } });
+      const first = analyzeProposal(made.state, made.proposal).materialContext.fiscalDistress;
+      const last = analyzeProposal({ ...made.state, date: '2026-12-01' }, made.proposal).materialContext.fiscalDistress;
+      expect(first.valueBps).toBe(10_000); expect(last.valueBps).toBe(0);
+    });
+
+    it('breaks exact odd-seat ties by stable identities, not YES/NO bucket priority', () => {
+      const base = evaluatePartyInternalVoteDistribution(distributionAnalysis({ fiscal_distribution: 1_500 }), distributionProfile());
+      const tie = { ...base, yesBps: 5_000, noBps: 5_000, abstainBps: 0, unknownBps: 0 };
+      const allBuckets = { ...base, yesBps: 2_500, noBps: 2_500, abstainBps: 2_500, unknownBps: 2_500 };
+      const winners = new Set<string>(), yesTotals: number[] = [];
+      for (let index = 0; index < 128; index++) {
+        const identity = { proposalId: `proposal.fixture-${index}`, chamberId: `chamber.fixture-${index % 5}`, partyId: `party.fixture-${index % 7}` };
+        const allocation = allocatePartySeats(3, tie, identity);
+        yesTotals.push(allocation.yesSeats);
+        expect(allocatePartySeats(3, tie, { ...identity })).toEqual(allocation);
+        const one = allocatePartySeats(1, allBuckets, identity); winners.add(Object.entries(one).find(([, seats]) => seats === 1)![0]);
+        expect(Object.values(allocation).reduce((a, b) => a + b)).toBe(3);
+      }
+      expect(new Set(yesTotals)).toEqual(new Set([1, 2])); expect(winners.size).toBe(4);
+      expect(allocatePartySeats(3, tie)).toEqual({ yesSeats: 2, noSeats: 1, abstainSeats: 0, unknownSeats: 0 });
+      expect(() => allocatePartySeats(-1, tie, { proposalId: 'a', chamberId: 'b', partyId: 'c' })).toThrow();
+    });
+
+    it('rejects independently valid plurality records that differ between estimate and result', () => {
+      const fixture = findResolvable(true), resolved = resolveProposalVote(submitProposal(fixture.state, fixture.proposalId), fixture.proposalId, fixture.registry, fixture.profiles);
+      const corrupted = structuredClone(resolved), proposal = corrupted.governance.proposals[fixture.proposalId];
+      proposal.voteResult!.confidenceBps--;
+      const errors = governanceInvariant.check(corrupted, worldContext, 'save');
+      expect(errors.join(' ')).toContain('Plurality estimate/result mismatch'); expect(errors.join(' ')).not.toContain('Invalid vote result');
+      proposal.parliamentaryEstimate!.confidenceBps = proposal.voteResult!.confidenceBps;
+      expect(governanceInvariant.check(corrupted, worldContext, 'save')).toEqual([]);
+      const saved = restoreSimulationState(serializeSimulationState(resolved, worldContext), worldRegions, {}, {}, worldContext);
+      expect(saved.governance.proposals[fixture.proposalId]).toEqual(resolved.governance.proposals[fixture.proposalId]);
+    }, 30_000);
+
+    it('preserves unmarked candidate plurality ties across reload using their historical allocator', () => {
+      const fixture = findResolvable(true), submitted = submitProposal(fixture.state, fixture.proposalId);
+      const resolved = resolveProposalVote({ ...submitted, date: '2026-03-01' }, fixture.proposalId, fixture.registry, fixture.profiles);
+      const proposal = structuredClone(resolved.governance.proposals[fixture.proposalId]), estimate = proposal.parliamentaryEstimate!;
+      delete estimate.seatApportionment;
+      for (const chamber of estimate.chambers) {
+        for (const party of chamber.partyEvaluations ?? []) {
+          party.internalDistribution = { ...party.internalDistribution!, yesBps: 5_000, noBps: 5_000, abstainBps: 0, unknownBps: 0 };
+          party.seatAllocation = allocatePartySeats(party.seats, party.internalDistribution);
+        }
+        chamber.yesSeats = chamber.partyEvaluations!.reduce((sum, item) => sum + item.seatAllocation!.yesSeats, 0);
+        chamber.noSeats = chamber.partyEvaluations!.reduce((sum, item) => sum + item.seatAllocation!.noSeats, 0);
+        chamber.abstainSeats = 0; chamber.adopted = chamber.yesSeats > chamber.noSeats;
+      }
+      estimate.yesSeats = estimate.chambers.reduce((sum, item) => sum + item.yesSeats, 0);
+      estimate.noSeats = estimate.chambers.reduce((sum, item) => sum + item.noSeats, 0); estimate.abstainSeats = 0;
+      proposal.voteResult = { ...structuredClone(estimate), outcome: 'unavailable', reason: 'effective_date_expired', resolvedOn: resolved.date };
+      const saved = { ...resolved, information: { ...resolved.information, briefings: [] }, governance: { ...resolved.governance, proposals: { [proposal.id]: proposal } } };
+      expect(governanceInvariant.check(saved, worldContext, 'save')).toEqual([]);
+      const loaded = restoreSimulationState(serializeSimulationState(saved, worldContext), worldRegions, {}, {}, worldContext);
+      expect(loaded.governance.proposals[proposal.id]).toEqual(proposal); expect(loaded.governance.proposals[proposal.id].voteResult!.seatApportionment).toBeUndefined();
+    }, 30_000);
+
     it('splits a real seat allocation near a threshold while retaining the central vote', () => {
       const analysis = distributionAnalysis({ fiscal_distribution: 1_500 }), goals = distributionProfile();
       const central = evaluateProfileForPublic(analysis, goals), distribution = evaluatePartyInternalVoteDistribution(analysis, goals, central);

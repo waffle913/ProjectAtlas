@@ -1,4 +1,5 @@
 import type { SimulationInvariant } from '../invariants';
+import { canonicalJson } from '../fingerprint';
 import { dateValid, validatePolicy } from '../fiscal/math';
 import { fiscalReformFingerprint, validateBudget } from '../fiscal/runtime';
 import { politicalRegistry } from '../politics/registry';
@@ -27,7 +28,7 @@ function validatePartyEvaluation(evaluation: PartyProposalEvaluation): boolean {
     && (issue.currentOutcomeBps === undefined || bps(issue.currentOutcomeBps)) && (issue.expectedOutcomeBps === undefined || bps(issue.expectedOutcomeBps)));
 }
 
-function validateInternalAllocation(evaluation: PartyChamberEvaluation): boolean {
+function validateInternalAllocation(evaluation: PartyChamberEvaluation, identity?: { proposalId: string; chamberId: string; partyId: string }): boolean {
   const distribution = evaluation.internalDistribution, allocation = evaluation.seatAllocation;
   if (evaluation.decisionModel !== 'internal_distribution_v1' || !distribution || !allocation
     || distribution.method !== INTERNAL_PARTY_DISTRIBUTION_MODEL.method
@@ -41,19 +42,19 @@ function validateInternalAllocation(evaluation: PartyChamberEvaluation): boolean
     || (unknown ? distribution.unknownBps !== 10_000 || distribution.yesBps !== 0 || distribution.noBps !== 0 || distribution.abstainBps !== 0 : distribution.unknownBps !== 0)) return false;
   if (![allocation.yesSeats, allocation.noSeats, allocation.abstainSeats, allocation.unknownSeats].every(nonNegative)
     || allocation.yesSeats + allocation.noSeats + allocation.abstainSeats + allocation.unknownSeats !== evaluation.seats) return false;
-  const expected = allocatePartySeats(evaluation.seats, distribution);
+  const expected = allocatePartySeats(evaluation.seats, distribution, identity);
   return allocation.yesSeats === expected.yesSeats && allocation.noSeats === expected.noSeats
     && allocation.abstainSeats === expected.abstainSeats && allocation.unknownSeats === expected.unknownSeats;
 }
 
-function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: boolean, plurality: boolean): boolean {
+function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: boolean, plurality: boolean, proposalId: string, identityApportionment: boolean): boolean {
   if (!chamber.chamberId || ![chamber.yesSeats, chamber.noSeats, chamber.abstainSeats, chamber.unavailableSeats].every(nonNegative) || !coverage(chamber.coverage)) return false;
   const allocated = chamber.yesSeats + chamber.noSeats + chamber.abstainSeats + chamber.unavailableSeats;
   if (chamber.totalSeats !== undefined && (!nonNegative(chamber.totalSeats) || allocated !== chamber.totalSeats)) return false;
   if (chamber.coverage === 'complete' && chamber.unavailableSeats !== 0) return false;
   if (chamber.adopted !== undefined && (chamber.coverage !== 'complete' || chamber.adopted !== (chamber.yesSeats > chamber.noSeats))) return false;
   if (chamber.partyEvaluations && (!Array.isArray(chamber.partyEvaluations) || !chamber.partyEvaluations.every(item => nonNegative(item.seats) && validatePartyEvaluation(item)))) return false;
-  if (chamber.partyEvaluations?.some(item => plurality ? !validateInternalAllocation(item)
+  if (chamber.partyEvaluations?.some(item => plurality ? !validateInternalAllocation(item, identityApportionment ? { proposalId, chamberId: chamber.chamberId, partyId: item.partyId } : undefined)
     : item.decisionModel !== undefined || item.internalDistribution !== undefined || item.seatAllocation !== undefined)) return false;
   if (plurality && chamber.partyEvaluations && new Set(chamber.partyEvaluations.map(item => item.partyId)).size !== chamber.partyEvaluations.length) return false;
   if (!chamber.partyEvaluations) {
@@ -75,9 +76,10 @@ function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: b
   return true;
 }
 
-function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, legacyAggregateOnly: boolean, plurality: boolean): boolean {
+function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, legacyAggregateOnly: boolean, plurality: boolean, proposalId: string): boolean {
   const procedure = plurality ? 'internal_party_distribution_v1' : 'modelled_procedure_v1';
-  if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== procedure || !Array.isArray(estimate.chambers) || !estimate.chambers.every(chamber => validateChamber(chamber, legacyAggregateOnly, plurality))) return false;
+  if (estimate.seatApportionment !== undefined && (!plurality || estimate.seatApportionment !== 'identity_hash_v1')) return false;
+  if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== procedure || !Array.isArray(estimate.chambers) || !estimate.chambers.every(chamber => validateChamber(chamber, legacyAggregateOnly, plurality, proposalId, estimate.seatApportionment === 'identity_hash_v1'))) return false;
   const sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => estimate.chambers.reduce((total, chamber) => total + chamber[field], 0);
   const expectedCoverage = estimate.chambers.length > 0 && estimate.chambers.every(item => item.coverage === 'complete') ? 'complete' : estimate.chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
   return estimate.coverage === expectedCoverage && estimate.yesSeats === sum('yesSeats') && estimate.noSeats === sum('noSeats') && estimate.abstainSeats === sum('abstainSeats') && estimate.unavailableSeats === sum('unavailableSeats') && estimate.totalSeats === estimate.chambers.reduce((total, chamber) => total + (chamber.totalSeats ?? 0), 0);
@@ -113,6 +115,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     }
     if (person.partyId && politicalRegistry.parties[person.partyId]?.countryId !== person.countryId) errors.push(`Invalid party reference for ${id}.`);
     if (person.isPartyLeader && !person.partyId) errors.push(`Party leader ${id} has no party.`);
+    if (person.status !== 'active' && person.office) errors.push(`Inactive person ${id} retains a political office.`);
     if (person.office && (!['head_of_government', 'head_of_state', 'legislator'].includes(person.office.role) || person.office.countryId !== person.countryId || !person.office.title?.trim() || !dateValid(person.office.appointedOn) || person.office.appointedOn < g.initializedOn || person.office.appointedOn < person.createdOn || person.office.appointedOn > state.date || person.office.authorityProfile.status !== 'modelled_constitutional_abstraction' || !person.office.authorityProfile.limitation || person.office.authorityProfile.capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item)))) errors.push(`Malformed office for ${id}.`);
     if (person.office?.evidence) {
       const evidence = person.office.evidence;
@@ -149,10 +152,14 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     const legacyAggregateOnly = proposal.evaluationVersion === 'legacy-0.14-v1' && ['enacted', 'rejected', 'unavailable'].includes(proposal.status);
     const plurality = proposal.evaluationVersion === 'plurality-0.15-v1';
     if (proposal.evaluationVersion !== undefined && !['legacy-0.14-v1', 'situational-0.14-v2', 'plurality-0.15-v1'].includes(proposal.evaluationVersion)) errors.push(`Invalid evaluation version for ${id}.`);
-    if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly, plurality)) errors.push(`Invalid parliamentary estimate for ${id}.`);
+    if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly, plurality, id)) errors.push(`Invalid parliamentary estimate for ${id}.`);
     if (proposal.analysis && !validateAnalysis(proposal.analysis)) errors.push(`Invalid proposal analysis for ${id}.`);
     if (proposal.voteResult) {
-      if (!validateParliamentary(proposal.voteResult, legacyAggregateOnly, plurality) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
+      if (!validateParliamentary(proposal.voteResult, legacyAggregateOnly, plurality, id) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
+      if (plurality) {
+        const { outcome: _outcome, resolvedOn: _resolvedOn, reason: _reason, ...recordedEstimate } = proposal.voteResult;
+        if (!proposal.parliamentaryEstimate || canonicalJson(recordedEstimate) !== canonicalJson(proposal.parliamentaryEstimate)) errors.push(`Plurality estimate/result mismatch for ${id}.`);
+      }
       if (proposal.voteResult.outcome === 'adopted' && (proposal.voteResult.coverage !== 'complete' || !proposal.voteResult.chambers.length || !proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Adopted vote ${id} is not supported by every complete chamber.`);
       if (proposal.voteResult.outcome === 'rejected' && (proposal.voteResult.coverage !== 'complete' || proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Rejected vote ${id} is inconsistent with its chambers.`);
       if (proposal.voteResult.outcome === 'unavailable' && !proposal.voteResult.reason) errors.push(`Unavailable vote ${id} has no reason.`);
