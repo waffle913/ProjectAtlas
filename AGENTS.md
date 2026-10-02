@@ -70,20 +70,95 @@ Do not rewrite a validated milestone merely to simplify a later one. Changes to 
 - **0.11 fiscal/public services:** legal tax rules lead to liabilities, collection, revenue, budget execution, transfers/services, household disposable income, and public capacity. Keep known statutory tax revenue, baseline/other revenue calibration, and total revenue distinct. An unavailable rule is never a 0% rate, and baseline calibration must not neutralize reforms.
 - **0.12 crisis/tripwires:** real variables lead to tripwires, severity, persistence, pressure, deterministic tipping, active crisis, and causal recovery. A crisis never creates its own cause. Do not apply direct crisis-to-GDP or crisis-to-crisis modifiers; cascades pass through material variables.
 - **0.13 politics:** national institutions, chambers, fictional gameplay parties, organizations, and Region/cohort opinion. Real sourced bases may inform fictional parties, but party name, source-ID hashes, and party order must never invent ideology. Historical ideology is a historical prior, not a 2026 observation. Semantically incompatible or missing dimensions stay neutral/modelled/unavailable.
+- **0.14 governance:** the player controls a persistent fictional person, never directly a Country. Party membership, party leadership, and public office are distinct facts; available powers come only from the office actually held. Proposals follow draft -> submitted -> enacted/rejected/unavailable. A submitted payload is immutable and carries a deterministic fingerprint; later changes require a new draft or withdrawal. Political evaluation is situational and causal. Parties vote as deterministic blocks only after continuous evaluation; `UNKNOWN` is distinct from `ABSTAIN` and missing data never becomes an implied rejection. An adopted proposal calls the existing fiscal queue exactly once; governance never writes fiscal state directly or runs a second history engine. Schema-12 migrations preserve real aggregate historical votes as-is, without fabricating party evaluations or replaying history.
+
+## 0.15 -- current milestone (candidate, pending independent review)
+
+0.15 is the active milestone. Work has been implemented and pushed for
+review but has **not** been independently accepted; do not describe it as
+validated. The contracts below bind ongoing 0.15 work. Some are already
+implemented; others are documented design intent that must still be planned,
+implemented, and validated before being treated as current behavior.
+
+**Already implemented (candidate, pending review):**
+
+- Reality, Government Information, and Public Perception stay distinct
+  layers. 0.15 implements the Reality -> Government Information ->
+  player-presented-interpretation boundary explicitly; exact engine reality is
+  never auto-exposed to ministers or the UI. Preserve source, freshness,
+  confidence, coverage, uncertainty, and `unavailable` end to end.
+- Ministers/advisors only transform information the government can already
+  access into briefings; they are not a second simulation engine. Difficulty
+  changes how much interpretation the player receives, never the causal laws
+  or the underlying reality.
+- An enacted or rejected law does not automatically pause the game. Only
+  urgent/severe notifications may interrupt or pause, per the notification
+  contract. The UI stays strictly downstream of canonical state.
+- The 0.14 person model is active, not future direction. Losing an office is
+  not automatically game over. If the controlled leader is replaced or
+  removed, preserve continuity and allow a later proper handoff to the
+  successor, rather than silently transferring control to the Country.
+- At scenario start, playable party leaders are fictional analogues derived
+  from real leaders as a reference, never copies of the real person's
+  identity; the real source name remains provenance/debug metadata only.
+
+**Documented design intent, not yet implemented -- do not claim as current
+behavior until planned, implemented, and validated separately:**
+
+- A continuous aggregated internal distribution per party per issue/axis
+  (radical/extremist wing, mainstream, intermediate positions, moderate/
+  pragmatic wing) that lets a single party's seats split across
+  YES/NO/ABSTAIN/UNKNOWN in a vote. Today, parties still vote as deterministic
+  blocks (see the 0.14 contract above); this remains the validated behavior
+  until a scoped change implements and validates otherwise.
+- Generating post-replacement party leaders from party structure, internal
+  factions, power balance, and context rather than a fixed list.
+- Weighing situational institutional interest -- majority/opposition status,
+  executive control, chamber control, institutional levers gained or lost,
+  power balance, internal faction balance, and material consequences of a
+  proposal -- beyond today's deterministic-block plus situational-evaluation
+  model, and never via a flat fixed "opposition" malus.
 
 ## Player, politics, diplomacy, war, and trade direction
 
-Future player control is a person, not automatically a country. A person may belong to or lead a party and may hold office, govern, or remain in opposition. Available powers come from the office actually held. Losing an election or office is not automatically game over; continuation or succession will follow future scoped rules.
+Player control of a person (not automatically a country) is active as of
+0.14/0.15, per the contracts above. A person may belong to or lead a party and
+may hold office, govern, or remain in opposition. Available powers come from
+the office actually held.
 
-Do not give every actor every political action. The current future contract reserves sit-ins and general/national/capital demonstrations for parties, possible strikes for unions, and no automatic strike power for associations. Do not implement these actions before their milestone.
+Do not give every actor every political action. The current future contract
+reserves sit-ins and general/national/capital demonstrations for parties,
+possible strikes for unions, and no automatic strike power for associations.
+Do not implement these actions before their milestone.
 
 International conflict follows persistent issues -> tensions/crisis -> escalation or de-escalation -> explicit use of force -> war. Never turn a relation-score threshold directly into war. Decisions, interests, tensions, and capabilities cause conflict. Keep occupation, control, and sovereignty distinct.
 
 Future trade follows production -> needs -> aggregate trade -> prices -> dependencies -> consequences. Do not invent trade dependencies before real flows exist.
 
+## Mandatory agent workflow
+
+For any change touching canonical state, migration/save behavior, the
+political model, multiple domains, or performance:
+
+1. First produce a no-code PLAN: touched files/contracts, causal
+   dependencies, schema/migration impact, invariants, and tests/audits to
+   run, plus regression risks.
+2. Only then implement the smallest coherent, independently reviewable
+   block. Do not swallow an entire milestone in one change, and do not
+   broadly refactor a validated milestone merely to make current work easier.
+3. Separate IMPLEMENTATION and REVIEW passes. The implementation pass must
+   not treat its own reasoning as proof of correctness. The review pass must
+   re-read the actual diff and actively hunt for regressions, specifically
+   conservation, determinism, saves/migrations, provenance, stale data,
+   `unknown != zero`, `unknown != abstain`, and Reality -> Government
+   Information leaks.
+4. If an instruction conflicts with a validated contract, or the code reveals
+   a material design ambiguity, preserve the validated contract, flag the
+   ambiguity, and do not invent practical behavior.
+
 ## Scope discipline
 
-Never start the next milestone without explicit instruction. If the task is 0.14, do not implement 0.15. Prepare extension points when necessary, but do not implement out-of-scope systems. Do not use a scoped change as an excuse for broad refactoring of validated systems.
+Never start the next milestone without explicit instruction. If the task is 0.15, do not implement 0.16. Prepare extension points when necessary, but do not implement out-of-scope systems. Do not use a scoped change as an excuse for broad refactoring of validated systems. If 0.15 work surfaces a bug in an already-validated 0.8-0.14 contract, apply only the minimal necessary fix with a regression test, and report it separately from 0.15 work. A docs update describing 0.15 contracts is not itself acceptance of 0.15; acceptance follows independent review.
 
 ## Completion and review
 

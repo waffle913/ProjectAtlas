@@ -106,8 +106,10 @@ scope.
 | `rg "Math\\.random" src\\simulation\\governance src\\components\\StartGame.tsx` | No matches in the changed governance runtime, model, invariant, or start-flow paths. |
 | `git diff --check` | Passed with no whitespace errors. |
 
-The final broad verification passed all tests in 124.62 seconds. No new
-simulation system, save schema version, or 0.16 work was introduced.
+The final broad verification passed all tests in 124.62 seconds. No parallel
+simulation engine, scheduler, or 0.16 work was introduced; the only save
+schema change is the documented schema-12 → 13 Government Information
+migration described above, not an additional or undocumented schema bump.
 
 ## Measured workload and save impact
 

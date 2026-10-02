@@ -39,13 +39,60 @@ ProjectAtlas is a realism-first geopolitical, economic, social, political, and m
 - Fiscal 0.11: legal rules -> liabilities -> collection -> revenue -> budget -> transfers/services -> disposable income/public capacity. Separate known statutory, baseline/other, and total revenue. Missing rules are not 0%; baseline calibration cannot cancel reforms.
 - Crisis 0.12: material variables -> tripwires -> severity/persistence/pressure -> deterministic tipping -> crisis -> causal recovery. Crises do not create their causes or directly modify GDP/other crises.
 - Politics 0.13: institutions, chambers, fictional parties/organizations, and Region/cohort opinion. Never derive ideology from party names, source-ID hashes, or ordering. Historical ideology remains a historical prior; semantically unsupported dimensions remain neutral/modelled/unavailable.
+- Governance 0.14: player controls a persistent fictional person, never directly a Country. Party membership, party leadership, and public office are distinct facts; powers come only from the office actually held. Proposals: draft -> submitted -> enacted/rejected/unavailable, with an immutable submitted payload and deterministic fingerprint. Evaluation is situational and causal; parties vote as deterministic blocks; `UNKNOWN != ABSTAIN`; missing data never becomes an implied rejection. Fiscal enactment happens exactly once through the existing fiscal queue. Schema-12 migrations preserve real aggregate historical votes without fabricating party evidence or replaying history.
+
+## 0.15 -- current milestone (candidate, pending independent review)
+
+0.15 is the active milestone: implemented and pushed for review, but **not**
+independently accepted. Do not describe it as validated.
+
+Already implemented (candidate, pending review):
+- Reality -> Government Information -> player-presented-interpretation
+  boundary is explicit; no raw reality exposed to ministers/UI; preserve
+  source/freshness/confidence/coverage/uncertainty/`unavailable`.
+- Ministers/advisors transform only government-accessible information into
+  briefings; not a second simulation engine. Difficulty changes interpretation
+  degree only, never causal laws or underlying reality.
+- Enacted/rejected laws do not auto-pause; only urgent/severe notifications
+  may interrupt per the notification contract; UI stays strictly downstream
+  of canonical state.
+- The 0.14 person model is active, not future. Losing office is not
+  automatic game over. A replaced/removed controlled leader preserves
+  continuity for a later proper successor handoff, never a silent
+  Country-level control transfer.
+- Initial playable party leaders are fictional analogues derived from real
+  leaders as reference, never copies of the real identity; the real name
+  stays provenance/debug metadata only.
+
+Documented design intent, NOT yet implemented -- do not claim as current
+behavior until separately planned/implemented/validated:
+- Continuous aggregated internal party distribution per issue/axis
+  (radical/extremist, mainstream, intermediate, moderate/pragmatic) that
+  splits a party's seats across YES/NO/ABSTAIN/UNKNOWN in a vote. Parties
+  still vote as deterministic blocks today (0.14 contract above).
+- Generating post-replacement leaders from party structure/internal
+  factions/power balance/context rather than a fixed list.
+- Situational institutional-interest weighting (majority/opposition,
+  executive/chamber control, institutional levers, power balance, faction
+  balance, material consequences) beyond today's deterministic-block +
+  situational-evaluation model; never a flat fixed "opposition" malus.
 
 ## Future direction and scope
 
-- The future player controls a person whose powers come from an office, not automatically a country. Losing office/election is not automatically game over.
+- Player control of a person (not automatically a country) is active as of
+  0.14/0.15, per the contracts above. A person may belong to or lead a party
+  and may hold office, govern, or remain in opposition; powers come from the
+  office actually held.
 - Do not implement political actions early. Future contracts: parties may use sit-ins and general/national/capital demonstrations; unions may strike; associations have no automatic strike power.
 - Diplomacy/war follows persistent issues -> tensions/crisis -> escalation/de-escalation -> explicit force -> war. Never use `relations < threshold => war`; preserve occupation/control/sovereignty distinctions.
 - Trade follows production -> needs -> aggregate flows -> prices -> dependencies -> consequences. Do not invent dependencies before flows.
-- Never begin the next milestone without explicit instruction or broadly refactor a validated milestone. Any validated-system change must be minimal, necessary, tested, and reported.
+- Never begin the next milestone without explicit instruction or broadly refactor a validated milestone. Any validated-system change must be minimal, necessary, tested, and reported. If 0.15 work surfaces a bug in an already-validated 0.8-0.14 contract, apply only the minimal necessary fix with a regression test, reported separately. A docs update describing 0.15 contracts is not itself acceptance; acceptance follows independent review.
+
+## Mandatory agent workflow
+
+- For changes touching canonical state, migration/save, the political model, multiple domains, or performance: first produce a no-code PLAN (touched files/contracts, causal dependencies, schema/migration impact, invariants, tests/audits, regression risks).
+- Then implement the smallest coherent, independently reviewable block. Do not swallow a whole milestone in one change; do not broadly refactor a validated milestone to ease current work.
+- Separate IMPLEMENTATION and REVIEW passes: implementation must not treat its own reasoning as proof of correctness; review must re-read the actual diff and actively hunt regressions -- conservation, determinism, saves/migrations, provenance, stale data, `unknown != zero`, `unknown != abstain`, Reality -> Government Information leaks.
+- On conflict with a validated contract, or material design ambiguity: preserve the validated contract, flag the ambiguity, do not invent behavior.
 
 Before completion, run relevant tests, `npm run verify` when warranted, and affected domain audits/benchmarks. Check `Math.random` after runtime changes and verify saves, migrations, invariants, and permanent IDs where applicable. Report commands and actual results. At milestone end, commit/push and provide the exact SHA, principal files, tests, limitations, assumptions, unavailable coverage, migrations, and performance.
