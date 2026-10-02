@@ -16,8 +16,9 @@ import { initializeNewGame } from '../initialization';
 import { emptyInformation } from '../information/model';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { simulationDelta } from '../world';
+import { createSimulationSnapshotCache } from '../state';
 import { analyzeProposal, derivePartyGoalProfile, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_GOALS, GOVERNANCE_VOTE_THRESHOLDS } from '../governance/analysis';
-import type { GovernanceGoal, PartyGoalProfile, PoliticalPersonState, PoliticalProposal, ProposalAnalysis } from '../governance/model';
+import type { GovernanceGoal, InstitutionalPowerTransfer, PartyChamberEvaluation, PartyGoalProfile, PoliticalPersonState, PoliticalProposal, ProposalAnalysis } from '../governance/model';
 import type { FiscalProposalPayload } from '../governance/model';
 import type { FiscalReform, TaxKind, TaxRule } from '../fiscal/model';
 import { evaluateImmediateFiscalPolicyCounterfactual, scheduleFiscalReform } from '../fiscal/runtime';
@@ -27,10 +28,15 @@ import { StartGame } from '../../components/StartGame';
 import { assertInitialOfficeReconciliation } from '../governance/initialOfficeEvidence';
 import { selectableStartingCountryIds, startingPersonCandidates } from '../governance/selection';
 import { allocatePartySeats, evaluatePartyInternalVoteDistribution, INTERNAL_PARTY_DISTRIBUTION_MODEL } from '../governance/internalPartyDistribution';
+import { applyInstitutionalAgreement, applyPartyInstitutionalInterest, derivePartyInstitutionalStake, evaluatePartyInstitutionalInterest, institutionalSensitivityBps, INSTITUTIONAL_INTEREST_MODEL } from '../governance/institutionalInterest';
 
 import historicalFixture from './fixtures/governance-situational-0.14-v2.json';
+import historicalPluralityFixture from './fixtures/governance-plurality-0.15-v1.json';
 const historicalSituational = historicalFixture as {
   referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal; reform: FiscalReform;
+};
+const historicalPlurality = historicalPluralityFixture as {
+  referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal;
 };
 
 const fullWorld = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
@@ -162,6 +168,378 @@ function distributionProfile(partyId = historicalSituational.proposal.parliament
     infrastructure: { idealPointBps: 10_000, importanceBps: 10_000, compromiseToleranceBps: 10_000, confidenceBps: 10_000 },
   });
 }
+
+function historicalPluralityState(): SimulationState {
+  const { person, proposal } = structuredClone(historicalPlurality);
+  return {
+    ...initial,
+    governance: {
+      ...initial.governance, player: { controlledPersonId: person.id },
+      persons: { ...initial.governance.persons, [person.id]: person }, nextPersonSequence: Number(person.id.slice(7)) + 1,
+      proposals: { [proposal.id]: proposal }, proposalOrder: [proposal.id], nextProposalSequence: 1,
+    },
+  };
+}
+
+function parentPluralityProfiles(): Record<string, PartyGoalProfile> {
+  return Object.fromEntries(politicalRegistry.countries[historicalPlurality.person.countryId].partyIds.map(partyId => {
+    const goals = derivePartyGoalProfile(politicalRegistry.parties[partyId]);
+    for (const preference of Object.values(goals.goals)) {
+      preference.importanceBps = 0; preference.confidenceBps = 10_000; preference.status = 'modelled_fallback';
+    }
+    goals.goals.fiscal_sustainability = { idealPointBps: 8_000, importanceBps: 10_000, compromiseToleranceBps: 3_000, confidenceBps: 10_000, status: 'modelled_fallback' };
+    return [partyId, goals];
+  }));
+}
+
+function institutionalFixture(oppositionSeats = 80) {
+  const registry = structuredClone(politicalRegistry), countryId = historicalPlurality.person.countryId;
+  const country = registry.countries[countryId], institution = registry.institutions[country.institutionId];
+  const [oppositionId, governmentId] = country.partyIds;
+  country.partyIds = [oppositionId, governmentId]; country.coverage.coalition = 'sourced';
+  institution.governingPartyIds = [governmentId]; institution.chambers = [institution.chambers[0]];
+  institution.governingBlocDerivations = [{ sourceText: 'Explicit synthetic test-only governing bloc, not observed.', method: 'normalized_source_party_name_substring_v1', matchedPartyIds: [governmentId], ambiguous: false }];
+  const chamber = institution.chambers[0];
+  chamber.totalSeats = 100; chamber.seatAllocationStatus = 'sourced'; chamber.independentOtherSeats = 0;
+  chamber.seatsByParty = { [oppositionId]: oppositionSeats, [governmentId]: 100 - oppositionSeats };
+  chamber.provenance = { ...chamber.provenance, source: 'Synthetic institutional test allocation, not an observation.', limitation: 'Test-only complete seat evidence.' };
+  registry.parties[oppositionId].governmentStatus = 'opposition'; registry.parties[governmentId].governmentStatus = 'government';
+  const effect: InstitutionalPowerTransfer = {
+    id: 'synthetic.budget-initiative-transfer', lever: 'budget_initiative', from: `chamber:${chamber.id}`, to: 'executive',
+    confidenceBps: 10_000, coverage: 'complete', source: 'Synthetic explicit legal power transfer, not a playable reform or observation.',
+    explanation: 'Test-only movement of budget initiative from this chamber to the executive.',
+  };
+  return { registry, countryId, oppositionId, governmentId, institution, chamber, effect };
+}
+
+function institutionalProfile(partyId: string, uniform = false): PartyGoalProfile {
+  return profile(partyId, {
+    infrastructure: { idealPointBps: uniform ? 5_000 : 10_000, importanceBps: 10_000, compromiseToleranceBps: 10_000, confidenceBps: 10_000, status: 'modelled_fallback' },
+  });
+}
+
+function institutionalEvidenceState(transferOverrides: Partial<InstitutionalPowerTransfer> = {}, materialDirectionBps = 0): SimulationState {
+  const state = historicalPluralityState(), proposal = state.governance.proposals[historicalPlurality.proposal.id];
+  const chamber = politicalRegistry.institutions[politicalRegistry.countries[proposal.countryId].institutionId].chambers[0];
+  const analysis = distributionAnalysis({ infrastructure: materialDirectionBps });
+  analysis.institutionalEffects = [{
+    id: 'synthetic.saved-power-transfer', lever: 'budget_initiative', from: `chamber:${chamber.id}`, to: 'none',
+    confidenceBps: 10_000, coverage: 'complete', source: 'Synthetic saved-evidence test only; not an actual fiscal effect or playable constitutional reform.',
+    explanation: 'Synthetic removal of chamber leverage to exercise the versioned institutional evidence invariant.',
+    ...transferOverrides,
+  }];
+  const profiles = Object.fromEntries(politicalRegistry.countries[proposal.countryId].partyIds.map(id => [id, institutionalProfile(id, true)]));
+  const parliamentaryEstimate = estimateParliamentarySupport(state, proposal, politicalRegistry, profiles, analysis);
+  expect(parliamentaryEstimate.coverage).toBe('complete');
+  expect(parliamentaryEstimate.chambers.every(item => item.adopted === false)).toBe(true);
+  state.governance.proposals[proposal.id] = {
+    ...proposal, analysis, evaluationVersion: 'situational-plurality-0.15-v2',
+    publicEstimate: estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate,
+    voteResult: { ...structuredClone(parliamentaryEstimate), outcome: 'rejected', resolvedOn: state.date },
+  };
+  return state;
+}
+
+function institutionalTamperTarget(proposal: PoliticalProposal): PartyChamberEvaluation {
+  return proposal.parliamentaryEstimate!.chambers[0].partyEvaluations!.find(item =>
+    item.agreementBps > 0 && item.agreementBps < 9_999 && item.agreementBps !== 4_000 && item.institutionalInterest!.effects[0].rawInterestBps !== 0)!;
+}
+
+describe('governance 0.15 situational institutional interest', () => {
+  it('A: applies no government/opposition penalty without explicit power transfers', () => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 });
+    analysis.institutionalEffects = [];
+    const government = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.governmentId, fixture.registry, institutionalProfile(fixture.governmentId), analysis);
+    const opposition = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, institutionalProfile(fixture.oppositionId), analysis);
+    expect(government.agreementBps).toBe(opposition.agreementBps);
+    expect(government.confidenceBps).toBe(opposition.confidenceBps); expect(government.vote).toBe(opposition.vote);
+    for (const result of [government, opposition]) expect(result.institutionalInterest).toMatchObject({ status: 'not_applicable', adjustmentBps: 0, materialAgreementBps: result.agreementBps });
+    expect(government.institutionalInterest!.governmentStatus).toBe('government');
+    expect(opposition.institutionalInterest!.governmentStatus).toBe('opposition');
+  });
+
+  it('B: an opposition party loses chamber leverage to an adversary executive despite material agreement', () => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 });
+    analysis.institutionalEffects = [fixture.effect];
+    const goals = institutionalProfile(fixture.oppositionId), material = evaluateProfileForPublic(analysis, goals);
+    const opposition = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    const government = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.governmentId, fixture.registry, institutionalProfile(fixture.governmentId), analysis);
+    expect(material.agreementBps).toBe(6_000);
+    expect(opposition.institutionalInterest!.effects[0]).toMatchObject({ fromStakeBps: 8_000, toStakeBps: 0, rawInterestBps: -8_000, effectiveInterestBps: -8_000 });
+    expect(opposition.institutionalInterest!.adjustmentBps).toBe(-4_800);
+    expect(opposition).toMatchObject({ agreementBps: 1_200, vote: 'no' });
+    expect(opposition.tradeoffs).toContain('Material/ideological preference conflicts with current institutional leverage.');
+    expect(government.institutionalInterest!.effects[0]).toMatchObject({ fromStakeBps: 2_000, toStakeBps: 10_000 });
+    expect(government.institutionalInterest!.adjustmentBps).toBe(4_800); expect(government.vote).toBe('yes');
+    fixture.registry.parties[fixture.oppositionId].governmentStatus = 'government';
+    fixture.registry.parties[fixture.governmentId].governmentStatus = 'opposition';
+    expect(evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis)).toEqual(opposition);
+  });
+
+  it('C: reverses the adjustment when branch leverage reverses, with identical material preferences', () => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 }), goals = institutionalProfile(fixture.oppositionId);
+    analysis.institutionalEffects = [fixture.effect];
+    const before = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    fixture.institution.governingPartyIds = [fixture.oppositionId];
+    const after = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(before.institutionalInterest!.materialAgreementBps).toBe(after.institutionalInterest!.materialAgreementBps);
+    expect(before.institutionalInterest!.adjustmentBps).toBe(-4_800);
+    expect(after.institutionalInterest!.adjustmentBps).toBe(1_200); expect(after).toMatchObject({ agreementBps: 7_200, vote: 'yes' });
+    expect(evaluateProfileForPublic(analysis, goals)).toEqual(evaluateProfileForPublic({ ...analysis, institutionalEffects: [] }, goals));
+  });
+
+  it('D: equal branch stakes give zero adjustment, rather than a status-based bonus', () => {
+    const fixture = institutionalFixture(0);
+    const material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
+    for (const partyId of [fixture.oppositionId, fixture.governmentId]) {
+      const result = evaluatePartyInstitutionalInterest(fixture.countryId, partyId, fixture.registry, [fixture.effect], material);
+      expect(result).toMatchObject({ status: 'modelled', adjustmentBps: 0, confidenceBps: 10_000 });
+      expect(result.effects[0].fromStakeBps).toBe(result.effects[0].toStakeBps);
+    }
+    delete fixture.chamber.seatsByParty[fixture.oppositionId];
+    expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, fixture.effect.from).stakeBps).toBe(0);
+  });
+
+  it('E: an unsourced branch makes every party seat UNKNOWN, never ABSTAIN', () => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 }), goals = institutionalProfile(fixture.oppositionId);
+    fixture.chamber.seatAllocationStatus = 'unavailable'; analysis.institutionalEffects = [fixture.effect];
+    const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(evaluation.institutionalInterest).toMatchObject({ status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0 });
+    expect(evaluation.institutionalInterest!.effects[0].fromStakeBps).toBeUndefined();
+    expect(evaluation).toMatchObject({ agreementBps: 6_000, confidenceBps: 0, vote: 'unknown' });
+    const distribution = evaluatePartyInternalVoteDistribution(analysis, goals, evaluation);
+    expect(distribution).toMatchObject({ yesBps: 0, noBps: 0, abstainBps: 0, unknownBps: 10_000 });
+    expect(allocatePartySeats(80, distribution)).toEqual({ yesSeats: 0, noSeats: 0, abstainSeats: 0, unknownSeats: 80 });
+  });
+
+  it('F: coalition executive stakes follow sourced intra-bloc seat balance, not a 50/50 fallback', () => {
+    const fixture = institutionalFixture(30);
+    fixture.institution.governingPartyIds = [fixture.oppositionId, fixture.governmentId];
+    fixture.chamber.seatsByParty[fixture.governmentId] = 50; fixture.chamber.independentOtherSeats = 20;
+    const first = derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive');
+    const second = derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.governmentId, 'executive');
+    expect(first).toMatchObject({ stakeBps: 3_750, coverage: 'complete' });
+    expect(second).toMatchObject({ stakeBps: 6_250, coverage: 'complete' });
+    expect(first.limitation).toContain('modelled proxy');
+    fixture.chamber.seatsByParty = { [fixture.oppositionId]: 50, [fixture.governmentId]: 30 };
+    expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive').stakeBps).toBe(6_250);
+    fixture.chamber.seatAllocationStatus = 'unavailable';
+    expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive')).toMatchObject({ coverage: 'unavailable' });
+    expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive').stakeBps).toBeUndefined();
+  });
+
+  it('averages coalition shares equally across sourced chambers and caps partial or ambiguous evidence confidence', () => {
+    const fixture = institutionalFixture(30);
+    fixture.institution.governingPartyIds = [fixture.oppositionId, fixture.governmentId];
+    const second = structuredClone(fixture.chamber); second.id = 'chamber.synthetic-second'; second.totalSeats = 200;
+    second.seatsByParty = { [fixture.oppositionId]: 150, [fixture.governmentId]: 50 };
+    fixture.institution.chambers.push(second);
+    expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive').stakeBps).toBe(5_250);
+    fixture.registry.countries[fixture.countryId].coverage.coalition = 'partial';
+    const material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
+    const partial = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material);
+    expect(partial).toMatchObject({ coverage: 'partial', confidenceBps: 7_000 });
+    fixture.registry.countries[fixture.countryId].coverage.coalition = 'sourced';
+    fixture.institution.governingBlocDerivations[0].ambiguous = true;
+    expect(evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material)).toEqual(partial);
+  });
+
+  it('does not infer opposition or executive stake from a missing governing bloc', () => {
+    const fixture = institutionalFixture(), material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
+    fixture.institution.governingPartyIds = [];
+    const stake = derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive');
+    expect(stake.coverage).toBe('unavailable'); expect(stake.stakeBps).toBeUndefined();
+    expect(evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material).status).toBe('unavailable');
+  });
+
+  it('G: adds independent strategic variance without cancelling the central adjustment in material samples', () => {
+    const fixture = institutionalFixture(20), analysis = distributionAnalysis({ infrastructure: 0 }), goals = institutionalProfile(fixture.oppositionId, true);
+    analysis.institutionalEffects = [fixture.effect];
+    const material = evaluateProfileForPublic(analysis, goals), evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(evaluatePartyInternalVoteDistribution(analysis, goals, material).agreementHalfSpreadBps).toBe(0);
+    const sensitivities = INTERNAL_PARTY_DISTRIBUTION_MODEL.quadrature.map(sample => institutionalSensitivityBps(sample.stanceBps));
+    expect(sensitivities).toEqual([5_000, 7_500, 10_000, 12_500, 15_000]);
+    expect(sensitivities.reduce((sum, value, index) => sum + value * INTERNAL_PARTY_DISTRIBUTION_MODEL.quadrature[index].weightBps, 0) / 10_000).toBe(10_000);
+    expect(evaluation).toMatchObject({ agreementBps: 3_800, vote: 'no' });
+    expect(evaluation.agreementBps).toBe(applyInstitutionalAgreement(material.agreementBps, evaluation.institutionalInterest!.adjustmentBps));
+    const distribution = evaluatePartyInternalVoteDistribution(analysis, goals, evaluation);
+    expect(distribution).toMatchObject({ agreementMeanBps: 3_800, agreementHalfSpreadBps: 804, unknownBps: 0 });
+    expect(distribution.noBps).toBeGreaterThan(0); expect(distribution.abstainBps).toBeGreaterThan(0);
+    expect(distribution.limitation).toContain('institutional-pragmatism');
+    expect(allocatePartySeats(53, distribution, { proposalId: historicalPlurality.proposal.id, chamberId: fixture.chamber.id, partyId: fixture.oppositionId }).noSeats).toBeLessThan(53);
+  });
+
+  it('preserves the mainstream central agreement even when clamping shifts the aggregate mean', () => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 0 }), goals = institutionalProfile(fixture.oppositionId, true);
+    analysis.institutionalEffects = [fixture.effect];
+    const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    const distribution = evaluatePartyInternalVoteDistribution(analysis, goals, evaluation);
+    expect(evaluation.agreementBps).toBe(200); expect(distribution.agreementMeanBps).toBe(620);
+    expect(distribution.agreementHalfSpreadBps).toBe(2_048);
+  });
+
+  it('H: current fiscal analyses and every numeric distribution reproduce the actual parent exactly', () => {
+    const proposal = historicalPlurality.proposal, analysis = analyzeProposal(initial, proposal), profiles = parentPluralityProfiles();
+    expect(analysis.institutionalEffects).toEqual([]);
+    const { institutionalEffects: _effects, ...materialAnalysis } = analysis;
+    expect(materialAnalysis).toEqual(proposal.analysis);
+    const estimate = estimateParliamentarySupport(initial, proposal, politicalRegistry, profiles, analysis);
+    for (const chamber of estimate.chambers) for (const evaluation of chamber.partyEvaluations!) {
+      const material = evaluateProfileForPublic(analysis, profiles[evaluation.partyId]);
+      expect(evaluation.institutionalInterest).toMatchObject({ status: 'not_applicable', adjustmentBps: 0, materialAgreementBps: material.agreementBps });
+      expect(evaluation.agreementBps).toBe(material.agreementBps);
+      delete evaluation.institutionalInterest;
+    }
+    expect(estimate).toEqual(proposal.parliamentaryEstimate);
+    expect(estimatePublicSupport(initial, proposal, { ...analysis, institutionalEffects: [institutionalFixture().effect] })).toEqual(proposal.publicEstimate);
+    expect(INSTITUTIONAL_INTEREST_MODEL.method).toBe('situational_institutional_interest_v1'); expect(Object.isFrozen(INSTITUTIONAL_INTEREST_MODEL)).toBe(true);
+  });
+
+  it('I: new fiscal resolutions round-trip v2 exactly without changing schema, date, tick, seed or material state', () => {
+    const countryId = historicalPlurality.person.countryId, player = playerFor(initial, countryId);
+    const draftState = budgetProposal(player.state, player.id, countryId, 2), proposalId = draftState.governance.proposalOrder[0];
+    const submitted = submitProposal(draftState, proposalId), resolved = resolveProposalVote(submitted, proposalId, politicalRegistry, parentPluralityProfiles());
+    const saved = serializeSimulationState(resolved, worldContext), restored = restoreSimulationState(saved, worldRegions, {}, {}, worldContext);
+    expect(restored).toEqual(resolved); expect(serializeSimulationState(restored, worldContext)).toBe(saved);
+    expect(restored.governance.proposals[proposalId].evaluationVersion).toBe('situational-plurality-0.15-v2');
+    expect(restored.schemaVersion).toBe(13); expect(restored.date).toBe(submitted.date); expect(restored.engine).toEqual(submitted.engine);
+    for (const branch of ['fiscal', 'socioeconomy', 'politics', 'crisis', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion'] as const) expect(resolved[branch]).toBe(submitted[branch]);
+    expect(restored.governance.proposals[proposalId].voteResult!.chambers.flatMap(chamber => chamber.partyEvaluations ?? []).every(item => item.institutionalInterest?.status === 'not_applicable')).toBe(true);
+  }, 30_000);
+
+  it('J: reloads genuine reviewed-parent plurality-v1 bytes without institutional backfill', () => {
+    const state = historicalPluralityState(), before = JSON.stringify(state.governance.proposals[historicalPlurality.proposal.id]);
+    expect(historicalPlurality.referenceCommit).toBe('61e415d76ae3ff16cf61961df70d93857d7a87e7');
+    const saved = serializeSimulationState(state, worldContext), loaded = restoreSimulationState(saved, worldRegions, {}, {}, worldContext);
+    const proposal = loaded.governance.proposals[historicalPlurality.proposal.id];
+    expect(JSON.stringify(proposal)).toBe(before); expect(serializeSimulationState(loaded, worldContext)).toBe(saved);
+    expect(proposal.evaluationVersion).toBe('plurality-0.15-v1'); expect(proposal.analysis!.institutionalEffects).toBeUndefined();
+    expect(proposal.voteResult!.chambers.flatMap(chamber => chamber.partyEvaluations ?? []).every(item => item.institutionalInterest === undefined)).toBe(true);
+    const inspected = inspectProposalSupport(loaded, proposal.id, politicalRegistry, parentPluralityProfiles());
+    expect(inspected.analysis.institutionalEffects).toEqual([]); expect(JSON.stringify(loaded.governance.proposals[proposal.id])).toBe(before);
+  }, 30_000);
+
+  it('validates and reloads explicit synthetic institutional proof without implementing constitutional gameplay', () => {
+    const state = institutionalEvidenceState();
+    expect(governanceInvariant.check(state, worldContext, 'save')).toEqual([]);
+    const saved = serializeSimulationState(state, worldContext), loaded = restoreSimulationState(saved, worldRegions, {}, {}, worldContext);
+    expect(loaded).toEqual(state); expect(serializeSimulationState(loaded, worldContext)).toBe(saved);
+  }, 30_000);
+
+  const tamperCases: Array<[string, (proposal: PoliticalProposal) => void]> = [
+    ['government status', proposal => { const interest = institutionalTamperTarget(proposal).institutionalInterest!; interest.governmentStatus = interest.governmentStatus === 'government' ? 'opposition' : 'government'; }],
+    ['holder', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.effects[0].from = 'executive'; }],
+    ['branch stake', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.effects[0].fromStakeBps! += 1; }],
+    ['effect interest', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.effects[0].rawInterestBps += 1; }],
+    ['effective interest', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.effects[0].effectiveInterestBps += 1; }],
+    ['confidence', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.confidenceBps -= 1; }],
+    ['adjustment', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.adjustmentBps += 1; }],
+    ['material agreement baseline', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.materialAgreementBps += 1; }],
+    ['material confidence baseline', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.materialConfidenceBps -= 1; }],
+    ['material coverage baseline', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.materialCoverage = 'partial'; }],
+    ['baseline fingerprint', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.materialBaselineFingerprint = 'corrupted-baseline-fingerprint'; }],
+    ['final agreement', proposal => { institutionalTamperTarget(proposal).agreementBps += 1; }],
+    ['source', proposal => { institutionalTamperTarget(proposal).institutionalInterest!.effects[0].source = 'Different source, independently corrupted.'; }],
+    ['duplicate effect ID', proposal => { proposal.analysis!.institutionalEffects!.push(structuredClone(proposal.analysis!.institutionalEffects![0])); }],
+    ['missing effect array', proposal => { delete proposal.analysis!.institutionalEffects; }],
+    ['missing party evidence', proposal => { delete institutionalTamperTarget(proposal).institutionalInterest; }],
+    ['invalid lever', proposal => { Reflect.set(proposal.analysis!.institutionalEffects![0], 'lever', 'unsupported_power'); }],
+    ['equal holders', proposal => { proposal.analysis!.institutionalEffects![0].to = proposal.analysis!.institutionalEffects![0].from; }],
+    ['cross-Country chamber', proposal => { const foreign = Object.values(politicalRegistry.institutions).find(item => item.countryId !== proposal.countryId && item.chambers.length)!; proposal.analysis!.institutionalEffects![0].from = `chamber:${foreign.chambers[0].id}`; }],
+    ['empty source', proposal => { proposal.analysis!.institutionalEffects![0].source = ' '; }],
+    ['invalid confidence', proposal => { proposal.analysis!.institutionalEffects![0].confidenceBps = 10_001; }],
+    ['version downgrade', proposal => { proposal.evaluationVersion = 'plurality-0.15-v1'; }],
+  ];
+  it.each(tamperCases)('K: rejects independently corrupted %s even when estimate/result copies still match', (_name, mutate) => {
+    const state = institutionalEvidenceState(), proposal = structuredClone(state.governance.proposals[historicalPlurality.proposal.id]);
+    mutate(proposal);
+    proposal.voteResult = { ...structuredClone(proposal.parliamentaryEstimate!), outcome: 'rejected', resolvedOn: state.date };
+    const corrupted = { ...state, governance: { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: proposal } } };
+    expect(governanceInvariant.check(corrupted, worldContext, 'save').join(' ')).toContain('Invalid institutional evidence');
+    expect(() => serializeSimulationState(corrupted, worldContext)).toThrow(/Invalid institutional evidence/);
+    expect(() => restoreSimulationState(JSON.stringify(corrupted), worldRegions, {}, {}, worldContext)).toThrow(/Invalid institutional evidence/);
+  }, 30_000);
+
+  it('rejects material-baseline corruption masked by a clamped final agreement', () => {
+    const state = institutionalEvidenceState({}, -5_000), proposal = structuredClone(state.governance.proposals[historicalPlurality.proposal.id]);
+    const evaluation = proposal.parliamentaryEstimate!.chambers[0].partyEvaluations![0], interest = evaluation.institutionalInterest!;
+    expect(evaluation.agreementBps).toBe(0);
+    interest.materialAgreementBps += 1;
+    expect(applyInstitutionalAgreement(interest.materialAgreementBps, interest.adjustmentBps)).toBe(evaluation.agreementBps);
+    proposal.voteResult = { ...structuredClone(proposal.parliamentaryEstimate!), outcome: 'rejected', resolvedOn: state.date };
+    const corrupted = { ...state, governance: { ...state.governance, proposals: { [proposal.id]: proposal } } };
+    expect(governanceInvariant.check(corrupted, worldContext, 'save').join(' ')).toContain('Invalid institutional evidence');
+  });
+
+  it.each(['confidence', 'coverage'] as const)('rejects material %s corruption masked by partial institutional evidence', field => {
+    const state = institutionalEvidenceState({ coverage: 'partial' }), proposal = structuredClone(state.governance.proposals[historicalPlurality.proposal.id]);
+    const evaluation = proposal.parliamentaryEstimate!.chambers[0].partyEvaluations![0], interest = evaluation.institutionalInterest!;
+    expect(evaluation.confidenceBps).toBe(7_000); expect(evaluation.coverage).toBe('partial');
+    if (field === 'confidence') interest.materialConfidenceBps -= 1;
+    else interest.materialCoverage = 'partial';
+    const applied = applyPartyInstitutionalInterest({
+      agreementBps: interest.materialAgreementBps, confidenceBps: interest.materialConfidenceBps, coverage: interest.materialCoverage,
+      positiveDrivers: [], negativeDrivers: [], tradeoffs: [],
+    }, interest);
+    expect(applied.agreementBps).toBe(evaluation.agreementBps); expect(applied.confidenceBps).toBe(evaluation.confidenceBps); expect(applied.coverage).toBe(evaluation.coverage);
+    proposal.voteResult = { ...structuredClone(proposal.parliamentaryEstimate!), outcome: 'rejected', resolvedOn: state.date };
+    const corrupted = { ...state, governance: { ...state.governance, proposals: { [proposal.id]: proposal } } };
+    expect(governanceInvariant.check(corrupted, worldContext, 'save').join(' ')).toContain('Invalid institutional evidence');
+  });
+
+  it('L: ignores seat-map and governing-set insertion order and preserves display order only for effects', () => {
+    const fixture = institutionalFixture(30), material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
+    fixture.institution.governingPartyIds = [fixture.oppositionId, fixture.governmentId];
+    const effects: InstitutionalPowerTransfer[] = [
+      fixture.effect,
+      { ...fixture.effect, id: 'synthetic.reverse', from: 'executive', to: fixture.effect.from, confidenceBps: 7_000 },
+      { ...fixture.effect, id: 'synthetic.null', from: 'none', to: fixture.effect.from, confidenceBps: 5_000 },
+    ];
+    const original = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, effects, material);
+    const reordered = structuredClone(fixture.registry), institution = reordered.institutions[reordered.countries[fixture.countryId].institutionId];
+    institution.governingPartyIds.reverse();
+    for (const chamber of institution.chambers) chamber.seatsByParty = Object.fromEntries(Object.entries(chamber.seatsByParty).reverse());
+    reordered.parties = Object.fromEntries(Object.entries(reordered.parties).reverse());
+    expect(evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, reordered, effects, material)).toEqual(original);
+    const reversed = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, reordered, [...effects].reverse(), material);
+    for (const field of ['adjustmentBps', 'confidenceBps', 'coverage', 'status', 'governmentStatus', 'materialAgreementBps'] as const) expect(reversed[field]).toBe(original[field]);
+    expect(reversed.effects.map(item => item.id)).toEqual([...effects].reverse().map(item => item.id));
+    const second = structuredClone(institution.chambers[0]); second.id = 'chamber.synthetic-other'; institution.chambers.push(second);
+    const stake = derivePartyInstitutionalStake(reordered, fixture.countryId, fixture.oppositionId, 'executive');
+    institution.chambers.reverse();
+    expect(derivePartyInstitutionalStake(reordered, fixture.countryId, fixture.oppositionId, 'executive')).toEqual(stake);
+  });
+
+  it('keeps mixed known/unknown transfers partial, attenuates confidence, and surfaces malformed evidence explicitly', () => {
+    const fixture = institutionalFixture(), material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
+    const partial = { ...fixture.effect, coverage: 'partial' as const, confidenceBps: 9_000 };
+    const unknown = { ...fixture.effect, id: 'synthetic.unavailable', coverage: 'unavailable' as const };
+    const result = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [partial, unknown], material);
+    expect(result).toMatchObject({ status: 'modelled', coverage: 'partial', confidenceBps: 7_000, adjustmentBps: -3_360 });
+    expect(result.effects[0]).toMatchObject({ rawInterestBps: -8_000, effectiveInterestBps: -5_600 });
+    expect(result.effects[1]).toMatchObject({ coverage: 'unavailable', confidenceBps: 0 });
+    const applied = applyPartyInstitutionalInterest({ ...material, positiveDrivers: [], negativeDrivers: [], tradeoffs: [] }, result);
+    expect(applied).toMatchObject({ agreementBps: 2_640, confidenceBps: 7_000, coverage: 'partial' });
+    for (const effects of [[fixture.effect, fixture.effect], [{ ...fixture.effect, source: '' }], [{ ...fixture.effect, confidenceBps: -1 }]]) {
+      const rejected = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, effects, material);
+      expect(rejected).toMatchObject({ status: 'unavailable', adjustmentBps: 0, confidenceBps: 0 });
+      expect(rejected.negativeDrivers).toContain('Institutional evidence is malformed or duplicated.');
+    }
+  });
+
+  it('defensively copies institutional effects, saved records and nested drivers through existing snapshots and inspections', () => {
+    const state = institutionalEvidenceState(), proposalId = historicalPlurality.proposal.id, before = JSON.stringify(state.governance.proposals[proposalId]);
+    const inspection = inspectGovernance(state);
+    inspection.proposals[proposalId].analysis!.institutionalEffects![0].source = 'Inspection-only mutation.';
+    const interest = institutionalTamperTarget(inspection.proposals[proposalId]).institutionalInterest!;
+    interest.effects[0].rawInterestBps += 1; interest.negativeDrivers.push('Inspection-only driver.');
+    expect(JSON.stringify(state.governance.proposals[proposalId])).toBe(before);
+    const snapshot = createSimulationSnapshotCache()(state), evidence = institutionalTamperTarget(snapshot.governance.proposals[proposalId]).institutionalInterest!;
+    expect(Object.isFrozen(evidence)).toBe(true); expect(Object.isFrozen(evidence.effects[0])).toBe(true); expect(Object.isFrozen(evidence.negativeDrivers)).toBe(true);
+    expect(() => { evidence.effects[0].rawInterestBps = 0; }).toThrow();
+    expect(JSON.stringify(state.governance.proposals[proposalId])).toBe(before);
+  });
+});
 
 describe('final foundation stored governance evidence', () => {
   it.each(['swap-seats', 'foreign-party', 'omit-party', 'foreign-chamber', 'duplicate-chamber', 'missing-chamber', 'independent-residual'] as const)('rejects internally reconciled parliamentary registry corruption: %s', corruption => {
@@ -1168,7 +1546,7 @@ describe('governance 0.14 situational corrective contracts', () => {
       const resolved = resolveProposalVote(loaded, fixture.proposalId, fixture.registry, fixture.profiles);
       const restored = restoreSimulationState(serializeSimulationState(resolved, worldContext), worldRegions, {}, {}, worldContext);
       expect(restored).toEqual(resolved);
-      expect(restored.governance.proposals[fixture.proposalId].evaluationVersion).toBe('plurality-0.15-v1');
+      expect(restored.governance.proposals[fixture.proposalId].evaluationVersion).toBe('situational-plurality-0.15-v2');
       expect(restored.governance.proposals[fixture.proposalId].voteResult!.procedure).toBe('internal_party_distribution_v1');
       expect(submitted.governance.proposals[fixture.proposalId].voteResult).toBeUndefined();
       expect(resolved.engine).toEqual(submitted.engine); expect(resolved.date).toBe(submitted.date);

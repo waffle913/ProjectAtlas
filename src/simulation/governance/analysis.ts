@@ -4,6 +4,7 @@ import { evaluateImmediateFiscalPolicyCounterfactual, monthlyBudgetForDate } fro
 import { roundHalfAwayFromZero, scaledRatioSigned } from '../integerMath';
 import { sum } from '../fiscal/math';
 import { POLITICAL_ISSUES, type PoliticalParty, type PoliticalRegistry } from '../politics/model';
+import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest } from './institutionalInterest';
 import type { CoveredMetric, DirectPolicyChange, EvaluationCoverage, ExpectedConsequence, GovernanceGoal, PartyGoalProfile, PartyIssueEvaluation, PartyIssuePreference, PartyProposalEvaluation, PoliticalProposal, ProposalAnalysis, ProposalMaterialContext, UnsupportedProposalChange } from './model';
 
 export const GOVERNANCE_GOALS = [...POLITICAL_ISSUES, 'fiscal_sustainability'] as const satisfies readonly GovernanceGoal[];
@@ -96,7 +97,7 @@ export function analyzeProposal(state: SimulationState, proposal: PoliticalPropo
   const issueEffects = aggregateIssueEffects(expectedConsequences);
   const genuinelyNeutral = directPolicyChanges.length === 0 && unsupportedChanges.length === 0;
   const coverage: EvaluationCoverage = genuinelyNeutral ? 'complete' : !expectedConsequences.some(item => item.coverage !== 'unavailable') ? 'unavailable' : unsupportedChanges.length || expectedConsequences.some(item => item.coverage !== 'complete') ? 'partial' : 'complete';
-  return { version: 'proposal-analysis-0.14-v2', directPolicyChanges, materialContext, expectedConsequences, issueEffects, coverage, unsupportedChanges, limitations, genuinelyNeutral };
+  return { version: 'proposal-analysis-0.14-v2', directPolicyChanges, materialContext, expectedConsequences, issueEffects, coverage, unsupportedChanges, limitations, genuinelyNeutral, institutionalEffects: [] };
 }
 
 function totalRevenueFor(state: SimulationState, countryId: string) { const country = state.fiscal.countries[countryId], account = country?.account; return account?.totalRevenue ?? (country ? country.revenueCalibration.monthlyAmount + sum(Object.values(state.fiscal.regions).filter(region => region.owner === countryId).flatMap(region => TAXES.map(category => region.taxes[category].collected))) : 0); }
@@ -131,9 +132,12 @@ function evaluateProfile(analysis: ProposalAnalysis, profile: PartyGoalProfile):
 
 export function evaluatePartyProposal(state: SimulationState, proposal: PoliticalProposal, partyId: string, registry: PoliticalRegistry, profileOverride?: PartyGoalProfile, analysisOverride?: ProposalAnalysis): PartyProposalEvaluation {
   const party = registry.parties[partyId]; if (!party) return { partyId, agreementBps: 5_000, confidenceBps: 0, coverage: 'unavailable', compromiseCostBps: 0, vote: 'unknown', positiveDrivers: [], negativeDrivers: ['Unknown party.'], tradeoffs: [], issueEvaluations: [] };
-  const result = evaluateProfile(analysisOverride ?? analyzeProposal(state, proposal), profileOverride ?? derivePartyGoalProfile(party));
+  const analysis = analysisOverride ?? analyzeProposal(state, proposal);
+  const material = evaluateProfile(analysis, profileOverride ?? derivePartyGoalProfile(party));
+  const institutionalInterest = evaluatePartyInstitutionalInterest(proposal.countryId, partyId, registry, analysis.institutionalEffects ?? [], material);
+  const result = applyPartyInstitutionalInterest(material, institutionalInterest);
   const vote = result.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || result.coverage === 'unavailable' ? 'unknown' : result.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : result.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
-  return { partyId, ...result, vote };
+  return { partyId, ...result, institutionalInterest, vote };
 }
 
 export function evaluateProfileForPublic(analysis: ProposalAnalysis, profile: PartyGoalProfile) { return evaluateProfile(analysis, profile); }

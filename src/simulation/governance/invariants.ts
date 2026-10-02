@@ -6,6 +6,7 @@ import { politicalRegistry } from '../politics/registry';
 import { persistedOfficeEvidenceErrors } from './officeEvidence';
 import { GOVERNANCE_GOALS, GOVERNANCE_VOTE_THRESHOLDS, aggregateIssueEffects } from './analysis';
 import { allocatePartySeats, INTERNAL_PARTY_DISTRIBUTION_MODEL } from './internalPartyDistribution';
+import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, isInstitutionalPowerTransfer } from './institutionalInterest';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint,
   type ChamberSupportEstimate, type PartyChamberEvaluation, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis,
@@ -124,6 +125,35 @@ function validateAnalysis(analysis: ProposalAnalysis): boolean {
   return analysis.genuinelyNeutral === neutral && (!neutral || !analysis.expectedConsequences.some(item => item.coverage !== 'unavailable' && item.directionBps !== 0));
 }
 
+function validateInstitutionalEvidence(proposal: PoliticalProposal): boolean {
+  const effects = proposal.analysis?.institutionalEffects;
+  if (!Array.isArray(effects) || !effects.every(isInstitutionalPowerTransfer) || new Set(effects.map(item => item.id)).size !== effects.length) return false;
+  const country = politicalRegistry.countries[proposal.countryId], institution = politicalRegistry.institutions[country?.institutionId];
+  for (const effect of effects) for (const holder of [effect.from, effect.to]) {
+    if (holder.startsWith('chamber:') && (!institution || institution.countryId !== proposal.countryId
+      || !institution.chambers.some(chamber => chamber.id === holder.slice(8) && chamber.countryId === proposal.countryId))) return false;
+  }
+  for (const estimate of [proposal.parliamentaryEstimate, proposal.voteResult]) {
+    if (!estimate || !Array.isArray(estimate.chambers)) return false;
+    for (const chamber of estimate.chambers) {
+      if (!Array.isArray(chamber.partyEvaluations)) return false;
+      for (const evaluation of chamber.partyEvaluations) {
+        const interest = evaluation.institutionalInterest;
+        if (!interest || !bps(interest.materialAgreementBps) || !bps(interest.materialConfidenceBps) || !coverage(interest.materialCoverage)) return false;
+        const material = {
+          agreementBps: interest.materialAgreementBps, confidenceBps: interest.materialConfidenceBps, coverage: interest.materialCoverage,
+          positiveDrivers: [], negativeDrivers: [], tradeoffs: [],
+        };
+        const expected = evaluatePartyInstitutionalInterest(proposal.countryId, evaluation.partyId, politicalRegistry, effects, material);
+        if (canonicalJson(interest) !== canonicalJson(expected)) return false;
+        const applied = applyPartyInstitutionalInterest(material, expected);
+        if (evaluation.agreementBps !== applied.agreementBps || evaluation.confidenceBps !== applied.confidenceBps || evaluation.coverage !== applied.coverage) return false;
+      }
+    }
+  }
+  return true;
+}
+
 export const governanceInvariant: SimulationInvariant = { id: 'governance', check: (state, context) => {
   const g = state.governance, errors: string[] = [];
   if (!g || g.version !== GOVERNANCE_VERSION || !g.initializedOn || !dateValid(g.initializedOn) || g.initializedOn > state.date || !nonNegative(g.nextPersonSequence) || !nonNegative(g.nextProposalSequence)) return ['Malformed governance state.'];
@@ -179,8 +209,11 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (proposal.resolvedOn && (!dateValid(proposal.resolvedOn) || proposal.resolvedOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.resolvedOn > state.date)) errors.push(`Invalid resolution date for ${id}.`);
     if (proposal.publicEstimate && (![proposal.publicEstimate.supportBps, proposal.publicEstimate.opposeBps, proposal.publicEstimate.neutralBps, proposal.publicEstimate.unknownBps, proposal.publicEstimate.confidenceBps].every(bps) || proposal.publicEstimate.supportBps + proposal.publicEstimate.opposeBps + proposal.publicEstimate.neutralBps + proposal.publicEstimate.unknownBps !== 10_000 || !coverage(proposal.publicEstimate.coverage) || ![proposal.publicEstimate.representedPersons, proposal.publicEstimate.knownPersons, proposal.publicEstimate.unknownPersons].every(nonNegative) || proposal.publicEstimate.knownPersons + proposal.publicEstimate.unknownPersons !== proposal.publicEstimate.representedPersons || proposal.publicEstimate.coverage === 'complete' && proposal.publicEstimate.unknownPersons !== 0 || proposal.publicEstimate.coverage === 'unavailable' && proposal.publicEstimate.knownPersons !== 0)) errors.push(`Invalid public estimate for ${id}.`);
     const legacyAggregateOnly = proposal.evaluationVersion === 'legacy-0.14-v1' && ['enacted', 'rejected', 'unavailable'].includes(proposal.status);
-    const plurality = proposal.evaluationVersion === 'plurality-0.15-v1';
-    if (proposal.evaluationVersion !== undefined && !['legacy-0.14-v1', 'situational-0.14-v2', 'plurality-0.15-v1'].includes(proposal.evaluationVersion)) errors.push(`Invalid evaluation version for ${id}.`);
+    const institutional = proposal.evaluationVersion === 'situational-plurality-0.15-v2';
+    const plurality = institutional || proposal.evaluationVersion === 'plurality-0.15-v1';
+    if (proposal.evaluationVersion !== undefined && !['legacy-0.14-v1', 'situational-0.14-v2', 'plurality-0.15-v1', 'situational-plurality-0.15-v2'].includes(proposal.evaluationVersion)) errors.push(`Invalid evaluation version for ${id}.`);
+    if (institutional ? !validateInstitutionalEvidence(proposal)
+      : proposal.analysis?.institutionalEffects !== undefined || [proposal.parliamentaryEstimate, proposal.voteResult].some(estimate => Array.isArray(estimate?.chambers) && estimate.chambers.some(chamber => Array.isArray(chamber.partyEvaluations) && chamber.partyEvaluations.some(item => item.institutionalInterest !== undefined)))) errors.push(`Invalid institutional evidence for ${id}.`);
     if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly, plurality, id, proposal.countryId)) errors.push(`Invalid parliamentary estimate for ${id}.`);
     if (proposal.analysis && !validateAnalysis(proposal.analysis)) errors.push(`Invalid proposal analysis for ${id}.`);
     if (proposal.voteResult) {

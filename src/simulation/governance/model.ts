@@ -80,6 +80,32 @@ export interface CoveredMetric { valueBps?: number; coverage: EvaluationCoverage
 export interface DirectPolicyChange { path: string; before?: number | string | null; after?: number | string | null; delta?: number; coverage: EvaluationCoverage; explanation: string }
 export interface UnsupportedProposalChange { path: string; reason: string; coverage: 'partial' | 'unavailable' }
 export interface ExpectedConsequence { goal: GovernanceGoal; directionBps: number; magnitudeBps: number; confidenceBps: number; coverage: EvaluationCoverage; source: string; explanation: string }
+export type InstitutionalPowerHolder = 'none' | 'executive' | `chamber:${string}`;
+export const INSTITUTIONAL_POWER_LEVERS = ['legislative_initiative', 'budget_initiative', 'amendment_power', 'veto_power', 'confidence_power', 'dissolution_power', 'appointment_confirmation', 'decree_authority'] as const;
+export type InstitutionalPowerLever = typeof INSTITUTIONAL_POWER_LEVERS[number];
+export interface InstitutionalPowerTransfer {
+  id: string; lever: InstitutionalPowerLever; from: InstitutionalPowerHolder; to: InstitutionalPowerHolder;
+  confidenceBps: number; coverage: EvaluationCoverage; source: string; explanation: string;
+}
+export interface PartyInstitutionalStake {
+  holder: InstitutionalPowerHolder; stakeBps?: number; coverage: EvaluationCoverage;
+  partySeats?: number; totalSeats?: number; governingBlocStakeBps?: number; limitation: string;
+}
+export interface PartyInstitutionalEffectEvaluation {
+  id: string; lever: InstitutionalPowerLever; from: InstitutionalPowerHolder; to: InstitutionalPowerHolder;
+  fromStakeBps?: number; toStakeBps?: number; rawInterestBps: number; effectiveInterestBps: number;
+  confidenceBps: number; coverage: EvaluationCoverage; source: string; explanation: string;
+}
+export interface PartyInstitutionalInterestEvaluation {
+  method: 'situational_institutional_interest_v1';
+  status: 'not_applicable' | 'modelled' | 'unavailable';
+  coverage: EvaluationCoverage; confidenceBps: number;
+  governmentStatus: 'government' | 'opposition' | 'unavailable';
+  materialAgreementBps: number; materialConfidenceBps: number; materialCoverage: EvaluationCoverage;
+  materialBaselineFingerprint: string;
+  adjustmentBps: number; effects: PartyInstitutionalEffectEvaluation[];
+  positiveDrivers: string[]; negativeDrivers: string[]; limitation: string;
+}
 export interface ProposalMaterialContext {
   unemployment: CoveredMetric; fiscalSustainability: CoveredMetric; incomeSecurity: CoveredMetric;
   fiscalDistribution: CoveredMetric; publicServices: CoveredMetric; infrastructure: CoveredMetric; fiscalDistress: CoveredMetric;
@@ -88,6 +114,7 @@ export interface ProposalAnalysis {
   version: 'proposal-analysis-0.14-v2'; directPolicyChanges: DirectPolicyChange[]; materialContext: ProposalMaterialContext;
   expectedConsequences: ExpectedConsequence[]; issueEffects: Record<GovernanceGoal, number>; coverage: EvaluationCoverage;
   unsupportedChanges: UnsupportedProposalChange[]; limitations: string[]; genuinelyNeutral: boolean;
+  institutionalEffects?: InstitutionalPowerTransfer[];
 }
 export interface PartyIssuePreference { idealPointBps: number; importanceBps: number; compromiseToleranceBps: number; confidenceBps: number; status: 'sourced_or_partial_prior' | 'modelled_fallback' | 'modelled_common_constraint' }
 export interface PartyGoalProfile { partyId: string; goals: Record<GovernanceGoal, PartyIssuePreference> }
@@ -107,6 +134,7 @@ export interface PartyProposalEvaluation {
   vote: 'yes' | 'no' | 'abstain' | 'unknown'; positiveDrivers: string[]; negativeDrivers: string[]; tradeoffs: string[]; issueEvaluations: PartyIssueEvaluation[];
   decisionModel?: 'internal_distribution_v1';
   internalDistribution?: PartyInternalVoteDistribution;
+  institutionalInterest?: PartyInstitutionalInterestEvaluation;
 }
 export interface PartyChamberEvaluation extends PartyProposalEvaluation { seats: number; seatAllocation?: PartySeatAllocation }
 export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
@@ -132,7 +160,7 @@ export interface PoliticalProposal {
   scheduledFiscalReformSequence?: number;
   enactmentReference?: { fiscalReformSequence: number; reformFingerprint: string };
   analysis?: ProposalAnalysis;
-  evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1';
+  evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1' | 'situational-plurality-0.15-v2';
 }
 
 export interface GovernanceState {

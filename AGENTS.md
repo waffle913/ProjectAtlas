@@ -107,19 +107,29 @@ implemented, and validated before being treated as current behavior.
   Deterministic largest remainder allocates exact party seats across
   YES/NO/ABSTAIN/UNKNOWN; insufficient evidence remains UNKNOWN. Central
   evaluation is retained but no longer assigns every seat. New records use
-  `plurality-0.15-v1` / `internal_party_distribution_v1`; historical 0.14
-  block/aggregate votes are preserved without adding distributions.
+  `situational-plurality-0.15-v2` / `internal_party_distribution_v1`;
+  historical 0.14 block/aggregate and `plurality-0.15-v1` votes are preserved
+  without adding new evidence.
+- Party evaluation supports situational institutional self-interest only
+  when proposal analysis contains explicit legal power transfers. Effects
+  derive from current executive/chamber leverage and power balance, never
+  from a flat government/opposition modifier. Current fiscal-only proposals
+  contain no institutional transfer: adjustment is zero/not_applicable.
+  Coalition leverage remains a documented V1 modelled proxy. Strategic
+  pragmatism contributes an independent modelled plurality dimension;
+  missing branch evidence remains UNKNOWN. Public opinion stays material-only.
+  Versioned institutional records retain a fingerprinted material baseline;
+  reload validates saved evidence without replaying material history.
 
 **Documented design intent, not yet implemented -- do not claim as current
 behavior until planned, implemented, and validated separately:**
 
 - Generating post-replacement party leaders from party structure, internal
   factions, power balance, and context rather than a fixed list.
-- Weighing situational institutional interest -- majority/opposition status,
-  executive control, chamber control, institutional levers gained or lost,
-  power balance, internal faction balance, and material consequences of a
-  proposal -- beyond the existing material-goal situational evaluation
-  model, and never via a flat fixed "opposition" malus.
+
+This institutional evaluator does not implement playable constitutional
+reforms, mutable constitutions, elections updating the governing bloc, or
+coalition negotiation.
 
 ## Player, politics, diplomacy, war, and trade direction
 

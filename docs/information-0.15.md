@@ -72,8 +72,9 @@ Both routes ultimately invoke the existing `setControlledPerson`; they neither c
 ## Internal party plurality (candidate, pending independent review)
 
 New parliamentary evaluations use `continuous_issue_distribution_v1`, with
-`internal_party_distribution_v1` procedure and `plurality-0.15-v1` resolved
-records. The existing causal evaluator still supplies the central agreement,
+`internal_party_distribution_v1` procedure and
+`situational-plurality-0.15-v2` resolved records. The existing causal evaluator
+still supplies the material central agreement,
 confidence and decision. Central `vote` is not multiplied by every party seat.
 
 Every distinct evaluable goal is varied independently while all other goals
@@ -113,16 +114,91 @@ parliamentary estimate and the parliamentary part of the recorded result,
 excluding only outcome, resolution date and reason. Historical
 `legacy-0.14-v1` and `situational-0.14-v2` results retain the old validation
 path and reject new distribution fields. Ordinary reload never recomputes
-historical votes. A genuine parent-generated situational-v2 fixture and the
-existing aggregate schema-12 fixtures cover this boundary. Only an unresolved
+historical votes. Historical `plurality-0.15-v1` retains its original
+validation path without institutional evidence. Genuine parent-generated
+situational-v2 and plurality-v1 fixtures and the existing aggregate schema-12
+fixtures cover this boundary. Only an unresolved
 proposal's future resolution uses the new algorithm after reload.
 
 Production evidence still has no overlap between the 57 Countries with
 complete procedural coverage and the eight with ideological evidence.
 Plurality does not invent confidence or sourced party profiles to clear this
 gap; explicitly synthetic known-profile tests/benchmarks demonstrate splits.
-Deeper institutional self-interest and faction/context successor generation
-remain separate, unimplemented blocks.
+Faction/context successor generation remains the separate, unimplemented
+design-intent block.
+
+## Situational institutional interest (candidate, pending independent review)
+
+Party evaluation supports situational institutional self-interest when
+proposal analysis contains explicit legal power transfers. The effect is
+derived from current executive/chamber leverage and power balance, never
+from a flat government/opposition modifier. Current fiscal-only proposals
+contain no institutional transfer and therefore receive a zero/not-applicable
+adjustment. Coalition leverage remains a documented V1 modelled proxy.
+
+`institutionalInterest.ts` is pure and on-demand. A transfer names a legal
+lever, source and destination holders, source/explanation, confidence and
+coverage. Holders are `none`, `executive` or a Country-owned chamber.
+Chamber stake is the party's complete sourced seat share; absence in a
+complete reconciled allocation is a known zero, whereas unsourced seats
+remain unavailable. A sole reconciled governing party has full executive
+stake; an outside party has structural zero, never an opposition penalty.
+For a coalition, executive stake is the equal-chamber average of the party's
+seat share within the governing bloc, using sourced allocations only.
+An absent governing bloc or unusable coalition seat evidence stays unavailable,
+never a fabricated 50/50 split. Partial/ambiguous bloc evidence is not promoted
+to complete evidence. Current governing blocs are the pinned 0.13 derivations,
+not a newly mutable political system.
+
+For each known transfer, raw interest is destination stake minus source stake.
+Confidence is the minimum of transfer confidence and the coverage cap
+(10,000 complete, 7,000 partial). Effective interest is raw interest times
+confidence / 10,000 with signed integer rounding. The agreement adjustment
+is 6,000 / 10,000 times the mean effective interest over known transfers.
+The mainstream result clamps material agreement plus that adjustment to
+0..10,000; final confidence and coverage cannot exceed their material and
+institutional evidence. No known effects produce unavailable evidence,
+zero confidence and UNKNOWN, not ABSTAIN. No effects at all produce
+`not_applicable`, exactly zero adjustment and an unchanged material result.
+Known and unknown mixed effects stay partial. The scale is a modelled V1
+behavioral prior, not an empirically observed party coefficient.
+
+Material quadrature samples receive the same institutional adjustment before
+subtracting the adjusted center, so sampling cannot cancel the central
+shift. A nonzero known adjustment additionally contributes an independent
+strategic-pragmatism dimension at 50/75/100/125/150% sensitivity under the
+existing 1,000/2,000/4,000/2,000/1,000 weights (mean exactly 100%).
+The central evaluation remains the mainstream result even if clamping shifts
+the distribution's aggregate mean. Zero-transfer fiscal distributions match
+the captured reviewed-parent results exactly. Public/cohort opinion remains
+strictly material-only, and none of this engine/debug evidence unlocks
+Government Information predictions.
+
+New `situational-plurality-0.15-v2` records require explicit effect arrays and
+per-party institutional evidence. The existing governance invariant validates
+holders, levers, unique IDs, ranges and provenance, then reuses the pure
+evaluator with the saved material baseline and pinned registry and compares
+the canonical record and final agreement/confidence/coverage. A deterministic
+`materialBaselineFingerprint` also detects independently corrupted baselines
+when clamping or confidence/coverage caps mask their numeric effect. This is
+an integrity checksum, not independent empirical support or cryptographic
+authentication. Estimate/result equality, exact seat conservation, registry
+reconciliation and identity-hash apportionment remain required. Older markers
+reject the new metadata rather than silently downgrading its validation.
+
+Save schema 13 and governance v1 stay unchanged: these are versioned result
+proofs, not a new mutable world branch. Ordinary reload never reruns material
+evaluation from current state, adds institutional evidence to old votes or
+changes fiscal enactment history. The genuine plurality-v1 fixture was
+produced and save/reload-validated by reviewed parent
+`61e415d76ae3ff16cf61961df70d93857d7a87e7` before editing runtime; its profiles
+are explicitly synthetic test evidence, not observed political positions.
+
+This pass adds no constitutional-reform gameplay, mutable constitutions,
+elections updating governing blocs, coalition negotiation, persistent factions,
+individual MPs or new successor generation. Existing bounded party-platform
+succession is unchanged; structure/faction/context-based successors remain
+the only outstanding design-intent block. 0.15 remains a review candidate.
 
 ## Persistence, invariants and validation
 
@@ -142,5 +218,5 @@ Ordinary v3/schema-13 reload does not call leadership initialization, current-ma
 - Fiscal UI exposes the existing corporate-tax and annual infrastructure-budget proposal paths through governance commands; unsupported instruments are not presented as working controls.
 - The current model has no supported urgent briefing source, so automatic urgent pause is not exercised.
 - Proposal reactions and government-visible counterfactual consequences are unavailable, not canonical Reality relabelled as estimates. No crisis-report sensor channel or Public Perception layer is implemented.
-- Internal plurality and split-seat votes are implemented candidate behavior using modelled common priors, not observed faction shares. Deeper institutional self-interest and faction/context-derived successor profiles remain design debt; bounded party-platform succession is unchanged.
+- Internal plurality and explicit-power-transfer institutional interest are candidate behavior using modelled priors, not observed faction shares or party behavioral coefficients. Current fiscal proposals receive zero/not_applicable institutional adjustment. Faction/context-derived successor profiles remain design debt; bounded party-platform succession is unchanged.
 - Measurement timings and the save comparison are workload-specific and are not performance thresholds or universal device guarantees.

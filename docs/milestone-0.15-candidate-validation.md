@@ -996,3 +996,136 @@ so it records already-executed CI truthfully. Its documentation-only branch
 HEAD and that HEAD's separate exact-SHA CI results are reported at final
 handoff; embedding a document's own commit SHA would change that SHA.
 No main merge, 0.16 work or self-declared 0.15 acceptance occurred.
+
+## Situational institutional interest candidate
+
+Reviewed parent: `61e415d76ae3ff16cf61961df70d93857d7a87e7`, on
+`waffle913-milestone-015-government-information`. Both supplied references
+were read completely before recording the no-code plan and editing runtime.
+This is candidate implementation within 0.15, not acceptance or a new milestone.
+
+Party evaluation supports situational institutional self-interest when proposal
+analysis contains explicit legal power transfers. Current executive/chamber
+leverage and power balance determine the effect, never a flat
+government/opposition modifier. Current fiscal-only proposals explicitly contain
+`institutionalEffects: []` and receive exactly zero/not-applicable adjustment.
+Public/cohort evaluation remains material-only; Government Information access
+and interpretation are unchanged.
+
+The pure evaluator is in `governance/institutionalInterest.ts`. For each known
+transfer, raw interest is destination stake minus source stake, in basis points.
+Effective interest is signed-rounded raw interest times evidence confidence
+divided by 10,000. Confidence is capped at 7,000 for partial evidence.
+Adjustment is signed-rounded mean effective interest times 6,000 divided by
+10,000. Final mainstream agreement is material agreement plus adjustment,
+clamped to 0..10,000. Final confidence/coverage never exceeds the applicable
+material and institutional evidence. Unknown leverage cannot become zero
+evidence or ABSTAIN; when all effects are unknown, confidence is zero and the
+party's seats are UNKNOWN.
+
+Chamber stake uses complete sourced party seat share. Executive stake uses the
+reconciled governing bloc: an outside party has structural zero, a sole
+governing party full stake, and coalition parties use an equal-chamber average
+of their sourced shares within the bloc. Missing usable allocations remain
+unavailable, never invented equal shares. Coalition leverage and the 6,000
+scaling coefficient are documented V1 modelled proxies, not observed
+behavioral coefficients.
+
+The same adjustment is applied to material samples before subtracting the
+already-adjusted center, avoiding accidental cancellation. A separate strategic
+dimension adds 50/75/100/125/150-percent sensitivity with
+1,000/2,000/4,000/2,000/1,000 weights when the known adjustment is nonzero.
+Its weighted sensitivity is exactly 100 percent. Mainstream agreement remains
+the central result even when clamping shifts the aggregate distribution mean.
+There are no individual MPs or new persistent factions.
+
+### Regression evidence and compatibility
+
+The 42 new cases are in the existing `governance.test.ts` audit:
+
+| Contract | Actual evidence |
+|---|---|
+| A: no status penalty | Identical material profiles and no transfers give equal government/opposition results and zero adjustment |
+| B: opponent executive gains chamber power | With 80/100 chamber seats and no executive stake, material agreement 6,000 receives -4,800 adjustment and becomes 1,200/NO; the governing party receives +4,800/YES. Swapping only status labels does not change the result |
+| C-D: reversal/equal leverage | Reversing executive control reverses adjustment; equal source/destination stakes give zero, including a party absent from a complete allocation |
+| E: unknown evidence | Unsourced branch gives confidence zero and 80 UNKNOWN seats, zero ABSTAIN |
+| F: coalition balance | 30/50 bloc seats with 20 independents give executive stakes 3,750/6,250, reversed by reversing seats; missing allocations remain unavailable. Separate cases cover equal-chamber averaging and partial/ambiguous confidence caps |
+| G: strategic plurality | Uniform material agreement 5,000 becomes central 3,800, mean 3,800, half-spread 804 with split NO/ABSTAIN; a clamped case preserves central 200 while mean becomes 620 and half-spread 2,048 |
+| H: fiscal equivalence | Analysis and every numeric parliamentary distribution reproduce the genuine parent exactly after excluding new zero-effect evidence; public estimates are unchanged even with synthetic institutional effects |
+| I: new result | A real fiscal resolution records `situational-plurality-0.15-v2`, saves/reloads exactly, and preserves schema, date, tick, seed and material state |
+| J: historical result | Genuine `plurality-0.15-v1` proposal JSON and reload remain byte/structure-equivalent, with no institutional backfill or inspection mutation |
+| K: corruption | 22 independent corruptions fail invariants, serialization and schema-13 reload even after estimate/result copies are resynchronized; three additional cases catch baseline changes masked by agreement clamping or confidence/coverage caps |
+| L: determinism/copies | Reordered seat maps, party maps, governing IDs and chambers retain mathematical results; effect order remains display-only. Nested inspection copies and frozen snapshots protect canonical evidence |
+
+The historical fixture was captured by executing the real resolver at the exact
+reviewed parent before any runtime edit. The temporary capture test passed
+1/1 in 7.00 s and was removed; its generated JSON remains checked in.
+Profiles and institutional test transfers are explicitly synthetic, not observed
+votes or playable constitutional reforms. Old `legacy-0.14-v1`,
+`situational-0.14-v2` and `plurality-0.15-v1` markers remain supported without
+recalculation or historical evidence fabrication.
+
+Technical deviations from the supplied reference are compact module organization,
+an extracted shared sample-moment helper, strengthened holder/lever/string and
+Country/reference guards, and a deterministic `materialBaselineFingerprint` on
+new institutional records. The existing governance fingerprint detects independent
+baseline corruption that numeric clamping or evidence caps could otherwise mask.
+It is an integrity checksum, not empirical provenance or cryptographic
+authentication. Valid arithmetic and scoring follow the reference. Old versions
+reject new institutional metadata rather than silently downgrading validation.
+
+Global schema 13 and governance version 1 are unchanged. No migration/backfill,
+new canonical system, RNG, scheduler, ownership map, identity or static dataset
+is introduced. Existing save, snapshot and inspection copying mechanisms handle
+the nested evidence. Fiscal enactment still uses the existing exact-once queue.
+
+### Executed final validation
+
+Commands were executed on Windows using `npm.cmd`/`npx.cmd`. An initial focused
+run failed because a test import was missing; that import was corrected. An
+intermediate 138/138 audit preceded the final fingerprint refinements and is not
+substituted for the final results below.
+
+| Executed command / check | Actual result |
+|---|---|
+| `npx tsc -b --pretty false` after final runtime/test changes | Exit 0 |
+| `npx vitest run src\simulation\__tests__\governance.test.ts --testNamePattern='situational institutional interest' --reporter=verbose` | Exit 0: 42/42, 100 existing tests skipped, 31.69 s |
+| `npm run governance:audit` | Exit 0: 142/142, 117.75 s |
+| `npm run governance:benchmark` | Exit 0: 1/1, test 5,185 ms, total 9.67 s, unchanged 30-second budget |
+| `npm run information:test` | Exit 0: 32/32, 26.97 s |
+| `npm run information:audit` | Exit 0: 948 parties; 7 derived, 0 sourced/observed, 1 ambiguous, 940 unavailable; 342 reconciled executive officeholders; zero accepted mappings lacking a fictional analogue |
+| `npm run politics:audit` | Exit 0: 252 Countries, 948 parties, 281 chambers, 31,736 represented seats; 42/42 tests in three files, 131.45 s |
+| `npm run verify -- -- --maxWorkers=1` | Exit 0: pinned data reproduction/audit, production build, 520/520 tests in 30 files, 359.25 s test-run duration, including existing domain/world benchmarks |
+| `git diff --check` | Exit 0 |
+| Built-in `rg`, `Math\.random`, all six changed governance runtime paths | No matches |
+| `git diff --exit-code` on accepted handoff, data, save/state, Region/War/Diplomacy and CI workflow | Exit 0; final scope inspection found no unrelated file change |
+
+The governance benchmark measured 20 material analyses at mean 16.969 ms,
+synthetic material analyses at 14.551 ms and explicit synthetic institutional/
+plurality evaluations at 0.285 ms, evaluating four parties. These are distinct
+workloads, not a like-for-like before/after speedup claim. Snapshot was 0.035 ms,
+serialization 417.970 ms, initial save 27,268,062 bytes. The resolved synthetic
+profile fiscal proposal was 17,575 bytes, including 4,800 distribution bytes
+and 4,050 institutional-evidence bytes; submitted-to-resolved save growth was
+18,214 bytes. The politics audit's three-year benchmark measured 100,922.87 ms,
+11 ticks/s, weekly snapshot 99.10 ms, coincident snapshot 390.32 ms, reload
+1,514.64 ms and save 33,547,440 bytes. Measurements depend on the local host;
+no deadline, assertion or benchmark threshold was relaxed.
+
+Coverage remains 57 procedurally resolvable Countries and eight with ideological
+evidence, with zero overlap. No new observed data or licence clearance is claimed.
+IPU Parline remains CC BY-NC-SA 4.0; V-Party, the Party Facts data bridge and
+relevant official publications remain `requires_confirmation` where previously
+recorded. Commercial release remains blocked. The existing large-bundle build
+advisory is not a simulation failure.
+
+Scope comprises the six governance runtime files, Governance tests/benchmark,
+genuine parent fixture, README, Governance/Information documentation, this
+candidate report and both persistent instruction files. Exact-SHA Ubuntu/Windows
+Node 22 CI must be read after commit/push and reported separately, without
+inferring success from these local results. No constitutional-reform gameplay,
+mutable constitutions, election-driven governing-bloc updates, coalition
+negotiation, successor-generation block, 0.16 or main merge is implemented.
+Post-replacement successor generation remains the sole unimplemented 0.15
+design-intent block. The accepted handoff is untouched; independent review
+remains required.

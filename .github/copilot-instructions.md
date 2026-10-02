@@ -68,17 +68,27 @@ Already implemented (candidate, pending review):
   individual MPs. The common prior is modelled, not sourced faction data.
   Deterministic largest remainder conserves exact party seats across
   YES/NO/ABSTAIN/UNKNOWN; insufficient evidence stays UNKNOWN. Central vote
-  is not a seat allocation. New records use `plurality-0.15-v1` /
-  `internal_party_distribution_v1`; historical 0.14 votes stay unchanged.
+  is not a seat allocation. New records use `situational-plurality-0.15-v2` /
+  `internal_party_distribution_v1`; historical 0.14 and plurality-v1 votes
+  stay unchanged without new evidence.
+- Situational institutional self-interest requires explicit legal power
+  transfers in proposal analysis. Effects derive from current
+  executive/chamber leverage and power balance, never a flat
+  government/opposition modifier. Current fiscal-only proposals have no
+  institutional transfer: zero/not_applicable adjustment. Coalition leverage
+  is a documented V1 modelled proxy; strategic pragmatism is an independent
+  modelled plurality dimension; missing branch evidence stays UNKNOWN.
+  Public opinion stays material-only. Versioned records preserve a
+  fingerprinted material baseline; reload does not replay material history.
 
 Documented design intent, NOT yet implemented -- do not claim as current
 behavior until separately planned/implemented/validated:
 - Generating post-replacement leaders from party structure/internal
   factions/power balance/context rather than a fixed list.
-- Situational institutional-interest weighting (majority/opposition,
-  executive/chamber control, institutional levers, power balance, faction
-  balance, material consequences) beyond existing material-goal situational
-  evaluation; never a flat fixed "opposition" malus.
+
+No playable constitutional reforms, mutable constitutions, elections
+updating the governing bloc, or coalition negotiation are implemented by
+the institutional evaluator.
 
 ## Future direction and scope
 

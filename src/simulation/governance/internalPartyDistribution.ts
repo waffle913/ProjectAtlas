@@ -2,6 +2,7 @@ import { allocate } from '../socioeconomy/model';
 import { deterministicFingerprint } from '../fingerprint';
 import { scaledRatioSigned } from '../integerMath';
 import { evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
+import { applyInstitutionalAgreement, institutionalSensitivityBps } from './institutionalInterest';
 import type { GovernanceGoal, PartyGoalProfile, PartyInternalVoteDistribution, PartyIssuePreference, PartyProposalEvaluation, PartySeatAllocation, ProposalAnalysis } from './model';
 
 export const INTERNAL_PARTY_DISTRIBUTION_MODEL = Object.freeze({
@@ -18,7 +19,7 @@ export const INTERNAL_PARTY_DISTRIBUTION_MODEL = Object.freeze({
   ].map(sample => Object.freeze(sample))),
 });
 
-type CentralEvaluation = Pick<PartyProposalEvaluation, 'agreementBps' | 'confidenceBps' | 'coverage'>;
+type CentralEvaluation = Pick<PartyProposalEvaluation, 'agreementBps' | 'confidenceBps' | 'coverage' | 'institutionalInterest'>;
 const clampBps = (value: number) => Math.max(0, Math.min(10_000, Math.round(value)));
 const scaleSigned = (magnitude: number, signedBps: number) => Math.sign(signedBps) * Math.round(magnitude * Math.abs(signedBps) / 10_000);
 
@@ -67,23 +68,41 @@ function unavailableDistribution(limitation: string): PartyInternalVoteDistribut
   };
 }
 
+function sampleMoments(samples: readonly { value: number; weightBps: number }[]) {
+  const weight = samples.reduce((sum, item) => sum + item.weightBps, 0);
+  const meanDelta = scaledRatioSigned(samples.reduce((sum, item) => sum + item.value * item.weightBps, 0), 1, weight);
+  const variance = Math.round(samples.reduce((sum, item) => sum + (item.value - meanDelta) ** 2 * item.weightBps, 0) / weight);
+  return { meanDelta, variance };
+}
+
 export function evaluatePartyInternalVoteDistribution(analysis: ProposalAnalysis, profile: PartyGoalProfile | undefined, centralEvaluation?: CentralEvaluation): PartyInternalVoteDistribution {
   if (!profile) return unavailableDistribution('No validated party goal profile is available; internal vote shares remain UNKNOWN.');
   const central = centralEvaluation ?? evaluateProfileForPublic(analysis, profile);
   if (central.coverage === 'unavailable' || central.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps) {
     return unavailableDistribution('Party evaluation evidence is unavailable or below the minimum confidence threshold; uncertainty is not converted into abstention.');
   }
+  const institutional = centralEvaluation?.institutionalInterest;
+  const institutionalAdjustmentBps = institutional?.status === 'modelled' ? institutional.adjustmentBps : 0;
   const goals = [...new Set(analysis.expectedConsequences.filter(item => item.coverage !== 'unavailable' && profile.goals[item.goal]).map(item => item.goal))].sort();
   let aggregateMeanDelta = 0, aggregateVariance = 0;
   for (const goal of goals) {
     const samples = INTERNAL_PARTY_DISTRIBUTION_MODEL.quadrature.map(sample => ({
-      value: evaluateProfileForPublic(analysis, profileWithGoalSample(profile, goal, sample.stanceBps)).agreementBps - central.agreementBps,
+      value: applyInstitutionalAgreement(evaluateProfileForPublic(analysis, profileWithGoalSample(profile, goal, sample.stanceBps)).agreementBps, institutionalAdjustmentBps) - central.agreementBps,
       weightBps: sample.weightBps,
     }));
-    const weight = samples.reduce((sum, item) => sum + item.weightBps, 0);
-    const mean = scaledRatioSigned(samples.reduce((sum, item) => sum + item.value * item.weightBps, 0), 1, weight);
-    aggregateMeanDelta += mean;
-    aggregateVariance += Math.round(samples.reduce((sum, item) => sum + (item.value - mean) ** 2 * item.weightBps, 0) / weight);
+    const { meanDelta, variance } = sampleMoments(samples);
+    aggregateMeanDelta += meanDelta;
+    aggregateVariance += variance;
+  }
+  if (institutional?.status === 'modelled' && institutionalAdjustmentBps !== 0) {
+    const materialCentral = evaluateProfileForPublic(analysis, profile);
+    const samples = INTERNAL_PARTY_DISTRIBUTION_MODEL.quadrature.map(sample => ({
+      value: applyInstitutionalAgreement(materialCentral.agreementBps, institutionalAdjustmentBps, institutionalSensitivityBps(sample.stanceBps)) - central.agreementBps,
+      weightBps: sample.weightBps,
+    }));
+    const { meanDelta, variance } = sampleMoments(samples);
+    aggregateMeanDelta += meanDelta;
+    aggregateVariance += variance;
   }
   const agreementMeanBps = clampBps(central.agreementBps + aggregateMeanDelta);
   const agreementHalfSpreadBps = Math.min(INTERNAL_PARTY_DISTRIBUTION_MODEL.maxAggregateAgreementHalfSpreadBps, integerSqrt(6 * aggregateVariance));
@@ -96,7 +115,8 @@ export function evaluatePartyInternalVoteDistribution(analysis: ProposalAnalysis
   return {
     method: INTERNAL_PARTY_DISTRIBUTION_MODEL.method, yesBps, noBps, abstainBps: 10_000 - yesBps - noBps, unknownBps: 0,
     agreementMeanBps, agreementHalfSpreadBps, coverage: central.coverage, status: 'modelled_common_prior',
-    limitation: 'Internal plurality is a deterministic aggregate approximation using independent per-goal modelled distributions. No party-specific faction shares are observed; quadrature samples are not persistent factions or individual MPs.',
+    limitation: 'Internal plurality is a deterministic aggregate approximation using independent per-goal modelled distributions. No party-specific faction shares are observed; quadrature samples are not persistent factions or individual MPs.'
+      + (institutional?.status === 'modelled' && institutionalAdjustmentBps !== 0 ? ' Independent institutional-pragmatism sensitivity is a modelled prior, not observed faction behavior.' : ''),
   };
 }
 

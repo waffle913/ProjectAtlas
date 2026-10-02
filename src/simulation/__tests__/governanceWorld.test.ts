@@ -8,7 +8,8 @@ import { createSimulationSnapshotCache } from '../state';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, inspectProposalSupport, resolveProposalVote, setControlledPerson, submitProposal } from '../governance/runtime';
-import { derivePartyGoalProfile } from '../governance/analysis';
+import { analyzeProposal, derivePartyGoalProfile } from '../governance/analysis';
+import { estimateParliamentarySupport } from '../governance/estimates';
 import type { PartyGoalProfile } from '../governance/model';
 
 describe('full-world governance and leadership 0.15 benchmark', () => {
@@ -49,9 +50,30 @@ describe('full-world governance and leadership 0.15 benchmark', () => {
     }
     const resolvedProposalBytes = Buffer.byteLength(JSON.stringify(resolvedProposal));
     const distributionMetadataBytes = resolvedProposalBytes - Buffer.byteLength(JSON.stringify(undecoratedRecord));
-    expect(resolvedProposal.evaluationVersion).toBe('plurality-0.15-v1');
+    expect(resolvedProposal.evaluationVersion).toBe('situational-plurality-0.15-v2');
     expect(resolvedProposal.voteResult!.coverage).toBe('complete');
     expect(resolvedProposal.voteResult!.chambers.flatMap(chamber => chamber.partyEvaluations ?? []).some(item => Object.values(item.seatAllocation!).filter(seats => seats > 0).length > 1)).toBe(true);
+    const evaluations = resolvedProposal.voteResult!.chambers.flatMap(chamber => chamber.partyEvaluations ?? []);
+    expect(evaluations.every(item => item.institutionalInterest?.status === 'not_applicable' && item.institutionalInterest.adjustmentBps === 0)).toBe(true);
+    const withoutInstitutionalEvidence = structuredClone(resolvedProposal);
+    delete withoutInstitutionalEvidence.analysis!.institutionalEffects;
+    for (const estimate of [withoutInstitutionalEvidence.parliamentaryEstimate!, withoutInstitutionalEvidence.voteResult!]) for (const chamber of estimate.chambers) for (const item of chamber.partyEvaluations ?? []) delete item.institutionalInterest;
+    const institutionalMetadataBytes = resolvedProposalBytes - Buffer.byteLength(JSON.stringify(withoutInstitutionalEvidence));
+    expect(institutionalMetadataBytes).toBeGreaterThan(0);
+    const representativeChamber = politicalRegistry.institutions[politicalRegistry.countries[representativeCountry].institutionId].chambers[0];
+    const institutionalAnalysis = analyzeProposal(representative, representative.governance.proposals[representativeProposalId]);
+    institutionalAnalysis.institutionalEffects = [{
+      id: 'benchmark.synthetic-transfer', lever: 'budget_initiative', from: `chamber:${representativeChamber.id}`, to: 'none',
+      confidenceBps: 10_000, coverage: 'complete', source: 'Synthetic benchmark-only power transfer, not an observed fiscal effect.',
+      explanation: 'Exercises on-demand institutional adjustment and strategic plurality; no constitutional gameplay is implemented.',
+    }];
+    t = performance.now();
+    for (let index = 0; index < analysisCalls; index++) estimateParliamentarySupport(representative, representative.governance.proposals[representativeProposalId], politicalRegistry, syntheticProfiles, institutionalAnalysis);
+    const syntheticInstitutionalAnalysisMeanMs = (performance.now() - t) / analysisCalls;
+    const institutionalEstimate = estimateParliamentarySupport(representative, representative.governance.proposals[representativeProposalId], politicalRegistry, syntheticProfiles, institutionalAnalysis);
+    const institutionalEvaluations = institutionalEstimate.chambers.flatMap(chamber => chamber.partyEvaluations ?? []);
+    expect(institutionalEvaluations.every(item => item.institutionalInterest?.status === 'modelled')).toBe(true);
+    expect(institutionalEvaluations.some(item => item.internalDistribution!.agreementHalfSpreadBps > 0)).toBe(true);
     expect(distributionMetadataBytes).toBeGreaterThan(0);
     expect(restoreSimulationState(resolvedSave, worldRegions, {}, {}, worldContext)).toEqual(resolved);
     const persons = Object.values(state.governance.persons);
@@ -60,6 +82,6 @@ describe('full-world governance and leadership 0.15 benchmark', () => {
     expect(snapshot.governance).toBe(cache(state).governance); expect(leaders).toHaveLength(parties.length);
     expect(persons).toHaveLength(parties.length + standaloneExecutives.length);
     expect(Object.keys(state.governance.proposals)).toHaveLength(0); expect(resolvableCountryIds.length).toBeGreaterThan(0);
-    console.info(`GOVERNANCE_WORLD_BENCHMARK ${JSON.stringify({ benchmark: 'projectatlas-governance-information-0.15', countries: worldCountryIds.length, chambers: chambers.length, resolvableCountries: resolvableCountryIds.length, ideologicalEvidenceCountries: ideologicalCountryIds.length, evidenceBackedVoteOverlapCountries: overlapCountries, unavailableCountries: worldCountryIds.length - resolvableCountryIds.length, ideologyParties: ideology, persons: Object.keys(state.governance.persons).length, proposals: 0, saveBytes: Buffer.byteLength(serialized), snapshotMs: Number(snapshotMs.toFixed(4)), serializeMs: Number(serializeMs.toFixed(2)), analysisCalls, analysisMeanMs: Number(analysisMeanMs.toFixed(3)), syntheticAnalysisMeanMs: Number(syntheticAnalysisMeanMs.toFixed(3)), representativeProfileStatus: 'synthetic_test_only_not_observed', resolvedProposalBytes, distributionMetadataBytes, submittedSaveBytes, resolvedSaveBytes, resolutionSaveDeltaBytes: resolvedSaveBytes - submittedSaveBytes, fullWorldSaveDeltaBytes: resolvedSaveBytes - Buffer.byteLength(serialized) })}`);
+    console.info(`GOVERNANCE_WORLD_BENCHMARK ${JSON.stringify({ benchmark: 'projectatlas-governance-information-0.15', countries: worldCountryIds.length, chambers: chambers.length, resolvableCountries: resolvableCountryIds.length, ideologicalEvidenceCountries: ideologicalCountryIds.length, evidenceBackedVoteOverlapCountries: overlapCountries, unavailableCountries: worldCountryIds.length - resolvableCountryIds.length, ideologyParties: ideology, persons: Object.keys(state.governance.persons).length, proposals: 0, saveBytes: Buffer.byteLength(serialized), snapshotMs: Number(snapshotMs.toFixed(4)), serializeMs: Number(serializeMs.toFixed(2)), analysisCalls, analysisMeanMs: Number(analysisMeanMs.toFixed(3)), syntheticAnalysisMeanMs: Number(syntheticAnalysisMeanMs.toFixed(3)), syntheticInstitutionalAnalysisMeanMs: Number(syntheticInstitutionalAnalysisMeanMs.toFixed(3)), syntheticInstitutionalEvaluatedParties: institutionalEvaluations.length, representativeProfileStatus: 'synthetic_test_only_not_observed', resolvedProposalBytes, distributionMetadataBytes, institutionalMetadataBytes, submittedSaveBytes, resolvedSaveBytes, resolutionSaveDeltaBytes: resolvedSaveBytes - submittedSaveBytes, fullWorldSaveDeltaBytes: resolvedSaveBytes - Buffer.byteLength(serialized) })}`);
   }, 30_000);
 });
