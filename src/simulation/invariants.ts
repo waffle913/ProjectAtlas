@@ -90,8 +90,12 @@ export const coreInvariants: readonly SimulationInvariant[] = [
         if (!nonEmpty(request.taskId) || !nonEmpty(request.eventKey) || !validTick(request.requestedAtTick, state.engine.tick) || !Number.isSafeInteger(request.sequence) || request.sequence < 0 || request.sequence >= state.engine.nextSequence || sequences.has(request.sequence)) errors.push(`Malformed immediate update request for ${request.taskId}.`);
         sequences.add(request.sequence);
       }
-      for (const dirty of state.engine.dirtyDomains) if (!nonEmpty(dirty.domain) || !validTick(dirty.markedAtTick, state.engine.tick)
-        || !uniqueStrings(dirty.reasons, true) || !uniqueStrings(dirty.entityIds)) errors.push(`Malformed dirty domain ${dirty.domain}.`);
+      const dirtyDomains = new Set<string>();
+      for (const dirty of state.engine.dirtyDomains) {
+        if (!nonEmpty(dirty.domain) || dirtyDomains.has(dirty.domain) || !validTick(dirty.markedAtTick, state.engine.tick)
+          || !uniqueStrings(dirty.reasons, true) || !uniqueStrings(dirty.entityIds)) errors.push(`Malformed or duplicate dirty domain ${dirty.domain}.`);
+        dirtyDomains.add(dirty.domain);
+      }
       return errors;
     },
   },

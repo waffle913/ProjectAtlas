@@ -20,6 +20,14 @@ const identities = read<{
 const clone = <T>(value: T): T => structuredClone(value);
 
 describe('persistent global Region registry', () => {
+  it('rejects normalized impossible geography and source retrieval dates', () => {
+    const malformed = clone(registry);
+    const region = malformed.regions.find(item => item.geographyMapping.status !== 'mapped')!;
+    if (region.geographyMapping.status !== 'mapped') region.geographyMapping.checkedAt = '2026-02-30';
+    expect(() => validateRegionData(malformed, mapping, countries)).toThrow(/lacks provenance/);
+    const snapshot = clone(registry); snapshot.sourceSnapshot.retrievedAt = '2026-02-30';
+    expect(() => validateRegionData(snapshot, mapping, countries)).toThrow(/retrieval date/);
+  });
   it('has unique permanent IDs, valid countries, unique ISO codes and at least one Region per country', () => {
     expect(validateRegionData(registry, mapping, countries)).toBe(true);
     expect(new Set(registry.regions.map(region => region.id)).size).toBe(registry.regions.length);

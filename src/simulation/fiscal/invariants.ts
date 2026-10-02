@@ -13,10 +13,13 @@ export const fiscalInvariant: SimulationInvariant = {
     if (!f.initializedOn) return Object.keys(f.countries).length || Object.keys(f.regions).length || f.reforms.length ? ['Fiscal state lacks initialization date.'] : [];
     if (!dateValid(f.initializedOn) || f.initializedOn > state.date || f.lastMonthlyDate && (!dateValid(f.lastMonthlyDate) || f.lastMonthlyDate > state.date)) errors.push('Invalid fiscal dates.');
     if (!quantity(f.nextSequence)) errors.push('Invalid fiscal sequence.');
+    for (const [id, region] of Object.entries(state.socioeconomy.regions)) {
+      if (region.economy && state.regionOwnership[id] !== undefined && !Object.hasOwn(f.regions, id)) fail(id, 'Missing active economic Region fiscal ledger.');
+    }
     for (const id of context.countryIds) if (!f.countries[id]) fail(id, 'Missing national fiscal state.');
     const regionalTotals = new Map<string, { transfers: number; taxes: Record<string, number[]> }>();
     for (const [id, r] of Object.entries(f.regions)) {
-      if (!context.regionIds.has(id) || !context.countryIds.has(r.owner)) fail(id, 'Unknown Region or ledger owner.');
+      if (!context.regionIds.has(id) || !state.socioeconomy.regions[id]?.economy || !context.countryIds.has(r.owner)) fail(id, 'Unknown/non-economic Region or ledger owner.');
       for (const key of ['grossIncome', 'personal', 'employee', 'transfers', 'disposable', 'netConsumption', 'consumptionTax', 'grossExpenditure'] as const) if (!Array.isArray(r[key]) || r[key].length !== 3 || !r[key].every(quantity)) fail(id, `Invalid household ${key}.`);
       for (let i = 0; i < 3; i++) {
         if (r.grossIncome[i] - r.personal[i] - r.employee[i] + r.transfers[i] !== r.disposable[i]) fail(id, 'Disposable income does not reconcile.');
@@ -38,20 +41,20 @@ export const fiscalInvariant: SimulationInvariant = {
       if (!context.countryIds.has(id)) fail(id, 'Unknown fiscal Country.');
       try { validatePolicy(c.policy, id, state.date); validateBudget(c.annualBudget); validateBudget(c.arrears); } catch (e) { fail(id, String(e)); }
       if (![c.cash, c.debt, c.interestRateBps, c.debtLimit, c.monthlyBorrowingLimit, c.interestArrears].every(quantity) || c.interestRateBps > 10000) fail(id, 'Invalid fiscal stock/rate.');
-      if (c.initialization?.status !== 'modelled' || c.initialization.date > state.date) fail(id, 'Invalid fiscal initialization provenance.');
+      if (c.initialization?.status !== 'modelled' || !dateValid(c.initialization.date) || c.initialization.date > state.date) fail(id, 'Invalid fiscal initialization provenance.');
       for (const provenance of [c.revenueCalibration, c.debtInitialization]) {
         if (!provenance || !['sourced', 'modelled'].includes(provenance.status) || !dateValid(provenance.referenceDate) || provenance.referenceDate > state.date || !provenance.dataset || !provenance.method || !provenance.limitation || provenance.status === 'sourced' && !provenance.source) fail(id, 'Invalid fiscal calibration provenance.');
       }
       if (!quantity(c.revenueCalibration?.monthlyAmount) || !quantity(c.debtInitialization?.amount)) fail(id, 'Invalid fiscal calibration amount.');
       for (const s of Object.values(c.services)) if (!Object.entries(s).filter(([k]) => k !== 'status' && k !== 'coverageBps').every(([, v]) => quantity(v)) || s.coverageBps !== null && (!quantity(s.coverageBps) || s.coverageBps > 10000) || !['modelled', 'unavailable'].includes(s.status)) fail(id, 'Invalid service capacity/backlog.');
-      for (const h of c.policyHistory) { try { validatePolicy(h.policy, id, h.date); if (h.date > state.date) fail(id, 'Future policy history.'); } catch (e) { fail(id, String(e)); } }
+      for (const h of c.policyHistory) { try { validatePolicy(h.policy, id, h.date); if (!dateValid(h.date) || h.date > state.date) fail(id, 'Invalid policy history date.'); } catch (e) { fail(id, String(e)); } }
       const a = c.account; if (!a) continue;
       try { validatePolicy(a.policyApplied, id, a.date); } catch (e) { fail(id, String(e)); }
       if (!quantity(a.collectionEfficiencyBps) || a.collectionEfficiencyBps > 10000) fail(id, 'Invalid collection efficiency.');
       if (a.interestDue !== ratio(a.openingDebt, c.interestRateBps, 120000)) fail(id, 'Interest does not match debt stock and rate.');
       if (a.financingNeed !== Math.max(0, sum(CATEGORIES.map(k => a.appropriated[k] + a.openingArrears[k])) + a.interestDue + a.openingInterestArrears - a.totalRevenue - a.openingCash)) fail(id, 'Financing need does not reconcile.');
       if (a.unit !== 'USD_NOMINAL' || a.period !== 'MONTH') fail(id, 'Invalid accounting units.');
-      if (a.date !== f.lastMonthlyDate) fail(id, 'Account date does not match fiscal boundary.');
+      if (!dateValid(a.date) || a.date !== f.lastMonthlyDate) fail(id, 'Account date does not match fiscal boundary.');
       if (![a.knownTaxRevenue, a.otherRevenue, a.totalRevenue, a.interestDue, a.interestPaid, a.totalSpending, a.openingCash, a.closingCash, a.openingDebt, a.closingDebt, a.financingNeed, a.borrowed, a.repaid, a.interestArrears, a.openingInterestArrears, a.transferPaid].every(quantity)) fail(id, 'Invalid fiscal flow.');
       try { validateBudget(a.appropriated); validateBudget(a.executed); validateBudget(a.arrears); validateBudget(a.openingArrears); } catch (e) { fail(id, String(e)); }
       if (a.knownTaxRevenue !== sum(TAXES.map(k => a.taxes[k].collected)) || a.otherRevenue !== c.revenueCalibration.monthlyAmount || a.totalRevenue !== a.knownTaxRevenue + a.otherRevenue) fail(id, 'Revenue does not reconcile.');

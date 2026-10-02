@@ -12,6 +12,13 @@ const demographics = demographicsJson as unknown as RegionDemographicsData;
 const national = nationalJson as unknown as NationalPopulationData;
 const registry = regionsJson as unknown as RegionRegistry;
 describe('population baseline data', () => {
+  it.each(['2026-02-30', '2026-13-01', '2026-01-01T00:00:00Z'])('rejects impossible or non-day demographic and national observation dates: %s', date => {
+    const invalid = structuredClone(demographics), invalidNational = structuredClone(national);
+    invalid.baselineDate = date;
+    expect(() => validatePopulationData(invalid, national, registry.regions)).toThrow(/population data schema/);
+    invalidNational.records[0].referenceDate = date;
+    expect(() => validatePopulationData(demographics, invalidNational, registry.regions)).toThrow(/national population date/);
+  });
   it('covers every permanent Region exactly once with explicit missing semantics', () => {
     expect(validatePopulationData(demographics, national, registry.regions)).toBe(true);
     expect(demographics.records).toHaveLength(registry.regions.length);

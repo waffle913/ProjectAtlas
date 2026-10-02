@@ -9,6 +9,23 @@ import type { RegionEntity } from '../../types';
 
 const economics = economicJson as unknown as EconomicBaselinesData, registry = regionsJson as unknown as RegionRegistry;
 describe('regional economic baseline', () => {
+  it.each(['2026-02-30', '2026-13-01', '2026-01-01T00:00:00Z'])('rejects impossible or non-day economic dates while preserving year-only observations: %s', date => {
+    const invalid = structuredClone(economics), record = invalid.records.find(item => item.status !== 'unavailable')!;
+    record.nationalSourceObservation.referenceDate = date;
+    expect(() => validateEconomicData(invalid, registry.regions)).toThrow(/lacks provenance/);
+    record.nationalSourceObservation.referenceDate = '2025';
+    expect(validateEconomicData(invalid, registry.regions)).toBe(true);
+    record.baselineDate = date;
+    expect(() => validateEconomicData(invalid, registry.regions)).toThrow(/lacks methodology/);
+  });
+  it('requires day precision for baseline and retrieval dates, not for national GDP reference years', () => {
+    const invalid = structuredClone(economics);
+    invalid.baselineDate = '2026';
+    expect(() => validateEconomicData(invalid, registry.regions)).toThrow(/baseline schema/);
+    invalid.baselineDate = economics.baselineDate;
+    invalid.records.find(item => item.status !== 'unavailable')!.nationalSourceObservation.source.retrievedAt = '2026';
+    expect(() => validateEconomicData(invalid, registry.regions)).toThrow(/lacks provenance/);
+  });
   it('covers every permanent Region once and never converts unavailable to zero', () => {
     expect(validateEconomicData(economics, registry.regions)).toBe(true);
     expect(economics.records).toHaveLength(registry.regions.length); expect(new Set(economics.records.map(record => record.regionId)).size).toBe(registry.regions.length);

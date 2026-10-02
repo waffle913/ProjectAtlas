@@ -12,6 +12,7 @@ import { emptyInformation } from '../information/model';
 import { politicsInvariant, validatePoliticalRegistry } from '../politics/invariants';
 import { politicalExperienceFor } from '../politics/initialization';
 import { ratio } from '../socioeconomy/model';
+import { aggregateNationalSupport } from '../politics/aggregation';
 import { politicalRegistry } from '../politics/registry';
 import { inspectPolitics, runPoliticalOpinionWeek } from '../politics/runtime';
 import { migrateSimulationState, restoreSimulationState, serializeSimulationState } from '../save';
@@ -27,6 +28,23 @@ const evaluate = (state: SimulationState, date = '2026-01-05') => runPoliticalOp
 const issue = (name: typeof POLITICAL_ISSUES[number]) => POLITICAL_ISSUES.indexOf(name);
 
 describe('0.13 corrected national politics', () => {
+  it.each(['missing-region', 'missing-cohort', 'extra-cohort', 'wrong-region-id', 'duplicate-assignment'] as const)('rejects self-consistently rebuilt political coverage: %s', corruption => {
+    const state = initialized(), countryId = sourced[0], regionId = regions[0].id;
+    const country = state.politics.countries[countryId], regional = state.politics.regionalOpinion[regionId];
+    if (corruption === 'missing-region') { delete state.politics.regionalOpinion[regionId]; country.regionIds = []; }
+    if (corruption === 'missing-cohort') delete regional.cohorts['low:left'];
+    if (corruption === 'extra-cohort') regional.cohorts['invented:cohort'] = structuredClone(regional.cohorts['low:left']);
+    if (corruption === 'wrong-region-id') regional.regionId = 'region.invented';
+    if (corruption === 'duplicate-assignment') state.politics.countries[sourced[1]].regionIds.push(regionId);
+    country.nationalSupportBps = aggregateNationalSupport(state, country.regionIds, state.politics.regionalOpinion, politicalRegistry.countries[countryId].partyIds.length);
+    expect(politicsInvariant.check(state, context, 'reload').length).toBeGreaterThan(0);
+  });
+  it('keeps unavailable population as an empty political Region, never invented political persons', () => {
+    const state = base(); state.populationByRegion[regions[0].id] = undefined;
+    const initialized = initializeNewGame(state, regions, sourced);
+    expect(initialized.politics.regionalOpinion[regions[0].id].cohorts).toEqual({});
+    expect(assertSimulationInvariants(initialized, context, 'reload')).toBe(true);
+  });
   it('rejects a forged national aggregate even when its sum stays exactly 10,000', () => {
     const state = initialized(), values = state.politics.countries[sourced[0]].nationalSupportBps;
     const donor = values.findIndex(value => value > 0), recipient = (donor + 1) % values.length; values[donor]--; values[recipient]++;

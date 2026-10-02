@@ -652,3 +652,194 @@ is modified by this corrective.
 | Government Information | `src\simulation\information\invariants.ts`, `src\simulation\information\runtime.ts` |
 | Tests | `src\simulation\__tests__\foundationMath.test.ts`, `engine.test.ts`, `fiscal.test.ts`, `politics.test.ts`, `crisis.test.ts`, `war.test.ts`, `governance.test.ts`, `governanceWorld.test.ts`, `information.test.ts` (all under `src\simulation\__tests__`) |
 | CI and evidence | `.github\workflows\verify.yml`, `docs\information-0.15.md`, `docs\milestone-0.15-candidate-validation.md` |
+
+## Final foundation follow-up: baseline a5288fb (2026-10-02)
+
+This corrective starts at exact
+`a5288fb9895dc6598619af9637e0bd4c8182c397` on
+`waffle913-milestone-015-government-information`. It is still a 0.15
+candidate, not acceptance, a 0.16 milestone or a main merge. The no-code plan
+preceded implementation; coherent foundation, conservation and governance
+blocks were tested separately, followed by a separate actual-diff review.
+
+### Defects and acceptance evidence
+
+| Item | Correction | Regression coverage |
+|---|---|---|
+| 1, fresh Windows/Ubuntu verification | `*.md text eol=lf`; matrix `fail-fast: false`; Node 22 and byte-for-byte generated-audit checks retained | Fresh checkout and `npm ci` in both final-SHA Actions jobs; previous run `36969050512` genuinely failed its Windows stale Markdown comparison and cancelled Ubuntu |
+| 2, duplicate dirty domains | A canonical domain appears only once, with existing tick/reason/entity checks retained | Duplicate disjoint records fail invariant and reload, rather than merging silently |
+| 3, load-time data | Explicit supported Country/facts/office/mapping versions; exactly one fact/officeholder status; shared strict day parser | Every unsupported version, duplicate/missing records, impossible geography/office/population/economic dates; year-only GDP/fact observations remain legitimate, not retrieval/baseline dates |
+| 4, nine socioeconomic cohorts | Compare the complete income/orientation allocation with `cohortsFor(population)` and enforce journal/provenance dates | Moving people between orientations or income groups fails despite conserved Region total; impossible dates fail |
+| 5, fiscal coverage and dates | Every owned active economy needs its ledger; extra/non-economic ledgers fail; initialization/history/account dates validated | Missing and unknown ledger tests; transfer retains the booked owner; existing current-owner A/B counterfactual tests retained |
+| 6, causal crisis evidence | Shared static specifications, exceedance, recovery and tipping; exact contributions, provenance role, activation condition and chronology | Range-valid forged chance/roll/source/threshold/contribution/recovery evidence fails; completed-history chronology, ordinal and maximum severity corruptions fail |
+| 7, political conservation | Every owned socioeconomic Region and nonzero cohort remains represented exactly once, including empty unavailable-population Regions | Omitted Region/cohort cannot be hidden by rebuilt national support; extras, wrong IDs, double assignment fail; stored weekly ownership lag retained |
+| 8, parliamentary identities | Non-legacy structured records reconcile with the pinned institution/chamber/party/seat allocation, including independent residual | Swapped seats preserve aggregate vote arithmetic but fail; foreign/omitted parties, missing/duplicate/foreign chambers and altered independent residual fail |
+| 9, internal analysis identities | Shared supported consequence aggregation; magnitude, numeric delta and neutrality identities | Range-correct corrupted magnitude/delta/effects/missing goal/neutrality fail without re-analyzing history against mutable sources |
+| 10, active war objective | Generic sovereignty transfer cannot change an active target; official war resolution remains authoritative | Unrelated C and premature attacker transfers fail; other Regions, occupation, victory and post-peace transfer remain valid |
+| 11, old migrations | All v1-v4 paths finish with full schema-13 assertions, including when context is omitted | Valid v1/v2/v3/v4 ownership/date/population/output retained; malformed pause/date/unknown Region and unexplained Country fail |
+| 12, dependency chains | Actual audit classified; no force fix, major upgrade, downgrade or override | Full audit and production-only audit, dependency explanations and source/import usage inspected; explicit tooling debt below |
+| 13, truthful political coverage | Predicates recalculated against committed registry, not inferred from party names | 57 procedural Countries, eight differentiated historical-prior Countries, empty intersection; no dataset additions |
+
+No state schema/model version changes or historical replay are introduced.
+Old no-context migration admits Country IDs from the supplied permanent
+Regions, historical owners attached to their registered legacy macro
+territories, and reconciled permanent political-registry references. A
+standalone unexplained ownership value fails explicitly. This proves the
+legacy format's internal identity contract, not an external factual tenure
+or geopolitical observation; a supplied complete Country context remains
+the stronger reference universe.
+
+Monthly fiscal ledger ownership and weekly political ownership intentionally
+remain snapshots of their respective last booking/evaluation. They are not
+silently rewritten after a sovereignty change. No second ownership map,
+engine, RNG, clock, scheduler, information layer or per-MP state is added.
+Every surviving schema-13 person and persisted office proof remains
+self-contained on ordinary reload. The aggregate-only legacy path and
+historical unmarked seat allocator remain separate from new marked votes.
+The authentic situational fixture is unchanged:
+`a339183cd96d03dbd4128d39d0a1ac611c8f5de0` (Git blob).
+No old expected snapshot or historical fixture was changed to pass tests.
+
+### Dependency classification
+
+`npm audit --json` actually returned exit 1: six package entries (four high,
+two moderate), not six independent advisories. The dependency manifest and
+lockfile are unchanged. `npm audit --omit=dev --json` returned exit 0 and
+zero vulnerabilities. Import inspection finds `mapshaper` only in
+`scripts\generate-region-data.mjs`, spawning its CLI for offline geometry
+simplification. These chains are not imported into the shipped browser/game
+runtime; their exposure is development/data processing of hostile files,
+not a claim that local tooling is safe.
+
+| Package | Installed dependency path | Finding / remediation boundary |
+|---|---|---|
+| `mapshaper@0.7.68` (high) | Root devDependency | Inherited metavulnerability from the following chains; npm suggests a semver-major downgrade to `0.6.13`, deliberately not applied |
+| `adm-zip@0.5.18` (high) | `mapshaper -> adm-zip` | ZIP memory/decompression DoS, extraction/async flaws; advisories require `0.6.1`, outside mapshaper's `^0.5.9` range |
+| `fflate@0.8.2` (moderate) | `mapshaper -> fflate`; also optional `flatgeobuf -> ol -> zarrita -> numcodecs -> fflate` | ZIP64 infinite loop, GHSA-px8p-9vwx-vf98; patched `0.8.3` is a patch release but the direct importer pins exact `0.8.2`, so no unvalidated override |
+| `@ngageoint/geopackage@4.2.9` (high) | `mapshaper -> @ngageoint/geopackage` | Inherited `file-type`/`image-size` metavulnerability |
+| `file-type@16.5.4` (moderate) | `mapshaper -> @ngageoint/geopackage -> file-type` | ASF parser loop, GHSA-5v7r-6r5c-r473; patched `21.3.1` is outside `^16.5.4`, with major/API compatibility implications |
+| `image-size@0.8.3` (high) | `mapshaper -> @ngageoint/geopackage -> image-size` | ICNS parser loop, GHSA-w3rx-r6r6-pgpr; affected through `2.0.2`, requiring a later major than the pinned `0.8.3` |
+
+The `adm-zip` audit includes GHSA-xcpc-8h2w-3j85, GHSA-vwc7-r8mq-g2x9,
+GHSA-7q85-xj36-vmfc, GHSA-rcw4-f5rp-g42v, GHSA-j5f4-cc29-5x44,
+GHSA-p634-w6r4-rjp2, GHSA-c6fg-446q-cg94 and GHSA-8238-w5pm-2374.
+Deprecation debt is also dev-only:
+`mapshaper -> mproj -> geographiclib@1.48.0`, and optional
+`mapshaper -> better-sqlite3 -> prebuild-install@7.1.3`.
+An upstream-compatible dependency update and dedicated tooling regression
+pass are follow-up work. Do not feed these old parsers untrusted archives.
+
+### Recomputed coverage and limitations
+
+Procedural completeness means at least one applicable chamber and, in every
+chamber, sourced known total seats, zero independent residual, and the exact
+sum of party seats. It is not known party behavior. Differentiated ideology
+means at least one `sourced`/`partial` historical basis with a non-neutral
+dimension, not a directly observed 2026 position. The eight Countries are
+Canada, Australia, Brazil, Japan, France, Germany, United States and United
+Kingdom. None is in the 57-Country procedural set. Default V1 voting cannot
+manufacture an enactment path from this disjoint evidence.
+
+Data, permanent IDs, source snapshots and licensing remain unchanged:
+948 parties; seven derived reviewed fictional leader names, zero directly
+observed gameplay identities, one ambiguous and 940 unavailable mappings;
+342 reconciled executives. IPU CC BY-NC-SA 4.0 and the unconfirmed Party
+Facts/V-Party/primary-source licences remain commercial-release blockers.
+Past RNG rolls cannot be recreated from the current tick without their
+historical tick; stored activation evidence is checked internally instead.
+Completed crisis summaries contain no fabricated activation snapshot.
+
+### Executed validation and performance
+
+Focused core/data/migration/war tests: 94 tests in five files, 6.56 s.
+Focused socioeconomic/fiscal/politics/crisis tests: 130 tests in four files,
+4.16 s. Focused governance/historical-save/date run: 24 passed, 92 filtered
+out, three files, 25.70 s. After adding the last chamber/history cases:
+18 passed, 138 filtered out, two files, 14.78 s.
+`npx tsc -b --pretty false` passed after correcting a TypeScript optional-date
+narrowing error. An initial newly inserted test block also had a syntax
+error; it was corrected before these successful runs, not hidden as a pass.
+
+The first full `npm run verify` was **not** successful: 455/458 passed,
+with three timeout failures (two full-world persistence checks at 5 s and
+the fiscal world workload at 60 s). The isolated fiscal simulation had
+risen from the prior 23,143.61 ms reference to 36,063.93 ms. A second no-code
+plan addressed this measured regression. Strict-day results and canonical
+cohort expectations are now memoized **only within each socioeconomic
+invariant invocation**. Every stored Region/cohort is still checked;
+validity is never cached, no mutable Region is trusted, and no cross-tick
+cache or save field is created. The new two-Region corruption regression
+checks reuse within a pass and corruption after a successful check.
+
+The two full-world historical integration tests now use the existing
+30-second world-save budget rather than an implicit five-second unit-test
+timeout. Their historical equality/assertions remain unchanged. The fiscal
+benchmark's 60-second deadline and all other benchmark thresholds remain
+unchanged. Post-correction targeted tests passed: 36 tests, 86 filtered out,
+two files, 19.34 s. The final full verify passed **459 tests / 30 files**.
+
+| Executed command | Actual result | Runner duration / total command time |
+|---|---|---|
+| `npx tsc -b --pretty false` | Exit 0, repeated after the measured-overhead correction | No separate elapsed claim |
+| `npm run data:audit` | Exit 0; identical generated artifacts; 252 Countries / 4,574 Regions, zero blocking anomalies | 10.640 s standalone; repeated within final verify |
+| `npm run information:test` | Exit 0; 32 tests | 24.59 / 25.699 s |
+| `npm run information:audit` | Exit 0; 948 mappings audited; seven reviewed analogues, one ambiguous, 940 unavailable, 342 executives | 0.715 s total |
+| `npm run governance:audit` | Exit 0; 100 tests | 96.61 / 97.755 s |
+| `npm run politics:audit` | Exit 0; generated registry/coverage unchanged; 42 tests / three files | 125.40 / 127.052 s |
+| `npm run fiscal:audit` | Exit 0; 26 tests | 4.37 / 5.499 s |
+| `npm run crisis:audit` | Exit 0; 56 tests | 1.95 / 3.280 s |
+| `npm run economy:audit` | Exit 0; five tests; unchanged generated evidence | 5.28 / 6.518 s |
+| `npm run crisis:benchmark` | Exit 0; two tests | 17.70 / 19.054 s |
+| `npm run politics:benchmark` | Exit 0; three tests | 131.85 / 132.975 s |
+| `npm run governance:benchmark` | Exit 0; one test | 9.06 / 10.107 s |
+| `npm run information:benchmark` | Exit 0; one test | 9.08 / 10.112 s |
+| `npm run benchmark:world` | Exit 0; four tests, repeated after memoization | 61.09 / 62.206 s first; 53.90 / 55.141 s final standalone |
+| `npm run verify` | First exit 1 with the three recorded timeouts; final exit 0, data audit + production build + 459 tests / 30 files | First 158.53 / 176.517 s; final 149.67 / 167.745 s |
+| `git diff --check` | Exit 0 | No elapsed claim |
+| Built-in `rg`, `Math\.random`, `src\simulation`, excluding `__tests__` | No matches in runtime | No unexecuted shell command claimed |
+| `npm audit --json` / `npm audit --omit=dev --json` | Exit 1, six tooling entries / exit 0, zero production entries | Findings retained, not falsely fixed |
+
+| Workload metric | Recorded measurement |
+|---|---:|
+| Ten-year socioeconomic simulation, final isolated run | 6,619.15 ms; 551 ticks/s |
+| Ten-year fiscal simulation before local memoization | 36,063.93 ms; 101 ticks/s |
+| Ten-year fiscal simulation after local memoization | 27,844.92 ms; 131 ticks/s |
+| Daily fiscal snapshot reuse, final isolated run | 353 reused / 12 changed days; 0.0187 ms reused-day mean |
+| Three-year political simulation, separate benchmark | 102,093.33 ms; 11 ticks/s; 780.25 ms reload |
+| Five-year crisis simulation | 8,868.96 ms; 74,340 Country/crisis evaluations |
+| Governance production / synthetic inspection mean, 20 calls | 13.978 / 13.468 ms |
+| Full-cap retained information report / new briefings | 61.95 ms / 83 |
+
+These are single-run measurements, not controlled statistical speedup
+claims. Stronger validation still costs time: the final isolated fiscal
+simulation is about 20% above the previous reference, after reducing the
+initial corrective's overhead without weakening conservation. Population
+and fiscal checksums are unchanged:
+`212dc47e790b4de352fb30c66289ea279eda2f5d80dfd42531bf67af1a87a415`
+and `1468ad67591f6b854dd4ba14ff1e32e1d5fe17cb10d22eb8faa00ee549cd7611`.
+The frozen registry integrity checksum stays `25750886`.
+World save sizes remain 16,055,485 bytes (economy), 24,038,952 (fiscal),
+33,547,440 (politics), 27,268,062 (initial governance), 27,283,456 (resolved
+governance), and 17,771,032 (full-cap information history). No persistent
+simulation value or method marker changes in this follow-up; the built
+JavaScript asset hash necessarily changes with validation code.
+
+### Follow-up changed-file inventory and delivery boundary
+
+| Area | Files |
+|---|---|
+| CI / checkout | `.gitattributes`, `.github\workflows\verify.yml` |
+| Load-time data | `src\data\countryData.ts`, `regionData.ts`, `populationData.ts`, `economicData.ts`; their four corresponding `src\data\__tests__` files |
+| Shared engine / migration / war | `src\simulation\invariants.ts`, `save.ts`, `region.ts`; `engine.test.ts`, `region.test.ts`, `war.test.ts` in `src\simulation\__tests__` |
+| Socioeconomic / fiscal / politics | Their three `invariants.ts` files under `src\simulation`; corresponding three subsystem test files |
+| Crises | `src\simulation\crisis\derived.ts`, `runtime.ts`, `invariants.ts`; `src\simulation\__tests__\crisis.test.ts` |
+| Governance | `src\simulation\governance\analysis.ts`, `invariants.ts`; `src\simulation\__tests__\governance.test.ts` |
+| Documentation | `docs\crisis-0.12.md`, `governance-0.14.md`, `milestone-0.15-candidate-validation.md` |
+
+The 32-file diff excludes data snapshots/registries, permanent identities,
+historical fixtures, dependency manifests, UI, Government Information
+runtime, agent instructions and the accepted handoff. Post-push delivery
+must separately read the Actions run on the exact final SHA and report
+both Ubuntu/Windows Node 22 conclusions. Local success alone is not
+cross-platform verification. No main merge, 0.16 work or 0.15 acceptance
+is part of this correction.

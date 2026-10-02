@@ -3,6 +3,7 @@ import mappingUrl from './admin1-mapping.json?url';
 import coverageUrl from './admin1-coverage-report.json?url';
 import type { RegionEntity } from '../types';
 import type { EntityRegistry } from './registry';
+import { isSimulationDate as isDate } from '../simulation/date';
 
 export interface RegionRegistry {
   schemaVersion: number;
@@ -31,10 +32,10 @@ export interface LoadedRegionData {
   regionsByCountryId: Map<string, RegionEntity[]>;
 }
 
-const isDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 export function validateRegionData(registry: RegionRegistry, mapping: Admin1Mapping, countries: EntityRegistry) {
   const errors: string[] = [];
   if (registry.schemaVersion !== 2 || mapping.schemaVersion !== 2) errors.push('Unsupported Region registry or Admin-1 mapping schema.');
+  if (!isDate(registry.sourceSnapshot.retrievedAt)) errors.push('Malformed Region source retrieval date.');
   const countryIds = new Set(countries.countries.map(country => country.id));
   const territoryIds = new Set(countries.territories.map(territory => territory.id));
   const regionIds = new Set<string>();

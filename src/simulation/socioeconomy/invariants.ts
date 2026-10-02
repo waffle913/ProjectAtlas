@@ -1,13 +1,21 @@
 import type { SimulationInvariant } from '../invariants';
-import { allocate, INCOMES, MODEL, ORIENTATIONS } from './model';
+import { cohortsFor, INCOMES, MODEL, ORIENTATIONS } from './model';
+import { isSimulationDate } from '../date';
 const quantity = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 export const socioeconomicInvariant: SimulationInvariant = {
   id: 'socioeconomic-conservation',
   check: (state, context) => {
     const errors: string[] = [], socio = state.socioeconomy;
     if (!socio || socio.modelVersion !== MODEL.version || !socio.regions || !Array.isArray(socio.administration) || !Array.isArray(socio.playerCountryIds)) return ['Malformed socioeconomic state.'];
+    const dates = new Map<string, boolean>(), populations = new Map<number, ReadonlyMap<string, number>>();
+    const validDate = (value: string) => {
+      let valid = dates.get(value);
+      if (valid === undefined) { valid = isSimulationDate(value); dates.set(value, valid); }
+      return valid;
+    };
     if (!socio.initializedOn && Object.keys(socio.regions).length) errors.push('Socioeconomic Regions lack initialization date.');
-    if (socio.initializedOn && socio.initializedOn > state.date || socio.lastMonthlyDate && socio.lastMonthlyDate > state.date) errors.push('Socioeconomic dates are in the future.');
+    if (socio.initializedOn !== undefined && (!validDate(socio.initializedOn) || socio.initializedOn > state.date)
+      || socio.lastMonthlyDate !== undefined && (!validDate(socio.lastMonthlyDate) || socio.lastMonthlyDate > state.date)) errors.push('Invalid socioeconomic dates.');
     for (const dirty of state.engine.dirtyDomains.filter(d => d.domain === 'socioeconomy')) for (const id of dirty.entityIds) if (!context.regionIds.has(id)) errors.push(`Dirty economy references unknown Region: ${id}`);
     for (const id of socio.playerCountryIds) if (!context.countryIds.has(id)) errors.push(`Unknown player Country: ${id}`);
     if (socio.initializedOn) for (const id of context.regionIds) if (!socio.regions[id]) errors.push(`Missing socioeconomic Region: ${id}`);
@@ -15,7 +23,7 @@ export const socioeconomicInvariant: SimulationInvariant = {
       const fail = (message: string) => errors.push(`${id}: ${message}`);
       if (!context.regionIds.has(id)) fail('Unknown Region.');
       for (const provenance of [r.populationProvenance, r.outputProvenance, r.incomeDistributionProvenance, r.orientationProvenance, r.employmentProvenance]) {
-        if (!provenance || !['sourced', 'derived', 'modelled', 'unavailable'].includes(provenance.status) || !provenance.method || !provenance.logicalDate || !Array.isArray(provenance.inputs) || provenance.logicalDate > state.date) fail('Missing status/provenance.');
+        if (!provenance || !['sourced', 'derived', 'modelled', 'unavailable'].includes(provenance.status) || !provenance.method || !validDate(provenance.logicalDate) || !Array.isArray(provenance.inputs) || provenance.logicalDate > state.date) fail('Missing status/provenance.');
       }
       if (r.annualOutputReference !== undefined && !quantity(r.annualOutputReference)) fail('Invalid annual output reference.');
       if ((r.outputProvenance.status === 'unavailable') !== (r.annualOutputReference === undefined)) fail('Annual output reference and quality disagree.');
@@ -34,8 +42,12 @@ export const socioeconomicInvariant: SimulationInvariant = {
         seen.add(key);
       }
       if (r.cohorts.reduce((s, c) => s + c.persons, 0) !== r.population) fail('Cohort population is not conserved.');
-      const shares = allocate(r.population, MODEL.populationShares);
-      for (let i = 0; i < 3; i++) if (r.cohorts.filter(c => c.income === INCOMES[i]).reduce((s, c) => s + c.persons, 0) !== shares[i]) fail('Income population split is not conserved.');
+      let expectedCohorts = populations.get(r.population);
+      if (!expectedCohorts) {
+        expectedCohorts = new Map(cohortsFor(r.population).map(c => [`${c.income}:${c.orientation}`, c.persons]));
+        populations.set(r.population, expectedCohorts);
+      }
+      if (r.cohorts.some(c => c.persons !== expectedCohorts.get(`${c.income}:${c.orientation}`))) fail('Canonical income/orientation population split is not conserved.');
       const e = r.economy; if (!e) continue;
       if (r.outputProvenance.status === 'unavailable' || r.employmentProvenance.status === 'unavailable') fail('Economy cannot use unavailable inputs.');
       if (e.unit !== 'USD_PER_MONTH' || e.personsUnit !== 'PERSONS') fail('Invalid units.');
@@ -50,7 +62,7 @@ export const socioeconomicInvariant: SimulationInvariant = {
     }
     const counts = new Map<string, number>();
     for (const entry of socio.administration) {
-      if (!context.countryIds.has(entry.countryId) || entry.date > state.date || entry.action !== 'maintain_parameters' || !entry.reason || !quantity(entry.observedRegions) || (entry.outputUsdMonthly !== undefined && !quantity(entry.outputUsdMonthly)) || !['complete', 'partial', 'unavailable'].includes(entry.outputCoverage) || (entry.outputCoverage === 'unavailable') !== (entry.outputUsdMonthly === undefined)) errors.push('Invalid administration journal entry.');
+      if (!context.countryIds.has(entry.countryId) || !validDate(entry.date) || entry.date > state.date || entry.action !== 'maintain_parameters' || !entry.reason || !quantity(entry.observedRegions) || (entry.outputUsdMonthly !== undefined && !quantity(entry.outputUsdMonthly)) || !['complete', 'partial', 'unavailable'].includes(entry.outputCoverage) || (entry.outputCoverage === 'unavailable') !== (entry.outputUsdMonthly === undefined)) errors.push('Invalid administration journal entry.');
       counts.set(entry.countryId, (counts.get(entry.countryId) ?? 0) + 1);
     }
     if ([...counts.values()].some(n => n > MODEL.journalLimit)) errors.push('Unbounded administration journal.');

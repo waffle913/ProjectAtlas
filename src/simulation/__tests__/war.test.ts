@@ -9,7 +9,7 @@ import type { RegionEntity, SimulationState } from '../../types';
 import { createClaim, createExplicitCasusBelli, getAvailableCasusBelli, renounceClaim, type DiplomacyContext } from '../diplomacy';
 import { declareLimitedWar, endWar, getRegionOccupation, getWarOccupations, isWarGoalSatisfied, liberateRegion, occupyRegion, validateWarState } from '../war';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { controlledBaselineAnnualOutput, controlledBaselinePopulation } from '../region';
+import { controlledBaselineAnnualOutput, controlledBaselinePopulation, transferRegion } from '../region';
 import { createEngineState } from '../state';
 
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.target', 'region.other', 'region.attacker']) };
@@ -20,6 +20,17 @@ const withClaim = () => createClaim(initial(), claimInput, context);
 const declareClaimWar = (state = withClaim(), warId = 'war.001') => declareLimitedWar(state, { warId, attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'claim-derived:claim.target:country.b' }, context);
 
 describe('limited bilateral war', () => {
+  it('requires explicit resolution for an active objective but permits ordinary transfers elsewhere and after peace', () => {
+    const active = declareClaimWar();
+    expect(() => transferRegion(active, 'region.target', 'country.b', 'country.c')).toThrow(/active war objective/);
+    expect(() => transferRegion(active, 'region.target', 'country.b', 'country.a')).toThrow(/active war objective/);
+    expect(transferRegion(active, 'region.other', 'country.b', 'country.c').regionOwnership['region.other']).toBe('country.c');
+    const occupied = occupyRegion(active, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context);
+    expect(occupied.regionOwnership['region.target']).toBe('country.b');
+    const ended = endWar(occupied, 'war.001', 'attacker_victory', context);
+    expect(validateWarState(ended, context)).toBe(true);
+    expect(transferRegion(ended, 'region.target', 'country.a', 'country.c').regionOwnership['region.target']).toBe('country.c');
+  });
   it.each([['region.target', 'region.unknown'], ['region.target', 'region.target']])('rejects extra unknown/duplicate CB snapshot targets: %s', (...targets) => {
     const state = declareClaimWar(); state.wars[0].declarationCasusBelli.targetRegionIds = targets;
     expect(() => validateWarState(state, context)).toThrow();

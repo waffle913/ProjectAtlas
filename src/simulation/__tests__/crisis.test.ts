@@ -65,6 +65,28 @@ function makeDangerous(state: SimulationState, type: CrisisType, countryId = 'co
 }
 
 describe('generic deterministic crisis engine', () => {
+  it.each(['roll-condition', 'chance-formula', 'country', 'type', 'activation-missing', 'exceedance', 'severity-components', 'recovery-counter', 'tripwire-recovery', 'source-system', 'source-status', 'source-detail', 'thresholds', 'evaluation-date'])('rejects range-valid contradictory crisis evidence: %s', corruption => {
+    let { state, regions } = build(); state = makeDangerous(state, 'fiscal_stress');
+    for (const month of [3, 4, 5, 6]) state = evaluate(state, month, 0);
+    const current = episode(state, 'fiscal_stress'), snapshot = current.activationSnapshot!, wire = current.currentTripwires[0];
+    const ctx = { countryIds: new Set(['country.a']), regionIds: new Set(regions.map(item => item.id)), regions };
+    expect(crisisInvariant.check(state, ctx, 'reload')).toEqual([]);
+    if (corruption === 'roll-condition') snapshot.tippingRollBps = snapshot.tippingChanceBps;
+    if (corruption === 'chance-formula') snapshot.tippingChanceBps--;
+    if (corruption === 'country') snapshot.tripwires[0].countryId = 'country.b';
+    if (corruption === 'type') snapshot.tripwires[0].crisisType = 'household_distress';
+    if (corruption === 'activation-missing') current.activationSnapshot = undefined;
+    if (corruption === 'exceedance') wire.exceedanceBps--;
+    if (corruption === 'severity-components') { wire.severityContribution--; wire.deteriorationContribution++; }
+    if (corruption === 'recovery-counter') current.recoveryEvaluations = 1;
+    if (corruption === 'tripwire-recovery') wire.recoveryMonths = 1;
+    if (corruption === 'source-system') { wire.sourceSystem = 'socioeconomy-0.10-v1'; wire.provenance.sourceSystem = wire.sourceSystem; }
+    if (corruption === 'source-status') wire.provenance.status = 'derived';
+    if (corruption === 'source-detail') wire.provenance.detail = 'Forged observation.';
+    if (corruption === 'thresholds') wire.dangerThreshold++;
+    if (corruption === 'evaluation-date') current.lastEvaluatedOn = '2026-01-01';
+    expect(crisisInvariant.check(state, ctx, 'reload').length).toBeGreaterThan(0);
+  });
   it.each(['severity', 'maximumSeverity', 'dangerous', 'recovered', 'persistence', 'snapshot-pressure', 'snapshot-severity', 'snapshot-chance', 'snapshot-roll', 'snapshot-date', 'snapshot-duplicate', 'snapshot-flag', 'state-date'])('rejects corrupted derived crisis evidence: %s', corruption => {
     let { state, regions } = build(); state = makeDangerous(state, 'fiscal_stress');
     for (const month of [3, 4, 5, 6]) state = evaluate(state, month, 0);
@@ -205,6 +227,22 @@ describe('generic deterministic crisis engine', () => {
     for (const month of [8, 9, 10]) state = evaluate({ ...stable, date: state.date, engine: state.engine, crisis: state.crisis }, month, 0);
     expect(episode(state, 'fiscal_stress').state).toBe('NORMAL');
     expect(state.crisis.countries['country.a'].history[0]).toMatchObject({ activatedOn: '2026-05-01', recoveringOn: '2026-07-01', endedOn: '2026-10-01' });
+  });
+
+  it.each(['impossible-date', 'reversed-activation', 'reversed-recovery', 'future-ordinal', 'maximum-severity'])('rejects internally contradictory completed episode history: %s', corruption => {
+    const built = build(), stable = structuredClone(built.state);
+    let state = makeDangerous(built.state, 'fiscal_stress');
+    for (const month of [3, 4, 5]) state = evaluate(state, month, 0);
+    for (const month of [6, 7, 8, 9, 10]) state = evaluate({ ...stable, date: state.date, engine: state.engine, crisis: state.crisis }, month, 0);
+    const context = { countryIds: new Set(['country.a']), regionIds: new Set(['region.a']), regions: built.regions };
+    expect(crisisInvariant.check(state, context, 'save')).toEqual([]);
+    const old = state.crisis.countries['country.a'].history[0];
+    if (corruption === 'impossible-date') old.endedOn = '2026-02-30';
+    if (corruption === 'reversed-activation') old.activatedOn = '2026-01-01';
+    if (corruption === 'reversed-recovery') old.recoveringOn = old.pressureStartedOn;
+    if (corruption === 'future-ordinal') old.episodeOrdinal = episode(state, 'fiscal_stress').episodeOrdinal;
+    if (corruption === 'maximum-severity') old.maximumSeverity = old.maximumSeverity === 'low' ? 'moderate' : 'low';
+    expect(crisisInvariant.check(state, context, 'reload').length).toBeGreaterThan(0);
   });
 
   it.each(CRISIS_TYPES)('detects persistent material drivers for %s', type => {

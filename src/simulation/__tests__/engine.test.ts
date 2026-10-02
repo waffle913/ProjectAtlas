@@ -30,6 +30,15 @@ const initial = (seed = 'seed.001'): SimulationState => ({
 });
 
 describe('shared deterministic engine contracts', () => {
+  it('rejects duplicate canonical dirty domains during reload rather than silently merging them', () => {
+    const state = initial();
+    state.engine.dirtyDomains = [
+      { domain: 'fixture', entityIds: ['entity.a'], markedAtTick: 0, reasons: ['first'] },
+      { domain: 'fixture', entityIds: ['entity.b'], markedAtTick: 0, reasons: ['second'] },
+    ];
+    expect(() => assertSimulationInvariants(state, context, 'reload')).toThrow(/duplicate dirty domain/);
+    expect(() => restoreSimulationState(JSON.stringify(state), [region], {}, {}, context)).toThrow(/duplicate dirty domain/);
+  });
   it('rehydrates unavailable permanent keys on reload without inventing baseline observations', () => {
     const state = initial(); state.populationByRegion[region.id] = undefined; state.economicOutputByRegion[region.id] = undefined; state.regionOwnership[region.id] = undefined;
     const restored = restoreSimulationState(serializeSimulationState(state, context), [region], { [region.id]: 999 }, { [region.id]: 888 }, context);

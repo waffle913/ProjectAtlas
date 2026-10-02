@@ -62,6 +62,15 @@ Schema 12 and the subsystem version strings remain unchanged. Migration from sch
 
 ## Limitations
 
+The final 0.15 foundation hardening binds structured `situational-0.14-v2`
+and `plurality-0.15-v1` parliamentary records to the pinned political registry:
+the applicable chamber set, Country/party identities, per-party seats, totals
+and independent/unknown residual must reconcile. Aggregate-only
+`legacy-0.14-v1` records retain their historical compatibility path without
+invented party evidence. Persisted analysis is checked internally (signed
+magnitude, numeric before/after/delta, supported consequence aggregation and
+neutrality), not recomputed from today's sources or material state.
+
 - No elections, campaigns, ministers, coalition negotiation, political AI or final UI exist in 0.14.
 - The procedure is a generic model, not a claim about any Country's constitution.
 - Independent legislators have no inferred positions and therefore prevent complete resolution where their votes are necessary.

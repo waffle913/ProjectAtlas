@@ -32,6 +32,14 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
   if (!politics || politics.version !== POLITICS_MODEL.version || politics.registryVersion !== politicalRegistry.version || !Number.isSafeInteger(politics.weeklyEvaluations) || politics.weeklyEvaluations < 0) return ['Malformed politics state.'];
   if (!politics.initializedOn) return Object.keys(politics.countries).length ? ['Politics state lacks initialization date.'] : [];
   if (!validDate(politics.initializedOn) || politics.initializedOn > state.date || politics.lastOpinionUpdate && (!validDate(politics.lastOpinionUpdate) || politics.lastOpinionUpdate > state.date)) errors.push('Invalid politics state dates.');
+  for (const [regionId, socio] of Object.entries(state.socioeconomy.regions)) {
+    const regional = politics.regionalOpinion[regionId];
+    if (state.regionOwnership[regionId] !== undefined && !regional) { errors.push(`Missing political Region ${regionId}.`); continue; }
+    if (!regional) continue;
+    const expected = new Set(socio.cohorts.filter(cohort => cohort.persons > 0).map(cohort => `${cohort.income}:${cohort.orientation}`));
+    if (regional.regionId !== regionId || Object.keys(regional.cohorts).length !== expected.size
+      || Object.keys(regional.cohorts).some(id => !expected.has(id)) || [...expected].some(id => !Object.hasOwn(regional.cohorts, id))) errors.push(`Political cohort coverage does not reconcile for ${regionId}.`);
+  }
   for (const countryId of context.countryIds) if (!politics.countries[countryId]) errors.push(`Missing politics state for Country ${countryId}.`);
   for (const [countryId, country] of Object.entries(politics.countries)) {
     const partyCount = politicalRegistry.countries[countryId]?.partyIds.length ?? 0;
@@ -44,7 +52,7 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
     for (const regionId of country.regionIds) { const region = politics.regionalOpinion[regionId]; if (!context.regionIds.has(regionId) || !region || region.countryId !== countryId) { errors.push(`Invalid political Region ${regionId}.`); continue; } for (const [cohortId, opinion] of Object.entries(region.cohorts)) { if (opinion.length !== 7 || opinion[0].length !== POLITICAL_ISSUES.length || opinion[1].length !== POLITICAL_ISSUES.length || opinion[2].length !== partyCount + 1 || opinion[2].reduce((a, b) => a + b, 0) !== 10_000 || [...opinion[0], ...opinion[1], ...opinion[2], opinion[3]].some(value => !bounded(value)) || !Number.isSafeInteger(opinion[4]) || Math.abs(opinion[4]) > 10_000 || !Number.isSafeInteger(opinion[5]) || opinion[5] < 0 || new Set(opinion[6]).size !== opinion[6].length || opinion[6].some(index => !Number.isSafeInteger(index) || index < 0 || index >= POLITICAL_ISSUES.length)) errors.push(`Invalid cohort opinion values for ${regionId}:${cohortId}.`); } }
     if (errors.length === before && JSON.stringify(country.nationalSupportBps) !== JSON.stringify(aggregateNationalSupport(state, country.regionIds, politics.regionalOpinion, partyCount))) errors.push(`National support disagrees with regional cohorts for ${countryId}.`);
   }
-  for (const [regionId, region] of Object.entries(politics.regionalOpinion)) if (!context.regionIds.has(regionId) || !politics.countries[region.countryId]?.regionIds.includes(regionId)) errors.push(`Unlinked political Region ${regionId}.`);
+  for (const [regionId, region] of Object.entries(politics.regionalOpinion)) if (!context.regionIds.has(regionId) || !state.socioeconomy.regions[regionId] || !politics.countries[region.countryId]?.regionIds.includes(regionId)) errors.push(`Unlinked political Region ${regionId}.`);
   const expectedOrganizations = Object.values(politicalRegistry.organizations).filter(item => context.countryIds.has(item.countryId));
   for (const organization of expectedOrganizations) { const dynamic = politics.organizations[organization.id]; if (!dynamic || dynamic.organizationId !== organization.id || !validDate(dynamic.lastUpdatedOn) || dynamic.lastUpdatedOn > state.date || POLITICAL_ISSUES.some(issue => !bounded(dynamic.currentPositions[issue])) || dynamic.recentDrivers.length > POLITICS_MODEL.historyLimit || dynamic.recentDrivers.some(item => !validDate(item.date) || item.date > state.date || item.issues.some(issue => !POLITICAL_ISSUES.includes(issue)))) errors.push(`Invalid dynamic organization ${organization.id}.`); }
   for (const organizationId of Object.keys(politics.organizations)) if (!politicalRegistry.organizations[organizationId]) errors.push(`Unknown dynamic organization ${organizationId}.`);

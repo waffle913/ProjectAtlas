@@ -27,6 +27,28 @@ const state: SimulationState = {
 };
 
 describe('Region ownership and saves', () => {
+  it.each([1, 2, 3, 4])('always validates the final canonical state for schema %s without optional diplomacy context', schemaVersion => {
+    const legacy = {
+      schemaVersion, date: '2031-04-05', paused: false, speed: 2,
+      territoryOwnership: { 'territory.alpha': 'country.beta' },
+      ...(schemaVersion >= 2 ? { regionOwnership: { [region.id]: 'country.beta' } } : {}),
+      ...(schemaVersion >= 3 ? { populationByRegion: { [region.id]: 654 } } : {}),
+      ...(schemaVersion >= 4 ? { economicOutputByRegion: { [region.id]: 987 } } : {}),
+    };
+    const migrated = migrateSimulationState(legacy, [region], { [region.id]: 654 }, { [region.id]: 987 });
+    const context = { regions: [region], regionIds: new Set([region.id]), countryIds: new Set(['country.alpha', 'country.beta']) };
+    expect(validateSimulationInvariants(migrated, context, 'reload').valid).toBe(true);
+    expect(migrated.date).toBe(legacy.date);
+    expect(migrated.regionOwnership[region.id]).toBe('country.beta');
+    expect(migrated.populationByRegion[region.id]).toBe(654);
+    expect(migrated.economicOutputByRegion[region.id]).toBe(987);
+    expect(() => migrateSimulationState({ ...legacy, paused: 'invalid' }, [region], { [region.id]: 654 }, { [region.id]: 987 })).toThrow(/pause/);
+    expect(() => migrateSimulationState({ ...legacy, date: '2026-02-30' }, [region])).toThrow();
+    if (schemaVersion >= 2) {
+      expect(() => migrateSimulationState({ ...legacy, regionOwnership: { [region.id]: 'country.unexplained' } }, [region])).toThrow(/Unexplained legacy Country/);
+      expect(() => migrateSimulationState({ ...legacy, regionOwnership: { [region.id]: 'country.beta', 'region.unknown': 'country.beta' } }, [region])).toThrow(/unknown Region/);
+    }
+  });
   it('transfers ownership without mutating the prior state or country identity', () => {
     const country: Country = { id: 'country.alpha', commonName: 'Alpha', externalIds: {}, entityType: 'sovereign_state', unMembership: 'member', sources: {}, kind: 'sovereign' };
     const frozenCountry = structuredClone(country);

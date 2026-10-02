@@ -27,6 +27,25 @@ const custom = (rule: TaxRule, changes: Partial<TaxRule>): TaxRule => ({ ...rule
 const reform = (s: SimulationState, countryId: string, policy: Policy, effectiveDate = s.date) => scheduleFiscalReform(s, { countryId, policy, effectiveDate });
 
 describe('0.11 fiscal legal and numeric contracts', () => {
+  it('requires one ledger per active economy, rejects unknown ledgers and preserves booked owners through transfer', () => {
+    const state = advanceSimulationDays(initial(), 31), before = structuredClone(state.fiscal.regions[rid]);
+    expect(assertSimulationInvariants(state, context, 'reload')).toBe(true);
+    const missing = structuredClone(state); delete missing.fiscal.regions[rid];
+    expect(() => assertSimulationInvariants(missing, context, 'reload')).toThrow(/Missing active economic Region fiscal ledger/);
+    const extra = structuredClone(state); extra.fiscal.regions['region.unknown'] = structuredClone(before);
+    expect(() => assertSimulationInvariants(extra, context, 'reload')).toThrow(/Unknown\/non-economic Region/);
+    state.regionOwnership[rid] = ca;
+    expect(assertSimulationInvariants(state, context, 'reload')).toBe(true);
+    expect(state.fiscal.regions[rid]).toEqual(before);
+  });
+  it.each(['initialization', 'history', 'account'] as const)('rejects impossible fiscal %s dates', field => {
+    const state = advanceSimulationDays(initial(), 31); state.date = '2026-03-01';
+    const country = state.fiscal.countries[us];
+    if (field === 'initialization') country.initialization.date = '2026-02-30';
+    if (field === 'history') country.policyHistory[0].date = '2026-02-30';
+    if (field === 'account') country.account!.date = '2026-02-30';
+    expect(() => assertSimulationInvariants(state, context, 'reload')).toThrow(/initialization provenance|policy history date|Account date/);
+  });
   it('conserves every annual category through the canonical dated monthly appropriation', () => {
     const budget = initial().fiscal.countries[us].annualBudget;
     for (const category of CATEGORIES) budget[category] = CATEGORIES.indexOf(category) * 13 + 1;

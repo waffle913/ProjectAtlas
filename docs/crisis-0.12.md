@@ -42,6 +42,14 @@ Migration 9→10 preserves every saved field and initializes empty Country monit
 
 History is bounded to 24 completed episodes per Country. It retains start, activation, recovery and end dates, maximum pressure/severity, dominant activation drivers and resolution drivers, rather than every monthly sample.
 
+The final 0.15 foundation hardening shares tripwire specifications,
+exceedance, recovery and tipping calculations between runtime and invariants.
+Stored thresholds, source-system/provenance roles, contributions and
+activation `roll < chance` must reconcile with the stored evidence and the
+same model. Completed summaries require coherent dates, ordinals and maximum
+severity. Historical rolls are not regenerated from the current engine tick,
+and compact summaries do not acquire activation snapshots they never stored.
+
 The current engine has no direct crisis effects, causal links from one crisis score to another, manual resolve command, political crisis, unrest, famine, energy/banking/trade/pandemic/migration crisis, sanctions or war crisis. Future systems must change underlying variables and let these monitors observe the result.
 
 Run `npm run crisis:audit` for focused behavioral checks, `npm run crisis:benchmark` for the five-year 252-Country validation, and `npm run benchmark:world` for the complete shared runtime benchmark.

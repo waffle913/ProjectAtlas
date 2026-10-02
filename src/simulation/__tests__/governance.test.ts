@@ -163,6 +163,64 @@ function distributionProfile(partyId = historicalSituational.proposal.parliament
   });
 }
 
+describe('final foundation stored governance evidence', () => {
+  it.each(['swap-seats', 'foreign-party', 'omit-party', 'foreign-chamber', 'duplicate-chamber', 'missing-chamber', 'independent-residual'] as const)('rejects internally reconciled parliamentary registry corruption: %s', corruption => {
+    const state = structuredClone(historicalSituationalState()), proposal = state.governance.proposals[historicalSituational.proposal.id];
+    expect(governanceInvariant.check(state, worldContext, 'reload')).toEqual([]);
+    const estimate = proposal.parliamentaryEstimate!, chamber = estimate.chambers.find(item => item.partyEvaluations!.length > 1)!;
+    const parties = chamber.partyEvaluations!, first = parties[0];
+    if (corruption === 'swap-seats' || corruption === 'omit-party') {
+      const second = parties.find(item => item.vote === first.vote && item.seats !== first.seats && item.partyId !== first.partyId)!;
+      expect(second).toBeDefined();
+      if (corruption === 'swap-seats') [first.seats, second.seats] = [second.seats, first.seats];
+      else { second.seats += first.seats; chamber.partyEvaluations = parties.filter(item => item !== first); }
+    }
+    if (corruption === 'foreign-party') first.partyId = Object.values(politicalRegistry.parties).find(item => item.countryId !== proposal.countryId)!.id;
+    if (corruption === 'foreign-chamber') chamber.chamberId = Object.values(politicalRegistry.institutions).find(item => item.countryId !== proposal.countryId && item.chambers.length)!.chambers[0].id;
+    if (corruption === 'duplicate-chamber') {
+      estimate.chambers.push(structuredClone(chamber));
+      estimate.totalSeats += chamber.totalSeats!;
+      estimate.yesSeats += chamber.yesSeats; estimate.noSeats += chamber.noSeats; estimate.abstainSeats += chamber.abstainSeats; estimate.unavailableSeats += chamber.unavailableSeats;
+    }
+    if (corruption === 'missing-chamber') {
+      estimate.chambers = []; estimate.totalSeats = 0; estimate.yesSeats = 0; estimate.noSeats = 0; estimate.abstainSeats = 0; estimate.unavailableSeats = 0; estimate.coverage = 'unavailable';
+      proposal.status = 'unavailable'; proposal.voteResult!.outcome = 'unavailable'; proposal.voteResult!.reason = 'institutional_data_unavailable';
+      delete proposal.scheduledFiscalReformSequence; delete proposal.enactmentReference;
+    }
+    if (corruption === 'independent-residual') {
+      chamber.totalSeats!++; chamber.unavailableSeats++; delete chamber.adopted; chamber.coverage = 'partial';
+      estimate.totalSeats++; estimate.unavailableSeats++; estimate.coverage = 'partial';
+      proposal.status = 'unavailable'; proposal.voteResult!.outcome = 'unavailable'; proposal.voteResult!.reason = 'institutional_data_unavailable';
+      delete proposal.scheduledFiscalReformSequence; delete proposal.enactmentReference;
+    }
+    const { outcome, resolvedOn, reason } = proposal.voteResult!;
+    proposal.voteResult = { ...structuredClone(estimate), outcome, resolvedOn, ...(reason ? { reason } : {}) };
+    if (corruption === 'swap-seats' || corruption === 'omit-party') {
+      for (const bucket of ['yes', 'no', 'abstain'] as const) expect(chamber.partyEvaluations!.filter(item => item.vote === bucket).reduce((sum, item) => sum + item.seats, 0)).toBe(chamber[`${bucket}Seats`]);
+    }
+    expect(governanceInvariant.check(state, worldContext, 'reload').join(' ')).toMatch(/Invalid parliamentary estimate|Invalid vote result/);
+  });
+  it.each(['magnitude', 'delta', 'aggregate', 'missing-goal', 'neutral'] as const)('rejects range-valid internally contradictory saved analysis: %s', corruption => {
+    const state = structuredClone(historicalSituationalState()), proposal = state.governance.proposals[historicalSituational.proposal.id], analysis = proposal.analysis!;
+    expect(governanceInvariant.check(state, worldContext, 'reload')).toEqual([]);
+    if (corruption === 'magnitude') { const item = analysis.expectedConsequences[0]; item.magnitudeBps = item.magnitudeBps === 0 ? 1 : item.magnitudeBps - 1; }
+    if (corruption === 'delta') analysis.directPolicyChanges[0].delta!++;
+    if (corruption === 'aggregate') { const goal = analysis.expectedConsequences[0].goal; analysis.issueEffects[goal] += analysis.issueEffects[goal] === 10000 ? -1 : 1; }
+    if (corruption === 'missing-goal') Reflect.deleteProperty(analysis.issueEffects, 'public_order');
+    if (corruption === 'neutral') { analysis.directPolicyChanges = []; analysis.unsupportedChanges = []; analysis.genuinelyNeutral = true; }
+    expect(governanceInvariant.check(state, worldContext, 'reload').join(' ')).toContain('Invalid proposal analysis');
+  });
+  it('continues to admit genuine historical structured and aggregate-only records without rewriting them', () => {
+    const historical = historicalSituationalState();
+    const restored = restoreSimulationState(serializeSimulationState(historical, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored.governance.proposals[historicalSituational.proposal.id]).toEqual(historicalSituational.proposal);
+    const legacy = d2LegacyResolved('enacted');
+    const migrated = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext);
+    expect(migrated.governance.proposals[legacy.proposalId].evaluationVersion).toBe('legacy-0.14-v1');
+    expect(migrated.governance.proposals[legacy.proposalId].voteResult!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true);
+  }, 30_000);
+});
+
 describe('governance 0.14 player and political decisions', () => {
   it('initializes party leaders and materializes sourced executives independently of party-leadership coverage', () => {
     expect(initial).toMatchObject({ schemaVersion: 13, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
@@ -902,7 +960,7 @@ describe('governance 0.14 situational corrective contracts', () => {
   it('round-trips the upgraded aggregate-only save deterministically', () => {
     const legacy = d2LegacyResolved('enacted'), first = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), serialized = serializeSimulationState(first, worldContext), second = restoreSimulationState(serialized, worldRegions, {}, {}, worldContext);
     expect(second).toEqual(first); expect(serializeSimulationState(second, worldContext)).toBe(serialized);
-  });
+  }, 30_000);
 
   it('rejects malformed aggregate-only legacy chamber totals', () => {
     const legacy = d2LegacyResolved('rejected'), proposal = legacy.state.governance.proposals[legacy.proposalId], chamber = proposal.voteResult!.chambers[0]; chamber.totalSeats! += 1;

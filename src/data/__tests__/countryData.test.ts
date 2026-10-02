@@ -16,6 +16,31 @@ const validate = (registry = countryRegistry, facts = countryFacts, politics = p
   validateCountryData(registry, facts, politics, mapping);
 
 describe('authoritative country data validation', () => {
+  it.each(['registry', 'facts', 'offices', 'mapping'] as const)('rejects unsupported %s schema versions', field => {
+    const registry = clone(countryRegistry), facts = clone(countryFacts), offices = clone(politicalOffices), mapping = clone(naturalEarthDatasetMapping);
+    ({ registry, facts, offices, mapping })[field].schemaVersion = 999;
+    expect(() => validate(registry, facts, offices, mapping)).toThrow(/Unsupported.*schema/);
+  });
+  it('requires exactly one fact and officeholder status record, preserving explicit unavailable holders', () => {
+    const facts = clone(countryFacts); facts.countries.push(clone(facts.countries[0]));
+    expect(() => validate(countryRegistry, facts)).toThrow(/Duplicate country facts/);
+    const offices = clone(politicalOffices); offices.officeholders.push(clone(offices.officeholders[0]));
+    expect(() => validate(countryRegistry, countryFacts, offices)).toThrow(/Duplicate officeholder/);
+    offices.officeholders.pop(); offices.officeholders.shift();
+    expect(() => validate(countryRegistry, countryFacts, offices)).toThrow(/has no holder status/);
+    expect(validate()).toBe(true);
+    expect(politicalOffices.officeholders.some(holder => holder.status === 'unavailable')).toBe(true);
+  });
+  it('rejects impossible office and fact calendar dates without rejecting year-only observations', () => {
+    const offices = clone(politicalOffices), holder = offices.officeholders.find(item => item.status === 'available')!;
+    if (holder.status === 'available') holder.referenceDate = '2026-02-30';
+    expect(() => validate(countryRegistry, countryFacts, offices)).toThrow(/Malformed officeholder/);
+    const facts = clone(countryFacts), fact = Object.values(facts.countries[0].facts).find(item => item.status === 'available')!;
+    if (fact.status === 'available') fact.referenceDate = '2026-02-30';
+    expect(() => validate(countryRegistry, facts)).toThrow(/Fact lacks valid provenance/);
+    if (fact.status === 'available') fact.referenceDate = '2025';
+    expect(validate(countryRegistry, facts)).toBe(true);
+  });
   it('validates an authoritative registry broader than bundled map coverage', () => {
     expect(validate()).toBe(true);
     expect(countryRegistry.countries.filter(item => item.unMembership === 'member')).toHaveLength(193);

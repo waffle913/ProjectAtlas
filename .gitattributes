@@ -8,3 +8,4 @@
 # byte-for-byte reproducibility on Windows as well as Unix.
 *.json text eol=lf
 *.geojson text eol=lf
+*.md text eol=lf

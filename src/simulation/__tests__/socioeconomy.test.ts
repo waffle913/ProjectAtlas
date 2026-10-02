@@ -22,6 +22,30 @@ const initial = (): SimulationState => initializeSocioeconomy({ schemaVersion: 1
 const economy = (s: SimulationState) => s.socioeconomy.regions.a.economy!;
 
 describe('0.10 deterministic socioeconomic model', () => {
+  it('shares pure expectations within a pass without caching another Region or subsequent state as valid', () => {
+    const state = initial(); state.date = '2026-03-01';
+    const other = state.socioeconomy.regions.b;
+    expect(assertSimulationInvariants(state, context, 'save')).toBe(true);
+    other.cohorts[0].persons--; other.cohorts[2].persons++;
+    expect(() => assertSimulationInvariants(state, context, 'save')).toThrow(/Canonical income\/orientation/);
+    other.cohorts = structuredClone(state.socioeconomy.regions.a.cohorts);
+    other.populationProvenance.logicalDate = '2026-02-30';
+    expect(() => assertSimulationInvariants(state, context, 'save')).toThrow(/Missing status\/provenance/);
+  });
+  it.each(['orientation', 'income'] as const)('rejects population movement across %s even if the Region total is conserved', axis => {
+    const state = initial(), cohorts = state.socioeconomy.regions.a.cohorts;
+    expect(assertSimulationInvariants(state, context, 'reload')).toBe(true);
+    cohorts[0].persons--; cohorts[axis === 'orientation' ? 2 : 3].persons++;
+    expect(cohorts.reduce((sum, cohort) => sum + cohort.persons, 0)).toBe(10000);
+    expect(() => assertSimulationInvariants(state, context, 'reload')).toThrow(/Canonical income\/orientation/);
+  });
+  it.each(['initializedOn', 'lastMonthlyDate', 'provenance', 'journal'] as const)('rejects impossible socioeconomic %s dates', field => {
+    const state = advanceSimulationDays(initial(), 31); state.date = '2026-03-01';
+    if (field === 'provenance') state.socioeconomy.regions.a.populationProvenance.logicalDate = '2026-02-30';
+    else if (field === 'journal') state.socioeconomy.administration[0].date = '2026-02-30';
+    else state.socioeconomy[field] = '2026-02-30';
+    expect(() => assertSimulationInvariants(state, context, 'reload')).toThrow(/socioeconomic dates|status\/provenance|journal/);
+  });
   it('allocates exact integer populations including tiny populations and large safe totals', () => {
     for (const n of [0, 1, 2, 3, 7, 101, 10000, 8000000000, Number.MAX_SAFE_INTEGER]) {
       const cohorts = cohortsFor(n);

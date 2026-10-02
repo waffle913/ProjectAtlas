@@ -27,12 +27,25 @@ export interface SimulationStateV4 extends Omit<SimulationState, 'schemaVersion'
 export interface SimulationStateV5 extends Omit<SimulationState, 'schemaVersion' | WarFields | EngineFields> { schemaVersion: 5 }
 export interface SimulationStateV6 extends Omit<SimulationState, 'schemaVersion' | EngineFields> { schemaVersion: 6 }
 
-const countryIdsFor = (state: { territoryOwnership: Record<string, string | undefined>; regionOwnership?: Record<string, string | undefined> }, regions: readonly RegionEntity[], context?: DiplomacyContext) =>
-  context?.countryIds ?? new Set([
-    ...regions.flatMap(region => [region.parentCountryId, region.initialOwnerCountryId]),
-    ...Object.values(state.territoryOwnership),
-    ...Object.values(state.regionOwnership ?? {}),
-  ].filter((id): id is string => Boolean(id)));
+const countryIdsFor = (state: { territoryOwnership: Record<string, string | undefined>; regionOwnership?: Record<string, string | undefined> }, regions: readonly RegionEntity[], context?: DiplomacyContext) => {
+  if (context) return context.countryIds;
+  const countryIds = new Set(regions.flatMap(region => [region.parentCountryId, region.initialOwnerCountryId]));
+  // A registered legacy macro's saved owner is historical evidence, not a new Country invented by migration.
+  for (const region of regions) {
+    const owner = region.macroTerritoryId ? state.territoryOwnership[region.macroTerritoryId] : undefined;
+    if (owner !== undefined) {
+      if (typeof owner !== 'string' || !owner.trim()) throw new Error('Malformed legacy Country ownership reference.');
+      countryIds.add(owner);
+    }
+  }
+  for (const owner of [...Object.values(state.territoryOwnership), ...Object.values(state.regionOwnership ?? {})]) {
+    if (owner !== undefined && !countryIds.has(owner)) {
+      if (typeof owner !== 'string' || !politicalRegistry.countries[owner]) throw new Error(`Unexplained legacy Country reference: ${String(owner)}. Supply the permanent registry context.`);
+      countryIds.add(owner);
+    }
+  }
+  return countryIds;
+};
 const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
   const countryIds = countryIdsFor(state, regions, context);
   const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 13, information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
@@ -118,7 +131,8 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     const regionOwnership = Object.fromEntries(regions.map(region => [region.id, (region.macroTerritoryId && legacy.territoryOwnership[region.macroTerritoryId]) ?? region.initialOwnerCountryId]));
     migrated = withEngine({ ...legacy, territoryOwnership: { ...legacy.territoryOwnership }, regionOwnership, populationByRegion: Object.fromEntries(regions.map(region => [region.id, baselinePopulation[region.id]])), economicOutputByRegion: Object.fromEntries(regions.map(region => [region.id, baselineEconomicOutput[region.id]])), bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {} }, regions, diplomacyContext);
   }
-  if (diplomacyContext) assertSimulationInvariants(migrated, validationContext(regions, diplomacyContext), 'reload');
+  const finalContext = diplomacyContext ?? { countryIds: countryIdsFor(migrated, regions), regionIds: new Set(regions.map(region => region.id)) };
+  assertSimulationInvariants(migrated, validationContext(regions, finalContext), 'reload');
   return migrated;
 }
 

@@ -51,6 +51,8 @@ const contextOutcome = (context: ProposalMaterialContext, goal: GovernanceGoal):
 };
 const consequence = (goal: GovernanceGoal, directionBps: number, confidenceBps: number, coverage: EvaluationCoverage, source: string, explanation: string): ExpectedConsequence => ({ goal, directionBps: signed(directionBps), magnitudeBps: Math.abs(signed(directionBps)), confidenceBps: clamp(confidenceBps), coverage, source, explanation });
 const budgetDirection = (delta: number, baseline: number, severityBps: number) => signed(scaledRatioSigned(ratio(delta, Math.max(1, baseline), 5_000)!, 5_000 + severityBps, 10_000));
+export const aggregateIssueEffects = (consequences: readonly ExpectedConsequence[]): Record<GovernanceGoal, number> =>
+  Object.fromEntries(GOVERNANCE_GOALS.map(goal => [goal, signed(sum(consequences.filter(item => item.goal === goal && item.coverage !== 'unavailable').map(item => item.directionBps)))])) as Record<GovernanceGoal, number>;
 
 export function analyzeProposal(state: SimulationState, proposal: PoliticalProposal): ProposalAnalysis {
   const country = state.fiscal.countries[proposal.countryId]; if (!country) throw new Error('Proposal Country has no fiscal state.');
@@ -91,7 +93,7 @@ export function analyzeProposal(state: SimulationState, proposal: PoliticalPropo
   }
   if (unsupportedChanges.length) limitations.push(...unsupportedChanges.map(item => `${item.path}: ${item.reason}`));
   limitations.push('Only immediate fiscal consequences available from 0.11 are evaluated; no GDP, growth, inflation or future unemployment forecast is invented.');
-  const issueEffects = Object.fromEntries(GOVERNANCE_GOALS.map(goal => [goal, signed(sum(expectedConsequences.filter(item => item.goal === goal && item.coverage !== 'unavailable').map(item => item.directionBps)))])) as Record<GovernanceGoal, number>;
+  const issueEffects = aggregateIssueEffects(expectedConsequences);
   const genuinelyNeutral = directPolicyChanges.length === 0 && unsupportedChanges.length === 0;
   const coverage: EvaluationCoverage = genuinelyNeutral ? 'complete' : !expectedConsequences.some(item => item.coverage !== 'unavailable') ? 'unavailable' : unsupportedChanges.length || expectedConsequences.some(item => item.coverage !== 'complete') ? 'partial' : 'complete';
   return { version: 'proposal-analysis-0.14-v2', directPolicyChanges, materialContext, expectedConsequences, issueEffects, coverage, unsupportedChanges, limitations, genuinelyNeutral };

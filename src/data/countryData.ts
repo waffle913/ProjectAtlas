@@ -4,6 +4,7 @@ import officesUrl from './political-offices.json?url';
 import mappingUrl from './natural-earth-mapping.json?url';
 import type { DataSource, SourceValue } from '../types';
 import type { EntityRegistry, DatasetMapping } from './registry';
+import { isSimulationDate } from '../simulation/date';
 
 export interface MissingFact {
   status: 'unavailable';
@@ -33,20 +34,14 @@ export interface LoadedCountryData {
   officeholdersByCountryId: Map<string, Array<{ office: PoliticalOffice; holder: Officeholder }>>;
 }
 
-const validDate = (value: unknown) => {
-  if (typeof value !== 'string') return false;
-  if (/^\d{4}$/.test(value)) return true;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-};
+const validDate = (value: unknown) => typeof value === 'string' && /^\d{4}$/.test(value) || isSimulationDate(value);
 
 const validSource = (source: unknown): source is DataSource => {
   if (!source || typeof source !== 'object') return false;
   const item = source as Record<string, unknown>;
   return ['name', 'url', 'datasetId', 'retrievedAt'].every(
     key => typeof item[key] === 'string' && item[key] !== '',
-  ) && validDate(item.retrievedAt);
+  ) && isSimulationDate(item.retrievedAt);
 };
 
 export function validateCountryData(
@@ -56,6 +51,11 @@ export function validateCountryData(
   mapping: DatasetMapping,
 ) {
   const errors: string[] = [];
+  for (const [name, actual, expected] of [
+    ['entity registry', registry.schemaVersion, 3], ['country facts', facts.schemaVersion, 2],
+    ['political offices', politics.schemaVersion, 2], ['geographic mapping', mapping.schemaVersion, 1],
+  ] as const) if (actual !== expected) errors.push(`Unsupported ${name} schema: ${actual}; expected ${expected}.`);
+  if (!isSimulationDate(facts.observationsAsOf) || !isSimulationDate(politics.referenceDate)) errors.push('Malformed country data reference dates.');
   const countryIds = new Set<string>();
   const codes = {
     isoAlpha2: new Map<string, string>(),
@@ -121,6 +121,7 @@ export function validateCountryData(
   const factCountries = new Set<string>();
   for (const record of facts.countries) {
     if (!countryIds.has(record.countryId)) errors.push(`Facts reference unknown country: ${record.countryId}`);
+    if (factCountries.has(record.countryId)) errors.push(`Duplicate country facts record: ${record.countryId}`);
     factCountries.add(record.countryId);
     for (const field of requiredFacts) {
       const item = record.facts[field];
@@ -148,11 +149,12 @@ export function validateCountryData(
   const heldOfficeIds = new Set<string>();
   for (const holder of politics.officeholders) {
     if (!officeIds.has(holder.officeId)) errors.push(`Officeholder references unknown office: ${holder.officeId}`);
+    if (heldOfficeIds.has(holder.officeId)) errors.push(`Duplicate officeholder status: ${holder.officeId}`);
     heldOfficeIds.add(holder.officeId);
     if (holder.status === 'available') {
-      if (!holder.person?.id || !holder.person?.name || !validDate(holder.referenceDate)
-        || (holder.startDate && !validDate(holder.startDate))
-        || (holder.endDate && !validDate(holder.endDate))
+      if (!holder.person?.id || !holder.person?.name || !isSimulationDate(holder.referenceDate)
+        || (holder.startDate !== undefined && !isSimulationDate(holder.startDate))
+        || (holder.endDate !== undefined && !isSimulationDate(holder.endDate))
         || (holder.startDate && holder.startDate > holder.referenceDate)
         || (holder.endDate && holder.endDate < holder.referenceDate)
         || !validSource(holder.source)) errors.push(`Malformed officeholder: ${holder.officeId}`);

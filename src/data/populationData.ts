@@ -2,6 +2,7 @@ import demographicsUrl from './region-demographics.json?url';
 import nationalUrl from './source-snapshots/wpp2024-population-2026-01-01.json?url';
 import coverageUrl from './population-coverage-report.json?url';
 import type { DataSource, RegionEntity } from '../types';
+import { isSimulationDate as validDate } from '../simulation/date';
 
 export interface PopulationObservation { countryId: string; value: number; referenceDate: string; isEstimate: boolean; isProjection: boolean; source: DataSource }
 export type RegionDemographicRecord =
@@ -12,7 +13,6 @@ export interface NationalPopulationData { schemaVersion: number; sourceSnapshot:
 export interface PopulationCoverageReport { schemaVersion: number; generatedFrom: string; summary: Record<string, number>; countries: unknown[] }
 export interface LoadedPopulationData { demographics: RegionDemographicsData; national: NationalPopulationData; coverage: PopulationCoverageReport; byRegionId: Map<string, RegionDemographicRecord>; nationalByCountryId: Map<string, PopulationObservation> }
 
-const validDate = (value: string) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false; const parsed = new Date(`${value}T00:00:00Z`); return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value; };
 const validSource = (source: DataSource) => { try { const url = new URL(source?.url); return Boolean(source.name && source.datasetId && validDate(source.retrievedAt) && ['http:', 'https:'].includes(url.protocol)); } catch { return false; } };
 export function validateNationalPopulationData(national: NationalPopulationData, knownCountryIds: Set<string>) {
   const errors: string[] = []; const seen = new Set<string>();
