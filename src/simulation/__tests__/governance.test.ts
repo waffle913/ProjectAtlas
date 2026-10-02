@@ -352,6 +352,28 @@ describe('governance 0.15 situational institutional interest', () => {
     expect(evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material).status).toBe('unavailable');
   });
 
+  it.each(['outside', 'sole', 'coalition'] as const)('preserves unavailable coalition evidence for %s executive stakes despite listed governing parties', position => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 });
+    const partyId = position === 'sole' ? fixture.governmentId : fixture.oppositionId, goals = institutionalProfile(partyId);
+    if (position === 'coalition') fixture.institution.governingPartyIds = [fixture.oppositionId, fixture.governmentId];
+    fixture.registry.countries[fixture.countryId].coverage.coalition = 'unavailable';
+    analysis.institutionalEffects = [fixture.effect];
+    for (const ambiguous of [false, true]) {
+      fixture.institution.governingBlocDerivations[0].ambiguous = ambiguous;
+      const stake = derivePartyInstitutionalStake(fixture.registry, fixture.countryId, partyId, 'executive');
+      expect(stake.coverage).toBe('unavailable'); expect(stake.stakeBps).toBeUndefined();
+      const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, partyId, fixture.registry, goals, analysis);
+      expect(evaluation.institutionalInterest).toMatchObject({ status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0 });
+      expect(evaluation.institutionalInterest!.effects[0].toStakeBps).toBeUndefined();
+      expect(evaluation).toMatchObject({ agreementBps: 6_000, confidenceBps: 0, vote: 'unknown' });
+      const distribution = evaluatePartyInternalVoteDistribution(analysis, goals, evaluation);
+      expect(distribution).toMatchObject({ yesBps: 0, noBps: 0, abstainBps: 0, unknownBps: 10_000 });
+      expect(allocatePartySeats(fixture.chamber.seatsByParty[partyId], distribution)).toEqual({
+        yesSeats: 0, noSeats: 0, abstainSeats: 0, unknownSeats: fixture.chamber.seatsByParty[partyId],
+      });
+    }
+  });
+
   it('G: adds independent strategic variance without cancelling the central adjustment in material samples', () => {
     const fixture = institutionalFixture(20), analysis = distributionAnalysis({ infrastructure: 0 }), goals = institutionalProfile(fixture.oppositionId, true);
     analysis.institutionalEffects = [fixture.effect];
@@ -510,16 +532,60 @@ describe('governance 0.15 situational institutional interest', () => {
     expect(derivePartyInstitutionalStake(reordered, fixture.countryId, fixture.oppositionId, 'executive')).toEqual(stake);
   });
 
-  it('keeps mixed known/unknown transfers partial, attenuates confidence, and surfaces malformed evidence explicitly', () => {
+  it.each(['negative', 'positive'] as const)('keeps a %s known effect plus an unavailable potential reverse transfer UNKNOWN, never implicitly zero', direction => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 });
+    const partyId = direction === 'negative' ? fixture.oppositionId : fixture.governmentId, goals = institutionalProfile(partyId);
+    const material = evaluateProfileForPublic(analysis, goals);
+    const unknown: InstitutionalPowerTransfer = {
+      ...fixture.effect, id: 'synthetic.unavailable-reverse', from: 'executive', to: fixture.effect.from, coverage: 'unavailable',
+      explanation: 'Unavailable potential reverse transfer; no offsetting effect is assumed.',
+    };
+    for (const coverage of ['complete', 'partial'] as const) {
+      const known = { ...fixture.effect, coverage };
+      const knownResult = evaluatePartyInstitutionalInterest(fixture.countryId, partyId, fixture.registry, [known], material);
+      expect(Math.sign(knownResult.adjustmentBps)).toBe(direction === 'negative' ? -1 : 1);
+      for (const effects of [[known, unknown], [unknown, known]]) {
+        analysis.institutionalEffects = effects;
+        const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, partyId, fixture.registry, goals, analysis);
+        const interest = evaluation.institutionalInterest!;
+        expect(interest).toMatchObject({ status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0 });
+        expect(interest.effects).toHaveLength(2);
+        expect(interest.effects.find(item => item.id === known.id)).toEqual(knownResult.effects[0]);
+        expect(interest.effects.find(item => item.id === unknown.id)).toMatchObject({ coverage: 'unavailable', confidenceBps: 0 });
+        expect(interest.effects.map(item => ({ id: item.id, source: item.source, explanation: item.explanation }))).toEqual(
+          effects.map(item => ({ id: item.id, source: item.source, explanation: item.explanation })),
+        );
+        expect(interest.materialAgreementBps).toBe(material.agreementBps);
+        expect(evaluation).toMatchObject({ agreementBps: material.agreementBps, confidenceBps: 0, vote: 'unknown' });
+        const distribution = evaluatePartyInternalVoteDistribution(analysis, goals, evaluation);
+        expect(distribution).toMatchObject({ yesBps: 0, noBps: 0, abstainBps: 0, unknownBps: 10_000 });
+        expect(allocatePartySeats(fixture.chamber.seatsByParty[partyId], distribution)).toEqual({
+          yesSeats: 0, noSeats: 0, abstainSeats: 0, unknownSeats: fixture.chamber.seatsByParty[partyId],
+        });
+      }
+    }
+    const profiles = Object.fromEntries(fixture.registry.countries[fixture.countryId].partyIds.map(id => [id, institutionalProfile(id)]));
+    expect(estimateParliamentarySupport(initial, historicalPlurality.proposal, fixture.registry, profiles, analysis)).toMatchObject({
+      yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 100, totalSeats: 100, coverage: 'unavailable',
+    });
+  });
+
+  it('keeps complete/partial transfers calculable, attenuates confidence, and surfaces malformed evidence explicitly', () => {
     const fixture = institutionalFixture(), material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
-    const partial = { ...fixture.effect, coverage: 'partial' as const, confidenceBps: 9_000 };
-    const unknown = { ...fixture.effect, id: 'synthetic.unavailable', coverage: 'unavailable' as const };
-    const result = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [partial, unknown], material);
-    expect(result).toMatchObject({ status: 'modelled', coverage: 'partial', confidenceBps: 7_000, adjustmentBps: -3_360 });
-    expect(result.effects[0]).toMatchObject({ rawInterestBps: -8_000, effectiveInterestBps: -5_600 });
-    expect(result.effects[1]).toMatchObject({ coverage: 'unavailable', confidenceBps: 0 });
+    const partial: InstitutionalPowerTransfer = {
+      ...fixture.effect, id: 'synthetic.partial-reverse', from: 'executive', to: fixture.effect.from, coverage: 'partial', confidenceBps: 9_000,
+    };
+    const result = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect, partial], material);
+    expect(result).toMatchObject({ status: 'modelled', coverage: 'partial', confidenceBps: 8_500, adjustmentBps: -720 });
+    expect(result.effects[0]).toMatchObject({ rawInterestBps: -8_000, effectiveInterestBps: -8_000, confidenceBps: 10_000 });
+    expect(result.effects[1]).toMatchObject({ rawInterestBps: 8_000, effectiveInterestBps: 5_600, coverage: 'partial', confidenceBps: 7_000 });
     const applied = applyPartyInstitutionalInterest({ ...material, positiveDrivers: [], negativeDrivers: [], tradeoffs: [] }, result);
-    expect(applied).toMatchObject({ agreementBps: 2_640, confidenceBps: 7_000, coverage: 'partial' });
+    expect(applied).toMatchObject({ agreementBps: 5_280, confidenceBps: 8_500, coverage: 'partial' });
+    const analysis = distributionAnalysis({ infrastructure: 1_000 }), goals = institutionalProfile(fixture.oppositionId);
+    analysis.institutionalEffects = [fixture.effect, partial];
+    const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(evaluation).toMatchObject({ agreementBps: 5_280, confidenceBps: 8_500, coverage: 'partial', vote: 'abstain' });
+    expect(evaluatePartyInternalVoteDistribution(analysis, goals, evaluation).unknownBps).toBe(0);
     for (const effects of [[fixture.effect, fixture.effect], [{ ...fixture.effect, source: '' }], [{ ...fixture.effect, confidenceBps: -1 }]]) {
       const rejected = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, effects, material);
       expect(rejected).toMatchObject({ status: 'unavailable', adjustmentBps: 0, confidenceBps: 0 });

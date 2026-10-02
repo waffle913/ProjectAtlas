@@ -145,23 +145,31 @@ remain unavailable. A sole reconciled governing party has full executive
 stake; an outside party has structural zero, never an opposition penalty.
 For a coalition, executive stake is the equal-chamber average of the party's
 seat share within the governing bloc, using sourced allocations only.
-An absent governing bloc or unusable coalition seat evidence stays unavailable,
-never a fabricated 50/50 split. Partial/ambiguous bloc evidence is not promoted
-to complete evidence. Current governing blocs are the pinned 0.13 derivations,
-not a newly mutable political system.
+An absent governing bloc, unavailable governing-bloc coverage or unusable
+coalition seat evidence stays unavailable, never a fabricated 50/50 split.
+A nonempty governing-party list does not establish executive leverage without
+usable bloc evidence. Ambiguity may degrade otherwise usable evidence to partial,
+but cannot promote unavailable evidence to partial. Current governing blocs are
+the pinned 0.13 derivations, not a newly mutable political system.
 
 For each known transfer, raw interest is destination stake minus source stake.
 Confidence is the minimum of transfer confidence and the coverage cap
 (10,000 complete, 7,000 partial). Effective interest is raw interest times
 confidence / 10,000 with signed integer rounding. The agreement adjustment
-is 6,000 / 10,000 times the mean effective interest over known transfers.
+is 6,000 / 10,000 times the mean effective interest when every transfer is
+complete or partial.
 The mainstream result clamps material agreement plus that adjustment to
 0..10,000; final confidence and coverage cannot exceed their material and
-institutional evidence. No known effects produce unavailable evidence,
-zero confidence and UNKNOWN, not ABSTAIN. No effects at all produce
+institutional evidence. Any explicitly unavailable effect makes the entire
+institutional evaluation unavailable, with zero confidence and adjustment.
+All evaluated effects remain diagnostic/provenance evidence; the material
+agreement is retained for debug, but the vote and every party seat are UNKNOWN,
+never ABSTAIN. A known effect cannot be used by ignoring an unavailable,
+potentially opposing transfer. Complete/partial mixtures remain calculable with
+their existing confidence caps and partial coverage. No effects at all produce
 `not_applicable`, exactly zero adjustment and an unchanged material result.
-Known and unknown mixed effects stay partial. The scale is a modelled V1
-behavioral prior, not an empirically observed party coefficient.
+The scale is a modelled V1 behavioral prior, not an empirically observed party
+coefficient.
 
 Material quadrature samples receive the same institutional adjustment before
 subtracting the adjusted center, so sampling cannot cancel the central

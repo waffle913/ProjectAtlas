@@ -1129,3 +1129,77 @@ negotiation, successor-generation block, 0.16 or main merge is implemented.
 Post-replacement successor generation remains the sole unimplemented 0.15
 design-intent block. The accepted handoff is untouched; independent review
 remains required.
+
+### Strict institutional UNKNOWN correction
+
+Independent review of `ff7a60119fe745dbb284028de2228697362d6572`
+requested two semantic corrections only. This follow-up supersedes that
+candidate's calculable mixed-known/unavailable aggregation and its promotion
+of unavailable governing-bloc evidence to partial. It does not accept 0.15.
+
+If any evaluated explicit transfer is unavailable, the global institutional
+record is unavailable with confidence zero and adjustment zero. All evaluated
+effects, their order, source and explanation remain diagnostic evidence.
+The existing application helper preserves the material agreement for debug
+but supplies confidence zero, so the existing vote/distribution/allocation
+path yields UNKNOWN for every party seat, never ABSTAIN. Unknown transfers
+are not ignored or implicitly assumed to have zero effect.
+
+Executive stake now returns unavailable with no numeric stake when the
+required governing-bloc coverage is unavailable, before the outside-party,
+sole-governing-party or coalition branches. A nonempty party list alone is
+not evidence. Ambiguity may still degrade usable evidence to partial, never
+upgrade unavailable evidence. Complete/partial effects, the 7,000 partial
+confidence cap, 6,000 scaling, strategic plurality and evidenced coalition
+proxy retain their existing formulas.
+
+Five additional regression cases cover both signs of a known effect with
+an unavailable potential reverse transfer, and unavailable bloc evidence
+for outside, sole and coalition parties. Mixed cases exercise complete and
+partial known effects, both effect orders, preservation of the known
+diagnostic record and source/explanation, and exact all-UNKNOWN party/chamber
+allocation (100 seats total). Executive cases exercise both ambiguity flags.
+The former mixed-partial expectation is replaced by a complete-plus-partial
+control: effective interests -8,000/+5,600 produce adjustment -720,
+confidence 8,500 and final agreement 5,280 with a known ABSTAIN, proving
+partial is not treated as unavailable.
+
+Only `governance/institutionalInterest.ts`, `governance.test.ts`,
+`information-0.15.md` and this appended record change. The no-code plan
+preceded edits; tests reproduced both defects before runtime changes; the
+actual diff was read separately. No state/save/migration, old fixture/vote,
+schema 13, `situational-plurality-0.15-v2`, fiscal empty-effect analysis,
+authority, Government Information, scheduler/RNG, static data or identity
+contract changes. Existing invariants reuse the corrected pure evaluator.
+
+| Executed command / check | Actual result |
+|---|---|
+| `npx.cmd vitest run src\simulation\__tests__\governance.test.ts --testNamePattern='unavailable coalition evidence\|known effect plus\|complete/partial transfers' --reporter=verbose`, before guards | Exit 1: five expected failures, one partial-control pass, 141 skipped; 8.37 s |
+| Same focused command after guards | Exit 0: 6/6, 141 skipped; 8.53 s |
+| `npx.cmd tsc -b --pretty false`, final runtime | Exit 0 |
+| `npm.cmd run governance:audit` | Exit 0: 147/147; 123.27 s |
+| `npm.cmd run governance:benchmark` | Exit 0: 1/1, test 4,932 ms, total 9.39 s; unchanged 30-second budget |
+| `npm.cmd run information:test` | Exit 0: 32/32; 26.97 s |
+| `npm.cmd run information:audit` | Exit 0: unchanged 948 parties, 7 derived mappings, 1 ambiguous, 940 unavailable, 342 reconciled executive officeholders, no accepted mapping without a fictional analogue |
+| `npm.cmd run politics:audit` | Exit 0: 42/42 in three files; 132.47 s |
+| `npm.cmd run verify -- -- --maxWorkers=1` | Exit 0: data reproducibility/audit, production build, 525/525 in 30 files; 393.77 s test-run duration |
+| `git diff --check` | Exit 0 |
+| Built-in `rg`, `Math\.random`, changed runtime module | No matches |
+| `git diff --exit-code`, marker/model, resolution, material analysis, plurality, invariants, old fixtures and accepted handoff | Exit 0 |
+
+Governance benchmark: 20 material analyses at mean 14.822 ms, synthetic
+material analyses 14.016 ms, synthetic institutional/plurality evaluations
+0.357 ms for four parties; snapshot 0.0316 ms, serialization 392.88 ms,
+initial save 27,268,062 bytes. Resolved proposal remains 17,575 bytes,
+including 4,050 institutional-metadata bytes; submitted-to-resolved save
+delta remains 18,214 bytes. Politics benchmark: three simulated years in
+101,848.67 ms, 11 ticks/s, weekly snapshot 117.03 ms, coincident snapshot
+386.08 ms, reload 933 ms, save 33,547,440 bytes. Timings are host/workload
+measurements, not a speedup claim; no timeout or assertion was relaxed.
+
+Data coverage and licence limitations are unchanged: 57 procedurally complete
+Countries, eight with ideological evidence, zero overlap; IPU noncommercial
+licence and previously unconfirmed data licences still block commercial release.
+No successor-generation block, 0.16, main merge or self-acceptance is included.
+Exact-SHA Ubuntu/Windows Node 22 CI is reported after push from actual logs,
+separately from these local results; work then stops for independent audit.

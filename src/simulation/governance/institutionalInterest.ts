@@ -63,7 +63,10 @@ function executiveStake(registry: PoliticalRegistry, countryId: string, partyId:
     return { holder: 'executive', coverage: 'unavailable', limitation: 'No reconciled governing-party set exists; opposition is not inferred from absence.' };
   }
   const coalitionCoverage = politicalCoverage(country.coverage.coalition), ambiguous = institution.governingBlocDerivations.some(item => item.ambiguous);
-  const blocCoverage = coalitionCoverage === 'unavailable' || ambiguous ? 'partial' : coalitionCoverage;
+  if (coalitionCoverage === 'unavailable') {
+    return { holder: 'executive', coverage: 'unavailable', limitation: 'Governing-bloc evidence is unavailable; listed parties alone do not establish executive leverage.' };
+  }
+  const blocCoverage = ambiguous ? 'partial' : coalitionCoverage;
   if (!governingPartyIds.includes(partyId)) {
     return { holder: 'executive', stakeBps: 0, coverage: blocCoverage, limitation: 'Party is outside the reconciled governing bloc. Zero executive stake is structural, not an opposition penalty.' };
   }
@@ -142,7 +145,7 @@ export function evaluatePartyInstitutionalInterest(
       rawInterestBps, effectiveInterestBps, confidenceBps, coverage: effectCoverage, source: effect.source, explanation: effect.explanation };
   });
   const known = evaluated.filter(item => item.coverage !== 'unavailable');
-  if (!known.length) {
+  if (known.length !== evaluated.length) {
     return {
       ...baseline, status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0, effects: evaluated, positiveDrivers: [],
       negativeDrivers: ['Institutional effects exist, but current branch leverage is unavailable.'],
@@ -152,7 +155,7 @@ export function evaluatePartyInstitutionalInterest(
   const meanInterestBps = scaledRatioSigned(known.reduce((sum, item) => sum + item.effectiveInterestBps, 0), 1, known.length);
   return {
     ...baseline, status: 'modelled',
-    coverage: known.length !== evaluated.length || evaluated.some(item => item.coverage !== 'complete') ? 'partial' : 'complete',
+    coverage: evaluated.some(item => item.coverage !== 'complete') ? 'partial' : 'complete',
     confidenceBps: ratio(known.reduce((sum, item) => sum + item.confidenceBps, 0), 1, known.length),
     adjustmentBps: clampSignedBps(scaledRatioSigned(meanInterestBps, INSTITUTIONAL_INTEREST_MODEL.maxAgreementAdjustmentBps, 10_000)), effects: evaluated,
     positiveDrivers: known.filter(item => item.effectiveInterestBps > 0).map(item => `${item.lever}: ${item.from} -> ${item.to} increases current institutional leverage.`),
