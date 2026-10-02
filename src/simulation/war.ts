@@ -27,12 +27,14 @@ export function declareLimitedWar(state: SimulationState, params: DeclareLimited
   if (!warId || state.wars.some(war => war.id === warId)) throw new Error(`Duplicate or missing war ID: ${warId}`);
   if (attackerCountryId === defenderCountryId) throw new Error('A Country cannot declare war on itself.');
   if (state.wars.some(war => war.status === 'active' && pairKey(war.attackerCountryId, war.defenderCountryId) === pairKey(attackerCountryId, defenderCountryId))) throw new Error('A simultaneous active war already exists between these Countries.');
+  if (state.wars.some(war => war.status === 'active' && war.targetRegionId === targetRegionId)) throw new Error(`Region ${targetRegionId} is already the objective of an active war.`);
   if (state.regionOwnership[targetRegionId] !== defenderCountryId) throw new Error('The target Region is not currently owned by the defender.');
   const startDate = params.startDate ?? state.date;
   if (!validDate(startDate) || startDate !== state.date) throw new Error('War declaration date must equal the current simulation date.');
   const available = getAvailableCasusBelli(state, attackerCountryId, defenderCountryId, context);
   const cb = available.find(item => item.id === casusBelliId);
   if (!cb) throw new Error('The selected casus belli is not currently available.');
+  if (cb.source === 'explicit' && cb.targetRegionIds && new Set(cb.targetRegionIds).size !== cb.targetRegionIds.length) throw new Error(`Explicit casus belli contains duplicate target Region IDs: ${cb.id}`);
   if (cb.type !== 'territorial_claim' || !cb.targetRegionIds?.includes(targetRegionId)) throw new Error('The selected casus belli does not authorize this take_region objective.');
   const snapshot: WarDeclarationCasusBelliSnapshot = { id: cb.id, issuerCountryId: cb.issuerCountryId, targetCountryId: cb.targetCountryId, type: cb.type, source: cb.source, creationDate: cb.creationDate, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined, reason: cb.reason, ...(cb.source === 'claim' ? { claimId: cb.claimId } : { originatingEventId: cb.originatingEventId }) };
   const war: LimitedWar = { id: warId, attackerCountryId, defenderCountryId, status: 'active', startDate, warGoal: 'take_region', targetRegionId, declarationCasusBelli: snapshot };
@@ -82,7 +84,7 @@ export function endWar(state: SimulationState, warId: string, outcome: WarOutcom
 }
 
 export function validateWarState(state: SimulationState, context: WarContext) {
-  const errors: string[] = [], warIds = new Set<string>(), activePairs = new Set<string>();
+  const errors: string[] = [], warIds = new Set<string>(), activePairs = new Set<string>(), activeTargets = new Set<string>();
   if (!validDate(state.date)) errors.push(`Malformed simulation date: ${String(state.date)}`);
   for (const war of state.wars) {
     if (!war.id || warIds.has(war.id)) errors.push(`Duplicate or missing war ID: ${war.id}`); warIds.add(war.id);
@@ -92,6 +94,7 @@ export function validateWarState(state: SimulationState, context: WarContext) {
     if (war.status === 'active') {
       if (war.endDate !== undefined || war.outcome !== undefined) errors.push(`Active war contains an end state: ${war.id}`);
       if (war.warGoal === 'take_region' && state.regionOwnership[war.targetRegionId] !== war.defenderCountryId) errors.push(`Active war target is not sovereignly owned by the defender: ${war.id}`);
+      if (activeTargets.has(war.targetRegionId)) errors.push(`Duplicate active war target Region: ${war.targetRegionId}`); activeTargets.add(war.targetRegionId);
       const pair = pairKey(war.attackerCountryId, war.defenderCountryId); if (activePairs.has(pair)) errors.push(`Duplicate active war pair: ${pair}`); activePairs.add(pair);
     } else if (war.status === 'ended') { if (!war.endDate || !war.outcome || !['attacker_victory', 'defender_victory', 'white_peace'].includes(war.outcome)) errors.push(`Ended war lacks a valid outcome: ${war.id}`); }
     else errors.push(`Invalid war status: ${war.id}`);

@@ -46,6 +46,8 @@ Territorial claims target permanent Region IDs, never Natural Earth geometry, Ad
 
 Territorial-claim casus belli are derived at query time from active claims and the authoritative `SimulationState.regionOwnership`. If a claimed Region changes owner, the same claim automatically targets its new owner; a claimant controlling the Region receives no self-CB. Persistent explicit CB records support future event-created `territorial_claim`, `retaliation` and `containment` reasons, but this milestone creates none automatically. Used, revoked and expired records are excluded from availability queries.
 
+Explicit CB target Region IDs must be registered and unique. Duplicate targets are rejected at creation, save validation and war declaration, never silently deduplicated; valid input order remains unchanged.
+
 Admin-0 polygons remain a navigation and overview layer, not authoritative political ownership. Their overview fill is derived from child Region owners and becomes neutral when ownership is mixed. Detailed Region rendering already colours each Region by its current owner, allowing partial control without changing source geometry.
 
 ## Limited war, occupation and peace
@@ -57,6 +59,8 @@ Occupation is stored separately in `occupationByRegion`. It never changes sovere
 The attacker objective is satisfied only when it occupies the declared target under that war. Attacker victory then transfers exactly that one Region through `regionOwnership`; every other occupied Region remains with its sovereign owner. Defender victory and white peace transfer nothing. Every peace outcome records the result, retains the ended war, and clears that war's occupations. There is deliberately no war score, army, combat, pathfinding, alliance or military-economy model yet.
 
 An active `take_region` target must remain sovereignly owned by its defender, including on save reload. Generic `transferRegion()` sovereignty changes require both Countries to be registered in the canonical engine's `fidelityByCountry` entries and reject active war objectives or Regions occupied under an active war, even when not the objective. Explicit war resolution, liberation, ordinary unoccupied non-objective transfers and post-war transfers retain their existing semantics; registered no-op transfers remain valid.
+
+In the conservative V1 model, a Region can be the declared objective of at most one active war, regardless of belligerents. Declaration and save validation enforce this restriction; ended wars do not prevent later reuse of the same objective or invalidate historical wars sharing a target.
 
 ## Model
 

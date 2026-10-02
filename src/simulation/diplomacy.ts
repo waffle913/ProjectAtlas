@@ -53,6 +53,7 @@ export function createExplicitCasusBelli(state: SimulationState, cb: Omit<Explic
   requireCountry(context, cb.issuerCountryId); requireCountry(context, cb.targetCountryId);
   if (cb.issuerCountryId === cb.targetCountryId) throw new Error('A Country cannot receive a casus belli against itself.');
   for (const regionId of cb.targetRegionIds ?? []) requireRegion(context, regionId);
+  if (cb.targetRegionIds && new Set(cb.targetRegionIds).size !== cb.targetRegionIds.length) throw new Error(`Explicit casus belli contains duplicate target Region IDs: ${cb.id}`);
   if (!cb.id || !validDate(cb.creationDate) || (cb.expiryDate !== undefined && (!validDate(cb.expiryDate) || cb.expiryDate < cb.creationDate)) || !['territorial_claim', 'retaliation', 'containment'].includes(cb.type)) throw new Error('Malformed explicit casus belli.');
   if (state.explicitCasusBelli.some(existing => existing.id === cb.id)) throw new Error(`Duplicate explicit casus belli ID: ${cb.id}`);
   return { ...state, explicitCasusBelli: [...state.explicitCasusBelli, { ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined, status: 'active' }] };
@@ -102,6 +103,7 @@ export function validateDiplomacyState(state: SimulationState, context: Diplomac
   for (const cb of state.explicitCasusBelli) {
     if (!cb.id || cbIds.has(cb.id)) errors.push(`Duplicate or missing explicit casus belli ID: ${cb.id}`); cbIds.add(cb.id);
     if (!context.countryIds.has(cb.issuerCountryId) || !context.countryIds.has(cb.targetCountryId) || cb.issuerCountryId === cb.targetCountryId || cb.targetRegionIds?.some(regionId => !context.regionIds.has(regionId))) errors.push(`Explicit casus belli references an invalid entity: ${cb.id}`);
+    if (cb.targetRegionIds && new Set(cb.targetRegionIds).size !== cb.targetRegionIds.length) errors.push(`Explicit casus belli contains duplicate target Region IDs: ${cb.id}`);
     if (!validDate(cb.creationDate) || (cb.expiryDate !== undefined && (!validDate(cb.expiryDate) || cb.expiryDate < cb.creationDate)) || !['territorial_claim', 'retaliation', 'containment'].includes(cb.type) || !['active', 'used', 'expired', 'revoked'].includes(cb.status)) errors.push(`Malformed explicit casus belli: ${cb.id}`);
   }
   for (const [regionId, owner] of Object.entries(state.regionOwnership)) if (!context.regionIds.has(regionId) || (owner !== undefined && !context.countryIds.has(owner))) errors.push(`Region ownership references an invalid entity: ${regionId}`);

@@ -6,7 +6,7 @@ import { emptyInformation } from '../information/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 import { describe, expect, it } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
-import { createClaim, createExplicitCasusBelli, getAvailableCasusBelli, renounceClaim, type DiplomacyContext } from '../diplomacy';
+import { adjustRelation, createClaim, createExplicitCasusBelli, expireCasusBelli, getAvailableCasusBelli, renounceClaim, revokeCasusBelli, setRelation, validateDiplomacyState, type DiplomacyContext } from '../diplomacy';
 import { declareLimitedWar, endWar, getRegionOccupation, getWarOccupations, isWarGoalSatisfied, liberateRegion, occupyRegion, validateWarState } from '../war';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { controlledBaselineAnnualOutput, controlledBaselinePopulation, transferRegion } from '../region';
@@ -18,8 +18,109 @@ const initial = (): SimulationState => ({ schemaVersion: 13, governance: emptyGo
 const claimInput = { id: 'claim.target', claimantCountryId: 'country.a', regionId: 'region.target', type: 'territorial' as const, creationDate: '2026-01-01', reason: 'Reviewed claim' };
 const withClaim = () => createClaim(initial(), claimInput, context);
 const declareClaimWar = (state = withClaim(), warId = 'war.001') => declareLimitedWar(state, { warId, attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'claim-derived:claim.target:country.b' }, context);
+const competingClaim = { ...claimInput, id: 'claim.competing', claimantCountryId: 'country.c' };
+const withCompetingClaim = () => createClaim(withClaim(), competingClaim, context);
+const declareCompetingWar = (state: SimulationState) => declareLimitedWar(state, { warId: 'war.competing', attackerCountryId: 'country.c', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'claim-derived:claim.competing:country.b' }, context);
 
 describe('limited bilateral war', () => {
+  it('rejects competing active objectives across different Country pairs before mutation', () => {
+    const active = declareClaimWar(withCompetingClaim());
+    const before = structuredClone(active);
+    expect(validateDiplomacyState(active, context)).toBe(true);
+    expect(validateWarState(active, context)).toBe(true);
+    expect(getAvailableCasusBelli(active, 'country.c', 'country.b', context)).toHaveLength(1);
+    expect(() => declareCompetingWar(active)).toThrow(/Region region.target is already the objective of an active war/);
+    expect(active).toEqual(before);
+  });
+  it.each(['invariant', 'reload'] as const)('rejects imported duplicate active objectives with otherwise valid wars at %s', boundary => {
+    const prepared = withCompetingClaim();
+    const corrupted = declareClaimWar(prepared);
+    corrupted.wars.push(declareCompetingWar(prepared).wars[0]);
+    const before = structuredClone(corrupted);
+    expect(validateDiplomacyState(corrupted, context)).toBe(true);
+    expect(corrupted.wars.map(war => war.attackerCountryId)).toEqual(['country.a', 'country.c']);
+    expect(corrupted.occupationByRegion).toEqual({});
+    if (boundary === 'invariant') expect(() => validateWarState(corrupted, context)).toThrow(/Duplicate active war target Region/);
+    else expect(() => restoreSimulationState(serializeSimulationState(corrupted), regions, {}, {}, context)).toThrow(/Duplicate active war target Region/);
+    expect(corrupted).toEqual(before);
+  });
+  it('reuses an ended objective without rewriting either historical war', () => {
+    const ended = endWar(declareClaimWar(withCompetingClaim()), 'war.001', 'white_peace', context);
+    const historical = structuredClone(ended.wars[0]);
+    const next = declareCompetingWar(ended);
+    expect(next.regionOwnership['region.target']).toBe('country.b');
+    expect(next.wars[0]).toEqual(historical);
+    expect(validateWarState(next, context)).toBe(true);
+    expect(restoreSimulationState(serializeSimulationState(next), regions, {}, {}, context)).toEqual(next);
+    const bothEnded = endWar(next, 'war.competing', 'white_peace', context);
+    expect(bothEnded.wars).toHaveLength(2);
+    expect(bothEnded.wars.every(war => war.status === 'ended' && war.targetRegionId === 'region.target')).toBe(true);
+    expect(bothEnded.wars[0]).toEqual(historical);
+    expect(validateWarState(bothEnded, context)).toBe(true);
+    expect(restoreSimulationState(serializeSimulationState(bothEnded), regions, {}, {}, context)).toEqual(bothEnded);
+  });
+  it('allows distinct active objectives and preserves the other war after victory', () => {
+    const active = createClaim(declareClaimWar(), { ...competingClaim, regionId: 'region.other' }, context);
+    const concurrent = declareLimitedWar(active, { warId: 'war.other', attackerCountryId: 'country.c', defenderCountryId: 'country.b', targetRegionId: 'region.other', casusBelliId: 'claim-derived:claim.competing:country.b' }, context);
+    expect(validateWarState(concurrent, context)).toBe(true);
+    const occupied = occupyRegion(concurrent, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context);
+    const ended = endWar(occupied, 'war.001', 'attacker_victory', context);
+    expect(ended.wars[1]).toEqual(concurrent.wars[1]);
+    expect(ended.wars[1].status).toBe('active');
+    expect(ended.regionOwnership['region.other']).toBe('country.b');
+    expect(validateWarState(ended, context)).toBe(true);
+    expect(restoreSimulationState(serializeSimulationState(ended), regions, {}, {}, context)).toEqual(ended);
+  });
+  it('defensively rejects duplicate Explicit CB targets before snapshotting or consuming the CB', () => {
+    const corrupted = createExplicitCasusBelli(initial(), { id: 'cb.defensive', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'territorial_claim', creationDate: '2026-01-01', targetRegionIds: ['region.target'] }, context);
+    corrupted.explicitCasusBelli[0].targetRegionIds!.push('region.target');
+    const before = structuredClone(corrupted);
+    expect(() => declareLimitedWar(corrupted, { warId: 'war.defensive', attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'cb.defensive' }, context)).toThrow(/duplicate target Region/);
+    expect(corrupted).toEqual(before);
+  });
+  it('preserves valid multi-Region Explicit CB order and transfers only the declared objective', () => {
+    const targets = ['region.other', 'region.target'];
+    const authorized = createExplicitCasusBelli(initial(), { id: 'cb.multi', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'territorial_claim', creationDate: '2026-01-01', targetRegionIds: targets }, context);
+    expect(validateDiplomacyState(authorized, context)).toBe(true);
+    const declared = declareLimitedWar(authorized, { warId: 'war.multi', attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'cb.multi' }, context);
+    expect(declared.wars[0].declarationCasusBelli.targetRegionIds).toEqual(targets);
+    expect(declared.wars[0].declarationCasusBelli.targetRegionIds).not.toBe(authorized.explicitCasusBelli[0].targetRegionIds);
+    expect(authorized.explicitCasusBelli[0].status).toBe('active');
+    expect(validateWarState(declared, context)).toBe(true);
+    const ended = endWar(occupyRegion(declared, { regionId: 'region.target', warId: 'war.multi', occupierCountryId: 'country.a' }, context), 'war.multi', 'attacker_victory', context);
+    expect(ended.regionOwnership).toEqual({ ...authorized.regionOwnership, 'region.target': 'country.a' });
+    expect(ended.wars[0].declarationCasusBelli).toEqual(declared.wars[0].declarationCasusBelli);
+    expect(restoreSimulationState(serializeSimulationState(ended), regions, {}, {}, context)).toEqual(ended);
+  });
+  it('keeps all twelve public Region, Diplomacy and War mutations invariant-closed and immutable', () => {
+    let state = initial();
+    const apply = (mutation: (current: SimulationState) => SimulationState) => {
+      const before = structuredClone(state);
+      const next = mutation(state);
+      expect(state).toEqual(before);
+      expect(validateDiplomacyState(next, context)).toBe(true);
+      expect(validateWarState(next, context)).toBe(true);
+      expect(restoreSimulationState(serializeSimulationState(next), regions, {}, {}, context)).toEqual(next);
+      state = next;
+    };
+    apply(current => setRelation(current, 'country.a', 'country.b', 20, 'friendly', context));
+    apply(current => adjustRelation(current, 'country.b', 'country.a', -50, context));
+    apply(current => transferRegion(current, 'region.other', 'country.b', 'country.c'));
+    apply(current => createClaim(current, claimInput, context));
+    apply(current => createExplicitCasusBelli(current, { id: 'cb.revoke', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'retaliation', creationDate: '2026-01-01' }, context));
+    apply(current => revokeCasusBelli(current, 'cb.revoke'));
+    apply(current => createExplicitCasusBelli(current, { id: 'cb.expire', issuerCountryId: 'country.c', targetCountryId: 'country.b', type: 'containment', creationDate: '2025-12-01', expiryDate: '2025-12-31' }, context));
+    apply(current => expireCasusBelli(current, 'cb.expire'));
+    apply(current => declareClaimWar(current));
+    const snapshot = structuredClone(state.wars[0].declarationCasusBelli);
+    apply(current => renounceClaim(current, claimInput.id));
+    apply(current => occupyRegion(current, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context));
+    apply(current => liberateRegion(current, 'region.target', 'country.b', context));
+    apply(current => occupyRegion(current, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context));
+    apply(current => endWar(current, 'war.001', 'attacker_victory', context));
+    expect(state.wars[0].declarationCasusBelli).toEqual(snapshot);
+    apply(current => transferRegion(current, 'region.target', 'country.a', 'country.c'));
+  });
   it('rejects active target sovereignty corruption even without occupation, including schema-13 reload', () => {
     const active = declareClaimWar();
     expect(validateWarState(active, context)).toBe(true);

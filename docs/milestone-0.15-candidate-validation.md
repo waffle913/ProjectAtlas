@@ -909,3 +909,66 @@ is changed by this follow-up. Serial execution takes longer overall but
 retains each benchmark's original deadline. The only additional files are
 the existing workflow and this report. Both exact-final-SHA jobs must still
 be verified after the follow-up is pushed.
+
+## Final Region / Diplomacy / Limited War mutation closure
+
+Reviewed base: `a20b1525963d6995c0f8f56a3ecb53f1800cca91`, on
+`waffle913-milestone-015-government-information`. This is corrective-only,
+not acceptance of 0.15 or authorization for 0.16.
+
+Two public-mutation closure defects were reproduced before correction:
+different Country pairs could declare active wars over the same Region,
+making a surviving war invalid after conquest; duplicate Explicit CB targets
+were accepted by creation/diplomacy validation but rejected in war evidence.
+Active objective Regions are now unique at declaration and in persisted
+war validation. Explicit CB targets are unique at creation, diplomacy
+validation and defensive war declaration. Duplicates are rejected, never
+normalized. Ended objective reuse, ordered distinct multi-Region CBs and
+claim-derived single targets retain their existing behavior.
+
+The separate review covered every public mutator in the three modules:
+
+| Mutator(s) | Closure / compatibility checked |
+|---|---|
+| `transferRegion` | Registered endpoints, current owner, active objective/occupation guards; ordinary/no-op/post-war transfers |
+| `setRelation`, `adjustRelation` | Registered non-self canonical pair, finite bounded score, valid status, immutable record |
+| `createClaim`, `renounceClaim` | Unique ID/active claim, registered references, strict dates/type, retained renounced history |
+| `createExplicitCasusBelli` | Unique ID, registered endpoints/targets, unique target list, strict dates/type, defensive target-array copy |
+| `revokeCasusBelli`, `expireCasusBelli` | Existing ID, supported terminal status, preserved evidence/references/target list |
+| `declareLimitedWar` | Unique ID/pair/active target, defender sovereignty, available territorial CB, current-date declaration, valid snapshot |
+| `occupyRegion`, `liberateRegion`, `endWar` | Active war, opposing sovereign/belligerent/date checks, one occupation, objective-only victory and war-scoped occupation removal |
+
+**No additional concrete mutation-closure defect was found** in this scoped
+review. Existing future-dated claim/Explicit CB availability remains
+inclusive on its documented dates; no speculative lifecycle restriction,
+whole-state mutation scan or other subsystem audit was introduced.
+
+Exact regression names in `war.test.ts`: `rejects competing active objectives
+across different Country pairs before mutation`; `rejects imported duplicate
+active objectives with otherwise valid wars at invariant` / `at reload`;
+`reuses an ended objective without rewriting either historical war`;
+`allows distinct active objectives and preserves the other war after victory`;
+`defensively rejects duplicate Explicit CB targets before snapshotting or
+consuming the CB`; `preserves valid multi-Region Explicit CB order and transfers
+only the declared objective`; `keeps all twelve public Region, Diplomacy and
+War mutations invariant-closed and immutable`. `diplomacy.test.ts` adds
+`rejects duplicate Explicit CB target creation without mutating state or input`
+and persisted duplicate-target cases at `invariant` / `reload`.
+
+| Executed command / check | Actual result |
+|---|---|
+| `npx vitest run src\simulation\__tests__\diplomacy.test.ts src\simulation\__tests__\war.test.ts --maxWorkers=1` before runtime fixes | Exit 1: seven expected failures / 31 passes, 2.02 s; both defects reproduced at all requested rejection boundaries |
+| `npx vitest run src\simulation\__tests__\region.test.ts src\simulation\__tests__\diplomacy.test.ts src\simulation\__tests__\war.test.ts src\simulation\__tests__\engine.test.ts src\simulation\__tests__\snapshotArchitecture.test.ts --maxWorkers=1` | Exit 0: 111 tests / five files, 4.34 s |
+| `npx tsc -b --pretty false` | Exit 0 |
+| `npm run verify -- -- --maxWorkers=1` | Exit 0: data reproducibility/audit, production build, 478 tests / 30 files, 312.61 s test-run duration; includes unchanged world benchmarks |
+| `git diff --check` | Exit 0 |
+| Built-in `rg`, `Math\.random`, changed runtime `war.ts` / `diplomacy.ts` | No matches |
+
+No schema/migration, saved-history repair, result rewrite, identity, data,
+licence, scheduler/RNG, war outcome, timeout, benchmark threshold, assertion,
+test selection, Node version or one-worker CI configuration was changed.
+The existing large-bundle warning remains. The diff is limited to the two
+runtime files, their tests, README and this corrective record.
+An exact implementation-SHA/Ubuntu/Windows receipt will be appended only
+after actual CI verification; a documentation-only receipt commit is then
+verified separately before reporting the final branch HEAD.

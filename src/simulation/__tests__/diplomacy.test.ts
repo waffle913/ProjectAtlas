@@ -5,7 +5,7 @@ import { emptyGovernance } from '../governance/model';
 import { emptyInformation } from '../information/model';
 import { emptySocioeconomy } from '../../simulation/socioeconomy/model';
 import { describe, expect, it } from 'vitest';
-import type { SimulationState } from '../../types';
+import type { RegionEntity, SimulationState } from '../../types';
 import { transferRegion } from '../region';
 import { adjustRelation, countryPairKey, createClaim, createExplicitCasusBelli, expireCasusBelli, getAvailableCasusBelli, getDiplomaticStatus, getRelation, renounceClaim, revokeCasusBelli, setRelation, validateDiplomacyState, type DiplomacyContext } from '../diplomacy';
 import { restoreSimulationState, serializeSimulationState } from '../save';
@@ -14,8 +14,24 @@ import { createEngineState } from '../state';
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.x']) };
 const initial = (): SimulationState => ({ schemaVersion: 13, governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.x': 'country.b' }, populationByRegion: { 'region.x': 5_000_000 }, economicOutputByRegion: { 'region.x': 200_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
 const claim = { id: 'claim.001', claimantCountryId: 'country.a', regionId: 'region.x', type: 'territorial' as const, creationDate: '2026-01-01', reason: 'Reviewed test claim' };
+const region: RegionEntity = { id: 'region.x', parentCountryId: 'country.b', initialOwnerCountryId: 'country.b', commonName: 'X', administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: ['x'] } };
 
 describe('diplomacy foundation', () => {
+  it('rejects duplicate Explicit CB target creation without mutating state or input', () => {
+    const base = initial(), before = structuredClone(base);
+    const cb = { id: 'cb.duplicate', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'territorial_claim' as const, creationDate: '2026-01-01', targetRegionIds: ['region.x', 'region.x'] };
+    const inputBefore = structuredClone(cb);
+    expect(() => createExplicitCasusBelli(base, cb, context)).toThrow(/duplicate target Region/);
+    expect(base).toEqual(before); expect(cb).toEqual(inputBefore);
+  });
+  it.each(['invariant', 'reload'] as const)('rejects duplicate Explicit CB targets in persisted state at %s', boundary => {
+    const corrupted = createExplicitCasusBelli(initial(), { id: 'cb.corrupted', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'territorial_claim', creationDate: '2026-01-01', targetRegionIds: ['region.x'] }, context);
+    corrupted.explicitCasusBelli[0].targetRegionIds!.push('region.x');
+    const before = structuredClone(corrupted);
+    if (boundary === 'invariant') expect(() => validateDiplomacyState(corrupted, context)).toThrow(/duplicate target Region/);
+    else expect(() => restoreSimulationState(serializeSimulationState(corrupted), [region], {}, {}, context)).toThrow(/duplicate target Region/);
+    expect(corrupted).toEqual(before);
+  });
   it('uses order-independent pair keys and neutral defaults', () => {
     expect(countryPairKey('country.a', 'country.b')).toBe(countryPairKey('country.b', 'country.a'));
     expect(getRelation(initial(), 'country.a', 'country.b')).toMatchObject({ score: 0, status: 'neutral' });
@@ -80,7 +96,6 @@ describe('diplomacy foundation', () => {
   });
   it('round-trips v6 diplomacy without aliasing mutable arrays', () => {
     const state = createExplicitCasusBelli(createClaim(initial(), claim, context), { id: 'cb.001', issuerCountryId: 'country.a', targetCountryId: 'country.b', type: 'retaliation', creationDate: '2026-01-01', targetRegionIds: ['region.x'] }, context);
-    const region = { id: 'region.x', parentCountryId: 'country.b', initialOwnerCountryId: 'country.b', commonName: 'X', administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped' as const, datasetId: 'test', sourceFeatureIds: ['x'] } };
     const restored = restoreSimulationState(serializeSimulationState(state), [region], {}, {}, context);
     expect(restored).toEqual(state); restored.claims[0].status = 'renounced'; restored.explicitCasusBelli[0].targetRegionIds!.push('mutation'); expect(state.claims[0].status).toBe('active'); expect(state.explicitCasusBelli[0].targetRegionIds).toEqual(['region.x']);
     const invalid = structuredClone(state); invalid.claims[0].claimantCountryId = 'country.unknown';
