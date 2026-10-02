@@ -91,6 +91,7 @@ export function validateWarState(state: SimulationState, context: WarContext) {
     if (!validDate(war.startDate) || war.startDate > state.date || (war.endDate !== undefined && (!validDate(war.endDate) || war.endDate < war.startDate || war.endDate > state.date))) errors.push(`War has malformed or future dates: ${war.id}`);
     if (war.status === 'active') {
       if (war.endDate !== undefined || war.outcome !== undefined) errors.push(`Active war contains an end state: ${war.id}`);
+      if (war.warGoal === 'take_region' && state.regionOwnership[war.targetRegionId] !== war.defenderCountryId) errors.push(`Active war target is not sovereignly owned by the defender: ${war.id}`);
       const pair = pairKey(war.attackerCountryId, war.defenderCountryId); if (activePairs.has(pair)) errors.push(`Duplicate active war pair: ${pair}`); activePairs.add(pair);
     } else if (war.status === 'ended') { if (!war.endDate || !war.outcome || !['attacker_victory', 'defender_victory', 'white_peace'].includes(war.outcome)) errors.push(`Ended war lacks a valid outcome: ${war.id}`); }
     else errors.push(`Invalid war status: ${war.id}`);

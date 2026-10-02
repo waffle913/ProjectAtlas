@@ -20,6 +20,34 @@ const withClaim = () => createClaim(initial(), claimInput, context);
 const declareClaimWar = (state = withClaim(), warId = 'war.001') => declareLimitedWar(state, { warId, attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'claim-derived:claim.target:country.b' }, context);
 
 describe('limited bilateral war', () => {
+  it('rejects active target sovereignty corruption even without occupation, including schema-13 reload', () => {
+    const active = declareClaimWar();
+    expect(validateWarState(active, context)).toBe(true);
+    expect(restoreSimulationState(serializeSimulationState(active), regions, {}, {}, context)).toEqual(active);
+    const corrupted = structuredClone(active); corrupted.regionOwnership['region.target'] = 'country.c';
+    expect(corrupted.occupationByRegion).toEqual({});
+    expect(() => validateWarState(corrupted, context)).toThrow(/target.*sovereignly owned by the defender/);
+    expect(() => restoreSimulationState(serializeSimulationState(corrupted), regions, {}, {}, context)).toThrow(/target.*sovereignly owned by the defender/);
+  });
+  it.each(['attacker_victory', 'defender_victory', 'white_peace'] as const)('protects non-target occupied sovereignty without changing liberation or %s', outcome => {
+    const occupied = occupyRegion(declareClaimWar(), { regionId: 'region.other', warId: 'war.001', occupierCountryId: 'country.a' }, context);
+    const before = structuredClone(occupied);
+    expect(() => transferRegion(occupied, 'region.other', 'country.b', 'country.c')).toThrow(/occupied.*active war/);
+    expect(occupied).toEqual(before);
+    expect(transferRegion(occupied, 'region.other', 'country.b', 'country.b')).toEqual(occupied);
+    const liberated = liberateRegion(occupied, 'region.other', 'country.b', context);
+    expect(liberated.occupationByRegion).toEqual({});
+    expect(validateWarState(transferRegion(liberated, 'region.other', 'country.b', 'country.c'), context)).toBe(true);
+    const ready = outcome === 'attacker_victory'
+      ? occupyRegion(occupied, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context) : occupied;
+    const ended = endWar(ready, 'war.001', outcome, context);
+    expect(ended.occupationByRegion).toEqual({});
+    expect(ended.regionOwnership['region.other']).toBe('country.b');
+    expect(ended.regionOwnership['region.target']).toBe(outcome === 'attacker_victory' ? 'country.a' : 'country.b');
+    const transferred = transferRegion(ended, 'region.other', 'country.b', 'country.c');
+    expect(validateWarState(transferred, context)).toBe(true);
+    expect(restoreSimulationState(serializeSimulationState(transferred), regions, {}, {}, context)).toEqual(transferred);
+  });
   it('requires explicit resolution for an active objective but permits ordinary transfers elsewhere and after peace', () => {
     const active = declareClaimWar();
     expect(() => transferRegion(active, 'region.target', 'country.b', 'country.c')).toThrow(/active war objective/);
@@ -29,7 +57,9 @@ describe('limited bilateral war', () => {
     expect(occupied.regionOwnership['region.target']).toBe('country.b');
     const ended = endWar(occupied, 'war.001', 'attacker_victory', context);
     expect(validateWarState(ended, context)).toBe(true);
-    expect(transferRegion(ended, 'region.target', 'country.a', 'country.c').regionOwnership['region.target']).toBe('country.c');
+    const transferred = transferRegion(ended, 'region.target', 'country.a', 'country.c');
+    expect(transferred.regionOwnership['region.target']).toBe('country.c');
+    expect(validateWarState(transferred, context)).toBe(true);
   });
   it.each([['region.target', 'region.unknown'], ['region.target', 'region.target']])('rejects extra unknown/duplicate CB snapshot targets: %s', (...targets) => {
     const state = declareClaimWar(); state.wars[0].declarationCasusBelli.targetRegionIds = targets;

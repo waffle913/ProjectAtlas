@@ -843,3 +843,44 @@ must separately read the Actions run on the exact final SHA and report
 both Ubuntu/Windows Node 22 conclusions. Local success alone is not
 cross-platform verification. No main merge, 0.16 work or 0.15 acceptance
 is part of this correction.
+
+## War sovereignty boundary follow-up to `c1087f8452426dd66bab1d3c0c85c33af87cc746`
+
+This independently requested correction closes three canonical-state holes,
+without changing war outcomes, occupation semantics, claims, CBs or any
+other subsystem. Active `take_region` wars now require their target's
+sovereign owner to remain the defender. The existing shared war invariant
+also rejects that corruption during schema-13 reload, even without an
+occupation. Generic Region transfers reject sovereignty changes of any
+Region occupied under an active war, not only the declared objective.
+Both transfer endpoints must be own entries in the existing canonical
+`engine.fidelityByCountry` universe; inherited object keys are not Countries.
+
+Regressions cover target-owner-only corruption, unknown source/destination
+Countries, prototype-key endpoints, unchanged rejected state, registered
+no-op transfers, non-target occupation, liberation, all three peace outcomes
+and post-war transfer/reload. The synthetic v2 migration/transfer test now
+supplies its complete two-Country context before transferring to beta;
+no migration implementation or archived save fixture changes.
+
+| Executed command / check | Actual result |
+|---|---|
+| `npx vitest run src\simulation\__tests__\region.test.ts src\simulation\__tests__\war.test.ts -t 'rejects active target sovereignty\|protects non-target occupied\|rejects unregistered sovereignty' --maxWorkers=1` before runtime correction | Exit 1; seven expected regression failures, 29 filtered out: all three holes reproduced |
+| `npx tsc -b --pretty false` | Exit 0 |
+| `npx vitest run src\simulation\__tests__\region.test.ts src\simulation\__tests__\war.test.ts src\simulation\__tests__\engine.test.ts src\simulation\__tests__\diplomacy.test.ts src\simulation\__tests__\snapshotArchitecture.test.ts --maxWorkers=1` | Exit 0; 100 tests / five files, 5.08 s |
+| `npm run verify`, first run | Exit 1; 466 passed, one fiscal world test exceeded its unchanged 60-second timeout under concurrent full-suite load; 181.59 s |
+| `npm run benchmark:world` | Exit 0; four tests, 53.69 s; isolated fiscal test 38.003 s with ten-year simulation 28,333.17 ms |
+| `npm run verify`, unchanged retry | Exit 0; data audit, production build and 467 tests / 30 files, 156.63 s test-run duration |
+| `git diff --check` | Exit 0 |
+| Built-in `rg`, `Math\.random`, changed runtime files `region.ts` and `war.ts` | No matches |
+
+No timeout, concurrency configuration or benchmark threshold was relaxed.
+The existing large-bundle build warning remains. The isolated benchmark
+retains the economic/fiscal checksums and save sizes recorded above, with
+353 reused / 12 changed snapshot days. There is no new schema, migration,
+history, source, licence, Country/Region identity, RNG or scheduler state;
+schema 13 and its historical compatibility remain unchanged. The reviewed
+diff is limited to the two runtime files, their two test files, README and
+this report; the accepted handoff is untouched. Exact-SHA Ubuntu/Windows
+Actions verification must be reported after push, separately from these
+local results. This follow-up neither accepts 0.15 nor starts 0.16.

@@ -56,6 +56,8 @@ Occupation is stored separately in `occupationByRegion`. It never changes sovere
 
 The attacker objective is satisfied only when it occupies the declared target under that war. Attacker victory then transfers exactly that one Region through `regionOwnership`; every other occupied Region remains with its sovereign owner. Defender victory and white peace transfer nothing. Every peace outcome records the result, retains the ended war, and clears that war's occupations. There is deliberately no war score, army, combat, pathfinding, alliance or military-economy model yet.
 
+An active `take_region` target must remain sovereignly owned by its defender, including on save reload. Generic `transferRegion()` sovereignty changes require both Countries to be registered in the canonical engine's `fidelityByCountry` entries and reject active war objectives or Regions occupied under an active war, even when not the objective. Explicit war resolution, liberation, ordinary unoccupied non-objective transfers and post-war transfers retain their existing semantics; registered no-op transfers remain valid.
+
 ## Model
 
 The map is explicitly not the game state. `Country` holds stable political identity, `Region` is the primary gameplay ownership unit, and the existing macro `Territory` remains for compatibility and source mapping. `SimulationState.regionOwnership` changes independently from identity and geometry. The model is Country → Region → replaceable source feature(s); replacing, reordering or simplifying geometry does not replace a Region.

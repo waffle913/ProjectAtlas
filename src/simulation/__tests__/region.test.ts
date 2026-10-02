@@ -27,6 +27,18 @@ const state: SimulationState = {
 };
 
 describe('Region ownership and saves', () => {
+  it.each(['country.unknown', 'toString', '__proto__'])('rejects unregistered sovereignty endpoints, including inherited fidelity keys: %s', unknown => {
+    const before = structuredClone(state);
+    expect(() => transferRegion(state, region.id, 'country.alpha', unknown)).toThrow(/Unknown Country ID/);
+    expect(() => transferRegion(state, region.id, unknown, 'country.beta')).toThrow(/Unknown Country ID/);
+    const corrupted = { ...state, regionOwnership: { ...state.regionOwnership, [region.id]: unknown } };
+    expect(() => transferRegion(corrupted, region.id, unknown, 'country.beta')).toThrow(/Unknown Country ID/);
+    expect(state).toEqual(before);
+  });
+  it('permits a registered no-op without changing any canonical branch', () => {
+    const next = transferRegion(state, region.id, 'country.alpha', 'country.alpha');
+    expect(next).toEqual(state); expect(next.engine).toBe(state.engine);
+  });
   it.each([1, 2, 3, 4])('always validates the final canonical state for schema %s without optional diplomacy context', schemaVersion => {
     const legacy = {
       schemaVersion, date: '2031-04-05', paused: false, speed: 2,
@@ -88,7 +100,8 @@ describe('Region ownership and saves', () => {
   });
   it('migrates v2 population deterministically and transfers control without changing inhabitants', () => {
     const v2 = { schemaVersion: 2, date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { 'territory.alpha': 'country.alpha' }, regionOwnership: { [region.id]: 'country.alpha' } };
-    const migrated = migrateSimulationState(v2, [region], { [region.id]: 900 }, { [region.id]: 800 });
+    const context = { countryIds: new Set(['country.alpha', 'country.beta']), regionIds: new Set([region.id]) };
+    const migrated = migrateSimulationState(v2, [region], { [region.id]: 900 }, { [region.id]: 800 }, context);
     const transferred = transferRegion(migrated, region.id, 'country.alpha', 'country.beta');
     expect(transferred.populationByRegion[region.id]).toBe(900);
     expect(controlledBaselinePopulation(transferred, 'country.beta')).toBe(900);
