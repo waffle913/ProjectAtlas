@@ -5,6 +5,7 @@ import { emptyPolitics } from '../politics/model';
 import { emptyGovernance } from '../governance/model';
 import { emptyInformation } from '../information/model';
 import { inspectCrises, runCrisisMonth } from '../crisis/runtime';
+import { crisisInvariant } from '../crisis/invariants';
 import { emptyFiscal } from '../fiscal/model';
 import { initializeFiscal, runFiscalMonth } from '../fiscal/runtime';
 import { requestFidelityTransition, applyPendingFidelityTransitions } from '../fidelity';
@@ -64,6 +65,27 @@ function makeDangerous(state: SimulationState, type: CrisisType, countryId = 'co
 }
 
 describe('generic deterministic crisis engine', () => {
+  it.each(['severity', 'maximumSeverity', 'dangerous', 'recovered', 'persistence', 'snapshot-pressure', 'snapshot-severity', 'snapshot-chance', 'snapshot-roll', 'snapshot-date', 'snapshot-duplicate', 'snapshot-flag', 'state-date'])('rejects corrupted derived crisis evidence: %s', corruption => {
+    let { state, regions } = build(); state = makeDangerous(state, 'fiscal_stress');
+    for (const month of [3, 4, 5, 6]) state = evaluate(state, month, 0);
+    const current = episode(state, 'fiscal_stress'), snapshot = current.activationSnapshot!, tripwire = current.currentTripwires[0];
+    const invariantContext = { countryIds: new Set(['country.a']), regionIds: new Set(regions.map(item => item.id)), regions };
+    expect(snapshot).toBeDefined(); expect(crisisInvariant.check(state, invariantContext, 'save')).toEqual([]);
+    if (corruption === 'severity') current.severity = 'none';
+    if (corruption === 'maximumSeverity') current.maximumSeverity = 'none';
+    if (corruption === 'dangerous') tripwire.dangerous = !tripwire.dangerous;
+    if (corruption === 'recovered') tripwire.recovered = !tripwire.recovered;
+    if (corruption === 'persistence') tripwire.persistenceContribution++;
+    if (corruption === 'snapshot-pressure') snapshot.pressure++;
+    if (corruption === 'snapshot-severity') snapshot.severity = 'none';
+    if (corruption === 'snapshot-chance') snapshot.tippingChanceBps = 10_001;
+    if (corruption === 'snapshot-roll') snapshot.tippingRollBps = -1;
+    if (corruption === 'snapshot-date') snapshot.date = '2026-13-01';
+    if (corruption === 'snapshot-duplicate') snapshot.tripwires.push(structuredClone(snapshot.tripwires[0]));
+    if (corruption === 'snapshot-flag') snapshot.tripwires[0].dangerous = !snapshot.tripwires[0].dangerous;
+    if (corruption === 'state-date') state.crisis.lastMonthlyDate = '2026-02-30';
+    expect(crisisInvariant.check(state, invariantContext, 'save').length).toBeGreaterThan(0);
+  });
   it('runs monthly after economy, fiscal and administration in the shared scheduler', () => {
     const tasks = createCoreScheduler().describe();
     expect(tasks.find(item => item.id === 'crisis.monthly')).toMatchObject({ cadence: 'monthly', priority: 300 });

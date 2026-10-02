@@ -1,9 +1,10 @@
 import type { SimulationInvariant } from '../invariants';
 import { CRISIS_MODEL, CRISIS_TYPES, crisisRngKey, type CrisisEpisode, type CrisisSeverity } from './model';
+import { isSimulationDate as dateValid } from '../date';
+import { crisisSeverityRank, severityForPressure, tripwireFlags, tripwirePersistence } from './derived';
 
 const phases = new Set(['NORMAL', 'PRESSURE', 'ACTIVE', 'RECOVERING']);
 const severities = new Set<CrisisSeverity>(['none', 'low', 'moderate', 'severe', 'critical']);
-const dateValid = (value: string | undefined) => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && new Date(`${value}T00:00:00.000Z`).toISOString().slice(0, 10) === value);
 const quantity = (value: unknown) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 
 function validateEpisode(episode: CrisisEpisode, stateDate: string, countryId: string, regionIds: ReadonlySet<string>) {
@@ -12,6 +13,7 @@ function validateEpisode(episode: CrisisEpisode, stateDate: string, countryId: s
   if (episode.id !== `crisis:${countryId}:${episode.type}:${episode.episodeOrdinal}` || !quantity(episode.episodeOrdinal)) fail('Unstable episode ID or ordinal.');
   if (!phases.has(episode.state) || !severities.has(episode.severity) || !severities.has(episode.maximumSeverity)) fail('Invalid phase or severity.');
   if (!quantity(episode.currentPressure) || !quantity(episode.maximumPressure) || episode.maximumPressure < episode.currentPressure || !quantity(episode.dangerousEvaluations) || !quantity(episode.recoveryEvaluations)) fail('Invalid pressure or persistence counter.');
+  if (episode.severity !== severityForPressure(episode.currentPressure) || episode.maximumSeverity !== severityForPressure(episode.maximumPressure) || crisisSeverityRank[episode.maximumSeverity] < crisisSeverityRank[episode.severity]) fail('Severity does not reconcile with current/maximum pressure.');
   for (const date of [episode.pressureStartedOn, episode.activatedOn, episode.recoveringOn, episode.endedOn, episode.lastEvaluatedOn]) if (date && (!dateValid(date) || date > stateDate)) fail(`Invalid or future date ${date}.`);
   if (episode.activatedOn && (!episode.pressureStartedOn || episode.activatedOn < episode.pressureStartedOn)) fail('Activation predates pressure.');
   if (episode.recoveringOn && (!episode.activatedOn || episode.recoveringOn < episode.activatedOn)) fail('Recovery predates activation.');
@@ -19,19 +21,31 @@ function validateEpisode(episode: CrisisEpisode, stateDate: string, countryId: s
   if (episode.state === 'RECOVERING' && (!episode.activatedOn || !episode.recoveringOn)) fail('RECOVERING episode lacks activation/recovery dates.');
   if (episode.endedOn) fail('Current episode cannot have an end date.');
   if (episode.regionIds?.some(id => !regionIds.has(id))) fail('Unknown Region ID.');
-  const ids = new Set<string>(); let reconciled = 0;
-  for (const tripwire of episode.currentTripwires) {
-    if (ids.has(tripwire.id)) fail(`Duplicate tripwire ${tripwire.id}.`); ids.add(tripwire.id);
-    if (tripwire.id !== `${episode.type}:${tripwire.indicator}` || tripwire.countryId !== countryId || tripwire.crisisType !== episode.type) fail(`Unstable tripwire identity ${tripwire.id}.`);
-    if (![tripwire.currentValue, tripwire.dangerThreshold, tripwire.recoveryThreshold, tripwire.exceedanceBps, tripwire.persistenceMonths, tripwire.recoveryMonths, tripwire.severityContribution, tripwire.persistenceContribution, tripwire.deteriorationContribution, tripwire.pressureContribution].every(quantity)) fail(`Invalid quantity in ${tripwire.id}.`);
-    if (tripwire.unit !== 'BASIS_POINTS' || !['above', 'below'].includes(tripwire.direction)) fail(`Invalid unit/direction in ${tripwire.id}.`);
-    if (tripwire.direction === 'above' && tripwire.dangerThreshold <= tripwire.recoveryThreshold || tripwire.direction === 'below' && tripwire.dangerThreshold >= tripwire.recoveryThreshold) fail(`Missing hysteresis in ${tripwire.id}.`);
-    if (tripwire.pressureContribution !== tripwire.severityContribution + tripwire.persistenceContribution + tripwire.deteriorationContribution) fail(`Pressure components do not reconcile in ${tripwire.id}.`);
-    reconciled += tripwire.pressureContribution;
-  }
-  if (reconciled !== episode.currentPressure) fail('Episode pressure does not reconcile with tripwires.');
+  const validateTripwires = (tripwires: CrisisEpisode['currentTripwires']) => {
+    const ids = new Set<string>(); let reconciled = 0;
+    for (const tripwire of tripwires) {
+      if (ids.has(tripwire.id)) fail(`Duplicate tripwire ${tripwire.id}.`); ids.add(tripwire.id);
+      if (tripwire.id !== `${episode.type}:${tripwire.indicator}` || tripwire.countryId !== countryId || tripwire.crisisType !== episode.type) fail(`Unstable tripwire identity ${tripwire.id}.`);
+      if (![tripwire.currentValue, tripwire.dangerThreshold, tripwire.recoveryThreshold, tripwire.exceedanceBps, tripwire.persistenceMonths, tripwire.recoveryMonths, tripwire.severityContribution, tripwire.persistenceContribution, tripwire.deteriorationContribution, tripwire.pressureContribution].every(quantity)) fail(`Invalid quantity in ${tripwire.id}.`);
+      if (tripwire.unit !== 'BASIS_POINTS' || !['above', 'below'].includes(tripwire.direction)) fail(`Invalid unit/direction in ${tripwire.id}.`);
+      if (tripwire.direction === 'above' && tripwire.dangerThreshold <= tripwire.recoveryThreshold || tripwire.direction === 'below' && tripwire.dangerThreshold >= tripwire.recoveryThreshold) fail(`Missing hysteresis in ${tripwire.id}.`);
+      const flags = tripwireFlags(tripwire.currentValue, tripwire.direction, tripwire.dangerThreshold, tripwire.recoveryThreshold);
+      if (tripwire.dangerous !== flags.dangerous || tripwire.recovered !== flags.recovered || tripwire.persistenceContribution !== tripwirePersistence(flags.dangerous, tripwire.persistenceMonths)) fail(`Derived flags or persistence do not reconcile in ${tripwire.id}.`);
+      if (tripwire.pressureContribution !== tripwire.severityContribution + tripwire.persistenceContribution + tripwire.deteriorationContribution) fail(`Pressure components do not reconcile in ${tripwire.id}.`);
+      reconciled += tripwire.pressureContribution;
+    }
+    return reconciled;
+  };
+  if (validateTripwires(episode.currentTripwires) !== episode.currentPressure) fail('Episode pressure does not reconcile with tripwires.');
   if (episode.activatedOn && episode.activationRngKey !== crisisRngKey(countryId, episode.type, episode.activatedOn, episode.episodeOrdinal)) fail('Activation RNG key is not deterministic.');
-  if (episode.activationSnapshot && episode.activationSnapshot.date !== episode.activatedOn) fail('Activation snapshot date mismatch.');
+  if (episode.activationSnapshot) {
+    const snapshot = episode.activationSnapshot;
+    if (!dateValid(snapshot.date) || snapshot.date !== episode.activatedOn || snapshot.date > stateDate) fail('Activation snapshot date mismatch.');
+    if (!quantity(snapshot.pressure) || snapshot.pressure > episode.maximumPressure || !severities.has(snapshot.severity) || snapshot.severity !== severityForPressure(snapshot.pressure)
+      || !quantity(snapshot.tippingChanceBps) || snapshot.tippingChanceBps > 10_000 || !quantity(snapshot.tippingRollBps) || snapshot.tippingRollBps >= 10_000
+      || !Array.isArray(snapshot.tripwires)) fail('Invalid activation snapshot metrics.');
+    else if (validateTripwires(snapshot.tripwires) !== snapshot.pressure) fail('Activation pressure does not reconcile with snapshot tripwires.');
+  }
   return errors;
 }
 

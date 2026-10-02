@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { cohortsFor, emptySocioeconomy } from '../socioeconomy/model';
 import { initializeSocioeconomy } from '../socioeconomy/initialization';
-import { emptyFiscal, type Policy, type TaxRule } from '../fiscal/model';
+import { CATEGORIES, emptyFiscal, type Policy, type TaxRule } from '../fiscal/model';
 import { emptyCrisis } from '../crisis/model';
 import { emptyPolitics } from '../politics/model';
 import { emptyGovernance } from '../governance/model';
 import { initializePartyLeaders } from '../governance/runtime';
 import { emptyInformation } from '../information/model';
-import { initializeFiscal, scheduleFiscalReform, evolveService, inspectFiscal } from '../fiscal/runtime';
+import { initializeFiscal, scheduleFiscalReform, evolveService, inspectFiscal, evaluateImmediateFiscalPolicyCounterfactual, monthlyBudgetForDate } from '../fiscal/runtime';
 import { consumptionCollected, consumptionLiability, netGoodsBudget, payrollMonthly, progressiveTax, progressiveMonthly, validateRule } from '../fiscal/math';
 import { createEngineState, cloneSimulationState } from '../state';
 import { advanceSimulationDays, createCoreScheduler } from '../engine';
@@ -27,6 +27,34 @@ const custom = (rule: TaxRule, changes: Partial<TaxRule>): TaxRule => ({ ...rule
 const reform = (s: SimulationState, countryId: string, policy: Policy, effectiveDate = s.date) => scheduleFiscalReform(s, { countryId, policy, effectiveDate });
 
 describe('0.11 fiscal legal and numeric contracts', () => {
+  it('conserves every annual category through the canonical dated monthly appropriation', () => {
+    const budget = initial().fiscal.countries[us].annualBudget;
+    for (const category of CATEGORIES) budget[category] = CATEGORIES.indexOf(category) * 13 + 1;
+    const months = Array.from({ length: 12 }, (_, index) => monthlyBudgetForDate(budget, `2026-${String(index + 1).padStart(2, '0')}-01`));
+    for (const category of CATEGORIES) expect(months.reduce((sum, month) => sum + month[category], 0)).toBe(budget[category]);
+    expect(months[0].health).toBeGreaterThanOrEqual(months[11].health);
+    expect(() => monthlyBudgetForDate(budget, '2026-02-30')).toThrow();
+  });
+  it('compares B with current same-day law A rather than a booked older ledger', () => {
+    const original = initial(), policy = original.fiscal.countries[us].policy;
+    const lawA = { ...policy, personal: custom(policy.personal!, { allowance: 0, bands: [{ lower: 0, rateBps: 1000 }] }) };
+    const lawB = { ...policy, personal: custom(policy.personal!, { allowance: 0, bands: [{ lower: 0, rateBps: 2000 }] }) };
+    const changed = reform(original, us, lawA), before = structuredClone(changed);
+    const current = evaluateImmediateFiscalPolicyCounterfactual(changed, us, lawA, changed.date)!;
+    const proposed = evaluateImmediateFiscalPolicyCounterfactual(changed, us, lawB, changed.date)!;
+    expect(current.proposedKnownRevenue).toBe(current.currentKnownRevenue); expect(current.proposedDisposableByIncome).toEqual(current.currentDisposableByIncome);
+    expect(proposed.currentKnownRevenue).toBe(current.currentKnownRevenue); expect(proposed.proposedKnownRevenue).toBeGreaterThan(proposed.currentKnownRevenue);
+    expect(changed).toEqual(before); expect(changed.fiscal.regions[rid]).toEqual(original.fiscal.regions[rid]);
+  });
+  it('uses the new sovereign current law without rewriting the booked owner or non-tax flows', () => {
+    const state = initial(), booked = state.fiscal.regions[rid]; booked.transfers = [101, 202, 303]; booked.publicOrders = 777; booked.privateResidual = 888;
+    state.regionOwnership[rid] = ca;
+    const before = structuredClone(state), currentLaw = state.fiscal.countries[ca].policy;
+    const unchanged = evaluateImmediateFiscalPolicyCounterfactual(state, ca, currentLaw, state.date)!;
+    expect(unchanged.currentKnownRevenue).toBe(unchanged.proposedKnownRevenue); expect(unchanged.currentDisposableByIncome).toEqual(unchanged.proposedDisposableByIncome);
+    expect(unchanged.currentTransfersByIncome).toEqual(unchanged.proposedTransfersByIncome); expect(unchanged.currentTransfersByIncome.reduce((a, b) => a + b)).toBeGreaterThanOrEqual(606);
+    expect(state).toEqual(before); expect(booked).toMatchObject({ owner: us, publicOrders: 777, privateResidual: 888 });
+  });
   it('calculates true marginal brackets, thresholds, allowances and large multi-band income', () => {
     const b = [{ lower: 0, rateBps: 1000 }, { lower: 10000, rateBps: 2000 }, { lower: 20000, rateBps: 3000 }];
     expect(progressiveTax(0, b)).toBe(0);

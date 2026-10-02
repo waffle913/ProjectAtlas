@@ -1,14 +1,15 @@
 import type { SimulationState } from '../../types';
 import { clearDirty } from '../dirty';
 import type { SimulationScheduler } from '../scheduler';
-import { allocate } from '../socioeconomy/model';
+import { allocate, ratio } from '../socioeconomy/model';
+import { aggregateNationalSupport } from './aggregation';
 import { cohortTraits, initialPreferences, organizationStateFor, politicalExperienceFor, supportFor } from './initialization';
 import { POLITICAL_ISSUES, POLITICS_MODEL as M, type CohortPoliticalOpinion, type PoliticalIssue, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
 import { politicalRegistry } from './registry';
 
 const clamp = (value: number) => Math.max(0, Math.min(10_000, Math.round(value)));
 const blend = (prior: number, target: number, inertia: number) => clamp((prior * inertia + target * (10_000 - inertia)) / 10_000);
-const ratioBps = (value: number, denominator: number) => denominator > 0 ? clamp(value * 10_000 / denominator) : 0;
+const ratioBps = (value: number, denominator: number) => denominator > 0 ? clamp(ratio(value, 10_000, denominator)) : 0;
 const serviceCoverage = (state: SimulationState, countryId: string, infrastructure = false) => {
   const services = state.fiscal.countries[countryId]?.services; if (!services) return null;
   const selected = infrastructure ? [services.infrastructure] : [services.health, services.education], values = selected.map(item => item.coverageBps).filter((value): value is number => value !== null);
@@ -20,17 +21,13 @@ function updateOpinion(cohortId: string, opinion: CohortPoliticalOpinion, curren
   const incomeDecline = baseline ? ratioBps(Math.max(0, baseline - current.disposableIncomePerPerson), baseline) : 0;
   const needsGap = current.basicNeedsCoverageBps === null ? 0 : 10_000 - current.basicNeedsCoverageBps, serviceGap = current.serviceCoverageBps === null ? 0 : 10_000 - current.serviceCoverageBps, infrastructureGap = infrastructureCoverage === null ? 0 : 10_000 - infrastructureCoverage;
   const distress = clamp((current.unemploymentBps + incomeDecline + needsGap + serviceGap) * M.incomeSensitivityBps[income] / 40_000), sentimentMagnitude = blend(Math.abs(opinion[4]), distress, M.sentimentInertiaBps);
-  const material = [incomeDecline + Math.floor((current.taxBurdenBps ?? 0) * (income === 'low' ? 1 : income === 'high' ? -0.5 : 0.25)), serviceGap, current.unemploymentBps, incomeDecline + needsGap, infrastructureGap, Math.floor(distress / 4)];
+  const tax = current.taxBurdenBps ?? 0, taxEffect = income === 'low' ? tax : income === 'high' ? -Math.round(tax / 2) : Math.round(tax / 4);
+  const material = [incomeDecline + taxEffect, serviceGap, current.unemploymentBps, incomeDecline + needsGap, infrastructureGap, Math.floor(distress / 4)];
   const preferences = [...opinion[0]], salience = [...opinion[1]], drivers: number[] = [];
   POLITICAL_ISSUES.forEach((issue, index) => { const directional = issue === 'public_order' ? material[index] : material[index] * (income === 'high' && issue === 'fiscal_distribution' ? -1 : 1); preferences[index] = blend(preferences[index], clamp(basePreference(cohortId, issue) + directional / 2), M.preferenceInertiaBps); salience[index] = blend(salience[index], clamp(4_000 + Math.abs(material[index])), M.salienceInertiaBps); if (Math.abs(material[index]) >= 500) drivers.push(index); });
   const target = supportFor(preferences, salience, opinion[3], parties), prior = opinion[2].length === target.length ? opinion[2] : supportFor(preferences, salience, opinion[3], parties);
   const support = allocate(10_000, target.map((value, index) => prior[index] * M.opinionInertiaBps + value * (10_000 - M.opinionInertiaBps)));
   return [preferences, salience, support, opinion[3], sentimentMagnitude ? -sentimentMagnitude : 0, baseline, drivers];
-}
-function aggregate(state: SimulationState, regionIds: string[], regional: Record<string, RegionalPoliticalOpinion>, partyCount: number) {
-  const weights = Array(partyCount + 1).fill(0); let persons = 0;
-  for (const regionId of regionIds) for (const [cohortId, opinion] of Object.entries(regional[regionId]?.cohorts ?? {})) { const count = state.socioeconomy.regions[regionId]?.cohorts.find(item => `${item.income}:${item.orientation}` === cohortId)?.persons ?? 0; persons += count; opinion[2].forEach((value, index) => { weights[index] += value * count; }); }
-  return allocate(10_000, persons ? weights : weights.map((_, index) => index === partyCount ? 1 : 0));
 }
 
 export function runPoliticalOpinionWeek(state: SimulationState): SimulationState {
@@ -52,7 +49,7 @@ export function runPoliticalOpinionWeek(state: SimulationState): SimulationState
   for (const countryId of Object.keys(countries).sort()) {
     const regionIds = (regionIdsByCountry.get(countryId) ?? []).sort(), partyCount = politicalRegistry.countries[countryId]?.partyIds.length ?? 0, opinions = regionIds.flatMap(id => Object.values(regionalOpinion[id]?.cohorts ?? {}));
     const drivers = [...new Set(opinions.flatMap(item => item[6]))].sort((a, b) => a - b);
-    countries[countryId] = { ...countries[countryId], regionIds, nationalSupportBps: aggregate(state, regionIds, regionalOpinion, partyCount), recentOpinionDrivers: [...countries[countryId].recentOpinionDrivers, { date: state.date, drivers }].slice(-M.historyLimit) };
+    countries[countryId] = { ...countries[countryId], regionIds, nationalSupportBps: aggregateNationalSupport(state, regionIds, regionalOpinion, partyCount), recentOpinionDrivers: [...countries[countryId].recentOpinionDrivers, { date: state.date, drivers }].slice(-M.historyLimit) };
   }
   const organizations = Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date, politics.organizations[item.id])]));
   return clearDirty({ ...state, politics: { ...politics, countries, regionalOpinion, organizations, lastOpinionUpdate: state.date, weeklyEvaluations: politics.weeklyEvaluations + Object.keys(regionalOpinion).length } }, 'politics');

@@ -9,7 +9,9 @@ import { assertSimulationInvariants, validateFidelityConservation } from '../inv
 import { emptyPolitics, POLITICAL_ISSUES } from '../politics/model';
 import { emptyGovernance } from '../governance/model';
 import { emptyInformation } from '../information/model';
-import { validatePoliticalRegistry } from '../politics/invariants';
+import { politicsInvariant, validatePoliticalRegistry } from '../politics/invariants';
+import { politicalExperienceFor } from '../politics/initialization';
+import { ratio } from '../socioeconomy/model';
 import { politicalRegistry } from '../politics/registry';
 import { inspectPolitics, runPoliticalOpinionWeek } from '../politics/runtime';
 import { migrateSimulationState, restoreSimulationState, serializeSimulationState } from '../save';
@@ -25,6 +27,47 @@ const evaluate = (state: SimulationState, date = '2026-01-05') => runPoliticalOp
 const issue = (name: typeof POLITICAL_ISSUES[number]) => POLITICAL_ISSUES.indexOf(name);
 
 describe('0.13 corrected national politics', () => {
+  it('rejects a forged national aggregate even when its sum stays exactly 10,000', () => {
+    const state = initialized(), values = state.politics.countries[sourced[0]].nationalSupportBps;
+    const donor = values.findIndex(value => value > 0), recipient = (donor + 1) % values.length; values[donor]--; values[recipient]++;
+    expect(values.reduce((a, b) => a + b)).toBe(10_000);
+    expect(politicsInvariant.check(state, context, 'save').join(' ')).toContain('disagrees with regional cohorts');
+  });
+  it.each(['date', 'future', 'bound', 'duplicate-drivers', 'negative-index', 'fractional-index', 'large-index', 'duplicate-region'])('rejects malformed political history: %s', corruption => {
+    const state = initialized(), country = state.politics.countries[sourced[0]];
+    country.recentOpinionDrivers = [{ date: state.date, drivers: [0] }];
+    const entry = country.recentOpinionDrivers[0];
+    if (corruption === 'date') entry.date = '2026-02-30';
+    if (corruption === 'future') entry.date = '2026-01-02';
+    if (corruption === 'bound') country.recentOpinionDrivers = Array(100).fill(entry);
+    if (corruption === 'duplicate-drivers') entry.drivers = [0, 0];
+    if (corruption === 'negative-index') entry.drivers = [-1];
+    if (corruption === 'fractional-index') entry.drivers = [0.5];
+    if (corruption === 'large-index') entry.drivers = [POLITICAL_ISSUES.length];
+    if (corruption === 'duplicate-region') country.regionIds.push(country.regionIds[0]);
+    expect(politicsInvariant.check(state, context, 'save').length).toBeGreaterThan(0);
+  });
+  it('validates stored political ownership until the scheduled weekly transfer reconciliation', () => {
+    const state = initialized(); state.regionOwnership[regions[0].id] = sourced[1];
+    expect(politicsInvariant.check(state, context, 'save')).toEqual([]);
+    expect(politicsInvariant.check(evaluate(state), context, 'save')).toEqual([]);
+  });
+  it('rejects duplicate cohort driver indexes and strict invalid organization/politics dates', () => {
+    const original = initialized();
+    const duplicate = structuredClone(original); Object.values(duplicate.politics.regionalOpinion[regions[0].id].cohorts)[0][6] = [0, 0];
+    expect(politicsInvariant.check(duplicate, context, 'save').join(' ')).toContain('Invalid cohort opinion');
+    for (const field of ['initializedOn', 'lastOpinionUpdate'] as const) {
+      const changed = structuredClone(original); changed.politics[field] = '2026-02-30'; expect(politicsInvariant.check(changed, context, 'save').length).toBeGreaterThan(0);
+    }
+    const changed = structuredClone(original); Object.values(changed.politics.organizations)[0].lastUpdatedOn = '2026-13-01';
+    expect(politicsInvariant.check(changed, context, 'save').join(' ')).toContain('Invalid dynamic organization');
+  });
+  it('uses exact large-quantity experience ratios and preserves missing observations', () => {
+    const state = initialized(), region = state.socioeconomy.regions[regions[0].id];
+    region.economy!.labourForce = Number.MAX_SAFE_INTEGER; region.economy!.unemployed = Number.MAX_SAFE_INTEGER - 37;
+    expect(politicalExperienceFor(region, 'low', null).unemploymentBps).toBe(ratio(region.economy!.unemployed, 10_000, region.economy!.labourForce));
+    region.economy!.incomeByGroup = [0, 0, 0]; expect(politicalExperienceFor(region, 'low', null).taxBurdenBps).toBeNull();
+  });
   it('uses the immutable sourced registry and variable fictional party counts', () => {
     const state = initialized(), counts = sourced.map(id => politicalRegistry.countries[id].partyIds.length);
     expect(state.politics.registryVersion).toBe(politicalRegistry.version); expect(new Set(counts).size + Number(counts[0] === counts[1])).toBeGreaterThan(0);

@@ -1,6 +1,7 @@
 import type { PoliticalOfficesData } from '../../data/countryData';
 import type { RegionEntity, SimulationState } from '../../types';
-import { allocate, INCOMES, type SocioRegion } from '../socioeconomy/model';
+import { allocate, INCOMES, ratio, type SocioRegion } from '../socioeconomy/model';
+import { aggregateNationalSupport } from './aggregation';
 import type { RegionFiscal } from '../fiscal/model';
 import { emptyPolitics, POLITICAL_ISSUES, POLITICS_MODEL, type CohortPoliticalOpinion, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalOrganization, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
 import { politicalRegistry } from './registry';
@@ -8,7 +9,7 @@ import { politicalRegistry } from './registry';
 // Retained for call-site compatibility. Static politics now comes from the pinned registry.
 export interface PoliticalInitializationData { countries?: readonly { id: string; entityType: string }[]; offices?: PoliticalOfficesData }
 export interface CurrentPoliticalExperience { disposableIncomePerPerson: number; unemploymentBps: number; basicNeedsCoverageBps: number | null; taxBurdenBps: number | null; serviceCoverageBps: number | null }
-const safeRatioBps = (value: number, denominator: number) => denominator > 0 ? Math.min(10_000, Math.round(value * 10_000 / denominator)) : null;
+const safeRatioBps = (value: number, denominator: number) => denominator > 0 ? Math.min(10_000, ratio(value, 10_000, denominator)) : null;
 export function politicalExperienceFor(region: SocioRegion, income: typeof INCOMES[number], countryServices: number | null, fiscal?: RegionFiscal): CurrentPoliticalExperience {
   const index = INCOMES.indexOf(income), persons = region.cohorts.filter(item => item.income === income).reduce((n, item) => n + item.persons, 0);
   const disposable = fiscal?.disposable[index] ?? region.economy?.incomeByGroup[index] ?? 0, gross = fiscal?.grossIncome[index] ?? region.economy?.incomeByGroup[index] ?? 0;
@@ -28,14 +29,6 @@ export function supportFor(preferences: number[], salience: number[], engagement
   const undecided = Math.max(1, Math.floor(weights.reduce((a, b) => a + b, 0) * (10_000 - engagement) / 20_000));
   return allocate(10_000, [...weights, undecided]);
 }
-const aggregate = (state: SimulationState, regionIds: string[], regionOpinions: Record<string, RegionalPoliticalOpinion>, partyCount: number) => {
-  const weights = Array(partyCount + 1).fill(0); let persons = 0;
-  for (const regionId of regionIds) for (const [cohortId, opinion] of Object.entries(regionOpinions[regionId]?.cohorts ?? {})) {
-    const cohortPersons = state.socioeconomy.regions[regionId]?.cohorts.find(item => `${item.income}:${item.orientation}` === cohortId)?.persons ?? 0; persons += cohortPersons;
-    opinion[2].forEach((value, index) => { weights[index] += value * cohortPersons; });
-  }
-  return allocate(10_000, persons ? weights : weights.map((_, index) => index === partyCount ? 1 : 0));
-};
 const publicServiceCoverage = (state: SimulationState, countryId: string) => {
   const services = state.fiscal.countries[countryId]?.services; if (!services) return null;
   const values = [services.health.coverageBps, services.education.coverageBps].filter((value): value is number => value !== null);
@@ -80,7 +73,7 @@ export function initializePolitics(state: SimulationState, countryIds: Iterable<
       }
       regionalOpinion[regionId] = { regionId, countryId, cohorts };
     }
-    countries[countryId] = { countryId, regionIds, nationalSupportBps: aggregate(state, regionIds, regionalOpinion, partyIds.length), recentOpinionDrivers: [] };
+    countries[countryId] = { countryId, regionIds, nationalSupportBps: aggregateNationalSupport(state, regionIds, regionalOpinion, partyIds.length), recentOpinionDrivers: [] };
   }
   const organizations = Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date)]));
   return { ...politics, initializedOn: state.date, opinionProvenance: { status: 'modelled', method: 'cohort_interests_plus_orientation_prior', initializedOn: state.date, limitation: 'No polling anchor: fictional party support is initialized from socioeconomic cohort preferences.' }, countries, regionalOpinion, organizations };
@@ -93,7 +86,7 @@ export function rebasePoliticsRegistry(state: SimulationState): SimulationState[
     const countryId = regional.countryId, parties = (politicalRegistry.countries[countryId]?.partyIds ?? []).map(id => politicalRegistry.parties[id]);
     regionalOpinion[regionId] = { ...regional, cohorts: Object.fromEntries(Object.entries(regional.cohorts).sort(([a], [b]) => a.localeCompare(b)).map(([cohortId, opinion]) => [cohortId, [opinion[0], opinion[1], supportFor(opinion[0], opinion[1], opinion[3], parties), opinion[3], opinion[4], opinion[5], opinion[6]] satisfies CohortPoliticalOpinion])) };
   }
-  const countries = Object.fromEntries(Object.entries(state.politics.countries).sort(([a], [b]) => a.localeCompare(b)).map(([countryId, country]) => [countryId, { ...country, nationalSupportBps: aggregate(state, country.regionIds, regionalOpinion, politicalRegistry.countries[countryId]?.partyIds.length ?? 0) }]));
+  const countries = Object.fromEntries(Object.entries(state.politics.countries).sort(([a], [b]) => a.localeCompare(b)).map(([countryId, country]) => [countryId, { ...country, nationalSupportBps: aggregateNationalSupport(state, country.regionIds, regionalOpinion, politicalRegistry.countries[countryId]?.partyIds.length ?? 0) }]));
   const organizations = Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date)]));
   return { ...state.politics, registryVersion: POLITICS_MODEL.registryVersion, countries, regionalOpinion, organizations };
 }

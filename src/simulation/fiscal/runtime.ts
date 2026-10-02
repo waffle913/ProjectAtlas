@@ -10,7 +10,11 @@ const kinds = ['personal', 'consumption', 'payroll', 'corporate'] as const;
 const taxKind = (category: typeof TAXES[number]) => category === 'employee' || category === 'employer' ? 'payroll' : category;
 const flows = (policy: Policy): Record<typeof TAXES[number], TaxFlow> => Object.fromEntries(TAXES.map(k => [k, { base: 0, liability: 0, collected: 0, status: policy[taxKind(k)]?.status ?? 'unavailable' }])) as Record<typeof TAXES[number], TaxFlow>;
 const groupPersons = (r: SocioRegion) => INCOMES.map(i => sum(r.cohorts.filter(c => c.income === i).map(c => c.persons)));
-const monthlyBudget = (annual: Budget, date: string): Budget => Object.fromEntries(CATEGORIES.map(k => [k, Math.floor(annual[k] / 12) + (Number(date.slice(5, 7)) <= annual[k] % 12 ? 1 : 0)])) as Budget;
+export const monthlyBudgetForDate = (annual: Budget, date: string): Budget => {
+  if (!dateValid(date)) throw new Error('Invalid monthly budget date.');
+  validateBudget(annual);
+  return Object.fromEntries(CATEGORIES.map(k => [k, Math.floor(annual[k] / 12) + (Number(date.slice(5, 7)) <= annual[k] % 12 ? 1 : 0)])) as Budget;
+};
 const budgetSum = (b: Budget) => sum(CATEGORIES.map(k => b[k]));
 interface AggregateObservation {
   countryId: string; referenceDate: string; retrievedAt: string; source: string; dataset: string;
@@ -26,7 +30,7 @@ export function upgradeFiscalStateV1(fiscal: unknown, date: string): FiscalState
   const countries = Object.fromEntries(Object.entries(prior.countries).map(([id, c]) => {
     const oldAccount = c.account;
     const knownTaxRevenue = oldAccount?.revenue ?? (oldAccount ? sum(TAXES.map(k => oldAccount.taxes[k].collected)) : 0);
-    const referenceAppropriation = oldAccount ? budgetSum(oldAccount.appropriated) : budgetSum(monthlyBudget(c.annualBudget, date));
+    const referenceAppropriation = oldAccount ? budgetSum(oldAccount.appropriated) : budgetSum(monthlyBudgetForDate(c.annualBudget, date));
     const otherRevenue = Math.max(0, referenceAppropriation - knownTaxRevenue);
     const revenueCalibration = { status: 'modelled' as const, monthlyAmount: otherRevenue, referenceDate: date, dataset: 'fiscal-0.11-v1-save-upgrade',
       method: 'One-time deterministic residual from saved monthly appropriations and saved known-tax revenue.',
@@ -127,11 +131,14 @@ export function evaluateImmediateFiscalPolicyCounterfactual(state: SimulationSta
   let currentKnownRevenue = 0, proposedKnownRevenue = 0, currentEmployerPayroll = 0, proposedEmployerPayroll = 0, currentCorporateTax = 0, proposedCorporateTax = 0;
   const currentRevenueByCategory = Object.fromEntries(TAXES.map(category => [category, 0])) as Record<typeof TAXES[number], number>, proposedRevenueByCategory = { ...currentRevenueByCategory };
   for (const regionId of regionIds) {
-    const current = state.fiscal.regions[regionId] ?? taxRegion(state.socioeconomy.regions[regionId], countryId, country.policy), proposedTaxOnly = taxRegion(state.socioeconomy.regions[regionId], countryId, policy, current);
-    // The counterfactual changes tax rules only. Existing transfers and public
-    // orders are held constant so an unrelated reform cannot silently remove
-    // pensions, income support or public procurement from household income.
-    const proposed = { ...proposedTaxOnly, grossIncome: [...current.grossIncome], transfers: [...current.transfers], disposable: current.disposable.map((value, index) => integer(value - (proposedTaxOnly.personal[index] - current.personal[index]) - (proposedTaxOnly.employee[index] - current.employee[index]))), privateResidual: current.privateResidual, publicOrders: current.publicOrders };
+    const booked = state.fiscal.regions[regionId], transfers = booked?.transfers ?? [0, 0, 0];
+    // Booked ledgers are history, not the current legal baseline after a reform or transfer.
+    const withHeldFlows = (ledger: RegionFiscal): RegionFiscal => ({
+      ...ledger, transfers: [...transfers],
+      disposable: ledger.grossIncome.map((value, index) => integer(value - ledger.personal[index] - ledger.employee[index] + transfers[index])),
+    });
+    const current = withHeldFlows(taxRegion(state.socioeconomy.regions[regionId], countryId, country.policy, booked));
+    const proposed = withHeldFlows(taxRegion(state.socioeconomy.regions[regionId], countryId, policy, booked));
     currentKnownRevenue += sum(TAXES.map(key => current.taxes[key].collected)); proposedKnownRevenue += sum(TAXES.map(key => proposed.taxes[key].collected));
     for (const category of TAXES) { currentRevenueByCategory[category] += current.taxes[category].collected; proposedRevenueByCategory[category] += proposed.taxes[category].collected; }
     for (let index = 0; index < 3; index++) { currentDisposableByIncome[index] += current.disposable[index]; proposedDisposableByIncome[index] += proposed.disposable[index]; currentTransfersByIncome[index] += current.transfers[index]; proposedTransfersByIncome[index] += proposed.transfers[index]; currentDirectTaxByIncome[index] += current.personal[index] + current.employee[index]; proposedDirectTaxByIncome[index] += proposed.personal[index] + proposed.employee[index]; currentConsumptionTaxByIncome[index] += current.consumptionTax[index]; proposedConsumptionTaxByIncome[index] += proposed.consumptionTax[index]; }
@@ -154,7 +161,7 @@ export function initializeFiscal(state: SimulationState): SimulationState {
     const output = sum(ids.map(r => state.socioeconomy.regions[r].economy!.output));
     const population = sum(ids.map(r => state.socioeconomy.regions[r].population ?? 0));
     const annualBudget = Object.fromEntries(CATEGORIES.map(k => [k, ratio(output, M.budgetOutputBps[k] * 12, 10000)])) as Budget;
-    const monthly = monthlyBudget(annualBudget, state.date);
+    const monthly = monthlyBudgetForDate(annualBudget, state.date);
     const services = Object.fromEntries((['health', 'education', 'infrastructure'] as const).map(k => [k, { status: population && monthly[k] ? 'modelled' : 'unavailable', referencePopulation: population, referenceMonthlyCost: monthly[k], required: monthly[k], spending: 0, fundedCapacity: population, capacity: population, coverageBps: population && monthly[k] ? 10000 : null, backlog: 0 }])) as FiscalCountry['services'];
     const initialRegions = Object.fromEntries(ids.map(rid => [rid, taxRegion(state.socioeconomy.regions[rid], id, policy)]));
     const initialKnownTaxRevenue = sum(Object.values(initialRegions).flatMap(region => TAXES.map(k => region.taxes[k].collected)));
@@ -211,7 +218,7 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     const knownTaxRevenue = sum(TAXES.map(k => taxes[k].collected));
     const otherRevenue = c.revenueCalibration.monthlyAmount;
     const totalRevenue = integer(knownTaxRevenue + otherRevenue);
-    const appropriated = monthlyBudget(c.annualBudget, state.date);
+    const appropriated = monthlyBudgetForDate(c.annualBudget, state.date);
     const obligations = CATEGORIES.map(k => appropriated[k] + c.arrears[k]);
     const interestDue = ratio(c.debt, c.interestRateBps, 120000);
     const interestObligation = interestDue + c.interestArrears;

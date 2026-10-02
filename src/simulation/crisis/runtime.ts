@@ -1,4 +1,5 @@
 import type { SimulationState } from '../../types';
+import { crisisSeverityRank as severityRank, severityForPressure as severityFor, tripwireFlags, tripwirePersistence } from './derived';
 import type { SchedulerTaskContext, SimulationScheduler } from '../scheduler';
 import { CRISIS_MODEL as M, CRISIS_TYPES, crisisRngKey, initializeCrisisState, normalEpisode, type CrisisCountryState, type CrisisEpisode, type CrisisEpisodeSummary, type CrisisProvenance, type CrisisSeverity, type CrisisTripwire, type CrisisType, type TripwireDirection } from './model';
 
@@ -119,15 +120,14 @@ function indicators(state: SimulationState, countryId: string, type: CrisisType,
 }
 
 function buildTripwire(countryId: string, type: CrisisType, indicator: Indicator, previous?: CrisisTripwire): CrisisTripwire {
-  const dangerous = indicator.direction === 'above' ? indicator.value >= indicator.danger : indicator.value <= indicator.danger;
-  const recovered = indicator.direction === 'above' ? indicator.value <= indicator.recovery : indicator.value >= indicator.recovery;
+  const { dangerous, recovered } = tripwireFlags(indicator.value, indicator.direction, indicator.danger, indicator.recovery);
   const span = Math.max(1, Math.abs(indicator.danger - indicator.recovery));
   const distance = indicator.direction === 'above' ? Math.max(0, indicator.value - indicator.recovery) : Math.max(0, indicator.recovery - indicator.value);
   const exceedanceBps = Math.min(30_000, positiveDenominatorRatioBps(distance, span));
   const persistenceMonths = dangerous ? (previous?.persistenceMonths ?? 0) + 1 : recovered ? 0 : previous?.persistenceMonths ?? 0;
   const recoveryMonths = recovered ? (previous?.recoveryMonths ?? 0) + 1 : 0;
   const severityContribution = Math.floor(exceedanceBps * (indicator.weightBps ?? 10_000) / 10_000);
-  const persistenceContribution = dangerous ? Math.min(M.tripwirePersistenceMaximumBps, persistenceMonths * M.tripwirePersistenceBpsPerMonth) : 0;
+  const persistenceContribution = tripwirePersistence(dangerous, persistenceMonths);
   const deteriorationContribution = Math.max(0, exceedanceBps - (previous?.exceedanceBps ?? exceedanceBps));
   return {
     id: `${type}:${indicator.name}`, crisisType: type, countryId, sourceSystem: indicator.sourceSystem,
@@ -139,8 +139,6 @@ function buildTripwire(countryId: string, type: CrisisType, indicator: Indicator
   };
 }
 
-const severityRank: Record<CrisisSeverity, number> = { none: 0, low: 1, moderate: 2, severe: 3, critical: 4 };
-const severityFor = (pressure: number): CrisisSeverity => pressure <= 0 ? 'none' : pressure < M.severity.moderate ? 'low' : pressure < M.severity.severe ? 'moderate' : pressure < M.severity.critical ? 'severe' : 'critical';
 const maximumSeverity = (a: CrisisSeverity, b: CrisisSeverity) => severityRank[a] >= severityRank[b] ? a : b;
 const dominant = (tripwires: CrisisTripwire[]) => [...tripwires].filter(item => item.pressureContribution > 0).sort((a, b) => b.pressureContribution - a.pressureContribution || a.id.localeCompare(b.id)).slice(0, 3).map(item => `${item.indicator}:${item.pressureContribution}`);
 const recoveredDrivers = (tripwires: CrisisTripwire[]) => tripwires.filter(item => item.recovered).map(item => item.indicator).sort();
