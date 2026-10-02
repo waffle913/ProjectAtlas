@@ -20,6 +20,10 @@ const withClaim = () => createClaim(initial(), claimInput, context);
 const declareClaimWar = (state = withClaim(), warId = 'war.001') => declareLimitedWar(state, { warId, attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'claim-derived:claim.target:country.b' }, context);
 
 describe('limited bilateral war', () => {
+  it.each([['region.target', 'region.unknown'], ['region.target', 'region.target']])('rejects extra unknown/duplicate CB snapshot targets: %s', (...targets) => {
+    const state = declareClaimWar(); state.wars[0].declarationCasusBelli.targetRegionIds = targets;
+    expect(() => validateWarState(state, context)).toThrow();
+  });
   it('rejects declarations without a valid CB, wrong targets, self-war and duplicate active pairs', () => {
     expect(() => declareLimitedWar(initial(), { warId: 'war.none', attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'missing' }, context)).toThrow(/not currently available/);
     expect(() => declareLimitedWar(withClaim(), { warId: 'war.wrong', attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.other', casusBelliId: 'claim-derived:claim.target:country.b' }, context)).toThrow(/does not authorize/);

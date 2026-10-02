@@ -45,6 +45,14 @@ const validationContext = (regions: RegionEntity[], context: DiplomacyContext): 
 export function migrateSimulationState(save: unknown, regions: RegionEntity[], baselinePopulation: Record<string, number | undefined> = {}, baselineEconomicOutput: Record<string, number | undefined> = {}, diplomacyContext?: DiplomacyContext): SimulationState {
   if (!save || typeof save !== 'object') throw new Error('Malformed simulation save.');
   const version = (save as { schemaVersion?: unknown }).schemaVersion;
+  // JSON omits undefined properties. Restore identity keys only, never baseline values or owners.
+  const fields = ['regionOwnership', 'populationByRegion', 'economicOutputByRegion'] as const;
+  const record = save as Record<string, unknown>;
+  save = { ...record, ...Object.fromEntries(fields.flatMap(field => {
+    const map = record[field];
+    return map && typeof map === 'object' && !Array.isArray(map)
+      ? [[field, { ...Object.fromEntries(regions.map(region => [region.id, undefined])), ...map }]] : [];
+  })) };
   if (version === 7 || version === 8 || version === 9 || version === 10 || version === 11 || version === 12 || version === 13) {
     const current = save as SimulationState & { crisis?: SimulationState['crisis']; politics?: SimulationState['politics'] };
     if (!diplomacyContext) throw new Error('A Country and Region registry context is required to validate a v7-v13 simulation save.');

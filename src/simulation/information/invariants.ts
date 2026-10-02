@@ -4,12 +4,8 @@ import { politicalRegistry } from '../politics/registry';
 import type { SimulationState } from '../../types';
 import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport } from './model';
 import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, compareBriefings, referencedGovernmentReportIds } from './model';
+import { isSimulationDate as validDate } from '../date';
 
-const validDate = (value: unknown): value is string => {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
-};
 const statusValues = new Set(['sourced', 'observed', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable']);
 const severityValues = new Set(['info', 'advisory', 'important', 'urgent']);
 const eventTypeValues = new Set(['proposal_result', 'labour_report', 'crisis_activation', 'urgent_event']);

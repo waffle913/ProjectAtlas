@@ -1,16 +1,11 @@
 import type { BilateralRelation, DiplomaticStatus, ExplicitCasusBelli, SimulationState, TerritorialClaim } from '../types';
+import { isSimulationDate as validDate } from './date';
 
 export interface DiplomacyContext { countryIds: ReadonlySet<string>; regionIds: ReadonlySet<string> }
 export type AvailableCasusBelli =
   | { id: string; issuerCountryId: string; targetCountryId: string; type: 'territorial_claim'; creationDate: string; targetRegionIds: string[]; source: 'claim'; claimId: string; reason?: string }
   | (ExplicitCasusBelli & { source: 'explicit' });
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const validDate = (value: unknown): value is string => {
-  if (typeof value !== 'string' || !DATE_PATTERN.test(value)) return false;
-  const parsed = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-};
 const requireCountry = (context: DiplomacyContext, countryId: string) => { if (!context.countryIds.has(countryId)) throw new Error(`Unknown Country ID: ${countryId}`); };
 const requireRegion = (context: DiplomacyContext, regionId: string) => { if (!context.regionIds.has(regionId)) throw new Error(`Unknown Region ID: ${regionId}`); };
 const cloneDiplomacy = (state: SimulationState): SimulationState => ({ ...state, bilateralRelations: { ...state.bilateralRelations }, claims: state.claims.map(claim => ({ ...claim })), explicitCasusBelli: state.explicitCasusBelli.map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined })) });

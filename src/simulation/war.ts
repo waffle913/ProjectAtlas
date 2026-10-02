@@ -1,14 +1,9 @@
 import type { LimitedWar, RegionOccupation, SimulationState, WarDeclarationCasusBelliSnapshot } from '../types';
 import { getAvailableCasusBelli, type DiplomacyContext } from './diplomacy';
+import { isSimulationDate as validDate } from './date';
 
 export type WarContext = DiplomacyContext;
 export type WarOutcome = 'attacker_victory' | 'defender_victory' | 'white_peace';
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const validDate = (value: unknown): value is string => {
-  if (typeof value !== 'string' || !DATE_PATTERN.test(value)) return false;
-  const parsed = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-};
 const pairKey = (a: string, b: string) => [a, b].sort().join('::');
 const cloneWar = (war: LimitedWar): LimitedWar => ({ ...war, declarationCasusBelli: { ...war.declarationCasusBelli, targetRegionIds: war.declarationCasusBelli.targetRegionIds ? [...war.declarationCasusBelli.targetRegionIds] : undefined } });
 const cloneOccupation = (occupation: RegionOccupation): RegionOccupation => ({ ...occupation });
@@ -100,6 +95,7 @@ export function validateWarState(state: SimulationState, context: WarContext) {
     } else if (war.status === 'ended') { if (!war.endDate || !war.outcome || !['attacker_victory', 'defender_victory', 'white_peace'].includes(war.outcome)) errors.push(`Ended war lacks a valid outcome: ${war.id}`); }
     else errors.push(`Invalid war status: ${war.id}`);
     const cb = war.declarationCasusBelli;
+    if (cb?.targetRegionIds && (cb.targetRegionIds.some(id => !context.regionIds.has(id)) || new Set(cb.targetRegionIds).size !== cb.targetRegionIds.length)) errors.push(`War CB snapshot contains unknown or duplicate Regions: ${war.id}`);
     if (!cb || !cb.id || cb.issuerCountryId !== war.attackerCountryId || cb.targetCountryId !== war.defenderCountryId || cb.type !== 'territorial_claim' || !['claim', 'explicit'].includes(cb.source) || !validDate(cb.creationDate) || cb.creationDate > war.startDate || !cb.targetRegionIds?.includes(war.targetRegionId) || (cb.source === 'claim' && !cb.claimId)) errors.push(`War has malformed declaration CB snapshot: ${war.id}`);
   }
   for (const [regionId, occupation] of Object.entries(state.occupationByRegion)) {

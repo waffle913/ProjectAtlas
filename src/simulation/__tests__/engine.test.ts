@@ -30,6 +30,51 @@ const initial = (seed = 'seed.001'): SimulationState => ({
 });
 
 describe('shared deterministic engine contracts', () => {
+  it('rehydrates unavailable permanent keys on reload without inventing baseline observations', () => {
+    const state = initial(); state.populationByRegion[region.id] = undefined; state.economicOutputByRegion[region.id] = undefined; state.regionOwnership[region.id] = undefined;
+    const restored = restoreSimulationState(serializeSimulationState(state, context), [region], { [region.id]: 999 }, { [region.id]: 888 }, context);
+    for (const field of ['regionOwnership', 'populationByRegion', 'economicOutputByRegion'] as const) {
+      expect(Object.hasOwn(restored[field], region.id)).toBe(true); expect(restored[field][region.id]).toBeUndefined();
+    }
+    expect(restored.engine).toEqual(state.engine); expect(restored.date).toBe(state.date);
+  });
+  it.each([
+    'speed', 'paused', 'seed', 'tick', 'pending-negative', 'pending-future', 'same-fidelity', 'invalid-fidelity', 'unknown-country', 'sequence',
+    'applied-negative', 'applied-before-request', 'applied-future', 'applied-date', 'applied-date-future', 'history-bound',
+    'immediate-tick', 'immediate-task', 'immediate-key', 'duplicate-sequence',
+    'dirty-tick', 'dirty-future', 'dirty-domain', 'dirty-reasons', 'dirty-empty-reason', 'dirty-duplicate-reason', 'dirty-empty-entity', 'dirty-duplicate-entity',
+  ])('rejects malformed engine metadata: %s', field => {
+    const state = initial();
+    state.engine.tick = 2; state.engine.nextSequence = 3;
+    state.engine.pendingFidelityTransitions = [{ countryId: 'country.a', from: 'Standard', to: 'Detailed', requestedAtTick: 1, sequence: 0, reason: 'fixture' }];
+    state.engine.recentFidelityTransitions = [{ countryId: 'country.b', from: 'Standard', to: 'Background', requestedAtTick: 1, appliedAtTick: 2, appliedOnDate: state.date, sequence: 1, reason: 'fixture' }];
+    state.engine.pendingImmediateUpdates = [{ taskId: 'fixture', eventKey: 'event', requestedAtTick: 1, sequence: 2 }];
+    state.engine.dirtyDomains = [{ domain: 'fixture', entityIds: ['entity.a'], markedAtTick: 1, reasons: ['changed'] }];
+    const pending = state.engine.pendingFidelityTransitions[0], recent = state.engine.recentFidelityTransitions[0], immediate = state.engine.pendingImmediateUpdates[0], dirty = state.engine.dirtyDomains[0];
+    const mutations: Record<string, () => void> = {
+      speed: () => Reflect.set(state, 'speed', 3), paused: () => Reflect.set(state, 'paused', 1), seed: () => Reflect.set(state.engine, 'seed', 42), tick: () => { state.engine.tick = -1; },
+      'pending-negative': () => { pending.requestedAtTick = -1; }, 'pending-future': () => { pending.requestedAtTick = 3; },
+      'same-fidelity': () => { pending.to = pending.from; }, 'invalid-fidelity': () => Reflect.set(pending, 'to', 'wrong'), 'unknown-country': () => { pending.countryId = 'unknown'; }, sequence: () => { pending.sequence = 3; },
+      'applied-negative': () => { recent.appliedAtTick = -1; }, 'applied-before-request': () => { recent.appliedAtTick = 0; }, 'applied-future': () => { recent.appliedAtTick = 3; },
+      'applied-date': () => { recent.appliedOnDate = '2026-02-30'; }, 'applied-date-future': () => { recent.appliedOnDate = '2026-01-02'; },
+      'history-bound': () => { state.engine.recentFidelityTransitions = Array.from({ length: 101 }, (_, sequence) => ({ ...recent, sequence: sequence + 3 })); state.engine.nextSequence = 104; },
+      'immediate-tick': () => { immediate.requestedAtTick = -1; }, 'immediate-task': () => { immediate.taskId = ' '; }, 'immediate-key': () => { immediate.eventKey = ''; },
+      'duplicate-sequence': () => { immediate.sequence = pending.sequence; },
+      'dirty-tick': () => { dirty.markedAtTick = -1; }, 'dirty-future': () => { dirty.markedAtTick = 3; }, 'dirty-domain': () => { dirty.domain = ''; },
+      'dirty-reasons': () => { dirty.reasons = []; }, 'dirty-empty-reason': () => { dirty.reasons = [' ']; }, 'dirty-duplicate-reason': () => { dirty.reasons = ['changed', 'changed']; },
+      'dirty-empty-entity': () => { dirty.entityIds = ['']; }, 'dirty-duplicate-entity': () => { dirty.entityIds = ['entity.a', 'entity.a']; },
+    };
+    expect(validateSimulationInvariants(state, context, 'save').valid).toBe(true);
+    mutations[field]();
+    expect(validateSimulationInvariants(state, context, 'save').valid).toBe(false);
+  });
+
+  it.each(['regionOwnership', 'populationByRegion', 'economicOutputByRegion'] as const)('requires every permanent identity key in %s, including unavailable values', field => {
+    const state = initial(); state[field][region.id] = undefined;
+    expect(validateSimulationInvariants(state, context, 'save').valid).toBe(true);
+    delete state[field][region.id];
+    expect(validateSimulationInvariants(state, context, 'save').violations.some(item => item.invariantId === 'permanent-region-references')).toBe(true);
+  });
   it('runs scheduler tasks in stable priority/id order and exposes the logical date', () => {
     const executions: string[] = [];
     const scheduler = new SimulationScheduler()

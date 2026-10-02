@@ -7,6 +7,7 @@ import { informationInvariant } from './information/invariants';
 import type { RegionEntity, SimulationState } from '../types';
 import { validateDiplomacyState, type DiplomacyContext } from './diplomacy';
 import { validateWarState } from './war';
+import { isSimulationDate as validDate } from './date';
 
 export type InvariantPhase = 'tick' | 'save' | 'reload' | 'fidelity-transition';
 export interface InvariantViolation { invariantId: string; phase: InvariantPhase; message: string }
@@ -19,12 +20,11 @@ export interface SimulationInvariant {
 const captureError = (operation: () => unknown) => {
   try { operation(); return []; } catch (error) { return [error instanceof Error ? error.message : String(error)]; }
 };
-const validDate = (value: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-};
 const validFidelity = new Set(['Detailed', 'Standard', 'Background']);
+const nonEmpty = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+const validTick = (tick: number, current: number) => Number.isSafeInteger(tick) && tick >= 0 && tick <= current;
+const uniqueStrings = (values: unknown, requireEntries = false) => Array.isArray(values)
+  && (!requireEntries || values.length > 0) && values.every(nonEmpty) && new Set(values).size === values.length;
 
 export const coreInvariants: readonly SimulationInvariant[] = [
   socioeconomicInvariant,
@@ -38,7 +38,8 @@ export const coreInvariants: readonly SimulationInvariant[] = [
     check: state => {
       const errors: string[] = [];
       if (state.schemaVersion !== 13) errors.push(`Expected schema 13, received ${state.schemaVersion}.`);
-      if (!validDate(state.date) || !Number.isSafeInteger(state.engine.tick) || state.engine.tick < 0 || !state.engine.seed) errors.push('Simulation date, tick or seed is malformed.');
+      if (!validDate(state.date) || !Number.isSafeInteger(state.engine.tick) || state.engine.tick < 0 || !nonEmpty(state.engine.seed)) errors.push('Simulation date, tick or seed is malformed.');
+      if (typeof state.paused !== 'boolean' || ![1, 2, 5].includes(state.speed)) errors.push('Simulation pause or speed is malformed.');
       if (Object.values(state.populationByRegion).some(value => value !== undefined && (!Number.isSafeInteger(value) || value < 0))) errors.push('Region population contains an invalid quantity.');
       if (Object.values(state.economicOutputByRegion).some(value => value !== undefined && (!Number.isSafeInteger(value) || value < 0))) errors.push('Region economic output contains an invalid quantity.');
       return errors;
@@ -51,6 +52,9 @@ export const coreInvariants: readonly SimulationInvariant[] = [
       const errors: string[] = [];
       for (const field of ['regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'occupationByRegion'] as const) {
         for (const id of Object.keys(state[field])) if (!known.has(id)) errors.push(`${field} references unknown Region ${id}.`);
+      }
+      for (const id of known) for (const field of ['regionOwnership', 'populationByRegion', 'economicOutputByRegion'] as const) {
+        if (!Object.hasOwn(state[field], id)) errors.push(`${field} is missing permanent Region ${id}.`);
       }
       for (const [regionId, ownerId] of Object.entries(state.regionOwnership)) if (ownerId !== undefined && !context.countryIds.has(ownerId)) errors.push(`Region ${regionId} has unknown sovereign owner ${ownerId}.`);
       return errors;
@@ -72,16 +76,22 @@ export const coreInvariants: readonly SimulationInvariant[] = [
       if (!Number.isSafeInteger(state.engine.nextSequence) || state.engine.nextSequence < 0) errors.push('Engine sequence is malformed.');
       const sequences = new Set<number>();
       for (const transition of [...state.engine.pendingFidelityTransitions, ...state.engine.recentFidelityTransitions]) {
-        if (!context.countryIds.has(transition.countryId) || !validFidelity.has(transition.from) || !validFidelity.has(transition.to)) errors.push(`Malformed fidelity transition for ${transition.countryId}.`);
+        if (!context.countryIds.has(transition.countryId) || !validFidelity.has(transition.from) || !validFidelity.has(transition.to) || transition.from === transition.to) errors.push(`Malformed fidelity transition for ${transition.countryId}.`);
         if (!Number.isSafeInteger(transition.sequence) || transition.sequence < 0 || transition.sequence >= state.engine.nextSequence || sequences.has(transition.sequence)) errors.push(`Invalid or duplicate engine sequence ${transition.sequence}.`);
-        if (!Number.isSafeInteger(transition.requestedAtTick) || transition.requestedAtTick > state.engine.tick) errors.push(`Fidelity transition was requested after current tick for ${transition.countryId}.`);
+        if (!validTick(transition.requestedAtTick, state.engine.tick)) errors.push(`Fidelity transition has an invalid request tick for ${transition.countryId}.`);
         sequences.add(transition.sequence);
       }
+      if (state.engine.recentFidelityTransitions.length > 100) errors.push('Recent fidelity transition history exceeds its bound.');
+      for (const transition of state.engine.recentFidelityTransitions) {
+        if (!validTick(transition.appliedAtTick, state.engine.tick) || transition.appliedAtTick < transition.requestedAtTick
+          || !validDate(transition.appliedOnDate) || transition.appliedOnDate > state.date) errors.push(`Malformed applied fidelity transition for ${transition.countryId}.`);
+      }
       for (const request of state.engine.pendingImmediateUpdates) {
-        if (!request.taskId || !request.eventKey || !Number.isSafeInteger(request.requestedAtTick) || request.requestedAtTick > state.engine.tick || !Number.isSafeInteger(request.sequence) || request.sequence < 0 || request.sequence >= state.engine.nextSequence || sequences.has(request.sequence)) errors.push(`Malformed immediate update request for ${request.taskId}.`);
+        if (!nonEmpty(request.taskId) || !nonEmpty(request.eventKey) || !validTick(request.requestedAtTick, state.engine.tick) || !Number.isSafeInteger(request.sequence) || request.sequence < 0 || request.sequence >= state.engine.nextSequence || sequences.has(request.sequence)) errors.push(`Malformed immediate update request for ${request.taskId}.`);
         sequences.add(request.sequence);
       }
-      for (const dirty of state.engine.dirtyDomains) if (!dirty.domain || !Number.isSafeInteger(dirty.markedAtTick) || dirty.markedAtTick > state.engine.tick || !dirty.reasons.length) errors.push(`Malformed dirty domain ${dirty.domain}.`);
+      for (const dirty of state.engine.dirtyDomains) if (!nonEmpty(dirty.domain) || !validTick(dirty.markedAtTick, state.engine.tick)
+        || !uniqueStrings(dirty.reasons, true) || !uniqueStrings(dirty.entityIds)) errors.push(`Malformed dirty domain ${dirty.domain}.`);
       return errors;
     },
   },

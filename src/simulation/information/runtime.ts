@@ -1,4 +1,5 @@
 import type { SimulationState } from '../../types';
+import { ratio } from '../socioeconomy/model';
 import { governanceFingerprint, type PoliticalProposal } from '../governance/model';
 import { derivePartyGoalProfile } from '../governance/analysis';
 import { politicalRegistry } from '../politics/registry';
@@ -80,8 +81,9 @@ function chamberBriefingResult(countryId: string, chamber: {
 function parliamentaryHeadline(outcome: 'adopted' | 'rejected' | 'unavailable', chambers: ChamberBriefingResult[]): string {
   if (chambers.length === 1 && chambers[0].coverage === 'complete') {
     const chamber = chambers[0];
-    if (outcome === 'unavailable') return `The overall decision is unavailable. ${chamber.displayName} recorded ${chamber.yesSeats} votes in favour and ${chamber.noSeats} against.`;
-    return `${chamber.displayName} ${outcome} the proposal by ${chamber.yesSeats} votes to ${chamber.noSeats}.`;
+    const abstentions = chamber.abstainSeats ? ` with ${chamber.abstainSeats} abstentions` : '';
+    if (outcome === 'unavailable') return `The overall decision is unavailable. ${chamber.displayName} recorded ${chamber.yesSeats} votes in favour and ${chamber.noSeats} against${abstentions}.`;
+    return `${chamber.displayName} ${outcome} the proposal by ${chamber.yesSeats} votes to ${chamber.noSeats}${abstentions}.`;
   }
   if (chambers.length > 1) {
     const results = chambers.map(chamber => chamber.outcome === 'unavailable'
@@ -128,7 +130,7 @@ export function addProposalResultBriefing(state: SimulationState, proposal: Poli
         ? 'The legislative record does not establish a complete chamber-level decision.'
         : `The recorded chamber result is ${outcome}; it does not establish the wider causal effects of the proposal.`,
       tradeoffs: [],
-      limitations: ['Only the existing 0.14 chamber-level vote result is summarized; this briefing does not recalculate or combine chamber votes.'],
+      limitations: ['Only the recorded chamber-level vote result is summarized; this briefing does not recalculate or combine chamber votes.'],
     },
     fact: {
       kind: 'parliamentary_result',
@@ -383,7 +385,7 @@ function monthlyReports(state: SimulationState): SimulationState {
     const coverage = totalRegions === 0 || coveredRegions === 0 || !labourForce
       ? 'unavailable' as const
       : coveredRegions === totalRegions ? 'complete' as const : 'partial' as const;
-    const valueBps = coverage === 'unavailable' ? undefined : Math.round(unemployed * 10_000 / labourForce);
+    const valueBps = coverage === 'unavailable' ? undefined : ratio(unemployed, 10_000, labourForce);
     const previous = existing[countryId];
     const report: GovernmentReport = {
       id: reportId(countryId, state.date),

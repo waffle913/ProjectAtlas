@@ -161,6 +161,23 @@ function approvedProposalWithBaseline() {
 }
 
 describe('government information and player briefings 0.15', () => {
+  it('reports split unicameral plurality abstentions with version-neutral limitations', () => {
+    const source = parliamentaryProposal(initial, 'adopted'), proposal = structuredClone(source);
+    proposal.evaluationVersion = 'plurality-0.15-v1';
+    proposal.voteResult = { ...source.voteResult!, yesSeats: 161, noSeats: 100, abstainSeats: 52, procedure: 'internal_party_distribution_v1',
+      chambers: [{ chamberId: 'chamber.fixture', yesSeats: 161, noSeats: 100, abstainSeats: 52, unavailableSeats: 0, totalSeats: 313, coverage: 'complete', adopted: true }] };
+    const next = addProposalResultBriefing(initial, proposal), briefing = next.information.briefings.find(item => item.fact.proposalId === proposal.id)!;
+    expect(briefing.headline).toContain('52 abstentions'); expect(briefing.interpretation!.limitations.join(' ')).toContain('recorded chamber-level');
+    expect(briefing.interpretation!.limitations.join(' ')).not.toContain('0.14'); expect(briefing.pauseRequested).toBe(false);
+  });
+  it('reports exact large labour-force ratios from the accessible reporting boundary', () => {
+    const countryId = reportingCountry(), state = structuredClone(initial), regionIds = Object.keys(state.socioeconomy.regions).filter(id => state.regionOwnership[id] === countryId);
+    for (const id of regionIds) { state.socioeconomy.regions[id].economy!.labourForce = 0; state.socioeconomy.regions[id].economy!.unemployed = 0; }
+    state.socioeconomy.regions[regionIds[0]].economy!.labourForce = Number.MAX_SAFE_INTEGER;
+    state.socioeconomy.regions[regionIds[0]].economy!.unemployed = Number.MAX_SAFE_INTEGER - 37;
+    state.date = '2026-02-01'; state.socioeconomy.lastMonthlyDate = state.date;
+    expect(runInformationMonth(state).information.latestGovernmentReports[countryId].valueBps).toBe(10_000);
+  });
   it('creates unavailable proposal reactions only for an authorized executive without copying political Reality', () => {
     const countryId = 'country.sxojze';
     const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
@@ -443,7 +460,7 @@ describe('government information and player briefings 0.15', () => {
     expect(nextMonth.information.briefings).toHaveLength(1);
     expect(nextMonth.information.governmentReportsById[briefing.fact.reportId!]).toBeDefined();
     expect(assertSimulationInvariants(nextMonth, worldContext, 'tick')).toBe(true);
-    const roundTrip = JSON.parse(JSON.stringify(nextMonth)) as SimulationState;
+    const roundTrip = restoreSimulationState(serializeSimulationState(nextMonth, worldContext), worldRegions, {}, {}, worldContext);
     expect(assertSimulationInvariants(roundTrip, worldContext, 'reload')).toBe(true);
     expect(roundTrip.information.briefings).toEqual(nextMonth.information.briefings);
   });
