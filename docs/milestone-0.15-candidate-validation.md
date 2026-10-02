@@ -7,8 +7,11 @@ The canonical handoff remains at accepted milestone 0.14.
 
 - Required base: `99013c9cd8476ff44e46f9eb57bb060fd9cb4b6f`.
 - Task branch: `waffle913-milestone-015-government-information`.
-- Corrective-pass parent: `4642c936c1bc88025a3063f14f87bcacd6246587`.
-- Corrective implementation: `0ccefb41f34393f35679e4fe948261c636c526ab`.
+- Previous corrective implementation: `0ccefb41f34393f35679e4fe948261c636c526ab`.
+- Reviewed candidate parent for this final pass:
+  `b8ca8999221cfd540d80ce5b5ae953cc13a93075`.
+- This pass fixes historical office-evidence validation, fair hard briefing
+  retention and the independent executive-officeholder starting route only.
 - Candidate: Government Information, event-driven briefings, fictional party
   leaders and succession, and a playable interface over existing systems.
 - Save schema: 13. Migration 12 → 13 preserves the saved date, tick, seed,
@@ -16,12 +19,14 @@ The canonical handoff remains at accepted milestone 0.14.
   the migration date and fills missing party leaders without creating past
   briefings.
 - Global schema stays 13. The explicit information subversion migration
-  `information-0.15-v1 -> information-0.15-v2` discards unfingerprinted
-  Reality-derived estimates and unsupported crisis briefings, retaining
-  legitimate labour/public-vote information and referenced reports. Ordinary
-  schema-13/v2 reload preserves saved political persons and history instead
-  of reconciling them against the current mapping table; incompatible
-  political registries fail explicitly.
+  `information-0.15-v2 -> information-0.15-v3` deterministically applies the
+  2,048 global / 256 per-Country / four-recent-entry protection policy, using
+  saved player control and releasing unused references. Safe fingerprinted
+  estimates remain. V1 -> v3 additionally discards unfingerprinted Reality
+  estimates and unsupported crisis briefings. Ordinary v3 reload does not
+  rerun retention or source/person initialization. Governance v1 and the
+  saved person/office shape are unchanged: existing historical evidence is
+  sufficient, so no governance migration is introduced.
 - No 0.16 systems are included. `docs/agent-handoff.md` is intentionally
   unchanged.
 
@@ -34,10 +39,21 @@ grant executive access. Public parliamentary outcomes remain public.
 
 Briefings are event/change-driven and reference public proposal votes and
 monthly unemployment reports, never unobserved canonical crisis episodes.
-The bounded feed holds at most 256 items per Country; activity elsewhere
-cannot erase domestic history. Old reports are retained only while current or
+The bounded feed holds at most 2,048 items globally and 256 per Country. It
+protects the four most recent available entries per Country, prefers up to
+256 recent entries for the controlled person's Country, then fills remaining
+slots with the newest entries. There is no player preference without control.
+Persisted date and lexicographic ID ties make ordering independent of input
+insertion and UI selection; the canonical array is chronological. A future
+protected floor that cannot fit fails explicitly. Switching control cannot
+reconstruct expired history. Monthly reports batch retention once rather
+than sorting/cleaning all history for every emitted Country briefing. Old
+reports are retained only while current or
 referenced, including temporal policy-comparison baselines. Runtime retention
 and the information invariant share the same report-reference calculation.
+Expired policy anchors also release orphaned comparisons and their generated
+headline clauses, so the displayed follow-up does not outlive its structured
+evidence.
 The current triggers do not create urgent briefings or pause the simulation.
 Tell Me More reads only retained Government Information or public vote
 evidence under the same access checks, not saved canonical political analysis
@@ -80,6 +96,20 @@ separate fictional persons without invented party membership. Authority is
 resolved for 121; 221 retain zero inferred capabilities. Unknown tenure
 starts remain absent. Total initial persons: 1,287.
 
+Historical source office validation no longer looks up current snapshot
+records or recomputes authority from current institutional classifications.
+Saved Country/person/office consistency, source identity and record IDs,
+reference/effective dates, role/authority basis and capability coherence are
+validated internally. A reference may precede or follow the appointment, but
+must not postdate the saved state; an explicit effective start must not
+postdate the reference. Leader and office source identities must agree when
+shared. Strict installed-source reconciliation and source-name exclusion
+remain explicit new-game checks. Archived record IDs/dates and a historically
+different authority classification survive save/reload unchanged, together
+with date, tick, seed, control, persons and all political/material history.
+These are structural/semantic checks of saved evidence, not an anti-tampering
+signature or a substitute for source admissibility audits.
+
 Every surviving source-derived mapping
 has a checked-in, hand-reviewed fictional name, distinct from its source
 identity and unique among active initial leaders. Canada's mappings are
@@ -114,9 +144,15 @@ fictional successor based on the party's validated profile. Leadership loss
 does not change player control. A persisted handoff choice can continue as the
 former person or explicitly switch to the successor once.
 
-The start flow is Country → Party → Leader and does not grant an office; it
-renders the fictional analogue and keeps source names out of the player
-presentation. Executive ingestion is independent of party mappings;
+The start flow keeps Country first and offers Country -> Party -> Leader or
+Country -> Current executive officeholder. Active source-reconciled
+executives are selectable independently of membership, including Countries
+without party coverage and offices with unresolved authority. Both routes
+use the same canonical person ID and existing `setControlledPerson` command;
+only the controlled ID changes. Fictional names, office titles, modelled
+capabilities, limitations and unavailable membership are displayed without
+source real names. No office, leadership, membership or powers are created.
+Executive ingestion is independent of party mappings;
 party-bloc status alone grants no office. The start selector does not invent
 membership or expose standalone executives as party leaders merely to unlock
 government access. Fiscal controls submit the existing corporate-tax or
@@ -133,42 +169,77 @@ self-interest and faction/context-based successors remain explicit design
 debt. The validated deterministic party-block vote and bounded party-platform
 successor mechanics were not expanded in this corrective pass.
 
+## Principal files
+
+The corrective diff contains 17 files:
+
+| Area | Files |
+|---|---|
+| Start interface | `src\App.tsx`, `src\components\StartGame.tsx` |
+| Historical/current office boundary | `src\simulation\governance\officeEvidence.ts` (new), `src\simulation\governance\initialOfficeEvidence.ts` (new), `src\simulation\governance\invariants.ts`, `src\simulation\governance\runtime.ts` |
+| Read-only starting candidates | `src\simulation\governance\selection.ts` |
+| Retention and explicit migration | `src\simulation\information\model.ts`, `src\simulation\information\runtime.ts`, `src\simulation\information\invariants.ts`, `src\simulation\information\migration.ts`, `src\simulation\save.ts` |
+| Regressions and full-cap workload | `src\simulation\__tests__\governance.test.ts`, `src\simulation\__tests__\information.test.ts`, `src\simulation\__tests__\informationWorld.test.ts` |
+| Candidate contracts/evidence | `docs\information-0.15.md`, `docs\milestone-0.15-candidate-validation.md` |
+
 ## Validation commands and results
 
 | Command | Result |
 |---|---|
-| `npm run verify` | Passed: Country/Region/population/economy data audits, TypeScript/Vite build and 287 tests across 29 files; final test phase 147.65 s. Production JS bundle: 3,980.67 kB (360.18 kB gzip), with the existing large-chunk warning. |
-| `npx tsc -b --pretty false` | Passed after fixing implementation compile errors; also covered by the final build. |
-| `npx vitest run src\simulation\__tests__\information.test.ts src\simulation\__tests__\governance.test.ts src\simulation\__tests__\politics.test.ts` | Passed: 107 tests across three files, 64.25 s. |
-| `npm run information:test` | Passed: 26 tests, final rerun 16.31 s; non-leakage, fingerprint/staleness and actual fiscal-screen rendering, canonical resumption, fair retention and explicit migration. |
-| `npm run information:audit:generate` | Passed: regenerated reproducible coverage v4; leader mappings and pinned snapshots are unchanged. |
+| `npm run verify` | Passed once after coherent correction, before the final office-date review clarification: Country/Region/population/economy data audits, TypeScript/Vite build and 297 tests across 29 files; test phase 142.02 s. Production JS bundle: 3,984.25 kB (361.27 kB gzip), with the existing large-chunk warning. |
+| `npx tsc -b --pretty false` | Passed, including the pre-suite check and a final check after the office-date review clarification. |
+| `npx vitest run src\simulation\__tests__\governance.test.ts -t 'historical office evidence\|current-source reconciliation\|inconsistent persisted office\|presidential executive authority'` | Initial focused office-boundary pass: 4 passed, 65 skipped, 11.79 s; the final expanded fixture passes in the post-review full governance audit. |
+| `npx vitest run src\simulation\__tests__\information.test.ts -t 'global cap\|protected minimum\|bounds and deterministically\|information-v1 in schema 13\|migrates v2 retention\|missing v2/v3'` | Corrected focused retention/migration pass: 7 passed, 23 skipped, 12.60 s; final headline cleanup is additionally covered by the full information suite. |
+| `npx vitest run src\simulation\__tests__\governance.test.ts -t 'starting routes\|Country party coverage\|either route\|fictional Canadian'` | Passed: 4 passed, 68 skipped, 7.05 s, including SSR rendering, same-ID uniqueness and control-only changes. |
+| `npm run information:test` | Passed: 30 tests, 21.86 s, then 30 tests, 22.22 s after the office-date review clarification; existing non-leakage/access/fiscal-screen contracts, both history bounds, protected floor, player preference, references and explicit migrations. |
 | `npm run information:audit` | Passed: 948 parties, 7 derived mappings, 1 ambiguous, 940 unavailable; 342 executive persons from 392 records, 3 party-leader matches and 339 standalone executives. |
-| `npm run information:benchmark` | Passed: one full-world information benchmark; initialization, 768-briefing retention fixture, save/monthly cost and succession measurements below. |
-| `npm run governance:audit` | Passed: 66 tests, 61.65 s; source-office ingestion/authority, archived identity conservation, schema-12 migration, save/reload and exact-once fiscal enactment. |
-| `npm run governance:benchmark` | Passed: one full-world governance benchmark; 1,287 persons, 27,268,062-byte save, 0.0300 ms snapshot, 327.52 ms serialization and 13.920 ms mean canonical analysis. |
-| `npm run fiscal:audit` | Passed: 19 fiscal tests and the 252-country fiscal coverage audit. |
-| `npm run politics:audit` | Passed: 24 tests across three files; three-year full-world workload 94,580.70 ms (12 ticks/s), 112.95 ms weekly snapshot, 1,093.75 ms coincident monthly/weekly snapshot and 687.66 ms reload. |
-| `npm run crisis:audit` | Passed: 24 tests; canonical crisis material mechanisms and migration are unchanged. |
-| `npm run benchmark:world` | Passed: 4 benchmarks; ten-year socioeconomic run 6,414.45 ms (569 ticks/s), ten-year fiscal run 24,505.05 ms (149 ticks/s), daily UI and full-world baseline checks. |
-| Built-in `rg`, pattern `Math\.random`, glob `*.{ts,tsx}`, scoped to `src\simulation\information`, `src\simulation\governance`, `src\simulation\save.ts`, `src\components\FiscalPolicy.tsx` | No matches. The shell `rg` executable was unavailable; the successful built-in search is not a claim that that shell command ran. |
+| `npm run information:benchmark` | Passed: one benchmark, 9.15 s; actual retained 2,048-entry state across 252 Countries, 256 player-Country entries, foreign floor, 83 new monthly alerts, reference validity and exact reload. |
+| `npm run governance:audit` | Passed: 72 tests, 67.99 s, then 72 tests, 70.68 s after the office-date review clarification; strict initialization, independent historical evidence, dual start routes, schema-12 migration, save/reload and exact-once fiscal enactment. |
+| `npm run governance:benchmark` | Passed: one benchmark, 6.90 s; 1,287 persons, 27,268,062-byte save, 0.0374 ms snapshot, 297.31 ms serialization and 13.921 ms mean canonical analysis. |
+| `npm run fiscal:audit` | Passed: 19 tests across two files, 4.07 s, including the 252-Country fiscal coverage audit. |
+| `npm run politics:audit` | Passed: 24 tests across three files, 120.41 s; three-year simulation 92,450.38 ms (12 ticks/s), 114.56 ms weekly snapshot, 394.68 ms coincident snapshot and 591.53 ms reload. |
+| `npm run benchmark:world` | Passed: 4 benchmarks, 51.68 s; ten-year socioeconomic run 6,468.36 ms (564 ticks/s), ten-year fiscal run 24,295.92 ms (150 ticks/s), daily UI and full-world baseline checks. |
+| Built-in `rg`, pattern `Math\.random`, glob `*.{ts,tsx}`, scoped to `src\simulation\information`, `src\simulation\governance`, `src\simulation\save.ts`, `src\components\StartGame.tsx`, `src\App.tsx` | No matches; this is the available built-in search, not an unexecuted shell `rg` command. |
 | `git diff --check` | Passed with no whitespace errors. |
 
-An initial `npm run verify` failed: an old-registry fixture inherited schema
-13 from the current initializer, and the new full-world reload regression
-exceeded the default five-second test timeout under parallel load. The two
-historical registry fixtures now explicitly represent schema 11; the new
-world reload tests use a 30-second allowance without weakening assertions.
-The existing schema-11 migration and strict schema-13 compatibility checks
-both pass. An initial governance benchmark likewise failed its obsolete
-948-total-person assumption, now replaced with separate party-leader and
-standalone-executive accounting. Early compile errors were fixed before
-successful type-check/test reruns. These failed attempts are not counted as
-successful validation.
+During this pass, the first focused retention run failed one fixture with
+`[fiscal-conservation] Invalid reform queue`: it moved the date past an
+enacted reform without advancing the existing engine. The fixture now uses
+the real 59-day advancement before testing March retention; no fiscal
+invariant or queue behavior was weakened. An early starting-route type-check
+rejected the fixture status `retired`; the fixture now uses the actual
+`inactive` contract. These failed attempts are not counted as successful
+validation. The broad `npm run verify` ran once and passed.
+
+Final diff review removed an unnecessary requirement that a source reference
+precede the office appointment. A legitimate source can attest an existing
+office after appointment, provided it is not future evidence relative to
+the save and its explicit effective-start chronology is coherent. The
+archival fixture now covers both a 2025-12-01 and a 2026-01-05 reference
+around a 2026-01-01 appointment in a 2026-01-06 save. After this one-line
+validator adjustment and fixture expansion, TypeScript, all 72 governance
+tests and all 30 information tests were rerun and passed. The earlier broad
+verify and workload measurements were not rerun or claimed to cover this
+final exact revision.
+
+The previous pass at the reviewed parent had corrected explicit schema-11
+registry fixtures, 30-second full-world reload test allowances and an obsolete
+948-total-person benchmark assumption. Those fixes remain; the new final
+report does not present their old command results as newly executed.
 
 Audits and benchmarks were run sequentially to avoid measuring them against
 another heavy test command. No parallel simulation engine/scheduler or 0.16
 work was introduced. Country/Region registries, source snapshots, canonical
 vote analysis/resolution and the canonical handoff have no diff.
+Source generation was not rerun: no source/mapping/report-generation change
+was needed, and the existing reproducible coverage report passed its audit.
+
+The temporary loopback preview (`npm run dev -- --host 127.0.0.1 --port 5198
+--strictPort`) became ready and `Invoke-WebRequest -UseBasicParsing` returned
+HTTP 200. The browser canvas opened, but did not return the page handle
+required for automated browser actions; no click-through verification is
+claimed. The server was stopped after this check. Candidate/rendering and
+canonical selection behavior are covered by the SSR/helper/command tests.
 
 ## Measured workload and save impact
 
@@ -178,42 +249,51 @@ regions, 948 gameplay parties, 948 active leaders and 342 executive persons
 
 | Measurement | Result |
 |---|---:|
-| Isolated leader/officeholder initialization | 622.29 ms |
-| Single-party leader lookup (warmed average over 1,000 lookups) | 0.2905 ms |
-| New-game initialization | 781.32 ms |
-| First monthly report generation (252 reports) | 4.50 ms |
+| Isolated leader/officeholder initialization | 565.96 ms |
+| Single-party leader lookup (warmed average over 1,000 lookups) | 0.2830 ms |
+| New-game initialization | 760.26 ms |
+| First monthly report generation (252 reports) | 3.91 ms |
 | Information state after first report | 224,248 bytes |
 | Serialized 256-briefing history | 123,905 bytes |
-| Three-Country synthetic retained history | 768 briefings |
-| Monthly reporting with that retained history | 8.67 ms |
-| Synthetic retained-history save | 16,296,852 bytes |
-| Synthetic history/report save delta against empty history at the same date | 980,827 bytes |
+| Full-cap synthetic retained history | 2,048 briefings across 252 Countries |
+| Controlled Country retained history | 256 briefings |
+| Monthly reporting at full cap, including 83 new alerts | 67.74 ms |
+| Synthetic retained-history save | 17,771,032 bytes |
+| Synthetic history/report save delta against otherwise-identical empty history at the same date | 2,230,877 bytes |
 | Current save | 15,315,994 bytes |
 | Estimated schema-12 save without 0.15 | 12,178,537 bytes |
 | Estimated save delta | 3,137,457 bytes |
-| Ordinary day | 0.4307 ms |
-| Monthly changed day | 93.91 ms |
-| Deterministic fallback succession | 2.31 ms |
+| Ordinary day | 0.4345 ms |
+| Monthly changed day | 99.35 ms |
+| Deterministic fallback succession | 2.27 ms |
 
-The 339 newly ingested standalone executives add 348,965 bytes to each
-comparable full-world save: the previous information benchmark was
+The prior executive-ingestion pass added 339 standalone executives and
+348,965 bytes to each comparable full-world save: the pre-ingestion information benchmark was
 14,967,029 bytes, now 15,315,994; the previous governance benchmark was
 26,919,097, now 27,268,062. The estimated schema-12 comparison removes all
 0.15 initial party leaders and executive persons; it is a size estimate, not
 a claim that current state can be downgraded into a valid old save.
 
-The 768-briefing fixture tests three independently bounded Country histories
-with retained report references. Its synthetic dates/stocks are explicitly a
-retention-cost workload, not simulated historical observations. It does not
-measure the worst case in which all 252 Countries reach the history bound.
+The full-cap fixture replaces the old 768-entry/three-Country sample. It
+retains exactly 2,048 entries, protects at least four for each of 252
+Countries and prefers 256 for the controlled Country. Available previous
+reports differ by exactly 50 basis points to exercise 83 real runtime
+monthly alert emissions while remaining at the hard cap. References and
+round-trip equality are checked before/after the reporting pass. Synthetic
+dates/stocks are cost fixtures, not simulated historical observations. The
+empty-history size comparison preserves the same date, control, material
+state, safe estimates and latest reports, removing only retained history and
+its otherwise-unused report references. The workload is not a universal
+maximum-byte guarantee; larger valid briefing content can cost more. Its
+timing is not directly comparable to the previous smaller no-alert sample.
 
 The governance benchmark still reports 57 procedurally resolvable Countries,
 eight Countries with ideological evidence, and zero production overlap
 between those evidence sets; ingestion does not fabricate voting coverage.
 The current three-year politics world benchmark measured a 33,547,440-byte
-save. The ten-year fiscal workload measured a 345.86 ms mean monthly snapshot
-day; the daily UI workload reused 353/365 snapshots, with a 0.0155 ms mean
-reused-day lookup and 129.50 ms mean changed monthly day.
+save. The ten-year fiscal workload measured a 347.18 ms mean monthly snapshot
+day; the daily UI workload reused 353/365 snapshots, with a 0.0159 ms mean
+reused-day lookup and 132.71 ms mean changed monthly day.
 Benchmark figures are workload- and environment-specific, not device
 guarantees. Save sizes differ because the benchmarks cover different world
 state workloads.
