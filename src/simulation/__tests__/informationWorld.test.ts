@@ -2,13 +2,13 @@
 import { performance } from 'node:perf_hooks';
 import { describe, expect, it } from 'vitest';
 import { initializeNewGame } from '../initialization';
-import { initializePartyLeaders, replacePartyLeader } from '../governance/runtime';
+import { initializePartyLeaders, replacePartyLeader, setControlledPerson } from '../governance/runtime';
 import { politicalRegistry } from '../politics/registry';
 import { createCoreScheduler } from '../engine';
 import { advanceSimulationDays } from '../engine';
-import { serializeSimulationState } from '../save';
+import { restoreSimulationState, serializeSimulationState } from '../save';
 import { emptyGovernance } from '../governance/model';
-import { retainCountryBriefings, type GovernmentReport, type MinisterialBriefing } from '../information/model';
+import { referencedGovernmentReportIds, retainCountryBriefings, type GovernmentReport, type MinisterialBriefing } from '../information/model';
 import { informationInvariant } from '../information/invariants';
 import { runInformationMonth } from '../information/runtime';
 import { socioeconomicWorld, worldContext, worldCountryIds, worldPoliticalInputs, worldRegions } from './worldScenario';
@@ -88,41 +88,59 @@ describe('full-world information and leadership 0.15 benchmark', () => {
       sourceId: `proposal.${String(index).padStart(8, '0')}`,
     }))));
 
-    const historyCountries = worldCountryIds.slice(0, 3);
+    const historyCountries = worldCountryIds;
+    const controlledExecutive = Object.values(state.governance.persons).find(person => person.office?.authorityProfile.capabilities.includes('access_government_information'))!;
     const historyReports: Record<string, GovernmentReport> = {};
+    const historyLatestReports: Record<string, GovernmentReport> = {};
     const historyBriefings: MinisterialBriefing[] = [];
-    for (const countryId of historyCountries) for (let month = 0; month < 270; month += 1) {
+    for (const countryId of historyCountries) for (let month = 0; month < (countryId === controlledExecutive.countryId ? 270 : 12); month += 1) {
       const asOfDate = new Date(Date.UTC(2026, month, 1)).toISOString().slice(0, 10);
       const source = reportState.information.latestGovernmentReports[countryId];
       const id = `government-report:${countryId}:unemployment:${asOfDate}`;
-      const report: GovernmentReport = { ...source, id, asOfDate, limitation: 'Synthetic dated monthly report fixture for retention cost measurement; not simulated historical observations.' };
+      const valueBps = source.valueBps === undefined ? undefined : source.valueBps >= 50 ? source.valueBps - 50 : source.valueBps + 50;
+      const report: GovernmentReport = { ...source, id, asOfDate, valueBps, limitation: 'Synthetic dated monthly report fixture for retention cost measurement; not simulated historical observations.' };
       historyReports[id] = report;
+      historyLatestReports[countryId] = report;
       historyBriefings.push({
         ...briefingSample, id: `briefing:labour_report:${countryId}:${id}`, countryId, portfolio: 'economy',
         access: 'government', eventType: 'labour_report', createdOn: asOfDate, sourceId: id,
+        headline: 'Synthetic unemployment-report retention workload, not simulated historical observations.',
         fact: { kind: 'labour_report', reportId: id, valueBps: report.valueBps, evidenceStatus: report.status },
       });
     }
-    const retained = retainCountryBriefings(historyBriefings);
-    const retainedReportIds = new Set(retained.map(item => item.fact.reportId));
+    const retained = retainCountryBriefings(historyBriefings, controlledExecutive.countryId);
+    const retainedReportIds = referencedGovernmentReportIds({ briefings: retained, latestGovernmentReports: historyLatestReports });
     const historyState = {
-      ...state, date: '2048-07-01',
+      ...setControlledPerson(state, controlledExecutive.id), date: '2048-07-01',
       socioeconomy: { ...state.socioeconomy, lastMonthlyDate: '2048-07-01' },
       information: {
         ...state.information, briefings: retained,
+        latestGovernmentReports: historyLatestReports,
         governmentReportsById: Object.fromEntries(Object.entries(historyReports).filter(([id]) => retainedReportIds.has(id))),
       },
     };
-    expect(retained).toHaveLength(768);
+    expect(retained).toHaveLength(2_048);
+    expect(retained.filter(item => item.countryId === controlledExecutive.countryId)).toHaveLength(256);
+    for (const countryId of historyCountries) expect(retained.filter(item => item.countryId === countryId).length).toBeGreaterThanOrEqual(4);
     expect(informationInvariant.check(historyState, worldContext, 'save')).toEqual([]);
     startedAt = performance.now();
     const historyMonthly = runInformationMonth(historyState);
     const monthlyWithHistoryMs = performance.now() - startedAt;
-    expect(historyMonthly.information.briefings).toHaveLength(768);
+    expect(historyMonthly.information.briefings).toHaveLength(2_048);
+    expect(historyMonthly.information.briefings.filter(item => item.countryId === controlledExecutive.countryId)).toHaveLength(256);
+    for (const countryId of historyCountries) expect(historyMonthly.information.briefings.filter(item => item.countryId === countryId).length).toBeGreaterThanOrEqual(4);
+    const historyMonthlyNewBriefings = historyMonthly.information.briefings.filter(item => item.createdOn === historyMonthly.date).length;
+    expect(historyMonthlyNewBriefings).toBe(Object.values(historyLatestReports).filter(report => report.valueBps !== undefined).length);
+    expect(historyMonthlyNewBriefings).toBeGreaterThan(0);
     expect(informationInvariant.check(historyMonthly, worldContext, 'save')).toEqual([]);
-    const retainedHistorySaveBytes = Buffer.byteLength(serializeSimulationState(historyMonthly, worldContext));
+    const historySave = serializeSimulationState(historyMonthly, worldContext);
+    const retainedHistorySaveBytes = Buffer.byteLength(historySave);
+    expect(restoreSimulationState(historySave, worldRegions, {}, {}, worldContext)).toEqual(historyMonthly);
     const emptyHistorySaveBytes = Buffer.byteLength(serializeSimulationState({
-      ...historyState, information: { ...state.information, initializedOn: state.information.initializedOn },
+      ...historyMonthly, information: {
+        ...historyMonthly.information, briefings: [],
+        governmentReportsById: Object.fromEntries(Object.values(historyMonthly.information.latestGovernmentReports).map(report => [report.id, report])),
+      },
     }, worldContext));
 
     startedAt = performance.now();
@@ -152,6 +170,7 @@ describe('full-world information and leadership 0.15 benchmark', () => {
       syntheticMultiCountryRetainedBriefings: retained.length,
       syntheticMultiCountryHistoryCountries: historyCountries.length,
       syntheticHistoryMonthlyReportMs: Number(monthlyWithHistoryMs.toFixed(2)),
+      syntheticHistoryMonthlyNewBriefings: historyMonthlyNewBriefings,
       syntheticHistorySaveBytes: retainedHistorySaveBytes,
       syntheticHistorySaveDeltaBytes: retainedHistorySaveBytes - emptyHistorySaveBytes,
       currentSaveBytes: currentBytes,

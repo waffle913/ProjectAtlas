@@ -1,11 +1,14 @@
 import type { EvaluationCoverage, FiscalProposalPayload } from '../governance/model';
 import type { PoliticalIssue } from '../politics/model';
+import type { SimulationState } from '../../types';
 
-export const INFORMATION_VERSION = 'information-0.15-v2' as const;
+export const INFORMATION_VERSION = 'information-0.15-v3' as const;
 export const INFORMATION_MODEL = Object.freeze({
   version: INFORMATION_VERSION,
   schedulerPriority: 350,
   briefingHistoryLimitPerCountry: 256,
+  briefingHistoryLimitGlobal: 2_048,
+  protectedBriefingsPerCountry: 4,
   proposalEstimateHistoryLimit: 256,
   materialUnemploymentChangeBps: 50,
 });
@@ -188,21 +191,51 @@ export function referencedGovernmentReportIds(information: Pick<InformationState
   return referenced;
 }
 
-export function retainCountryBriefings(briefings: readonly MinisterialBriefing[]): MinisterialBriefing[] {
+export function controlledBriefingCountry(state: Pick<SimulationState, 'governance'>): string | undefined {
+  const personId = state.governance.player.controlledPersonId;
+  return personId ? state.governance.persons[personId]?.countryId : undefined;
+}
+
+export function compareBriefings(a: MinisterialBriefing, b: MinisterialBriefing): number {
+  const dateOrder = a.createdOn === b.createdOn ? 0 : a.createdOn < b.createdOn ? -1 : 1;
+  return dateOrder || (a.id === b.id ? 0 : a.id < b.id ? -1 : 1);
+}
+
+export function policyComparisonText(comparison: PolicyTemporalComparison): string {
+  return ` Since the measure entered into force on ${comparison.effectiveDate}, unemployment moved from ${(comparison.baselineValueBps / 100).toFixed(2)}% to ${(comparison.currentValueBps / 100).toFixed(2)}%; this is a temporal comparison, not evidence of causation.`;
+}
+
+export function retainCountryBriefings(briefings: readonly MinisterialBriefing[], controlledCountryId?: string): MinisterialBriefing[] {
+  if (new Set(briefings.map(item => item.id)).size !== briefings.length) throw new Error('Cannot retain duplicate briefing IDs.');
+  const newest = [...briefings].sort((a, b) => compareBriefings(b, a));
   const counts = new Map<string, number>();
-  const retained: MinisterialBriefing[] = [];
-  for (let index = briefings.length - 1; index >= 0; index -= 1) {
-    const briefing = briefings[index];
+  const candidates: MinisterialBriefing[] = [];
+  const selected = new Set<string>();
+  for (const briefing of newest) {
     const count = (counts.get(briefing.countryId) ?? 0) + 1;
     counts.set(briefing.countryId, count);
-    if (count <= INFORMATION_MODEL.briefingHistoryLimitPerCountry) retained.push(briefing);
+    if (count <= INFORMATION_MODEL.briefingHistoryLimitPerCountry) candidates.push(briefing);
+    if (count <= INFORMATION_MODEL.protectedBriefingsPerCountry) selected.add(briefing.id);
   }
-  retained.reverse();
+  if (selected.size > INFORMATION_MODEL.briefingHistoryLimitGlobal) {
+    throw new Error('Briefing retention cannot protect the Country minimum within its global bound.');
+  }
+  for (const briefing of candidates) {
+    if (selected.size >= INFORMATION_MODEL.briefingHistoryLimitGlobal) break;
+    if (briefing.countryId === controlledCountryId) selected.add(briefing.id);
+  }
+  for (const briefing of candidates) {
+    if (selected.size >= INFORMATION_MODEL.briefingHistoryLimitGlobal) break;
+    selected.add(briefing.id);
+  }
+  const retained = candidates.filter(briefing => selected.has(briefing.id)).reverse();
   const anchors = new Set(retained.filter(item => item.fact.policyFollowUp).map(item => item.fact.proposalId));
   return retained.map(briefing => {
     const comparisons = briefing.fact.policyComparisons;
     if (!comparisons || comparisons.every(item => anchors.has(item.proposalId))) return briefing;
-    return { ...briefing, fact: { ...briefing.fact, policyComparisons: comparisons.filter(item => anchors.has(item.proposalId)) } };
+    const headline = comparisons.filter(item => !anchors.has(item.proposalId))
+      .reduce((text, comparison) => text.replace(policyComparisonText(comparison), ''), briefing.headline);
+    return { ...briefing, headline, fact: { ...briefing.fact, policyComparisons: comparisons.filter(item => anchors.has(item.proposalId)) } };
   });
 }
 

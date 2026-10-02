@@ -4,15 +4,15 @@ import { derivePartyGoalProfile } from '../governance/analysis';
 import { politicalRegistry } from '../politics/registry';
 import type { SchedulerTask, SimulationScheduler } from '../scheduler';
 import type { AdvisorAssistance, BriefingInterpretation, BriefingPresentation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentProposalEstimateInspection, GovernmentReport, InformationState, MinisterialBriefing, Portfolio } from './model';
-import { INFORMATION_MODEL, INFORMATION_VERSION, emptyInformation, referencedGovernmentReportIds, retainCountryBriefings } from './model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, controlledBriefingCountry, emptyInformation, policyComparisonText, referencedGovernmentReportIds, retainCountryBriefings } from './model';
 
 const reportId = (countryId: string, asOfDate: string) => `government-report:${countryId}:unemployment:${asOfDate}`;
 const briefingId = (eventType: MinisterialBriefing['eventType'], countryId: string, sourceId: string) => `briefing:${eventType}:${countryId}:${sourceId}`;
 const portfolioForProposal = (_proposal: PoliticalProposal): Portfolio => 'finance';
 
-function addBriefing(information: InformationState, briefing: MinisterialBriefing): InformationState {
+function addBriefing(information: InformationState, briefing: MinisterialBriefing, controlledCountryId?: string): InformationState {
   if (information.briefings.some(item => item.id === briefing.id)) return information;
-  const briefings = retainCountryBriefings([...information.briefings, briefing]);
+  const briefings = retainCountryBriefings([...information.briefings, briefing], controlledCountryId);
   return { ...information, briefings, governmentReportsById: retainBriefingReports(information.governmentReportsById, information.latestGovernmentReports, briefings) };
 }
 
@@ -143,7 +143,7 @@ export function addProposalResultBriefing(state: SimulationState, proposal: Poli
     },
     pauseRequested: false,
   };
-  return { ...state, information: addBriefing(state.information, briefing) };
+  return { ...state, information: addBriefing(state.information, briefing, controlledBriefingCountry(state)) };
 }
 
 const estimateId = (countryId: string, proposalId: string, date: string, fingerprint: string) => `government-proposal-estimate:${countryId}:${proposalId}:${date}:${fingerprint}`;
@@ -356,8 +356,16 @@ function monthlyReports(state: SimulationState): SimulationState {
   if (state.socioeconomy.lastMonthlyDate !== state.date) return state;
   const existing = state.information.latestGovernmentReports;
   const latestGovernmentReports = { ...existing };
-  let governmentReportsById = { ...state.information.governmentReportsById };
-  let briefings = state.information;
+  const governmentReportsById = { ...state.information.governmentReportsById };
+  const pendingBriefings = [...state.information.briefings];
+  const briefingIds = new Set(pendingBriefings.map(item => item.id));
+  const policyAnchors = new Map<string, MinisterialBriefing[]>();
+  for (const briefing of pendingBriefings) {
+    if (briefing.fact.kind !== 'parliamentary_result' || briefing.fact.outcome !== 'adopted' || briefing.fact.policyFollowUp?.attributionStatus !== 'temporal_only') continue;
+    const anchors = policyAnchors.get(briefing.countryId) ?? [];
+    anchors.push(briefing);
+    policyAnchors.set(briefing.countryId, anchors);
+  }
   const countryIds = Object.keys(state.engine.fidelityByCountry).sort();
   const labourByCountry = new Map(countryIds.map(countryId => [countryId, { unemployed: 0, labourForce: 0, coveredRegions: 0, totalRegions: 0 }]));
   for (const [regionId, ownerId] of Object.entries(state.regionOwnership).sort(([a], [b]) => a.localeCompare(b))) {
@@ -397,8 +405,7 @@ function monthlyReports(state: SimulationState): SimulationState {
     const materiallyChanged = previous?.valueBps !== undefined && valueBps !== undefined
       && Math.abs(valueBps - previousValueBps!) >= INFORMATION_MODEL.materialUnemploymentChangeBps;
     if (!materiallyChanged || previous?.asOfDate === state.date) continue;
-    const policyComparisons = briefings.briefings
-      .filter(item => item.countryId === countryId && item.fact.kind === 'parliamentary_result' && item.fact.outcome === 'adopted' && item.fact.policyFollowUp?.attributionStatus === 'temporal_only')
+    const policyComparisons = (policyAnchors.get(countryId) ?? [])
       .flatMap(item => {
         const anchor = item.fact.policyFollowUp!;
         if (!anchor.baselineReportId || anchor.baselineDate === undefined || anchor.baselineValueBps === undefined || anchor.effectiveDate > state.date || anchor.baselineDate > anchor.effectiveDate) return [];
@@ -415,9 +422,11 @@ function monthlyReports(state: SimulationState): SimulationState {
       })
       .slice(-16);
     const movement = valueBps! > previousValueBps! ? 'increased' : 'decreased';
-    const comparisonText = policyComparisons.map(comparison => ` Since the measure entered into force on ${comparison.effectiveDate}, unemployment moved from ${(comparison.baselineValueBps / 100).toFixed(2)}% to ${(comparison.currentValueBps / 100).toFixed(2)}%; this is a temporal comparison, not evidence of causation.`).join('');
+    const comparisonText = policyComparisons.map(policyComparisonText).join('');
     const id = briefingId('labour_report', countryId, report.id);
-    briefings = addBriefing(briefings, {
+    if (briefingIds.has(id)) continue;
+    briefingIds.add(id);
+    pendingBriefings.push({
       id, countryId, portfolio: 'economy', access: 'government', eventType: 'labour_report',
       severity: 'advisory', createdOn: state.date, sourceId: report.id,
       headline: `${executiveBriefingPrefix(state, countryId, 'Government briefing')} New labour figures are available. Unemployment has ${movement} from ${(previousValueBps! / 100).toFixed(2)}% to ${(valueBps! / 100).toFixed(2)}% since the previous report.${comparisonText}`,
@@ -433,10 +442,12 @@ function monthlyReports(state: SimulationState): SimulationState {
       pauseRequested: false,
     });
   }
+  const briefings = retainCountryBriefings(pendingBriefings, controlledBriefingCountry(state));
   return { ...state, information: {
-    ...briefings,
+    ...state.information,
+    briefings,
     latestGovernmentReports,
-    governmentReportsById: retainBriefingReports(governmentReportsById, latestGovernmentReports, briefings.briefings),
+    governmentReportsById: retainBriefingReports(governmentReportsById, latestGovernmentReports, briefings),
   } };
 }
 

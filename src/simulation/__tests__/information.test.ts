@@ -14,7 +14,7 @@ import { emptyGovernance, governanceFingerprint } from '../governance/model';
 import { selectUnresolvedFiscalProposal } from '../governance/selection';
 import { assertSimulationInvariants } from '../invariants';
 import { informationInvariant } from '../information/invariants';
-import { emptyInformation, referencedGovernmentReportIds } from '../information/model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, emptyInformation, policyComparisonText, referencedGovernmentReportIds, retainCountryBriefings } from '../information/model';
 import { addProposalResultBriefing, explainBriefing, hasGovernmentInformationAccess, inspectBriefings, inspectGovernmentProposalEstimates, inspectGovernmentReports, presentBriefing, produceGovernmentProposalEstimate, runInformationMonth } from '../information/runtime';
 import { initializeNewGame } from '../initialization';
 import { restoreSimulationState, serializeSimulationState } from '../save';
@@ -56,6 +56,25 @@ function withReports(state: SimulationState, reports: GovernmentReport[]): Simul
       governmentReportsById: Object.fromEntries(reports.map(item => [item.id, item])),
     },
   };
+}
+function retentionHistory(counts: (countryId: string) => number, offsets: (countryId: string) => number = () => 0) {
+  const briefings: MinisterialBriefing[] = [];
+  const governmentReportsById: Record<string, GovernmentReport> = {};
+  const latestGovernmentReports: Record<string, GovernmentReport> = {};
+  for (const countryId of worldCountryIds) for (let index = 0; index < counts(countryId); index += 1) {
+    const date = new Date(Date.UTC(2026, 0, 2 + offsets(countryId) + index)).toISOString().slice(0, 10);
+    const source = report(countryId, date, 600);
+    governmentReportsById[source.id] = source;
+    latestGovernmentReports[countryId] = source;
+    briefings.push({
+      id: `briefing:labour_report:${countryId}:${source.id}`, countryId, createdOn: date,
+      sourceId: source.id, portfolio: 'economy', access: 'government', eventType: 'labour_report',
+      severity: 'advisory', headline: 'Synthetic bounded-retention stress fixture, not a historical observation.',
+      fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, evidenceStatus: 'modelled' },
+      pauseRequested: false,
+    });
+  }
+  return { briefings, governmentReportsById, latestGovernmentReports };
 }
 function parliamentaryProposal(state: SimulationState, outcome: 'adopted' | 'rejected'): PoliticalProposal {
   const countryId = reportingCountry();
@@ -519,7 +538,7 @@ describe('government information and player briefings 0.15', () => {
     const proposalIds: string[] = [];
     for (let index = 0; index < 258; index += 1) {
       const proposal = parliamentaryProposal(state, index % 2 ? 'adopted' : 'rejected');
-      const unique = { ...proposal, id: `proposal.history-${index}` };
+      const unique = { ...proposal, id: `proposal.history-${String(index).padStart(4, '0')}` };
       proposalIds.push(unique.id);
       state = { ...state, governance: { ...state.governance, proposals: { ...state.governance.proposals, [unique.id]: unique } } };
       state = addProposalResultBriefing(state, unique);
@@ -548,6 +567,41 @@ describe('government information and player briefings 0.15', () => {
     expect(informationInvariant.check(state, worldContext, 'save')).toEqual([]);
   }, 30_000);
 
+  it('enforces the global cap, foreign floor, player preference and deterministic date-and-ID tie ordering under extreme noise', () => {
+    const playerCountry = Object.values(initial.governance.persons).find(person => person.isPartyLeader)!.countryId;
+    const noisyCountry = worldCountryIds.find(id => id !== playerCountry)!;
+    const history = retentionHistory(id => id === playerCountry ? 300 : id === noisyCountry ? 3_000 : 12,
+      id => id === playerCountry ? 0 : id === noisyCountry ? 2_000 : 1_000);
+    const retained = retainCountryBriefings(history.briefings, playerCountry);
+    const withoutPlayer = retainCountryBriefings(history.briefings);
+    expect(history.briefings.length).toBeGreaterThan(2_048);
+    expect(retained).toHaveLength(2_048);
+    expect(withoutPlayer).toHaveLength(2_048);
+    expect(retained.filter(item => item.countryId === playerCountry)).toHaveLength(256);
+    expect(withoutPlayer.filter(item => item.countryId === playerCountry)).toHaveLength(4);
+    const ids = new Set(retained.map(item => item.id));
+    for (const countryId of worldCountryIds) {
+      const country = retained.filter(item => item.countryId === countryId);
+      expect(country.length).toBeGreaterThanOrEqual(4);
+      expect(country.length).toBeLessThanOrEqual(256);
+      for (const latest of history.briefings.filter(item => item.countryId === countryId).slice(-4)) expect(ids.has(latest.id)).toBe(true);
+    }
+    expect(retainCountryBriefings([...history.briefings].reverse(), playerCountry)).toEqual(retained);
+    expect(retainCountryBriefings(retained, playerCountry)).toEqual(retained);
+    const excessive = { ...initial, date: '2050-01-01', information: { ...initial.information, ...history } };
+    expect(informationInvariant.check(excessive, worldContext, 'save').join(' ')).toContain('Global briefing history exceeds');
+    expect(() => restoreSimulationState(JSON.stringify(excessive), worldRegions, {}, {}, worldContext)).toThrow(/Global briefing history exceeds/);
+  }, 30_000);
+
+  it('fails explicitly when the protected minimum cannot fit or duplicate input would invalidate the hard bound', () => {
+    const template = retentionHistory(() => 1).briefings[0];
+    const impossible = Array.from({ length: 513 * 4 }, (_, index) => ({
+      ...template, id: `capacity-fixture-${index}`, countryId: `capacity-fixture-country-${Math.floor(index / 4)}`,
+    }));
+    expect(() => retainCountryBriefings(impossible)).toThrow(/Country minimum/);
+    expect(() => retainCountryBriefings([template, template])).toThrow(/duplicate briefing IDs/);
+  });
+
   it('removes orphaned temporal comparisons and their unreferenced baseline when the domestic anchor expires', () => {
     const domestic = approvedProposalWithBaseline();
     const baselineId = domestic.state.information.briefings[0].fact.policyFollowUp!.baselineReportId!;
@@ -564,6 +618,7 @@ describe('government information and player briefings 0.15', () => {
     }
     expect(state.information.briefings).toHaveLength(256);
     expect(state.information.briefings.find(item => item.id === labourId)?.fact.policyComparisons).toEqual([]);
+    expect(state.information.briefings.find(item => item.id === labourId)?.headline).not.toContain('Since the measure entered into force');
     expect(state.information.governmentReportsById[baselineId]).toBeUndefined();
     expect(informationInvariant.check(state, worldContext, 'save')).toEqual([]);
   }, 30_000);
@@ -704,13 +759,71 @@ describe('government information and player briefings 0.15', () => {
     expect(restored.governance).toEqual(base.governance);
     expect(restored.fiscal).toEqual(base.fiscal);
     expect(restored.crisis).toEqual(base.crisis);
-    expect(restored.information.version).toBe('information-0.15-v2');
+    expect(restored.information.version).toBe(INFORMATION_VERSION);
   });
 
-  it('rejects missing v2 estimate history instead of silently repairing same-subversion state', () => {
-    const malformed = structuredClone(initial);
-    delete (malformed.information as Partial<typeof malformed.information>).proposalEstimates;
-    expect(() => restoreSimulationState(JSON.stringify(malformed), worldRegions, {}, {}, worldContext)).toThrow(/Malformed government information state/);
+  it('explicitly migrates v2 retention while preserving safe estimates, control and all political/material history', () => {
+    const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    let base = setControlledPerson(initial, executive.id);
+    base = createFiscalProposal(base, { proposerPersonId: executive.id, countryId: executive.countryId, effectiveDate: '2026-02-01', payload: { annualBudget: base.fiscal.countries[executive.countryId].annualBudget } });
+    base = produceGovernmentProposalEstimate(base, base.governance.proposalOrder.at(-1)!, executive.id);
+    const noisyCountry = worldCountryIds.find(id => id !== executive.countryId)!;
+    const history = retentionHistory(id => id === executive.countryId ? 300 : id === noisyCountry ? 3_000 : 12,
+      id => id === executive.countryId ? 0 : id === noisyCountry ? 2_000 : 1_000);
+    const previous = { ...base, date: '2050-01-01', information: { ...base.information, ...history, version: 'information-0.15-v2' } };
+    const restored = restoreSimulationState(JSON.stringify(previous), worldRegions, {}, {}, worldContext);
+    expect(restored.information.version).toBe(INFORMATION_VERSION);
+    expect(restored.information.briefings).toEqual(retainCountryBriefings(history.briefings, executive.countryId));
+    expect(restored.information.briefings).toHaveLength(INFORMATION_MODEL.briefingHistoryLimitGlobal);
+    expect(restored.information.proposalEstimates).toEqual(base.information.proposalEstimates);
+    expect(restored.information.latestGovernmentReports).toEqual(history.latestGovernmentReports);
+    const references = referencedGovernmentReportIds(restored.information);
+    expect(Object.keys(restored.information.governmentReportsById).sort()).toEqual([...references].sort());
+    expect(restored.information.governmentReportsById[history.briefings[0].fact.reportId!]).toBeUndefined();
+    const { information: restoredInformation, ...restoredCanonical } = restored;
+    const { information: previousInformation, ...previousCanonical } = previous;
+    expect(restoredCanonical).toEqual(previousCanonical);
+    expect(restoredInformation.initializedOn).toBe(previousInformation.initializedOn);
+    expect(restoreSimulationState(serializeSimulationState(restored, worldContext), worldRegions, {}, {}, worldContext)).toEqual(restored);
+  }, 30_000);
+
+  it('releases baseline references and orphan comparisons when the global cap expires their foreign policy anchor', () => {
+    const domestic = approvedProposalWithBaseline();
+    const advanced = advanceSimulationDays(domestic.state, 59);
+    expect(advanced.date).toBe('2026-03-01');
+    const anchor = domestic.state.information.briefings[0];
+    const history = retentionHistory(() => 20, () => 31);
+    const comparison = history.briefings.filter(item => item.countryId === domestic.countryId).at(-1)!;
+    comparison.fact.policyComparisons = [{
+      proposalId: anchor.fact.proposalId!, effectiveDate: anchor.fact.policyFollowUp!.effectiveDate,
+      baselineDate: domestic.baseline.asOfDate, baselineValueBps: domestic.baseline.valueBps!,
+      currentValueBps: comparison.fact.valueBps!, attributionStatus: 'temporal_only',
+    }];
+    comparison.headline += policyComparisonText(comparison.fact.policyComparisons[0]);
+    const previous = {
+      ...advanced,
+      governance: { ...advanced.governance, player: { ...advanced.governance.player, controlledPersonId: undefined } },
+      information: {
+        ...advanced.information, ...history, version: 'information-0.15-v2',
+        briefings: [...history.briefings, anchor],
+        governmentReportsById: { ...history.governmentReportsById, [domestic.baseline.id]: domestic.baseline },
+      },
+    };
+    const restored = restoreSimulationState(JSON.stringify(previous), worldRegions, {}, {}, worldContext);
+    expect(restored.information.briefings).toHaveLength(2_048);
+    expect(restored.information.briefings.some(item => item.id === anchor.id)).toBe(false);
+    expect(restored.information.briefings.find(item => item.id === comparison.id)!.fact.policyComparisons).toEqual([]);
+    expect(restored.information.briefings.find(item => item.id === comparison.id)!.headline).not.toContain('Since the measure entered into force');
+    expect(restored.information.governmentReportsById[domestic.baseline.id]).toBeUndefined();
+    expect(informationInvariant.check(restored, worldContext, 'save')).toEqual([]);
+    expect(restored.governance).toEqual(previous.governance);
+  }, 30_000);
+
+  it('rejects missing v2/v3 estimate history instead of silently repairing a malformed state', () => {
+    for (const version of ['information-0.15-v2', INFORMATION_VERSION]) {
+      const malformed = { ...initial, information: { ...initial.information, version, proposalEstimates: undefined } };
+      expect(() => restoreSimulationState(JSON.stringify(malformed), worldRegions, {}, {}, worldContext)).toThrow(/Malformed government information state/);
+    }
   });
 
   it('starts information state empty on an arbitrary migration date without fabricating past reports', () => {

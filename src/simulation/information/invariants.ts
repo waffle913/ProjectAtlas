@@ -3,7 +3,7 @@ import { GOVERNANCE_VERSION, governanceFingerprint } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
 import type { SimulationState } from '../../types';
 import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport } from './model';
-import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, referencedGovernmentReportIds } from './model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, compareBriefings, referencedGovernmentReportIds } from './model';
 
 const validDate = (value: unknown): value is string => {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -83,6 +83,8 @@ export const informationInvariant: SimulationInvariant = {
     const countryBriefingCounts = new Map<string, number>();
     for (const briefing of information.briefings) countryBriefingCounts.set(briefing.countryId, (countryBriefingCounts.get(briefing.countryId) ?? 0) + 1);
     if ([...countryBriefingCounts.values()].some(count => count > INFORMATION_MODEL.briefingHistoryLimitPerCountry)) errors.push('Country briefing history exceeds its configured bound.');
+    if (information.briefings.length > INFORMATION_MODEL.briefingHistoryLimitGlobal) errors.push('Global briefing history exceeds its configured bound.');
+    if (information.briefings.some((briefing, index) => index > 0 && compareBriefings(information.briefings[index - 1], briefing) >= 0)) errors.push('Briefing history is not in deterministic date-and-ID order.');
     if (information.proposalEstimates.length > INFORMATION_MODEL.proposalEstimateHistoryLimit) errors.push('Government proposal estimate history exceeds its configured bound.');
     const estimateIds = new Set<string>();
     for (const estimate of information.proposalEstimates) {

@@ -11,7 +11,7 @@ import { upgradeGovernanceSchema12 } from './governance/migration';
 import { initializePartyLeaders } from './governance/runtime';
 import { emptyInformation, INFORMATION_VERSION } from './information/model';
 import { initializeInformationState } from './information/runtime';
-import { upgradeInformationV1 } from './information/migration';
+import { upgradeInformationState } from './information/migration';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
 import { assertSimulationInvariants, type InvariantContext } from './invariants';
@@ -54,7 +54,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     if (version === 10 && current.crisis?.version !== 'crisis-0.12-v1') throw new Error('Malformed crisis model.');
     if (version >= 11 && (current.crisis?.version !== 'crisis-0.12-v1' || current.politics?.version !== 'politics-0.13-v1')) throw new Error('Malformed politics or crisis model.');
     if (version >= 12 && current.governance?.version !== 'governance-0.14-v1') throw new Error('Malformed governance model.');
-    if (version === 13 && ![INFORMATION_VERSION, 'information-0.15-v1'].includes(current.information?.version)) throw new Error('Malformed government information model.');
+    if (version === 13 && ![INFORMATION_VERSION, 'information-0.15-v1', 'information-0.15-v2'].includes(current.information?.version)) throw new Error('Malformed government information model.');
     const fiscal = version >= 9 ? upgradeFiscalStateV1(current.fiscal, current.date) : emptyFiscal();
     const countryIds = countryIdsFor(current, regions, diplomacyContext);
     const crisis = version >= 10 ? current.crisis! : initializeCrisisState(emptyCrisis(), countryIds, current.date);
@@ -74,7 +74,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
       restored = initializeInformationState(restored);
       restored = initializePartyLeaders(restored);
     } else {
-      restored = upgradeInformationV1(restored);
+      restored = upgradeInformationState(restored);
     }
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
