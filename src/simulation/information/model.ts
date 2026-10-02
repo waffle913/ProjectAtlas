@@ -1,11 +1,11 @@
-import type { EvaluationCoverage } from '../governance/model';
+import type { EvaluationCoverage, FiscalProposalPayload } from '../governance/model';
 import type { PoliticalIssue } from '../politics/model';
 
-export const INFORMATION_VERSION = 'information-0.15-v1' as const;
+export const INFORMATION_VERSION = 'information-0.15-v2' as const;
 export const INFORMATION_MODEL = Object.freeze({
   version: INFORMATION_VERSION,
   schedulerPriority: 350,
-  briefingHistoryLimit: 256,
+  briefingHistoryLimitPerCountry: 256,
   proposalEstimateHistoryLimit: 256,
   materialUnemploymentChangeBps: 50,
 });
@@ -107,6 +107,8 @@ export interface GovernmentProposalEstimate {
   id: string;
   countryId: string;
   proposalId: string;
+  proposalContentFingerprint: string;
+  analyzedContent: { effectiveDate: string; payload: FiscalProposalPayload };
   requestedOn: string;
   requestedByPersonId: string;
   coverage: EvaluationCoverage;
@@ -148,11 +150,15 @@ export interface GovernmentProposalEstimate {
   unsupportedChanges: Array<{ path: string; reason: string; coverage: 'partial' | 'unavailable' }>;
   limitations: string[];
   provenance: {
-    status: 'derived';
-    engine: 'situational-0.14-v2';
-    source: 'governance.proposal-analysis';
+    status: 'unavailable';
+    engine: 'government-information-0.15-v2';
+    source: 'government-information.available-evidence';
     limitation: string;
   };
+}
+
+export interface GovernmentProposalEstimateInspection extends GovernmentProposalEstimate {
+  stale: boolean;
 }
 
 export interface InformationState {
@@ -180,6 +186,24 @@ export function referencedGovernmentReportIds(information: Pick<InformationState
     }
   }
   return referenced;
+}
+
+export function retainCountryBriefings(briefings: readonly MinisterialBriefing[]): MinisterialBriefing[] {
+  const counts = new Map<string, number>();
+  const retained: MinisterialBriefing[] = [];
+  for (let index = briefings.length - 1; index >= 0; index -= 1) {
+    const briefing = briefings[index];
+    const count = (counts.get(briefing.countryId) ?? 0) + 1;
+    counts.set(briefing.countryId, count);
+    if (count <= INFORMATION_MODEL.briefingHistoryLimitPerCountry) retained.push(briefing);
+  }
+  retained.reverse();
+  const anchors = new Set(retained.filter(item => item.fact.policyFollowUp).map(item => item.fact.proposalId));
+  return retained.map(briefing => {
+    const comparisons = briefing.fact.policyComparisons;
+    if (!comparisons || comparisons.every(item => anchors.has(item.proposalId))) return briefing;
+    return { ...briefing, fact: { ...briefing.fact, policyComparisons: comparisons.filter(item => anchors.has(item.proposalId)) } };
+  });
 }
 
 export const emptyInformation = (initializedOn?: string): InformationState => ({

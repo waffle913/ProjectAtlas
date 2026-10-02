@@ -1,7 +1,6 @@
 import type { SimulationInvariant } from '../invariants';
-import { GOVERNANCE_VERSION } from '../governance/model';
+import { GOVERNANCE_VERSION, governanceFingerprint } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
-import { CRISIS_TYPES } from '../crisis/model';
 import type { SimulationState } from '../../types';
 import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport } from './model';
 import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, referencedGovernmentReportIds } from './model';
@@ -41,13 +40,15 @@ function validateChamberFact(result: ChamberBriefingResult): boolean {
 }
 
 function validateProposalEstimate(report: GovernmentProposalEstimate, state: SimulationState, countryIds: ReadonlySet<string>): string[] {
+  if (!report.analyzedContent || !validDate(report.analyzedContent.effectiveDate) || !report.analyzedContent.payload) return ['analyzedContent'];
   const proposal = state.governance.proposals[report.proposalId];
   const publicTotal = report.publicEstimate.supportBps + report.publicEstimate.opposeBps + report.publicEstimate.neutralBps + report.publicEstimate.unknownBps;
   const chambers = report.parliamentaryEstimate.chambers;
   const chamberSum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => chambers.reduce((sum, item) => sum + item[field], 0);
   const checks: Record<string, boolean> = {
     proposalReference: Boolean(proposal && proposal.countryId === report.countryId && proposal.createdOn <= report.requestedOn),
-    countryAndDate: countryIds.has(report.countryId) && report.id === `government-proposal-estimate:${report.countryId}:${report.proposalId}:${report.requestedOn}` && validDate(report.requestedOn) && report.requestedOn <= state.date,
+    countryAndDate: countryIds.has(report.countryId) && report.id === `government-proposal-estimate:${report.countryId}:${report.proposalId}:${report.requestedOn}:${report.proposalContentFingerprint}` && validDate(report.requestedOn) && report.requestedOn <= state.date,
+    contentFingerprint: report.proposalContentFingerprint === governanceFingerprint(report.analyzedContent) && report.analyzedContent.effectiveDate >= proposal?.createdOn,
     authorizedRequesterReference: state.governance.persons[report.requestedByPersonId]?.countryId === report.countryId,
     coverageAndConfidence: coverageValues.has(report.coverage) && bounded(report.confidenceBps),
     publicEstimate: [report.publicEstimate.supportBps, report.publicEstimate.opposeBps, report.publicEstimate.neutralBps, report.publicEstimate.unknownBps, report.publicEstimate.confidenceBps].every(value => bounded(value)) && publicTotal === 10_000 && coverageValues.has(report.publicEstimate.coverage),
@@ -62,7 +63,13 @@ function validateProposalEstimate(report: GovernmentProposalEstimate, state: Sim
     expectedConsequences: report.expectedConsequences.every(item => Boolean(item.goal && item.explanation) && Number.isSafeInteger(item.directionBps) && Math.abs(item.directionBps) <= 10_000 && bounded(item.magnitudeBps) && bounded(item.confidenceBps) && coverageValues.has(item.coverage)),
     unsupportedChanges: report.unsupportedChanges.every(item => Boolean(item.path && item.reason) && ['partial', 'unavailable'].includes(item.coverage)),
     limitations: report.limitations.every(item => typeof item === 'string'),
-    provenance: report.provenance.status === 'derived' && report.provenance.engine === 'situational-0.14-v2' && report.provenance.source === 'governance.proposal-analysis' && Boolean(report.provenance.limitation),
+    unavailableEvidence: report.coverage === 'unavailable' && report.confidenceBps === 0
+      && report.publicEstimate.coverage === 'unavailable' && report.publicEstimate.confidenceBps === 0
+      && report.publicEstimate.unknownBps === 10_000
+      && report.parliamentaryEstimate.coverage === 'unavailable' && report.parliamentaryEstimate.confidenceBps === 0
+      && chambers.every(item => item.coverage === 'unavailable' && item.yesSeats === 0 && item.noSeats === 0 && item.abstainSeats === 0)
+      && report.directPolicyChanges.length === 0 && report.expectedConsequences.length === 0,
+    provenance: report.provenance.status === 'unavailable' && report.provenance.engine === 'government-information-0.15-v2' && report.provenance.source === 'government-information.available-evidence' && Boolean(report.provenance.limitation),
   };
   return Object.entries(checks).filter(([, valid]) => !valid).map(([name]) => name);
 }
@@ -73,7 +80,9 @@ export const informationInvariant: SimulationInvariant = {
     const errors: string[] = [];
     const information = state.information;
     if (!information || information.version !== INFORMATION_VERSION || !validDate(information.initializedOn) || information.initializedOn! > state.date || !information.latestGovernmentReports || !information.governmentReportsById || !Array.isArray(information.briefings) || !Array.isArray(information.proposalEstimates)) return ['Malformed government information state.'];
-    if (information.briefings.length > INFORMATION_MODEL.briefingHistoryLimit) errors.push('Briefing history exceeds its configured bound.');
+    const countryBriefingCounts = new Map<string, number>();
+    for (const briefing of information.briefings) countryBriefingCounts.set(briefing.countryId, (countryBriefingCounts.get(briefing.countryId) ?? 0) + 1);
+    if ([...countryBriefingCounts.values()].some(count => count > INFORMATION_MODEL.briefingHistoryLimitPerCountry)) errors.push('Country briefing history exceeds its configured bound.');
     if (information.proposalEstimates.length > INFORMATION_MODEL.proposalEstimateHistoryLimit) errors.push('Government proposal estimate history exceeds its configured bound.');
     const estimateIds = new Set<string>();
     for (const estimate of information.proposalEstimates) {
@@ -144,9 +153,7 @@ export const informationInvariant: SimulationInvariant = {
         })) errors.push(`Labour briefing ${briefing.id} contains an unsupported policy attribution.`);
       }
       if (briefing.fact.kind === 'crisis_activation') {
-        const sourceExists = state.crisis.countries[briefing.countryId]?.history.some(item => item.id === briefing.sourceId && item.type === briefing.fact.crisisType)
-          || Object.values(state.crisis.countries[briefing.countryId]?.currentByType ?? {}).some(item => item.id === briefing.sourceId && item.type === briefing.fact.crisisType);
-        if (briefing.eventType !== 'crisis_activation' || !sourceExists || briefing.access !== 'government' || !CRISIS_TYPES.includes(briefing.fact.crisisType as typeof CRISIS_TYPES[number]) || !['low', 'moderate', 'severe', 'critical'].includes(briefing.fact.crisisSeverity ?? '')) errors.push(`Crisis briefing ${briefing.id} has an invalid monitor reference.`);
+        errors.push(`Crisis briefing ${briefing.id} has no government-visible report channel.`);
       }
       if (!statusValues.has(briefing.fact.evidenceStatus)) errors.push(`Briefing ${briefing.id} has invalid evidence status.`);
     }

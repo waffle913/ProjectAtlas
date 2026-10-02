@@ -1,13 +1,17 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { FiscalPolicy } from '../../components/FiscalPolicy';
 import type { SimulationState } from '../../types';
 import type { GovernmentReport, MinisterialBriefing } from '../information/model';
 import type { GovernanceGoal, PartyGoalProfile, PoliticalProposal } from '../governance/model';
-import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, inspectProposalSupport, resolveProposalVote, setControlledPerson, submitProposal } from '../governance/runtime';
+import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, inspectProposalSupport, replaceDraftProposal, resolveProposalVote, setControlledPerson, submitProposal } from '../governance/runtime';
 import { derivePartyGoalProfile } from '../governance/analysis';
 import type { PoliticalRegistry } from '../politics/model';
 import { advanceSimulationDays } from '../engine';
-import { emptyGovernance } from '../governance/model';
+import { emptyGovernance, governanceFingerprint } from '../governance/model';
+import { selectUnresolvedFiscalProposal } from '../governance/selection';
 import { assertSimulationInvariants } from '../invariants';
 import { informationInvariant } from '../information/invariants';
 import { emptyInformation, referencedGovernmentReportIds } from '../information/model';
@@ -138,7 +142,7 @@ function approvedProposalWithBaseline() {
 }
 
 describe('government information and player briefings 0.15', () => {
-  it('creates dated proposal estimates only for an authorized executive and persists their 0.14 provenance', () => {
+  it('creates unavailable proposal reactions only for an authorized executive without copying political Reality', () => {
     const countryId = 'country.sxojze';
     const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
     const opposition = Object.values(initial.governance.persons).find(person => person.partyId === 'party:country.sxojze:6244f2d93a49' && person.isPartyLeader)!;
@@ -156,7 +160,12 @@ describe('government information and player briefings 0.15', () => {
       proposalId,
       requestedOn: initial.date,
       requestedByPersonId: executive.id,
-      provenance: { status: 'derived', engine: 'situational-0.14-v2', source: 'governance.proposal-analysis' },
+      coverage: 'unavailable',
+      confidenceBps: 0,
+      publicEstimate: { supportBps: 0, opposeBps: 0, neutralBps: 0, unknownBps: 10_000 },
+      parliamentaryEstimate: { yesSeats: 0, noSeats: 0, abstainSeats: 0, coverage: 'unavailable' },
+      expectedConsequences: [],
+      provenance: { status: 'unavailable', engine: 'government-information-0.15-v2', source: 'government-information.available-evidence' },
     });
     expect(estimated.governance.proposals[proposalId].analysis).toBeUndefined();
     expect(inspectGovernmentProposalEstimates(estimated, countryId, opposition.id)).toEqual([]);
@@ -164,6 +173,69 @@ describe('government information and player briefings 0.15', () => {
     expect(informationInvariant.check(estimated, worldContext, 'save')).toEqual([]);
     const restored = restoreSimulationState(serializeSimulationState(estimated, worldContext), worldRegions, {}, {}, worldContext);
     expect(restored.information.proposalEstimates).toEqual(estimated.information.proposalEstimates);
+    const changedReality = {
+      ...drafted,
+      socioeconomy: { ...drafted.socioeconomy, regions: {} },
+      politics: { ...drafted.politics, countries: {} },
+      fiscal: { ...drafted.fiscal, countries: {} },
+      crisis: { ...drafted.crisis, countries: {} },
+    };
+    expect(produceGovernmentProposalEstimate(changedReality, proposalId, executive.id).information.proposalEstimates)
+      .toEqual(estimated.information.proposalEstimates);
+    expect(inspectProposalSupport(drafted, proposalId).informationStatus).toBe('engine_debug_reality');
+  });
+
+  it('binds estimates to effective date and payload, marks edited drafts stale, and re-estimates on the same day', () => {
+    const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    const countryId = executive.countryId;
+    const annualBudget = initial.fiscal.countries[countryId].annualBudget;
+    let state = createFiscalProposal(initial, { proposerPersonId: executive.id, countryId, effectiveDate: '2026-02-01', payload: { annualBudget } });
+    const proposalId = state.governance.proposalOrder.at(-1)!;
+    state = produceGovernmentProposalEstimate(state, proposalId, executive.id);
+    const old = state.information.proposalEstimates[0];
+    expect(old.proposalContentFingerprint).toBe(governanceFingerprint(old.analyzedContent));
+    state = replaceDraftProposal(state, proposalId, { payload: { annualBudget: { ...annualBudget, infrastructure: annualBudget.infrastructure + 1 } } });
+    expect(inspectGovernmentProposalEstimates(state, countryId, executive.id)[0].stale).toBe(true);
+    const staleMarkup = renderToStaticMarkup(createElement(FiscalPolicy, { state, countryId, personId: executive.id, onStateChange: () => undefined }));
+    expect(staleMarkup).not.toContain('Last Government Information estimate');
+    expect(staleMarkup).not.toContain('Government Information estimate ·');
+    expect(staleMarkup).toContain(proposalId);
+    expect(informationInvariant.check(state, worldContext, 'save')).toEqual([]);
+    state = produceGovernmentProposalEstimate(state, proposalId, executive.id);
+    expect(state.information.proposalEstimates).toHaveLength(2);
+    expect(inspectGovernmentProposalEstimates(state, countryId, executive.id).map(item => item.stale)).toEqual([true, false]);
+    expect(state.information.proposalEstimates[1].id).not.toBe(old.id);
+    const currentMarkup = renderToStaticMarkup(createElement(FiscalPolicy, { state, countryId, personId: executive.id, onStateChange: () => undefined }));
+    expect(currentMarkup).toContain('responses UNKNOWN');
+    expect(currentMarkup).not.toContain('0 yes, 0 no seats');
+    state = replaceDraftProposal(state, proposalId, { effectiveDate: '2026-03-01' });
+    expect(inspectGovernmentProposalEstimates(state, countryId, executive.id).every(item => item.stale)).toBe(true);
+    state = produceGovernmentProposalEstimate(state, proposalId, executive.id);
+    expect(state.information.proposalEstimates).toHaveLength(3);
+    const duplicate = produceGovernmentProposalEstimate(state, proposalId, executive.id);
+    expect(duplicate.information.proposalEstimates).toEqual(state.information.proposalEstimates);
+    const invalid = structuredClone(state);
+    invalid.information.proposalEstimates[0].analyzedContent.effectiveDate = '2026-12-01';
+    expect(informationInvariant.check(invalid, worldContext, 'save').join(' ')).toContain('contentFingerprint');
+    expect(restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext)).toEqual(state);
+  });
+
+  it('resumes a canonical unresolved proposal when local selection is lost, scoped to person and Country', () => {
+    const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    const countryId = executive.countryId;
+    const state = createFiscalProposal(setControlledPerson(initial, executive.id), {
+      proposerPersonId: executive.id, countryId, effectiveDate: '2026-02-01',
+      payload: { annualBudget: initial.fiscal.countries[countryId].annualBudget },
+    });
+    const proposalId = state.governance.proposalOrder.at(-1)!;
+    expect(selectUnresolvedFiscalProposal(state.governance, countryId, executive.id)?.id).toBe(proposalId);
+    expect(selectUnresolvedFiscalProposal(state.governance, countryId, executive.id, 'lost-ui-selection')?.id).toBe(proposalId);
+    expect(selectUnresolvedFiscalProposal(state.governance, countryId, 'other-person')).toBeUndefined();
+    expect(selectUnresolvedFiscalProposal(state.governance, 'other-country', executive.id)).toBeUndefined();
+    const restored = restoreSimulationState(serializeSimulationState(submitProposal(state, proposalId), worldContext), worldRegions, {}, {}, worldContext);
+    expect(selectUnresolvedFiscalProposal(restored.governance, countryId, executive.id)?.status).toBe('submitted');
+    const resolved = resolveProposalVote(restored, proposalId);
+    expect(selectUnresolvedFiscalProposal(resolved.governance, countryId, executive.id)).toBeUndefined();
   });
 
   it('keeps internal reports unavailable to opposition and grants access only through an office capability', () => {
@@ -203,7 +275,7 @@ describe('government information and player briefings 0.15', () => {
   });
 
   it.each(['adopted', 'rejected'] as const)('records the exact public parliamentary result for an %s proposal without pausing', outcome => {
-    const base = initial;
+    const base = { ...initial, paused: false };
     const proposal = parliamentaryProposal(base, outcome);
     const state = { ...base, governance: { ...base.governance, proposals: { ...base.governance.proposals, [proposal.id]: proposal } } };
     const briefed = addProposalResultBriefing(state, proposal);
@@ -420,7 +492,7 @@ describe('government information and player briefings 0.15', () => {
       expect(result.information.latestGovernmentReports[countryId].valueBps).toBe(702);
   });
 
-  it('briefs on a newly active crisis using its canonical monitor record', () => {
+  it('does not interpret a canonical crisis activation as a government-visible observation', () => {
     const countryId = reportingCountry();
     const oldCountry = initial.crisis.countries[countryId];
     const episode = oldCountry.currentByType.fiscal_stress;
@@ -437,13 +509,8 @@ describe('government information and player briefings 0.15', () => {
       socioeconomy: { ...initial.socioeconomy, lastMonthlyDate: '2026-02-01' },
       crisis: { ...initial.crisis, countries: { ...initial.crisis.countries, [countryId]: { ...oldCountry, currentByType: { ...oldCountry.currentByType, fiscal_stress: active } } } },
     });
-    expect(state.information.briefings).toMatchObject([{
-      access: 'government',
-      eventType: 'crisis_activation',
-      severity: 'important',
-      sourceId: active.id,
-      fact: { kind: 'crisis_activation', crisisType: 'fiscal_stress', crisisSeverity: 'severe' },
-    }]);
+    expect(state.information.briefings).toEqual([]);
+    expect(state.crisis.countries[countryId].currentByType.fiscal_stress).toEqual(active);
     expect(informationInvariant.check(state, worldContext, 'tick')).toEqual([]);
   });
 
@@ -463,6 +530,43 @@ describe('government information and player briefings 0.15', () => {
     expect(repeated.information.briefings).toHaveLength(256);
     expect(repeated.information.briefings.map(item => item.id)).toEqual(state.information.briefings.map(item => item.id));
   });
+
+  it('retains domestic briefings and report baselines despite over 256 events in other Countries', () => {
+    const domestic = approvedProposalWithBaseline();
+    const domesticBriefing = domestic.state.information.briefings[0];
+    let state = domestic.state;
+    const others = worldCountryIds.filter(id => id !== domestic.countryId).slice(0, 2);
+    for (const countryId of others) for (let index = 0; index < 270; index += 1) {
+      const proposal = { ...parliamentaryProposal(state, 'rejected'), id: `proposal.history-${countryId}-${index}`, countryId };
+      state = { ...state, governance: { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: proposal } } };
+      state = addProposalResultBriefing(state, proposal);
+    }
+    expect(state.information.briefings).toHaveLength(513);
+    expect(state.information.briefings.filter(item => item.countryId === domestic.countryId)).toEqual([domesticBriefing]);
+    for (const countryId of others) expect(state.information.briefings.filter(item => item.countryId === countryId)).toHaveLength(256);
+    expect(state.information.governmentReportsById[domesticBriefing.fact.policyFollowUp!.baselineReportId!]).toEqual(domestic.baseline);
+    expect(informationInvariant.check(state, worldContext, 'save')).toEqual([]);
+  }, 30_000);
+
+  it('removes orphaned temporal comparisons and their unreferenced baseline when the domestic anchor expires', () => {
+    const domestic = approvedProposalWithBaseline();
+    const baselineId = domestic.state.information.briefings[0].fact.policyFollowUp!.baselineReportId!;
+    let state = runInformationMonth({
+      ...domestic.state, date: '2026-02-01',
+      socioeconomy: { ...domestic.state.socioeconomy, lastMonthlyDate: '2026-02-01' },
+    });
+    const labourId = state.information.briefings.find(item => item.countryId === domestic.countryId && item.fact.kind === 'labour_report')!.id;
+    expect(state.information.governmentReportsById[baselineId]).toBeDefined();
+    for (let index = 0; index < 255; index += 1) {
+      const proposal = { ...parliamentaryProposal(state, 'rejected'), id: `proposal.domestic-retention-${index}`, countryId: domestic.countryId };
+      state = { ...state, governance: { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: proposal } } };
+      state = addProposalResultBriefing(state, proposal);
+    }
+    expect(state.information.briefings).toHaveLength(256);
+    expect(state.information.briefings.find(item => item.id === labourId)?.fact.policyComparisons).toEqual([]);
+    expect(state.information.governmentReportsById[baselineId]).toBeUndefined();
+    expect(informationInvariant.check(state, worldContext, 'save')).toEqual([]);
+  }, 30_000);
 
   it('does not recommend unsupported fiscal levers as employment solutions and preserves fact-only Expert mode', () => {
     const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
@@ -575,16 +679,38 @@ describe('government information and player briefings 0.15', () => {
       .toThrow(/Malformed government information state/);
   });
 
-  it('adds an empty estimate collection to a prior schema-13 save without inventing reports or evaluations', () => {
-    const previousSave = structuredClone(initial);
-    delete (previousSave.information as Partial<typeof previousSave.information>).proposalEstimates;
+  it('explicitly upgrades information-v1 in schema 13 without rewriting political persons or simulated history', () => {
+    const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    let base = withReports(setControlledPerson(initial, executive.id), [report(executive.countryId, initial.date, 700)]);
+    base = createFiscalProposal(base, { proposerPersonId: executive.id, countryId: executive.countryId, effectiveDate: '2026-02-01', payload: { annualBudget: base.fiscal.countries[executive.countryId].annualBudget } });
+    const id = base.governance.proposalOrder.at(-1)!;
+    base = resolveProposalVote(submitProposal(base, id), id);
+    const previousSave = structuredClone(base) as unknown as Record<string, unknown>;
+    const legacyInformation = previousSave.information as Record<string, unknown>;
+    legacyInformation.version = 'information-0.15-v1';
+    legacyInformation.proposalEstimates = [{ id: 'unsafe-reality-estimate' }];
+    legacyInformation.briefings = [...base.information.briefings, {
+      id: 'unsafe-crisis-observation', countryId: reportingCountry(),
+      eventType: 'crisis_activation', fact: { kind: 'crisis_activation' },
+    }];
     const restored = restoreSimulationState(JSON.stringify(previousSave), worldRegions, {}, {}, worldContext);
     expect(restored.information.proposalEstimates).toEqual([]);
-    expect(restored.information.latestGovernmentReports).toEqual({});
-    expect(restored.information.briefings).toEqual([]);
+    expect(restored.information.latestGovernmentReports).toEqual(base.information.latestGovernmentReports);
+    expect(restored.information.governmentReportsById).toEqual(base.information.governmentReportsById);
+    expect(restored.information.briefings).toEqual(base.information.briefings);
     expect(restored.date).toBe(initial.date);
     expect(restored.engine.tick).toBe(initial.engine.tick);
     expect(restored.engine.seed).toBe(initial.engine.seed);
+    expect(restored.governance).toEqual(base.governance);
+    expect(restored.fiscal).toEqual(base.fiscal);
+    expect(restored.crisis).toEqual(base.crisis);
+    expect(restored.information.version).toBe('information-0.15-v2');
+  });
+
+  it('rejects missing v2 estimate history instead of silently repairing same-subversion state', () => {
+    const malformed = structuredClone(initial);
+    delete (malformed.information as Partial<typeof malformed.information>).proposalEstimates;
+    expect(() => restoreSimulationState(JSON.stringify(malformed), worldRegions, {}, {}, worldContext)).toThrow(/Malformed government information state/);
   });
 
   it('starts information state empty on an arbitrary migration date without fabricating past reports', () => {

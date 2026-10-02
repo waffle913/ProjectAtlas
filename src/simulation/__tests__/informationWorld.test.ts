@@ -8,7 +8,8 @@ import { createCoreScheduler } from '../engine';
 import { advanceSimulationDays } from '../engine';
 import { serializeSimulationState } from '../save';
 import { emptyGovernance } from '../governance/model';
-import type { MinisterialBriefing } from '../information/model';
+import { retainCountryBriefings, type GovernmentReport, type MinisterialBriefing } from '../information/model';
+import { informationInvariant } from '../information/invariants';
 import { runInformationMonth } from '../information/runtime';
 import { socioeconomicWorld, worldContext, worldCountryIds, worldPoliticalInputs, worldRegions } from './worldScenario';
 
@@ -43,7 +44,9 @@ describe('full-world information and leadership 0.15 benchmark', () => {
     delete legacyGovernance.successionOrder;
     delete legacyGovernance.nextSuccessionSequence;
     const legacyPersons = legacyGovernance.persons as Record<string, Record<string, unknown>>;
-    legacyGovernance.persons = Object.fromEntries(Object.entries(legacyPersons).filter(([, person]) => !person.leaderProvenance));
+    legacyGovernance.persons = Object.fromEntries(Object.entries(legacyPersons).filter(([id]) =>
+      !state.governance.persons[id].leaderProvenance && !state.governance.persons[id].office?.evidence,
+    ));
     legacyGovernance.nextPersonSequence = 0;
     const legacyBytes = Buffer.byteLength(JSON.stringify(without015));
     const currentBytes = Buffer.byteLength(serialized);
@@ -85,6 +88,43 @@ describe('full-world information and leadership 0.15 benchmark', () => {
       sourceId: `proposal.${String(index).padStart(8, '0')}`,
     }))));
 
+    const historyCountries = worldCountryIds.slice(0, 3);
+    const historyReports: Record<string, GovernmentReport> = {};
+    const historyBriefings: MinisterialBriefing[] = [];
+    for (const countryId of historyCountries) for (let month = 0; month < 270; month += 1) {
+      const asOfDate = new Date(Date.UTC(2026, month, 1)).toISOString().slice(0, 10);
+      const source = reportState.information.latestGovernmentReports[countryId];
+      const id = `government-report:${countryId}:unemployment:${asOfDate}`;
+      const report: GovernmentReport = { ...source, id, asOfDate, limitation: 'Synthetic dated monthly report fixture for retention cost measurement; not simulated historical observations.' };
+      historyReports[id] = report;
+      historyBriefings.push({
+        ...briefingSample, id: `briefing:labour_report:${countryId}:${id}`, countryId, portfolio: 'economy',
+        access: 'government', eventType: 'labour_report', createdOn: asOfDate, sourceId: id,
+        fact: { kind: 'labour_report', reportId: id, valueBps: report.valueBps, evidenceStatus: report.status },
+      });
+    }
+    const retained = retainCountryBriefings(historyBriefings);
+    const retainedReportIds = new Set(retained.map(item => item.fact.reportId));
+    const historyState = {
+      ...state, date: '2048-07-01',
+      socioeconomy: { ...state.socioeconomy, lastMonthlyDate: '2048-07-01' },
+      information: {
+        ...state.information, briefings: retained,
+        governmentReportsById: Object.fromEntries(Object.entries(historyReports).filter(([id]) => retainedReportIds.has(id))),
+      },
+    };
+    expect(retained).toHaveLength(768);
+    expect(informationInvariant.check(historyState, worldContext, 'save')).toEqual([]);
+    startedAt = performance.now();
+    const historyMonthly = runInformationMonth(historyState);
+    const monthlyWithHistoryMs = performance.now() - startedAt;
+    expect(historyMonthly.information.briefings).toHaveLength(768);
+    expect(informationInvariant.check(historyMonthly, worldContext, 'save')).toEqual([]);
+    const retainedHistorySaveBytes = Buffer.byteLength(serializeSimulationState(historyMonthly, worldContext));
+    const emptyHistorySaveBytes = Buffer.byteLength(serializeSimulationState({
+      ...historyState, information: { ...state.information, initializedOn: state.information.initializedOn },
+    }, worldContext));
+
     startedAt = performance.now();
     const succeeded = replacePartyLeader(state, partyId);
     const successionMs = performance.now() - startedAt;
@@ -100,6 +140,7 @@ describe('full-world information and leadership 0.15 benchmark', () => {
       regions: worldRegions.length,
       gameplayParties: partyCount,
       activeGameplayLeaders: leaderCount,
+      materializedExecutivePersons: Object.values(state.governance.persons).filter(person => person.office?.evidence).length,
       isolatedLeaderGenerationMs: Number(leaderGenerationMs.toFixed(2)),
       singlePartyLeaderLookupMs: Number(leaderLookupMs.toFixed(4)),
       newGameInitializationMs: Number(initializationMs.toFixed(2)),
@@ -108,6 +149,11 @@ describe('full-world information and leadership 0.15 benchmark', () => {
       firstMonthlyReports: Object.keys(reportState.information.latestGovernmentReports).length,
       informationStateAfterFirstReportBytes: Buffer.byteLength(JSON.stringify(reportState.information)),
       serialized256BriefingHistoryBytes: briefingHistoryBytes,
+      syntheticMultiCountryRetainedBriefings: retained.length,
+      syntheticMultiCountryHistoryCountries: historyCountries.length,
+      syntheticHistoryMonthlyReportMs: Number(monthlyWithHistoryMs.toFixed(2)),
+      syntheticHistorySaveBytes: retainedHistorySaveBytes,
+      syntheticHistorySaveDeltaBytes: retainedHistorySaveBytes - emptyHistorySaveBytes,
       currentSaveBytes: currentBytes,
       estimatedSchema12SaveBytesWithout015: legacyBytes,
       estimatedSaveDeltaBytes: currentBytes - legacyBytes,

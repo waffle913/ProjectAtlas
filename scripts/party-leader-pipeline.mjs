@@ -287,6 +287,14 @@ const officeholdersByParty = new Map(parties.map(party => [party.id, offices.off
     && item.startDate && item.startDate <= scenarioDate && office?.countryId === party.countryId
     && ['head_of_government', 'head_of_state'].includes(office.kind);
 })]));
+const availableExecutiveRecords = offices.officeholders.filter(item => {
+  const office = officeDefinitions.get(item.officeId);
+  return item.status === 'available' && item.referenceDate === scenarioDate && item.person?.id
+    && (!item.startDate || item.startDate <= scenarioDate) && office
+    && ['head_of_government', 'head_of_state'].includes(office.kind);
+});
+const executiveIdentities = new Set(availableExecutiveRecords.map(item => `${officeDefinitions.get(item.officeId).countryId}:${item.person.id}`));
+const partyLeaderExecutiveMatches = mappings.filter(mapping => officeholdersByParty.get(mapping.partyId).some(item => item.person?.id === `wikidata:${mapping.sourcePersonId}`)).length;
 const mappingsByParty = new Map(mappings.map(mapping => [mapping.partyId, mapping]));
 const candidatesByParty = new Map(candidates.map(candidate => [candidate.partyId, candidate]));
 const partyRecords = parties.map(party => {
@@ -364,7 +372,7 @@ for (const record of reviewedSnapshots) assert.equal(hash(bytes(record.path)), r
 
 const sourceOutput = `${JSON.stringify(generatedSources, null, 2)}\n`;
 const report = {
-  version: 'party-leader-coverage-0.15-v3',
+  version: 'party-leader-coverage-0.15-v4',
   scenarioDate,
   generatedFrom: {
     politicalRegistrySha256: hash(registryBytes),
@@ -382,7 +390,10 @@ const report = {
     modelledFallbackGameplayLeaders: partyRecords.filter(item => item.gameplayLeaderBasis === 'modelled_fallback').length,
     unavailableSourceMappings: partyRecords.filter(item => item.mappingStatus === 'unavailable').length,
     ambiguousMappings: partyRecords.filter(item => item.mappingStatus === 'ambiguous').length,
-    reconciledExecutiveOfficeholders: mappings.filter(mapping => officeholdersByParty.get(mapping.partyId).some(item => item.person?.id === `wikidata:${mapping.sourcePersonId}`)).length,
+    availableExecutiveOfficeholderRecords: availableExecutiveRecords.length,
+    reconciledExecutiveOfficeholders: executiveIdentities.size,
+    executiveOfficeholdersMatchingPartyLeaders: partyLeaderExecutiveMatches,
+    standaloneExecutivePersons: executiveIdentities.size - partyLeaderExecutiveMatches,
     mappingsWithoutFictionalAnalogue: mappings.filter(mapping => !mapping.fictionalAnalogueName).length,
   },
   coverageStatus: generatedSources.coverageStatus,

@@ -120,10 +120,35 @@ function findResolvable(adopted: boolean) {
 }
 
 describe('governance 0.14 player and political decisions', () => {
-  it('initializes one fictional gameplay leader per party and reconciles only reviewed executive offices', () => {
+  it('initializes party leaders and materializes sourced executives independently of party-leadership coverage', () => {
     expect(initial).toMatchObject({ schemaVersion: 13, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
     expect(Object.values(initial.governance.persons).filter(person => person.isPartyLeader && person.status === 'active')).toHaveLength(Object.keys(politicalRegistry.parties).length);
-    expect(Object.values(initial.governance.persons).filter(person => person.office?.evidence)).toHaveLength(3);
+    const offices = new Map(politicalOffices.offices.map(office => [office.id, office]));
+    const eligible = politicalOffices.officeholders.filter(record => {
+      const definition = offices.get(record.officeId);
+      return record.status === 'available' && record.referenceDate === initial.date && record.person?.id
+        && (!record.startDate || record.startDate <= initial.date) && definition && ['head_of_government', 'head_of_state'].includes(definition.kind);
+    });
+    const keys = new Set(eligible.map(record => `${offices.get(record.officeId)!.countryId}:${record.person!.id}`));
+    const materialized = Object.values(initial.governance.persons).filter(person => person.office?.evidence);
+    expect(materialized).toHaveLength(keys.size);
+    expect(materialized.length).toBeGreaterThan(300);
+    expect(materialized.filter(person => person.isPartyLeader)).toHaveLength(3);
+    for (const person of materialized) {
+      const evidence = person.office!.evidence!;
+      expect(keys.has(`${person.countryId}:${evidence.sourcePersonId}`)).toBe(true);
+      expect(person.displayName).not.toBe(eligible.find(record => record.person!.id === evidence.sourcePersonId)!.person!.name);
+      if (!person.isPartyLeader) expect(person.partyId).toBeUndefined();
+      if (evidence.authorityBasis === 'institutional_authority_unresolved') expect(person.office!.authorityProfile.capabilities).toEqual([]);
+    }
+    console.info(`EXECUTIVE_OFFICEHOLDER_AUDIT ${JSON.stringify({
+      availableRecords: eligible.length, materializedPersons: materialized.length,
+      reusedPartyLeaders: materialized.filter(person => person.isPartyLeader).length,
+      standalonePersons: materialized.filter(person => !person.isPartyLeader).length,
+      authorityResolved: materialized.filter(person => person.office!.authorityProfile.capabilities.length > 0).length,
+      authorityUnresolved: materialized.filter(person => person.office!.authorityProfile.capabilities.length === 0).length,
+    })}`);
+    expect(assertSimulationInvariants(initial, worldContext, 'save')).toBe(true);
   });
 
   it('creates stable sequence IDs independent of display names', () => {
@@ -173,29 +198,29 @@ describe('governance 0.14 player and political decisions', () => {
     expect(markup).not.toContain('Don Davies');
   });
 
-  it('revalidates schema-13 initial leader identities without changing the schema or simulated date', () => {
+  it('preserves schema-13 persisted identity/provenance even when it differs from current mappings', () => {
     const started = advanceSimulationDays(initial, 5);
     const legacy = structuredClone(started) as SimulationState;
     const republican = Object.values(legacy.governance.persons).find(person => person.partyId === 'party:country.u6myyj:90c6a09fd8f4' && person.isPartyLeader)!;
     legacy.governance.persons[republican.id] = {
       ...republican,
-      displayName: 'Joriven Dalen',
+      displayName: 'Reviewed historical fictional chair',
       leaderProvenance: {
         ...republican.leaderProvenance!,
-        method: 'reviewed_global_party_chair_snapshot_v1',
-        sourceLeader: { id: 'wikidata:Q124450754', name: 'Michael Whatley', sourceRecordIds: ['wikidata-party-chair-snapshot-2026-10-01'] },
+        method: 'reviewed_party_leadership_evidence_v1',
+        sourceLeader: { id: 'wikidata:Q124450754', name: 'Historical fixture source chair', sourceRole: 'party_chairperson', sourceRecordIds: ['archived-test-mapping-v1'] },
       },
     };
     const unsupported = Object.values(legacy.governance.persons).find(person => person.partyId === 'party:country.zwicjl:0fb2b6a211ca' && person.isPartyLeader)!;
     legacy.governance.persons[unsupported.id] = {
       ...unsupported,
-      displayName: 'Kemi Badenoch',
+      displayName: 'Reviewed historical fictional leader',
       leaderProvenance: {
         ...unsupported.leaderProvenance!,
         basis: 'derived_analogue',
         method: 'reviewed_global_party_chair_snapshot_v1',
         sourceLeaderStatus: 'derived',
-        sourceLeader: { id: 'wikidata:Q21592171', name: 'Kemi Badenoch', sourceRecordIds: ['wikidata-party-chair-snapshot-2026-10-01'] },
+        sourceLeader: { id: 'wikidata:Q21592171', name: 'Historical fixture source leader', sourceRecordIds: ['archived-test-mapping-v1'] },
       },
     };
     const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
@@ -204,12 +229,27 @@ describe('governance 0.14 player and political decisions', () => {
     expect(restored.engine.tick).toBe(started.engine.tick);
     expect(restored.engine.seed).toBe(started.engine.seed);
     expect(restored.fiscal).toEqual(started.fiscal);
-    expect(restored.governance.persons[republican.id]).toMatchObject({
-      displayName: 'Joe Grutter',
-      leaderProvenance: { sourceLeaderStatus: 'derived', sourceLeader: { id: 'wikidata:Q56486440', name: 'Joe Gruters', sourceRole: 'party_chairperson' } },
-    });
-    expect(restored.governance.persons[unsupported.id].displayName).not.toBe('Kemi Badenoch');
-    expect(restored.governance.persons[unsupported.id].leaderProvenance).toMatchObject({ basis: 'modelled_fallback', sourceLeaderStatus: 'unavailable' });
+    expect(restored).toEqual(legacy);
+    expect(restored.governance.persons[republican.id]).toEqual(legacy.governance.persons[republican.id]);
+    expect(restored.governance.persons[unsupported.id]).toEqual(legacy.governance.persons[unsupported.id]);
+  }, 30_000);
+
+  it('does not rematerialize or rename scenario-date schema-13 persons on reload', () => {
+    const archived = structuredClone(initial);
+    const executive = Object.values(archived.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+    executive.displayName = 'Archived reviewed fictional chancellor';
+    archived.governance.player.controlledPersonId = executive.id;
+    const restored = restoreSimulationState(serializeSimulationState(archived, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored).toEqual(archived);
+    const invalid = structuredClone(archived);
+    invalid.governance.persons[executive.id].displayName = executive.leaderProvenance!.sourceLeader!.name;
+    expect(() => restoreSimulationState(JSON.stringify(invalid), worldRegions, {}, {}, worldContext)).toThrow(/Invalid party leader provenance/);
+  }, 30_000);
+
+  it('rejects incompatible schema-13 static registries instead of rebuilding political history', () => {
+    const archived = structuredClone(initial);
+    Object.assign(archived.politics, { registryVersion: 'future-or-incompatible-registry' });
+    expect(() => restoreSimulationState(JSON.stringify(archived), worldRegions, {}, {}, worldContext)).toThrow(/explicit versioned migration/);
   });
 
   it('retains exact reviewed leader provenance, fictional names, and one-person office reconciliation through save reload', () => {
@@ -272,7 +312,8 @@ describe('governance 0.14 player and political decisions', () => {
       const authorityBasis = requirePresidential
         ? 'sourced_presidential_head_of_state' as const
         : 'institutional_authority_unresolved' as const;
-      const created = createPoliticalPerson(initial, { displayName: `Test ${record!.person!.name}`, countryId: sourceOffice.countryId });
+      const withoutSourcePerson = { ...initial, governance: { ...initial.governance, persons: Object.fromEntries(Object.entries(initial.governance.persons).filter(([, person]) => person.office?.evidence?.sourcePersonId !== record!.person!.id || person.countryId !== sourceOffice.countryId)) } };
+      const created = createPoliticalPerson(withoutSourcePerson, { displayName: `Test ${record!.person!.name}`, countryId: sourceOffice.countryId });
       const id = `person.${String(initial.governance.nextPersonSequence).padStart(8, '0')}`;
       const capabilities = capabilitiesForReconciledAuthority(authorityBasis);
       const state = {
@@ -323,6 +364,10 @@ describe('governance 0.14 player and political decisions', () => {
     const unresolved = makeReconciledHeadOfState(false);
     expect(unresolved.capabilities).toEqual([]);
     expect(governanceInvariant.check(unresolved.state, worldContext, 'save')).toEqual([]);
+    const invalid = structuredClone(unresolved.state);
+    invalid.governance.persons[unresolved.id].office!.evidence!.authorityBasis = 'sourced_presidential_head_of_state';
+    invalid.governance.persons[unresolved.id].office!.authorityProfile.capabilities = capabilitiesForReconciledAuthority('sourced_presidential_head_of_state');
+    expect(governanceInvariant.check(invalid, worldContext, 'save').join(' ')).toContain('capabilities inconsistent with its institutional evidence');
   });
 
   it('preserves the former leader, office and player control until an explicit handoff choice', () => {

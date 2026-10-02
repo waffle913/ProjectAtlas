@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SimulationState } from '../types';
 import { createFiscalProposal, hasPoliticalAuthority, resolveProposalVote, submitProposal } from '../simulation/governance/runtime';
+import { selectUnresolvedFiscalProposal, unresolvedFiscalProposals } from '../simulation/governance/selection';
 import { hasGovernmentInformationAccess, inspectGovernmentProposalEstimates, produceGovernmentProposalEstimate } from '../simulation/information/runtime';
 import type { FiscalCountry, TaxRule } from '../simulation/fiscal/model';
 
@@ -39,9 +40,10 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
     () => inspectGovernmentProposalEstimates(state, countryId, personId),
     [countryId, personId, state.governance, state.information],
   );
-  const estimate = estimates.at(-1);
-  const draft = draftId ? state.governance.proposals[draftId] : undefined;
-  const proposalPreview = draft ? estimates.filter(item => item.proposalId === draft.id).at(-1) : undefined;
+  const estimate = estimates.filter(item => !item.stale).at(-1);
+  const unresolved = unresolvedFiscalProposals(state.governance, countryId, personId);
+  const draft = selectUnresolvedFiscalProposal(state.governance, countryId, personId, draftId);
+  const proposalPreview = draft ? estimates.filter(item => item.proposalId === draft.id && !item.stale).at(-1) : undefined;
 
   useEffect(() => {
     setRate(rule?.rateBps === undefined ? '' : String(rule.rateBps / 100));
@@ -108,7 +110,7 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
           <label>Proposed rate (%)
             <input type="number" min="0" max="100" step="0.01" value={rate} onChange={event => setRate(event.target.value)} />
           </label>
-          <button disabled={Boolean(draftId) || !rate || !Number.isFinite(Number(rate)) || Math.round(Number(rate) * 100) === supportedRule.rateBps} onClick={createTaxDraft}>Create corporate-tax proposal</button>
+          <button disabled={Boolean(draft) || !rate || !Number.isFinite(Number(rate)) || Math.round(Number(rate) * 100) === supportedRule.rateBps} onClick={createTaxDraft}>Create corporate-tax proposal</button>
         </> : <p>This office does not hold both legislative and fiscal-reform sponsorship authority.</p>}
       </> : <p>Corporate tax rule unavailable for this Country. Missing legal data is not a 0% rate.</p>}
     </section>
@@ -120,12 +122,20 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
           <label>Proposed infrastructure allocation
             <input type="number" min="0" step="1" value={infrastructureBudget} onChange={event => setInfrastructureBudget(event.target.value)} />
           </label>
-          <button disabled={Boolean(draftId) || !Number.isSafeInteger(Number(infrastructureBudget)) || Number(infrastructureBudget) === budget.infrastructure} onClick={createBudgetDraft}>Create annual-budget proposal</button>
+          <button disabled={Boolean(draft) || !Number.isSafeInteger(Number(infrastructureBudget)) || Number(infrastructureBudget) === budget.infrastructure} onClick={createBudgetDraft}>Create annual-budget proposal</button>
         </> : <p>This office does not hold legislative and budget-reform sponsorship authority.</p>}
       </> : <p>Annual budget data unavailable for this Country; no allocation is invented.</p>}
     </section>
     {draft && <>
-      <p>Draft {draft.id} · effective {draft.effectiveDate}</p>
+      <label>Unresolved canonical proposal
+        <select value={draft.id} onChange={event => setDraftId(event.target.value)}>
+          {unresolved.map(proposal => <option key={proposal.id} value={proposal.id}>{proposal.id} · {proposal.status}</option>)}
+        </select>
+      </label>
+      <p>{draft.status === 'draft' ? 'Draft' : 'Submitted proposal'} {draft.id} · effective {draft.effectiveDate}</p>
+      <details><summary>Canonical proposal content</summary>
+        <pre>{JSON.stringify({ effectiveDate: draft.effectiveDate, payload: draft.payload }, null, 2)}</pre>
+      </details>
       {['draft', 'submitted'].includes(draft.status) && <button onClick={() => {
         try {
           onStateChange(produceGovernmentProposalEstimate(state, draft.id, personId));
@@ -134,8 +144,8 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
       }}>Estimate proposal reactions</button>}
       {proposalPreview && <>
         <p>Government Information estimate · {proposalPreview.requestedOn} · {proposalPreview.coverage} coverage · confidence {proposalPreview.confidenceBps} bps · {proposalPreview.provenance.limitation}</p>
-        <p>Public response estimate: {proposalPreview.publicEstimate.coverage} coverage · support {(proposalPreview.publicEstimate.supportBps / 100).toFixed(1)}% · opposition {(proposalPreview.publicEstimate.opposeBps / 100).toFixed(1)}% · unknown {(proposalPreview.publicEstimate.unknownBps / 100).toFixed(1)}%.</p>
-        <p>Parliamentary estimate: {proposalPreview.parliamentaryEstimate.coverage} coverage. {proposalPreview.parliamentaryEstimate.chambers.map(chamber => `${chamber.displayName}: ${chamber.outcome} (${chamber.coverage}; ${chamber.yesSeats} yes, ${chamber.noSeats} no seats)`).join('; ')}</p>
+        <p>Public response estimate: {proposalPreview.publicEstimate.coverage} coverage · unknown {(proposalPreview.publicEstimate.unknownBps / 100).toFixed(1)}%. No support, opposition or neutral response has been observed.</p>
+        <p>Parliamentary estimate: {proposalPreview.parliamentaryEstimate.coverage} coverage. {proposalPreview.parliamentaryEstimate.chambers.map(chamber => `${chamber.displayName}: ${chamber.outcome} (${chamber.coverage}; ${chamber.totalSeats === undefined ? 'seat count unavailable' : `${chamber.unavailableSeats} responses UNKNOWN`})`).join('; ')}</p>
         {proposalPreview.directPolicyChanges.map(change => <p key={change.path}>{change.explanation} · {change.coverage}</p>)}
         {proposalPreview.expectedConsequences.map((item, index) => <p key={`${item.goal}-${index}`}>{item.explanation} · {item.coverage} · confidence {item.confidenceBps} bps.</p>)}
         {proposalPreview.unsupportedChanges.map(item => <p key={item.path}>{item.path}: unavailable/partial · {item.reason}</p>)}

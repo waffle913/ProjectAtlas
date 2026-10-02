@@ -101,6 +101,7 @@ describe('0.13 corrected national politics', () => {
     const evaluated = evaluate(state), serialized = serializeSimulationState(evaluated, context); expect(serialized).not.toContain('sourcePartyName'); expect(serialized).not.toContain('issuePositions');
     expect(restoreSimulationState(serialized, regions, {}, {}, context)).toEqual(evaluated);
     const v2 = structuredClone(evaluated); v2.politics.registryVersion = 'political-registry-0.13-v2' as never; delete (v2.politics as Partial<typeof v2.politics>).organizations;
+    Object.assign(v2, { schemaVersion: 11 });
     const preserved = Object.fromEntries(Object.entries(v2.politics.regionalOpinion).map(([regionId, regional]) => [regionId, Object.fromEntries(Object.entries(regional.cohorts).map(([cohortId, opinion]) => [cohortId, [opinion[0], opinion[1], opinion[3], opinion[4], opinion[5], opinion[6]]]))]));
     for (const regional of Object.values(v2.politics.regionalOpinion)) for (const opinion of Object.values(regional.cohorts)) opinion[2] = opinion[2].map((_, index) => index === 0 ? 10_000 : 0);
     for (const country of Object.values(v2.politics.countries)) country.nationalSupportBps = country.nationalSupportBps.map((_, index) => index === 0 ? 10_000 : 0);
@@ -110,6 +111,7 @@ describe('0.13 corrected national politics', () => {
     const retained = Object.fromEntries(Object.entries(upgraded.politics.regionalOpinion).map(([regionId, regional]) => [regionId, Object.fromEntries(Object.entries(regional.cohorts).map(([cohortId, opinion]) => [cohortId, [opinion[0], opinion[1], opinion[3], opinion[4], opinion[5], opinion[6]]]))]));
     expect(retained).toEqual(preserved); expect(upgraded.politics.organizations).not.toEqual({}); expect({ fiscal: upgraded.fiscal, socioeconomic: upgraded.socioeconomy, crisis: upgraded.crisis }).toEqual(nonPolitical);
     const earlySchema11 = structuredClone(evaluated) as unknown as { politics: Record<string, unknown> }; delete earlySchema11.politics.registryVersion;
+    Object.assign(earlySchema11, { schemaVersion: 11 });
     expect(restoreSimulationState(JSON.stringify(earlySchema11), regions, {}, {}, context).politics.registryVersion).toBe(politicalRegistry.version);
   });
 

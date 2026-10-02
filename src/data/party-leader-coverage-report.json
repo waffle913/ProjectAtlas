@@ -1,5 +1,5 @@
 {
-  "version": "party-leader-coverage-0.15-v3",
+  "version": "party-leader-coverage-0.15-v4",
   "scenarioDate": "2026-01-01",
   "generatedFrom": {
     "politicalRegistrySha256": "e3f3ca2a03c693af0f2292de8026c44f591e7ee0f98e5dd076e2e8b8ed78a437",
@@ -24,7 +24,10 @@
     "modelledFallbackGameplayLeaders": 941,
     "unavailableSourceMappings": 940,
     "ambiguousMappings": 1,
-    "reconciledExecutiveOfficeholders": 3,
+    "availableExecutiveOfficeholderRecords": 392,
+    "reconciledExecutiveOfficeholders": 342,
+    "executiveOfficeholdersMatchingPartyLeaders": 3,
+    "standaloneExecutivePersons": 339,
     "mappingsWithoutFictionalAnalogue": 0
   },
   "coverageStatus": "partial",
