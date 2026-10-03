@@ -148,7 +148,10 @@ describe('full-world information and leadership 0.15 benchmark', () => {
     const successionMs = performance.now() - startedAt;
     expect(Object.values(leadersOnly.governance.persons).filter(person => person.isPartyLeader && person.status === 'active')).toHaveLength(partyCount);
     expect(leaderCount).toBe(partyCount);
-    expect(succeeded.governance.successions[succeeded.governance.successionOrder.at(-1)!]).toMatchObject({ partyId, selection: 'modelled_fallback' });
+    expect(succeeded.governance.successions[succeeded.governance.successionOrder.at(-1)!]).toMatchObject({
+      partyId, selection: 'modelled_internal_balance',
+      contextEvidence: { method: 'internal_party_balance_succession_v1' },
+    });
     expect(ordinaryDay.engine.tick).toBe(state.engine.tick + 1);
     expect(monthlyDay.information.latestGovernmentReports).toBeDefined();
 

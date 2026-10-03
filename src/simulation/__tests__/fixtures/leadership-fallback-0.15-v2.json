@@ -1,0 +1,135 @@
+{
+  "referenceCommit": "323d702a49ed15eef388841d12b3f54a8acbd466",
+  "date": "2026-01-01",
+  "tick": 0,
+  "seed": "project-atlas-2026",
+  "previous": {
+    "id": "person.00000000",
+    "displayName": "Daviari Kalenjorin",
+    "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+    "createdOn": "2026-01-01",
+    "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:0d35a0491f61",
+    "isPartyLeader": false,
+    "status": "active",
+    "leaderProfile": {
+      "fiscal_distribution": {
+        "valueBps": 5000,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Derived from the fictional party's validated position; no individual real-person belief is asserted. No admissible dated source measures any ProjectAtlas ideology dimension for the party; every dimension is neutral at low confidence. Source identifiers do not influence this profile."
+      },
+      "public_services": {
+        "valueBps": 5000,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Derived from the fictional party's validated position; no individual real-person belief is asserted. No admissible dated source measures any ProjectAtlas ideology dimension for the party; every dimension is neutral at low confidence. Source identifiers do not influence this profile."
+      },
+      "labour_protection": {
+        "valueBps": 5000,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Derived from the fictional party's validated position; no individual real-person belief is asserted. No admissible dated source measures any ProjectAtlas ideology dimension for the party; every dimension is neutral at low confidence. Source identifiers do not influence this profile."
+      },
+      "income_security": {
+        "valueBps": 5000,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Derived from the fictional party's validated position; no individual real-person belief is asserted. No admissible dated source measures any ProjectAtlas ideology dimension for the party; every dimension is neutral at low confidence. Source identifiers do not influence this profile."
+      },
+      "infrastructure": {
+        "valueBps": 5000,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Derived from the fictional party's validated position; no individual real-person belief is asserted. No admissible dated source measures any ProjectAtlas ideology dimension for the party; every dimension is neutral at low confidence. Source identifiers do not influence this profile."
+      },
+      "public_order": {
+        "valueBps": 5000,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Derived from the fictional party's validated position; no individual real-person belief is asserted. No admissible dated source measures any ProjectAtlas ideology dimension for the party; every dimension is neutral at low confidence. Source identifiers do not influence this profile."
+      }
+    },
+    "leaderProvenance": {
+      "basis": "modelled_fallback",
+      "method": "party_platform_initial_v2",
+      "sourcePartyId": "ad-concordia_conc_rdia_and_its_allies",
+      "referenceDate": "2026-01-01",
+      "sourceLeaderStatus": "unavailable",
+      "limitation": "No pinned, licensing-cleared party-leadership source applicable on 2026-01-01 is available in the ProjectAtlas political registry. The gameplay identity is fictional and is not a sourced real-person analogue."
+    }
+  },
+  "successor": {
+    "id": "person.00001287",
+    "displayName": "Quinbel Varenxeren",
+    "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+    "createdOn": "2026-01-01",
+    "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:0d35a0491f61",
+    "isPartyLeader": true,
+    "status": "active",
+    "leaderProfile": {
+      "fiscal_distribution": {
+        "valueBps": 4810,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Modelled bounded variation of at most 250 basis points around the validated fictional party position; this profile does not affect simulation decisions."
+      },
+      "public_services": {
+        "valueBps": 4881,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Modelled bounded variation of at most 250 basis points around the validated fictional party position; this profile does not affect simulation decisions."
+      },
+      "labour_protection": {
+        "valueBps": 5100,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Modelled bounded variation of at most 250 basis points around the validated fictional party position; this profile does not affect simulation decisions."
+      },
+      "income_security": {
+        "valueBps": 5082,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Modelled bounded variation of at most 250 basis points around the validated fictional party position; this profile does not affect simulation decisions."
+      },
+      "infrastructure": {
+        "valueBps": 5206,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Modelled bounded variation of at most 250 basis points around the validated fictional party position; this profile does not affect simulation decisions."
+      },
+      "public_order": {
+        "valueBps": 5217,
+        "confidenceBps": 500,
+        "status": "modelled",
+        "limitation": "Modelled bounded variation of at most 250 basis points around the validated fictional party position; this profile does not affect simulation decisions."
+      }
+    },
+    "leaderProvenance": {
+      "basis": "modelled_fallback",
+      "method": "bounded_party_platform_succession_v2",
+      "sourcePartyId": "ad-concordia_conc_rdia_and_its_allies",
+      "referenceDate": "2026-01-01",
+      "sourceLeaderStatus": "unavailable",
+      "limitation": "No pinned, licensing-cleared party-leadership source applicable on 2026-01-01 is available in the ProjectAtlas political registry. The gameplay identity is fictional and is not a sourced real-person analogue."
+    }
+  },
+  "succession": {
+    "id": "succession.00000000",
+    "partyId": "party:country.04160546-1bae-40f4-8a5f-465239c6d833:0d35a0491f61",
+    "countryId": "country.04160546-1bae-40f4-8a5f-465239c6d833",
+    "previousPersonId": "person.00000000",
+    "newPersonId": "person.00001287",
+    "effectiveDate": "2026-01-01",
+    "selection": "modelled_fallback",
+    "playerHandoff": {
+      "status": "pending",
+      "previousPersonId": "person.00000000",
+      "successorPersonId": "person.00001287"
+    }
+  },
+  "nextPersonSequence": 1288,
+  "nextSuccessionSequence": 1,
+  "player": {
+    "controlledPersonId": "person.00000000"
+  }
+}

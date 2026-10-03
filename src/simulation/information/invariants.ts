@@ -1,5 +1,8 @@
 import type { SimulationInvariant } from '../invariants';
-import { GOVERNANCE_VERSION, governanceFingerprint } from '../governance/model';
+import { GOVERNANCE_VERSION, governanceFingerprint, type LeadershipContextMetric, type LeadershipSuccession, type PoliticalPersonState } from '../governance/model';
+import { deriveLeadershipSelectionMetrics, leadershipProfileFromEvidence, LEADERSHIP_SUCCESSION_MODEL, selectLeadershipTendency } from '../governance/leadershipSuccession';
+import { canonicalJson } from '../fingerprint';
+import { POLITICAL_ISSUES } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
 import type { SimulationState } from '../../types';
 import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport } from './model';
@@ -12,6 +15,38 @@ const eventTypeValues = new Set(['proposal_result', 'labour_report', 'crisis_act
 const portfolioValues = new Set<string>(PORTFOLIOS);
 const coverageValues = new Set(['complete', 'partial', 'unavailable']);
 const bounded = (value: unknown, maximum = 10_000) => Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= maximum;
+
+function validLeadershipMetric(metric: LeadershipContextMetric | undefined, coverages: readonly string[]): boolean {
+  return Boolean(metric && typeof metric === 'object' && coverages.includes(metric.coverage)
+    && (metric.coverage === 'unavailable' ? metric.valueBps === undefined : bounded(metric.valueBps))
+    && typeof metric.source === 'string' && metric.source.trim()
+    && typeof metric.limitation === 'string' && metric.limitation.trim());
+}
+
+function validContextualSuccession(state: SimulationState, succession: LeadershipSuccession, successor?: PoliticalPersonState): boolean {
+  if (succession.selection !== 'modelled_internal_balance') return succession.contextEvidence === undefined;
+  const evidence = succession.contextEvidence, party = politicalRegistry.parties[succession.partyId];
+  if (!evidence || evidence.method !== LEADERSHIP_SUCCESSION_MODEL.method || !party || party.countryId !== succession.countryId
+    || !successor || successor.partyId !== party.id || successor.countryId !== party.countryId
+    || !validLeadershipMetric(evidence.partySupport, ['modelled', 'unavailable'])
+    || !validLeadershipMetric(evidence.legislativeSeatShare, ['sourced', 'unavailable'])
+    || !evidence.supporterMandate || Object.keys(evidence.supporterMandate).length !== POLITICAL_ISSUES.length
+    || !POLITICAL_ISSUES.every(issue => validLeadershipMetric(evidence.supporterMandate[issue], ['modelled', 'unavailable']))
+    || !LEADERSHIP_SUCCESSION_MODEL.tendencies.some(item => item.id === evidence.selectedTendency)
+    || typeof evidence.limitation !== 'string' || !evidence.limitation.trim()) return false;
+  const provenance = successor.leaderProvenance;
+  if (!provenance || provenance.basis !== 'modelled_fallback' || provenance.method !== 'internal_party_balance_succession_v3'
+    || provenance.sourceLeaderStatus !== 'unavailable' || provenance.sourceLeader !== undefined
+    || provenance.referenceDate !== succession.effectiveDate || provenance.sourcePartyId !== party.sourceBasis.sourcePartyId
+    || typeof provenance.limitation !== 'string' || !provenance.limitation.trim()) return false;
+  const metrics = deriveLeadershipSelectionMetrics(party, evidence);
+  const weights = LEADERSHIP_SUCCESSION_MODEL.tendencies.map(item => metrics.tendencyWeightsBps[item.id]);
+  if (!weights.every(value => Number.isSafeInteger(value) && value >= 0) || weights.reduce((sum, value) => sum + value, 0) !== 10_000
+    || selectLeadershipTendency(state.engine.seed, succession.partyId, succession.effectiveDate, succession.id, metrics.tendencyWeightsBps) !== evidence.selectedTendency) return false;
+  const expectedProfile = leadershipProfileFromEvidence(party, evidence);
+  return governanceFingerprint(expectedProfile) === evidence.profileFingerprint
+    && canonicalJson(expectedProfile) === canonicalJson(successor.leaderProfile);
+}
 
 function validateInterpretation(interpretation: BriefingInterpretation): boolean {
   return ['derived', 'modelled', 'unavailable'].includes(interpretation.basis)
@@ -159,6 +194,9 @@ export const informationInvariant: SimulationInvariant = {
     if (Object.keys(information.governmentReportsById).some(id => !referencedReportIds.has(id)) || [...referencedReportIds].some(id => !information.governmentReportsById[id])) errors.push('Government report history does not match current and briefing references.');
     const governance = state.governance;
     if (governance.version !== GOVERNANCE_VERSION || !governance.successions || !Array.isArray(governance.successionOrder) || !Number.isSafeInteger(governance.nextSuccessionSequence) || governance.nextSuccessionSequence < 0 || new Set(governance.successionOrder).size !== governance.successionOrder.length || governance.successionOrder.some(id => !governance.successions[id]) || Object.keys(governance.successions).some(id => !governance.successionOrder.includes(id))) errors.push('Leadership succession order does not reconcile.');
+    const contextualSuccessorIds = new Set(governance.successionOrder
+      .filter(id => governance.successions[id]?.selection === 'modelled_internal_balance')
+      .map(id => governance.successions[id].newPersonId));
     const activePartyLeaders = new Map<string, string>();
     for (const person of Object.values(governance.persons)) {
       if (person.isPartyLeader && person.status === 'active' && person.partyId) {
@@ -169,12 +207,14 @@ export const informationInvariant: SimulationInvariant = {
         if (!issue || !Number.isSafeInteger(dimension.valueBps) || dimension.valueBps < 0 || dimension.valueBps > 10_000 || !Number.isSafeInteger(dimension.confidenceBps) || dimension.confidenceBps < 0 || dimension.confidenceBps > 10_000 || !['derived', 'modelled'].includes(dimension.status) || !dimension.limitation) errors.push(`Invalid political leader profile for ${person.id}.`);
       }
       if (person.leaderProvenance && (!['sourced_analogue', 'derived_analogue', 'modelled_fallback'].includes(person.leaderProvenance.basis) || !context.countryIds.has(person.countryId) || !person.partyId || !person.leaderProvenance.sourcePartyId || !validDate(person.leaderProvenance.referenceDate) || !['sourced', 'derived', 'unavailable', 'ambiguous'].includes(person.leaderProvenance.sourceLeaderStatus) || !person.leaderProvenance.limitation)) errors.push(`Invalid party leader provenance for ${person.id}.`);
+      if (person.leaderProvenance?.method === 'internal_party_balance_succession_v3' && !contextualSuccessorIds.has(person.id)) errors.push(`Invalid contextual leadership succession provenance for ${person.id}.`);
     }
     let previousSuccessionDate: string | undefined;
     for (const successionId of governance.successionOrder) {
       const succession = governance.successions[successionId];
       const previous = governance.persons[succession.previousPersonId], successor = governance.persons[succession.newPersonId];
-      if (succession.id !== successionId || !/^succession\.\d{8}$/.test(successionId) || Number(successionId.slice(11)) >= governance.nextSuccessionSequence || !previous || !successor || previous.id === successor.id || previous.partyId !== succession.partyId || successor.partyId !== succession.partyId || previous.countryId !== succession.countryId || successor.countryId !== succession.countryId || !context.countryIds.has(succession.countryId) || !validDate(succession.effectiveDate) || succession.effectiveDate > state.date || previous.createdOn > succession.effectiveDate || successor.createdOn > succession.effectiveDate || !['existing_party_member', 'modelled_fallback'].includes(succession.selection)) errors.push(`Malformed party leadership succession ${successionId}.`);
+      if (succession.id !== successionId || !/^succession\.\d{8}$/.test(successionId) || Number(successionId.slice(11)) >= governance.nextSuccessionSequence || !previous || !successor || previous.id === successor.id || previous.partyId !== succession.partyId || successor.partyId !== succession.partyId || previous.countryId !== succession.countryId || successor.countryId !== succession.countryId || !context.countryIds.has(succession.countryId) || !validDate(succession.effectiveDate) || succession.effectiveDate > state.date || previous.createdOn > succession.effectiveDate || successor.createdOn > succession.effectiveDate || !['existing_party_member', 'modelled_fallback', 'modelled_internal_balance'].includes(succession.selection)) errors.push(`Malformed party leadership succession ${successionId}.`);
+      if (!validContextualSuccession(state, succession, successor)) errors.push(`Invalid contextual leadership succession ${successionId}.`);
       if (validDate(succession.effectiveDate)) {
         if (previousSuccessionDate && succession.effectiveDate < previousSuccessionDate) errors.push(`Party leadership succession dates are not monotonic at ${successionId}.`);
         previousSuccessionDate = succession.effectiveDate;

@@ -1308,3 +1308,187 @@ Exact-SHA Ubuntu/Windows Node 22 results are reported from actual Actions
 logs after commit/push, separately from local validation. No successor-generation
 work, 0.16, main merge or self-declared 0.15 acceptance is included; the
 accepted handoff remains untouched. Work stops for independent review.
+
+### Context-derived fictional party succession integration
+
+Reviewed parent: `323d702a49ed15eef388841d12b3f54a8acbd466`, on the existing
+`waffle913-milestone-015-government-information` branch. Both supplied
+references (713-line contract and 266-line pure module) were read completely
+before the recorded no-code plan and implementation. This is one targeted
+candidate block, not acceptance of 0.15.
+
+Only automatically generated replacement party leaders use the new contextual
+path. Its inputs are the fictional party platform; a common modelled
+five-tendency prior; the affected Country's current cohort preferences weighted
+by exact BigInt population times party support; current modelled national
+support; and an equal-chamber mean of complete sourced legislative seat
+allocations. Only that Country's Region/cohort list is scanned, once, in sorted
+order. No world scan, daily work, scheduler, faction cache or persistent faction
+state was added. Source successor identity remains unavailable, not a purported
+observation about a real post-2026 leader.
+
+In radical/firm/mainstream/pragmatic/moderate order, stances are
+`10000/5000/0/-5000/-10000`, and baseline weights are
+`1000/2000/4000/2000/1000`. For available modelled mandates and non-neutral
+platform positions, `M` is the signed-rounded weighted mean of
+`(mandate - platform) * sign(platform - 5000)`, with weight
+`max(1, intensity)`, bounded to -5000..5000. When both support and seat share
+are available with their required coverage, `G = seatShare - support`,
+`A = clamp(2 * max(0, G), 0, 5000)` and
+`S = clamp(2 * max(0, -G), 0, 3000)`. Otherwise the gap is absent;
+zero derived pressures mean no evidence-based adjustment, not an observed
+zero gap or fabricated saved value.
+
+The five factors are respectively:
+
+```text
+10000 + M - round(A / 2)
+10000 + round(M / 2) - round(A / 4)
+10000 + S + round(A / 4)
+10000 - round(M / 2) + round(A / 2)
+10000 - M + A
+```
+
+Each factor clamps to 2500..20000. Raw weights are rounded
+`baseline * factor / 10000`; the existing largest-remainder allocator
+normalizes exactly to 10000, with fixed tendency-order tie breaking.
+The shared keyed RNG uses system `party-leadership.internal-balance`,
+party ID, effective date and `${successionId}:tendency`. It selects one
+ephemeral tendency without adding mutable RNG state.
+
+For each issue, start from the platform plus
+`sign(platform - 5000) * round_signed(stance * 1400 / 10000)`,
+bounded to 0..10000. The tendency transform preserves neutral positions;
+negative stances approach neutral without crossing it. When a mandate exists,
+blend the anchor toward it with
+`B = clamp(2000 + round(A / 2) - round(S / 4), 1000, 4500)`.
+With no mandate anywhere, `B = 0`; each unavailable issue remains unblended.
+Actual mandate evidence, unlike the tendency transform alone, may cross
+neutral. Final values are bounded to platform +/-2500 and 0..10000.
+Confidence is `min(partyConfidence, 7000)` and every dimension is modelled.
+Factor fractions use JavaScript `Math.round` exactly as in the reference;
+signed ratios use the existing half-away-from-zero integer helper.
+
+The supplied reference's mathematics is retained. Mechanical adaptations use
+the actual string engine-seed type, literal tendency types and a typed Map.
+Added integrity guards reject malformed represented cohort opinions and
+invalid tendency allocations explicitly; malformed national support remains
+explicitly unavailable rather than becoming a numeric observation. No valid
+input formula was changed.
+
+New generated records use selection `modelled_internal_balance`, context
+method `internal_party_balance_succession_v1` and provenance method
+`internal_party_balance_succession_v3`. Optional evidence stores source,
+limitation, coverage and value for support, seat share and exactly six issues,
+plus the selected tendency and profile fingerprint. The existing Information
+invariant checks structure, allowed coverage, value presence/bounds, exact
+keyed selection, recomputed profile/fingerprint and generated provenance.
+V3 person provenance must remain linked to a contextual succession, preventing
+record deletion or old-selection relabelling from bypassing the proof.
+Validation uses the saved context and static party, not current opinion to
+reconstruct historical context. This is consistency checking, not
+cryptographic authentication or proof that a coordinated forged history is
+empirically true.
+
+Explicit existing-member successors bypass generated selection and retain
+their identity/profile/provenance without contextual evidence. The older
+compatibility fill for missing metadata is unchanged. Fictional names,
+the former person's unrelated office and explicit Continue/Switch player
+handoff are preserved. There is no silent transfer of Country control.
+
+Before changing runtime, a temporary test invoked the genuine reviewed-parent
+resolver and verified schema-13 round-trip, then wrote the compact immutable
+`leadership-fallback-0.15-v2.json` fixture with its parent SHA. The capture
+passed 1/1 in 8.68 s. Its saved `modelled_fallback` selection,
+`bounded_party_platform_succession_v2` provenance and original profile
+remain unchanged. The temporary capture test was removed; the fixture was
+not regenerated with the new resolver.
+
+Forty-one regressions were added to the existing Governance suite:
+determinism and insertion-order independence; exact large-population BigInt
+means; affected-Country-only access; supporter direction; excess/deficit
+representation pressure; missing versus evidenced-zero support/seats;
+malformed inputs; all tendencies and neutral/extreme/profile bounds;
+explicit existing members; both player handoff choices; new save/reload;
+unchanged historical fallback; and independence from subsequently changed
+current politics.
+
+Twenty-four independent tamper cases each fail invariant, serialization and
+schema-13 reload. They cover context values, coverage, missing/extra issues,
+empty source/limitation, selected tendency, profile/fingerprint, succession
+party, provenance method/party/date/source identity, missing or incorrect
+evidence, historical-selection downgrade and orphan generated provenance.
+
+The final focused command was:
+
+```powershell
+npx.cmd vitest run src\simulation\__tests__\governance.test.ts --testNamePattern='contextual leadership succession|contextual-profile successor|former leader, office|succession dates' --reporter=verbose
+```
+
+| Executed command / check | Actual result |
+|---|---|
+| Focused editing selection, first attempt | Exit 1: 39 passed, one failed, 157 skipped; 51.64 s. The test compared a resolved handoff with the original pending record; the assertion was corrected without changing runtime handoff |
+| Focused final selection | Exit 0: 44/44, 157 skipped, 201 total; 39.80 s |
+| `npx.cmd tsc -b --pretty false` | Exit 0 after correcting literal-array inference in a synthetic test fixture with `.map<number>` |
+| `npm.cmd run governance:audit` | Exit 0: 201/201; 152.09 s |
+| `npm.cmd run information:test` | Exit 0: 32/32; 24.46 s |
+| `npm.cmd run information:audit` | Exit 0: unchanged coverage below |
+| `npm.cmd run governance:benchmark` | Exit 0: 1/1; 9.14 s |
+| `npm.cmd run verify -- -- --maxWorkers=1`, first attempt | Exit 1: 578 passed, one failed in 30 files; 416.36 s. The Information benchmark still expected the old generated selection marker |
+| `npm.cmd run information:benchmark`, after targeted assertion correction | Exit 0: 1/1; 9.95 s. It now asserts contextual selection and evidence method, without changing its deadline or runtime |
+| `npm.cmd run verify -- -- --maxWorkers=1`, final attempt | Exit 0: data reproducibility/audit, production build and 579/579 tests in 30 files; 413.82 s test-run duration |
+| `git diff --check` | Exit 0 |
+| Built-in `rg`, `Math\.random`, all four changed runtime files | No matches |
+| `git diff --exit-code`, institutional evaluator/invariants, plurality, Politics, data/scripts, CI, README and accepted handoff | Exit 0 |
+
+The final full verification needed a second run because it exposed that
+directly coupled stale benchmark assertion. Original failures remain in session
+artifacts. No assertion threshold, test deadline, benchmark budget or CI
+configuration was relaxed.
+
+Governance benchmark, 252 Countries/281 chambers/1,287 persons:
+snapshot 0.033 ms; serialization 373.17 ms; initial save 27,268,062 bytes;
+20 material analyses at mean 14.05 ms; synthetic material mean 13.795 ms;
+synthetic institutional mean 0.381 ms. Resolved proposal remains
+17,575 bytes, including 4,800 plurality bytes and 4,050 institutional bytes;
+resolution save growth 18,214 bytes and full-world growth 19,456 bytes.
+One contextual succession takes 4.081 ms across seven Country Regions,
+with 2,488 evidence bytes and 5,466 incremental save bytes.
+
+Information benchmark, 252 Countries/4,574 Regions/948 active party leaders:
+new-game initialization 819 ms; isolated leader generation 601.03 ms;
+current save 15,315,994 bytes; ordinary day 0.4486 ms; changed monthly day
+98.41 ms; contextual succession 4.02 ms. The existing output field
+`deterministicFallbackSuccessionMs` is retained for benchmark-output
+compatibility; it now measures the contextual generated replacement path,
+not historical bounded-v2 generation. The 2,048-entry multi-Country retained
+briefing workload measures monthly reporting at 70.31 ms.
+These are host/workload measurements, not universal thresholds or a
+before/after speedup claim.
+
+Source coverage is unchanged: 948 parties, 35 reviewed bridges, seven derived
+leader mappings, zero sourced/observed mappings, one ambiguous mapping,
+940 unavailable mappings and 941 modelled fallback initial leaders.
+All seven accepted derived mappings have reviewed fictional analogue names.
+There are 392 available executive records, 342 reconciled identities,
+three reused party leaders and 339 standalone executive persons.
+Procedural/ideological coverage remains 57 resolvable Countries, eight with
+ideological evidence and zero overlap. IPU CC BY-NC-SA 4.0 and previously
+unconfirmed V-Party, Party Facts bridge and primary-source licences still
+block commercial release. New successors supply no new real-world dataset.
+
+The actual runtime/test/documentation diffs were reviewed separately.
+The scope is exactly 12 files: the pure module; Governance model/runtime;
+Information invariants; Governance and Information benchmark tests;
+Governance regressions; the genuine parent fixture; both persistent
+instruction files; current Information documentation; and this record.
+README wording did not require adjustment. Schema 13, subsystem versions,
+historical votes/profiles, institutional-interest mathematics and v2 marker,
+fiscal execution, Reality/Information access, notification and player-control
+contracts are preserved. No migration, history rewrite, persistent factions,
+individual MPs, real successor observations, 0.16, main merge or acceptance
+claim is included.
+
+Exact-SHA Ubuntu and Windows Node 22 CI results are reported from actual
+Actions logs after commit/push, separately from local results. Work then
+stops for independent audit; the accepted handoff remains untouched.

@@ -76,9 +76,8 @@ Do not rewrite a validated milestone merely to simplify a later one. Changes to 
 
 0.15 is the active milestone. Work has been implemented and pushed for
 review but has **not** been independently accepted; do not describe it as
-validated. The contracts below bind ongoing 0.15 work. Some are already
-implemented; others are documented design intent that must still be planned,
-implemented, and validated before being treated as current behavior.
+validated. The contracts below describe ongoing 0.15 candidate behavior,
+not acceptance of the milestone.
 
 **Already implemented (candidate, pending review):**
 
@@ -101,6 +100,15 @@ implemented, and validated before being treated as current behavior.
 - At scenario start, playable party leaders are fictional analogues derived
   from real leaders as a reference, never copies of the real person's
   identity; the real source name remains provenance/debug metadata only.
+- Automatically generated post-replacement party leaders derive
+  deterministically from the fictional party platform, a modelled common
+  internal tendency prior, current modelled supporter preferences and
+  available sourced legislative representation/current modelled party support.
+  This creates no observed faction shares, individual MPs or persistent
+  faction system. Explicit existing successors bypass modelled candidate
+  selection and retain their identity/profile/provenance. Versioned saved
+  context validates new profiles without reconstructing historical opinion;
+  historical bounded-fallback successors remain unchanged.
 - New parliamentary resolutions use continuous aggregate internal plurality
   independently per issue/goal, not one persistent global faction axis or
   individual MPs. The common prior is modelled, not observed faction data.
@@ -120,12 +128,6 @@ implemented, and validated before being treated as current behavior.
   missing branch evidence remains UNKNOWN. Public opinion stays material-only.
   Versioned institutional records retain a fingerprinted material baseline;
   reload validates saved evidence without replaying material history.
-
-**Documented design intent, not yet implemented -- do not claim as current
-behavior until planned, implemented, and validated separately:**
-
-- Generating post-replacement party leaders from party structure, internal
-  factions, power balance, and context rather than a fixed list.
 
 This institutional evaluator does not implement playable constitutional
 reforms, mutable constitutions, elections updating the governing bloc, or

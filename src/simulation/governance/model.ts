@@ -41,7 +41,7 @@ export interface PoliticalPersonState {
   leaderProfile?: Record<string, { valueBps: number; confidenceBps: number; status: 'derived' | 'modelled'; limitation: string }>;
   leaderProvenance?: {
     basis: 'sourced_analogue' | 'derived_analogue' | 'modelled_fallback';
-    method: 'reviewed_primary_party_source_v1' | 'reviewed_global_party_chair_snapshot_v1' | 'reviewed_party_leadership_evidence_v1' | 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2';
+    method: 'reviewed_primary_party_source_v1' | 'reviewed_global_party_chair_snapshot_v1' | 'reviewed_party_leadership_evidence_v1' | 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2' | 'internal_party_balance_succession_v3';
     sourcePartyId: string;
     referenceDate: string;
     sourceLeaderStatus: 'sourced' | 'derived' | 'unavailable' | 'ambiguous';
@@ -55,6 +55,25 @@ export interface PoliticalPersonState {
   };
 }
 
+export type LeadershipTendency = 'radical' | 'firm' | 'mainstream' | 'pragmatic' | 'moderate';
+
+export interface LeadershipContextMetric {
+  valueBps?: number;
+  coverage: 'sourced' | 'modelled' | 'unavailable';
+  source: string;
+  limitation: string;
+}
+
+export interface LeadershipSuccessionEvidence {
+  method: 'internal_party_balance_succession_v1';
+  partySupport: LeadershipContextMetric;
+  legislativeSeatShare: LeadershipContextMetric;
+  supporterMandate: Record<PoliticalIssue, LeadershipContextMetric>;
+  selectedTendency: LeadershipTendency;
+  profileFingerprint: string;
+  limitation: string;
+}
+
 export interface LeadershipSuccession {
   id: string;
   partyId: string;
@@ -62,7 +81,8 @@ export interface LeadershipSuccession {
   previousPersonId: string;
   newPersonId: string;
   effectiveDate: string;
-  selection: 'existing_party_member' | 'modelled_fallback';
+  selection: 'existing_party_member' | 'modelled_fallback' | 'modelled_internal_balance';
+  contextEvidence?: LeadershipSuccessionEvidence;
   playerHandoff?: {
     status: 'pending' | 'continued' | 'switched';
     previousPersonId: string;

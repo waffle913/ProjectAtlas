@@ -11,6 +11,7 @@ import { assertInitialOfficeReconciliation } from './initialOfficeEvidence';
 import { capabilitiesForReconciledAuthority, executiveAuthorityBasis } from './officeEvidence';
 export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal } from './analysis';
+import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 import { AUTHORITY_CAPABILITIES, governanceFingerprint, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type ProposalAnalysis, type ProposalImpact, type PublicSupportEstimate } from './model';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
@@ -278,8 +279,10 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
   const leaders = Object.values(state.governance.persons).filter(person => person.partyId === partyId && person.isPartyLeader && person.status === 'active');
   if (leaders.length !== 1) throw new Error(`Party ${partyId} must have exactly one active leader before succession.`);
   const previous = leaders[0];
+  const successionRecordId = successionId(state.governance.nextSuccessionSequence);
   let next = state, successor;
   let selection: LeadershipSuccession['selection'];
+  let contextEvidence: LeadershipSuccession['contextEvidence'];
   if (successorPersonId) {
     successor = requirePerson(state, successorPersonId);
     if (successor.id === previous.id || successor.partyId !== partyId || successor.countryId !== party.countryId || successor.status !== 'active') throw new Error('An existing successor must be a different active member of the same party and Country.');
@@ -288,6 +291,7 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
     const id = personId(state.governance.nextPersonSequence);
     if (state.governance.persons[id]) throw new Error(`Political person sequence is already in use: ${id}.`);
     const usedNames = new Set(Object.values(state.governance.persons).map(person => person.displayName));
+    contextEvidence = buildLeadershipSuccessionEvidence(state, partyId, successionRecordId, politicalRegistry);
     successor = {
       id,
       displayName: fictionalLeaderName(state, partyId, `succession:${state.governance.nextSuccessionSequence}`, usedNames),
@@ -296,11 +300,18 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
       partyId,
       isPartyLeader: false,
       status: 'active' as const,
-      leaderProfile: leaderProfileFor(partyId, id, state, true),
-      leaderProvenance: leaderProvenance(partyId, 'bounded_party_platform_succession_v2', politicalRegistry, null),
+      leaderProfile: leadershipProfileFromEvidence(party, contextEvidence),
+      leaderProvenance: {
+        basis: 'modelled_fallback' as const,
+        method: 'internal_party_balance_succession_v3' as const,
+        sourcePartyId: party.sourceBasis.sourcePartyId,
+        referenceDate: state.date,
+        sourceLeaderStatus: 'unavailable' as const,
+        limitation: 'Fictional post-replacement leader generated from the party platform and modelled internal/supporter/power-balance context. No real successor identity or personal ideology is asserted.',
+      },
     };
     next = cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [id]: successor }, nextPersonSequence: state.governance.nextPersonSequence + 1 });
-    selection = 'modelled_fallback';
+    selection = 'modelled_internal_balance';
   }
   const currentGovernance = next.governance;
   const successorPerson = {
@@ -310,10 +321,11 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
     leaderProvenance: successor.leaderProvenance ?? leaderProvenance(partyId, 'bounded_party_platform_succession_v2', politicalRegistry, null),
   };
   const previousPerson = { ...currentGovernance.persons[previous.id], isPartyLeader: false };
-  const id = successionId(currentGovernance.nextSuccessionSequence);
+  const id = successionRecordId;
   const succession: LeadershipSuccession = {
     id, partyId, countryId: party.countryId, previousPersonId: previous.id, newPersonId: successor.id,
     effectiveDate: state.date, selection,
+    ...(contextEvidence ? { contextEvidence } : {}),
     playerHandoff: state.governance.player.controlledPersonId === previous.id
       ? { status: 'pending', previousPersonId: previous.id, successorPersonId: successor.id }
       : undefined,

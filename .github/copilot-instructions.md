@@ -63,6 +63,14 @@ Already implemented (candidate, pending review):
 - Initial playable party leaders are fictional analogues derived from real
   leaders as reference, never copies of the real identity; the real name
   stays provenance/debug metadata only.
+- Automatically generated post-replacement leaders derive deterministically
+  from the fictional party platform, a modelled common internal tendency
+  prior, current modelled supporter preferences and available sourced
+  legislative representation/current modelled party support. No observed
+  faction shares, individual MPs or persistent factions are created.
+  Explicit existing successors bypass modelled selection and preserve their
+  identity/profile/provenance. Versioned saved context validates new profiles
+  without replaying historical opinion; old bounded fallbacks stay unchanged.
 - New parliamentary resolutions use continuous aggregate plurality,
   independently per issue/goal, without persistent global factions or
   individual MPs. The common prior is modelled, not sourced faction data.
@@ -80,11 +88,6 @@ Already implemented (candidate, pending review):
   modelled plurality dimension; missing branch evidence stays UNKNOWN.
   Public opinion stays material-only. Versioned records preserve a
   fingerprinted material baseline; reload does not replay material history.
-
-Documented design intent, NOT yet implemented -- do not claim as current
-behavior until separately planned/implemented/validated:
-- Generating post-replacement leaders from party structure/internal
-  factions/power balance/context rather than a fixed list.
 
 No playable constitutional reforms, mutable constitutions, elections
 updating the governing bloc, or coalition negotiation are implemented by

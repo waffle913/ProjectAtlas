@@ -29,9 +29,15 @@ import { assertInitialOfficeReconciliation } from '../governance/initialOfficeEv
 import { selectableStartingCountryIds, startingPersonCandidates } from '../governance/selection';
 import { allocatePartySeats, evaluatePartyInternalVoteDistribution, INTERNAL_PARTY_DISTRIBUTION_MODEL } from '../governance/internalPartyDistribution';
 import { applyInstitutionalAgreement, applyPartyInstitutionalInterest, derivePartyInstitutionalStake, evaluatePartyInstitutionalInterest, institutionalSensitivityBps, INSTITUTIONAL_INTEREST_MODEL } from '../governance/institutionalInterest';
+import { buildLeadershipSuccessionEvidence, deriveLeadershipSelectionMetrics, leadershipProfileFromEvidence, LEADERSHIP_SUCCESSION_MODEL, selectLeadershipTendency } from '../governance/leadershipSuccession';
+import { governanceFingerprint, type LeadershipSuccession, type LeadershipSuccessionEvidence } from '../governance/model';
+import { POLITICAL_ISSUES, type CohortPoliticalOpinion } from '../politics/model';
+import { informationInvariant } from '../information/invariants';
+import { aggregateNationalSupport } from '../politics/aggregation';
 
 import historicalFixture from './fixtures/governance-situational-0.14-v2.json';
 import historicalPluralityFixture from './fixtures/governance-plurality-0.15-v1.json';
+import historicalFallbackFixture from './fixtures/leadership-fallback-0.15-v2.json';
 const historicalSituational = historicalFixture as {
   referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal; reform: FiscalReform;
 };
@@ -42,6 +48,315 @@ const historicalPlurality = historicalPluralityFixture as {
 const fullWorld = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
 let initial: SimulationState;
 beforeAll(() => { initial = fullWorld(); }, 30_000);
+
+function leadershipContextFixture(mandateBps = 7_000, supportBps = 3_000) {
+  const partyId = historicalFallbackFixture.succession.partyId, countryId = politicalRegistry.parties[partyId].countryId;
+  const party = structuredClone(politicalRegistry.parties[partyId]);
+  for (const position of Object.values(party.issuePositions)) Object.assign(position, { preferenceBps: 7_000, intensityBps: 6_000, confidenceBps: 10_000 });
+  const country = politicalRegistry.countries[countryId], institution = structuredClone(politicalRegistry.institutions[country.institutionId]);
+  const chamber = institution.chambers[0];
+  Object.assign(chamber, { totalSeats: 100, seatsByParty: { [partyId]: 30 }, independentOtherSeats: 70, seatAllocationStatus: 'sourced' });
+  institution.chambers = [chamber];
+  const registry: PoliticalRegistry = {
+    ...politicalRegistry, parties: { ...politicalRegistry.parties, [partyId]: party },
+    institutions: { ...politicalRegistry.institutions, [institution.id]: institution },
+  };
+  const partyIndex = country.partyIds.indexOf(partyId);
+  const support = country.partyIds.map(id => id === partyId ? supportBps : 0).concat(10_000 - supportBps);
+  const opinion = (): CohortPoliticalOpinion => [POLITICAL_ISSUES.map(() => mandateBps), POLITICAL_ISSUES.map(() => 1_000), [...support], 6_000, 0, 1_000, []];
+  const regionIds = ['region.leadership-a', 'region.leadership-b'];
+  const socio = Object.values(initial.socioeconomy.regions).find(region => region.cohorts.length)!;
+  const regions = Object.fromEntries(regionIds.map(id => [id, {
+    ...socio, cohorts: [{ income: 'low' as const, orientation: 'left' as const, persons: 100 }, { income: 'middle' as const, orientation: 'right' as const, persons: 200 }],
+  }]));
+  const regionalOpinion = Object.fromEntries(regionIds.map(regionId => [regionId, {
+    regionId, countryId, cohorts: { 'low:left': opinion(), 'middle:right': opinion() },
+  }]));
+  const state: SimulationState = {
+    ...initial, socioeconomy: { ...initial.socioeconomy, regions },
+    politics: { ...initial.politics, regionalOpinion, countries: {
+      ...initial.politics.countries, [countryId]: { ...initial.politics.countries[countryId], regionIds, nationalSupportBps: support },
+    } },
+  };
+  return { state, registry, party, partyId, partyIndex, countryId, regionIds, institution };
+}
+
+describe('governance 0.15 contextual leadership succession', () => {
+  let start: SimulationState, generated: SimulationState, record: LeadershipSuccession;
+  beforeAll(() => {
+    const partyId = 'party:country.1aj872z:6870f25598ba', countryId = politicalRegistry.parties[partyId].countryId;
+    const definition = politicalRegistry.countries[countryId], dynamic = initial.politics.countries[countryId];
+    const regionalOpinion = { ...initial.politics.regionalOpinion };
+    // Synthetic current opinion exercises context sensitivity without changing pinned party data.
+    for (const regionId of dynamic.regionIds) {
+      const regional = regionalOpinion[regionId];
+      regionalOpinion[regionId] = { ...regional, cohorts: Object.fromEntries(Object.entries(regional.cohorts).map(([id, opinion]) => {
+        const changed = structuredClone(opinion);
+        changed[0] = POLITICAL_ISSUES.map(() => 6_500);
+        changed[2] = definition.partyIds.map<number>(id => id === partyId ? 1_000 : 0).concat(9_000);
+        return [id, changed];
+      })) };
+    }
+    const political = { ...initial, politics: { ...initial.politics, regionalOpinion, countries: { ...initial.politics.countries } } };
+    political.politics.countries[countryId] = { ...dynamic, nationalSupportBps: aggregateNationalSupport(political, dynamic.regionIds, regionalOpinion, definition.partyIds.length) };
+    const leader = Object.values(political.governance.persons).find(person => person.partyId === partyId && person.isPartyLeader)!;
+    start = setControlledPerson(assignPoliticalOffice(political, leader.id, { role: 'head_of_state', countryId }), leader.id);
+    generated = replacePartyLeader(start, partyId);
+    record = generated.governance.successions[generated.governance.successionOrder.at(-1)!];
+    expect(informationInvariant.check(generated, worldContext, 'save')).toEqual([]);
+    assertSimulationInvariants(generated, worldContext, 'save');
+  }, 30_000);
+
+  it('resolves the same one-time tendency, identity, evidence and profile deterministically without persistent faction or scheduler state', () => {
+    const repeated = replacePartyLeader(start, record.partyId);
+    expect(repeated.governance).toEqual(generated.governance);
+    expect(record.selection).toBe('modelled_internal_balance');
+    expect(record.contextEvidence?.method).toBe('internal_party_balance_succession_v1');
+    const successor = generated.governance.persons[record.newPersonId];
+    expect(successor.leaderProvenance).toMatchObject({
+      basis: 'modelled_fallback', method: 'internal_party_balance_succession_v3', referenceDate: generated.date, sourceLeaderStatus: 'unavailable',
+    });
+    expect(successor.leaderProvenance?.sourceLeader).toBeUndefined();
+    expect(record.contextEvidence!.profileFingerprint).toBe(governanceFingerprint(successor.leaderProfile));
+    expect(Object.keys(generated)).toEqual(Object.keys(start));
+    expect(Object.keys(generated.governance)).toEqual(Object.keys(start.governance));
+    for (const key of Object.keys(start) as Array<keyof SimulationState>) if (key !== 'governance') expect(generated[key]).toBe(start[key]);
+    expect(Object.keys(generated.governance.persons)).toHaveLength(Object.keys(start.governance.persons).length + 1);
+    expect(generated.governance.proposals).toBe(start.governance.proposals);
+    expect(generated.governance.successionOrder).toEqual([record.id]);
+  });
+
+  it.each([['radical', 8_000], ['moderate', 6_000]] as const)('moves internal weights toward %s current supporters, not a forced random winner', (direction, mandate) => {
+    const fixture = leadershipContextFixture(mandate);
+    const evidence = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry);
+    const metrics = deriveLeadershipSelectionMetrics(fixture.party, evidence), weights = metrics.tendencyWeightsBps;
+    expect(direction === 'radical' ? metrics.mandateTendencyBps > 0 : metrics.mandateTendencyBps < 0).toBe(true);
+    expect(direction === 'radical' ? weights.radical + weights.firm : weights.pragmatic + weights.moderate).toBeGreaterThan(3_000);
+    expect(Object.values(weights).reduce((sum, value) => sum + value, 0)).toBe(10_000);
+    expect(Object.values(weights).every(value => Number.isSafeInteger(value) && value >= 0)).toBe(true);
+  });
+
+  it('uses a real representation gap for adaptation or strong-support mainstream stability', () => {
+    const fixture = leadershipContextFixture();
+    const evidence = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry);
+    const baseline = deriveLeadershipSelectionMetrics(fixture.party, evidence);
+    expect(baseline).toMatchObject({ mandateTendencyBps: 0, adaptationPressureBps: 0, stabilityPressureBps: 0 });
+    expect(baseline.tendencyWeightsBps).toEqual({ radical: 1_000, firm: 2_000, mainstream: 4_000, pragmatic: 2_000, moderate: 1_000 });
+    const under = deriveLeadershipSelectionMetrics(fixture.party, { ...evidence, legislativeSeatShare: { ...evidence.legislativeSeatShare, valueBps: 6_000 } });
+    expect(under.adaptationPressureBps).toBe(5_000);
+    expect(under.stabilityPressureBps).toBe(0);
+    expect(under.tendencyWeightsBps.pragmatic + under.tendencyWeightsBps.moderate).toBeGreaterThan(3_000);
+    const strong = deriveLeadershipSelectionMetrics(fixture.party, { ...evidence, partySupport: { ...evidence.partySupport, valueBps: 8_000 } });
+    expect(strong.stabilityPressureBps).toBe(3_000);
+    expect(strong.adaptationPressureBps).toBe(0);
+    expect(strong.tendencyWeightsBps.mainstream).toBeGreaterThan(4_000);
+  });
+
+  it.each(['support', 'seats', 'both'] as const)('keeps missing %s evidence unavailable without inventing a representation gap', missing => {
+    const fixture = leadershipContextFixture();
+    if (missing !== 'seats') delete fixture.state.politics.countries[fixture.countryId];
+    if (missing !== 'support') fixture.institution.chambers = [];
+    const evidence = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry);
+    const metrics = deriveLeadershipSelectionMetrics(fixture.party, evidence);
+    expect(metrics).toMatchObject({ adaptationPressureBps: 0, stabilityPressureBps: 0 });
+    for (const metric of [evidence.partySupport, evidence.legislativeSeatShare, ...Object.values(evidence.supporterMandate)]) {
+      if (metric.coverage === 'unavailable') expect(metric).not.toHaveProperty('valueBps');
+    }
+    expect(evidence).not.toHaveProperty('representationGapBps');
+    expect(buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry)).toEqual(evidence);
+    if (missing === 'both') expect(metrics.tendencyWeightsBps).toEqual({ radical: 1_000, firm: 2_000, mainstream: 4_000, pragmatic: 2_000, moderate: 1_000 });
+  });
+
+  it('uses equal-chamber shares, retaining known zero only for complete sourced absence', () => {
+    const fixture = leadershipContextFixture(), first = fixture.institution.chambers[0];
+    const second = { ...first, id: 'chamber.leadership-second', totalSeats: 200, seatsByParty: { [fixture.partyId]: 100 }, independentOtherSeats: 100 };
+    fixture.institution.chambers.push(second, { ...first, id: 'chamber.leadership-unavailable', seatAllocationStatus: 'unavailable', seatsByParty: {} });
+    expect(buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry).legislativeSeatShare).toMatchObject({ coverage: 'sourced', valueBps: 4_000 });
+    fixture.institution.chambers = [{ ...first, seatsByParty: {}, independentOtherSeats: 100 }];
+    expect(buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry).legislativeSeatShare).toMatchObject({ coverage: 'sourced', valueBps: 0 });
+  });
+
+  it('keeps absent represented supporters unavailable while preserving evidenced zero party support', () => {
+    const fixture = leadershipContextFixture(7_000, 0);
+    const evidence = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry);
+    expect(evidence.partySupport).toMatchObject({ coverage: 'modelled', valueBps: 0 });
+    for (const metric of Object.values(evidence.supporterMandate)) {
+      expect(metric.coverage).toBe('unavailable'); expect(metric).not.toHaveProperty('valueBps');
+    }
+    expect(deriveLeadershipSelectionMetrics(fixture.party, evidence).mandateBlendBps).toBe(0);
+  });
+
+  it('keeps an unreconciled national-support vector unavailable rather than clamping it to zero', () => {
+    const fixture = leadershipContextFixture();
+    fixture.state.politics.countries[fixture.countryId].nationalSupportBps[fixture.partyIndex] = -1;
+    const evidence = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry);
+    expect(evidence.partySupport.coverage).toBe('unavailable'); expect(evidence.partySupport).not.toHaveProperty('valueBps');
+    expect(evidence.partySupport.limitation).toContain('does not reconcile');
+    expect(deriveLeadershipSelectionMetrics(fixture.party, evidence)).toMatchObject({ adaptationPressureBps: 0, stabilityPressureBps: 0 });
+  });
+
+  it('computes exact BigInt supporter means independent of Region, cohort and party insertion order without scanning other Countries', () => {
+    const fixture = leadershipContextFixture();
+    const [a, b] = fixture.regionIds;
+    const people = [4_000_000_000_001, 2_000_000_000_007], supports = [1_234, 9_876], preferences = [8_001, 2_003];
+    for (const regionId of fixture.regionIds) {
+      fixture.state.socioeconomy.regions[regionId].cohorts.forEach((cohort, index) => { cohort.persons = people[index]; });
+      Object.values(fixture.state.politics.regionalOpinion[regionId].cohorts).forEach((opinion, index) => {
+        opinion[0] = POLITICAL_ISSUES.map(() => preferences[index]);
+        opinion[2][fixture.partyIndex] = supports[index]; opinion[2][opinion[2].length - 1] = 10_000 - supports[index];
+      });
+    }
+    const numerator = BigInt(people[0]) * BigInt(supports[0]) * BigInt(preferences[0]) + BigInt(people[1]) * BigInt(supports[1]) * BigInt(preferences[1]);
+    const denominator = BigInt(people[0]) * BigInt(supports[0]) + BigInt(people[1]) * BigInt(supports[1]);
+    expect(numerator).toBeGreaterThan(BigInt(Number.MAX_SAFE_INTEGER));
+    const expected = Number((numerator + denominator / 2n) / denominator);
+    const before = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry);
+    expect(POLITICAL_ISSUES.every(issue => before.supporterMandate[issue].valueBps === expected)).toBe(true);
+    fixture.state.politics.countries[fixture.countryId].regionIds = [b, a];
+    for (const regionId of fixture.regionIds) {
+      fixture.state.politics.regionalOpinion[regionId].cohorts = Object.fromEntries(Object.entries(fixture.state.politics.regionalOpinion[regionId].cohorts).reverse());
+      fixture.state.socioeconomy.regions[regionId].cohorts.reverse();
+    }
+    fixture.registry.parties = Object.fromEntries(Object.entries(fixture.registry.parties).reverse());
+    fixture.state.politics.regionalOpinion = new Proxy(fixture.state.politics.regionalOpinion, { ownKeys() { throw new Error('Unexpected world scan.'); } });
+    fixture.state.socioeconomy.regions = new Proxy(fixture.state.socioeconomy.regions, { ownKeys() { throw new Error('Unexpected world scan.'); } });
+    expect(buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry)).toEqual(before);
+  });
+
+  it('rejects malformed opinion instead of turning an unknown preference into a numeric zero', () => {
+    const fixture = leadershipContextFixture();
+    fixture.state.politics.regionalOpinion[fixture.regionIds[0]].cohorts['low:left'][0][0] = NaN;
+    expect(() => buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry)).toThrow(/Invalid leadership supporter opinion/);
+  });
+
+  it('bounds every modelled profile and prevents tendency-only moderation crossing neutral', () => {
+    const fixture = leadershipContextFixture();
+    delete fixture.state.politics.countries[fixture.countryId];
+    const evidence = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, 'succession.00000000', fixture.registry);
+    for (const preference of [0, 4_000, 5_000, 6_000, 10_000]) {
+      for (const position of Object.values(fixture.party.issuePositions)) position.preferenceBps = preference;
+      for (const tendency of LEADERSHIP_SUCCESSION_MODEL.tendencies) {
+        const profile = leadershipProfileFromEvidence(fixture.party, { ...evidence, selectedTendency: tendency.id });
+        for (const dimension of Object.values(profile)) {
+          expect(dimension.status).toBe('modelled'); expect(dimension.confidenceBps).toBe(7_000);
+          expect(dimension.valueBps).toBeGreaterThanOrEqual(0); expect(dimension.valueBps).toBeLessThanOrEqual(10_000);
+          expect(Math.abs(dimension.valueBps - preference)).toBeLessThanOrEqual(2_500);
+          if (tendency.stanceBps < 0) expect(Math.sign(dimension.valueBps - 5_000) * Math.sign(preference - 5_000)).toBeGreaterThanOrEqual(0);
+          if (preference === 5_000) expect(dimension.valueBps).toBe(5_000);
+        }
+      }
+    }
+    const extreme = leadershipContextFixture(10_000);
+    for (const position of Object.values(extreme.party.issuePositions)) position.preferenceBps = 6_000;
+    const context = buildLeadershipSuccessionEvidence(extreme.state, extreme.partyId, 'succession.00000000', extreme.registry);
+    context.legislativeSeatShare.valueBps = 10_000;
+    expect(leadershipProfileFromEvidence(extreme.party, { ...context, selectedTendency: 'radical' }).public_services.valueBps).toBe(8_500);
+  });
+
+  it('rejects unsafe or nonconserving tendency weights and unsupported profile models', () => {
+    const fixture = leadershipContextFixture();
+    const evidence = buildLeadershipSuccessionEvidence(fixture.state, fixture.partyId, record.id, fixture.registry);
+    const weights = deriveLeadershipSelectionMetrics(fixture.party, evidence).tendencyWeightsBps;
+    for (const value of [-1, 0.5, NaN, 9_999]) expect(() => selectLeadershipTendency(fixture.state.engine.seed, fixture.partyId, fixture.state.date, record.id, { ...weights, radical: value })).toThrow(/Invalid leadership tendency weights/);
+    expect(() => leadershipProfileFromEvidence(fixture.party, Object.assign(structuredClone(evidence), { method: 'unsupported' }))).toThrow(/Unsupported leadership succession evidence model/);
+  });
+
+  it('preserves generated player handoff, prior office and exact schema-13 reload without rereading current opinion', () => {
+    expect(generated.governance.player.controlledPersonId).toBe(record.previousPersonId);
+    expect(generated.governance.persons[record.previousPersonId].office).toEqual(start.governance.persons[record.previousPersonId].office);
+    expect(generated.governance.persons[record.previousPersonId].isPartyLeader).toBe(false);
+    expect(record.playerHandoff?.status).toBe('pending');
+    const continued = resolvePlayerHandoff(generated, record.id, 'continue'), switched = resolvePlayerHandoff(generated, record.id, 'switch');
+    expect(continued.governance.player.controlledPersonId).toBe(record.previousPersonId);
+    expect(switched.governance.player.controlledPersonId).toBe(record.newPersonId);
+    expect(() => resolvePlayerHandoff(switched, record.id, 'continue')).toThrow(/no pending/);
+    const serialized = serializeSimulationState(switched, worldContext);
+    const restored = restoreSimulationState(serialized, worldRegions, {}, {}, worldContext);
+    expect(restored).toEqual(switched); expect(serializeSimulationState(restored, worldContext)).toBe(serialized);
+    expect([restored.engine.seed, restored.engine.tick, restored.date]).toEqual([switched.engine.seed, switched.engine.tick, switched.date]);
+    const later = { ...switched, politics: initial.politics };
+    expect(informationInvariant.check(later, worldContext, 'save')).toEqual([]);
+    expect(later.governance.successions[record.id].contextEvidence).toEqual(record.contextEvidence);
+    expect(restoreSimulationState(serializeSimulationState(later, worldContext), worldRegions, {}, {}, worldContext)).toEqual(later);
+  }, 30_000);
+
+  it('preserves an explicitly supplied member profile and provenance without claiming model selection', () => {
+    let state = createPoliticalPerson(start, { displayName: 'Explicit contextual test member', countryId: record.countryId });
+    const id = `person.${String(start.governance.nextPersonSequence).padStart(8, '0')}`;
+    state = setPartyMembership(state, id, record.partyId);
+    const member = {
+      ...state.governance.persons[id], leaderProfile: structuredClone(start.governance.persons[record.previousPersonId].leaderProfile),
+      leaderProvenance: {
+        basis: 'modelled_fallback' as const, method: 'bounded_party_platform_succession_v2' as const,
+        sourcePartyId: politicalRegistry.parties[record.partyId].sourceBasis.sourcePartyId, referenceDate: start.date,
+        sourceLeaderStatus: 'unavailable' as const, limitation: 'Explicit existing-person test provenance, not a generated selection.',
+      },
+    };
+    state = { ...state, governance: { ...state.governance, persons: { ...state.governance.persons, [id]: member } } };
+    const chosen = replacePartyLeader(state, record.partyId, id), succession = chosen.governance.successions[record.id];
+    expect(succession.selection).toBe('existing_party_member'); expect(succession).not.toHaveProperty('contextEvidence');
+    expect(chosen.governance.persons[id]).toEqual({ ...member, isPartyLeader: true });
+    const loaded = restoreSimulationState(serializeSimulationState(chosen, worldContext), worldRegions, {}, {}, worldContext);
+    expect(loaded).toEqual(chosen);
+    succession.contextEvidence = structuredClone(record.contextEvidence);
+    expect(informationInvariant.check(chosen, worldContext, 'save').join(' ')).toContain('Invalid contextual leadership succession');
+    expect(() => serializeSimulationState(chosen, worldContext)).toThrow(/Invalid contextual leadership succession/);
+    expect(() => restoreSimulationState(JSON.stringify(chosen), worldRegions, {}, {}, worldContext)).toThrow(/Invalid contextual leadership succession/);
+  }, 30_000);
+
+  it('reloads the genuine reviewed-parent bounded fallback byte/structure-equivalently without new evidence', () => {
+    const fixture = historicalFallbackFixture as {
+      referenceCommit: string; date: string; tick: number; seed: string; previous: PoliticalPersonState; successor: PoliticalPersonState;
+      succession: LeadershipSuccession; nextPersonSequence: number; nextSuccessionSequence: number; player: { controlledPersonId: string };
+    };
+    expect(fixture.referenceCommit).toBe('323d702a49ed15eef388841d12b3f54a8acbd466');
+    const state = { ...initial, date: fixture.date, engine: { ...initial.engine, seed: fixture.seed, tick: fixture.tick }, governance: {
+      ...initial.governance, persons: { ...initial.governance.persons, [fixture.previous.id]: fixture.previous, [fixture.successor.id]: fixture.successor },
+      successions: { [fixture.succession.id]: fixture.succession }, successionOrder: [fixture.succession.id],
+      nextPersonSequence: fixture.nextPersonSequence, nextSuccessionSequence: fixture.nextSuccessionSequence, player: fixture.player,
+    } };
+    const serialized = serializeSimulationState(state, worldContext), loaded = restoreSimulationState(serialized, worldRegions, {}, {}, worldContext);
+    expect(loaded).toEqual(state); expect(serializeSimulationState(loaded, worldContext)).toBe(serialized);
+    expect(JSON.stringify(loaded.governance.persons[fixture.successor.id])).toBe(JSON.stringify(fixture.successor));
+    expect(JSON.stringify(loaded.governance.successions[fixture.succession.id])).toBe(JSON.stringify(fixture.succession));
+    expect(loaded.governance.successions[fixture.succession.id]).not.toHaveProperty('contextEvidence');
+  }, 30_000);
+
+  const tamperCases: Array<[string, (state: SimulationState, succession: LeadershipSuccession, evidence: LeadershipSuccessionEvidence) => void]> = [
+    ['party-support value', (_state, _succession, evidence) => { evidence.partySupport.valueBps = 10_000; }],
+    ['unavailable with value', (_state, _succession, evidence) => { evidence.partySupport.coverage = 'unavailable'; }],
+    ['available without value', (_state, _succession, evidence) => { delete evidence.partySupport.valueBps; }],
+    ['negative bps', (_state, _succession, evidence) => { evidence.partySupport.valueBps = -1; }],
+    ['seat-share value', (_state, _succession, evidence) => { evidence.legislativeSeatShare.valueBps = 10_000; }],
+    ['seat-share coverage', (_state, _succession, evidence) => { evidence.legislativeSeatShare.coverage = 'modelled'; }],
+    ['supporter-mandate value', (_state, _succession, evidence) => { evidence.supporterMandate.public_services.valueBps = 10_000; }],
+    ['missing mandate issue', (_state, _succession, evidence) => { delete (evidence.supporterMandate as Partial<typeof evidence.supporterMandate>).public_services; }],
+    ['extra mandate issue', (_state, _succession, evidence) => { Object.assign(evidence.supporterMandate, { unexpected: evidence.supporterMandate.public_services }); }],
+    ['mandate coverage', (_state, _succession, evidence) => { evidence.supporterMandate.public_services.coverage = 'sourced'; }],
+    ['empty metric source', (_state, _succession, evidence) => { evidence.partySupport.source = ' '; }],
+    ['empty metric limitation', (_state, _succession, evidence) => { evidence.legislativeSeatShare.limitation = ''; }],
+    ['selected tendency', (_state, _succession, evidence) => { evidence.selectedTendency = evidence.selectedTendency === 'radical' ? 'moderate' : 'radical'; }],
+    ['successor profile', (state, succession) => { state.governance.persons[succession.newPersonId].leaderProfile!.public_services.valueBps++; }],
+    ['profile fingerprint', (_state, _succession, evidence) => { evidence.profileFingerprint = 'incorrect'; }],
+    ['succession party', (_state, succession) => { succession.partyId = historicalFallbackFixture.succession.partyId; }],
+    ['provenance method', (state, succession) => { state.governance.persons[succession.newPersonId].leaderProvenance!.method = 'bounded_party_platform_succession_v2'; }],
+    ['provenance source party', (state, succession) => { state.governance.persons[succession.newPersonId].leaderProvenance!.sourcePartyId = 'unknown'; }],
+    ['provenance reference date', (state, succession) => { state.governance.persons[succession.newPersonId].leaderProvenance!.referenceDate = '2025-12-31'; }],
+    ['generated source identity', (state, succession) => { state.governance.persons[succession.newPersonId].leaderProvenance!.sourceLeader = { id: 'wikidata:Q1', name: 'Invented real reference', sourceRecordIds: ['test'] }; }],
+    ['evidence method', (_state, _succession, evidence) => { Object.assign(evidence, { method: 'unsupported' }); }],
+    ['missing context evidence', (_state, succession) => { delete succession.contextEvidence; }],
+    ['historical selection downgrade', (_state, succession) => { succession.selection = 'modelled_fallback'; delete succession.contextEvidence; }],
+    ['orphan generated provenance', (state, succession) => { delete state.governance.successions[succession.id]; state.governance.successionOrder = []; }],
+  ];
+  it.each(tamperCases)('rejects independent contextual %s corruption at invariant/save/reload', (_name, mutate) => {
+    const malformed = { ...generated, governance: structuredClone(generated.governance) };
+    const succession = malformed.governance.successions[record.id];
+    mutate(malformed, succession, succession.contextEvidence!);
+    expect(informationInvariant.check(malformed, worldContext, 'save').join(' ')).toContain('Invalid contextual leadership succession');
+    expect(() => serializeSimulationState(malformed, worldContext)).toThrow(/Invalid contextual leadership succession/);
+    expect(() => restoreSimulationState(JSON.stringify(malformed), worldRegions, {}, {}, worldContext)).toThrow(/Invalid contextual leadership succession/);
+  }, 30_000);
+});
 
 const completeCountryIds = () => Object.values(politicalRegistry.countries).filter(country => {
   const institution = politicalRegistry.institutions[country.institutionId];
@@ -1196,7 +1511,7 @@ describe('governance 0.14 player and political decisions', () => {
     expect(switched.governance.persons[leader.id]).toBeDefined();
   });
 
-  it('creates a deterministic bounded-profile successor and persists explicit player transfer', () => {
+  it('creates a deterministic contextual-profile successor and persists explicit player transfer', () => {
     const leader = Object.values(initial.governance.persons).find(person => person.isPartyLeader)!;
     const start = setControlledPerson(initial, leader.id);
     const first = replacePartyLeader(start, leader.partyId!);
@@ -1204,7 +1519,8 @@ describe('governance 0.14 player and political decisions', () => {
     const successionId = first.governance.successionOrder.at(-1)!;
     const successor = first.governance.persons[first.governance.successions[successionId].newPersonId];
     expect(successor).toEqual(second.governance.persons[second.governance.successions[successionId].newPersonId]);
-    expect(successor).toMatchObject({ isPartyLeader: true, partyId: leader.partyId, leaderProvenance: { method: 'bounded_party_platform_succession_v2', basis: 'modelled_fallback', sourceLeaderStatus: 'unavailable' } });
+    expect(successor).toMatchObject({ isPartyLeader: true, partyId: leader.partyId, leaderProvenance: { method: 'internal_party_balance_succession_v3', basis: 'modelled_fallback', sourceLeaderStatus: 'unavailable' } });
+    expect(first.governance.successions[successionId]).toMatchObject({ selection: 'modelled_internal_balance', contextEvidence: { method: 'internal_party_balance_succession_v1' } });
     expect(Object.values(successor.leaderProfile!).every(item => item.valueBps >= 0 && item.valueBps <= 10_000)).toBe(true);
     const switched = resolvePlayerHandoff(first, successionId, 'switch');
     const restored = restoreSimulationState(serializeSimulationState(switched, worldContext), worldRegions, {}, {}, worldContext);

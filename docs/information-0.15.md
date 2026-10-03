@@ -63,7 +63,93 @@ New-game initialization explicitly reconciles office identity, Country/role, dat
 
 ## Succession and player entry
 
-Party leadership changes use an explicit succession record. A different active member of the same party and Country may be selected; absent such a person, a deterministic fictional successor is generated with bounded variation around the party's existing validated profile. The former person, any unrelated office and player control persist. If the controlled person was the outgoing leader, a persisted pending handoff offers Continue or Switch; resolving either choice changes control at most once.
+Party leadership changes use an explicit succession record. A different active member of the same party and Country may be supplied explicitly; absent an explicit person, a fictional successor is derived deterministically from the fictional party platform, a modelled common internal tendency prior, current modelled supporter preferences and available sourced legislative representation/current modelled party support. The former person, any unrelated office and player control persist. If the controlled person was the outgoing leader, a persisted pending handoff offers Continue or Switch; resolving either choice changes control at most once.
+
+### Context-derived generated successors
+
+`leadershipSuccession.ts` is pure and on-demand. It scans only the affected
+Country's political Region/cohort list, in sorted order, once. Supporter means
+use exact BigInt population times party-support weights. They are modelled
+cohort preferences, not polling observations, party-membership surveys or
+observed faction shares. With no represented supporters, each issue remains
+unavailable without a numeric value.
+
+Current national support comes from the existing `politics.nationalSupportBps`
+vector in pinned Country party order. Legislative share is the equal-chamber
+mean of party seat shares in complete sourced allocations. An absent party
+in such an allocation has an evidenced zero; an unavailable allocation does
+not. Missing either side leaves the representation gap absent, not zero.
+These snapshots are engine evidence and do not unlock Government Information
+or minister/UI access to Reality.
+
+The five ephemeral tendencies retain the common modelled prior:
+
+| Tendency | Stance bps | Baseline weight bps | Weight factor before clamping |
+|---|---:|---:|---|
+| radical | 10000 | 1000 | `10000 + M - round(A / 2)` |
+| firm | 5000 | 2000 | `10000 + round(M / 2) - round(A / 4)` |
+| mainstream | 0 | 4000 | `10000 + S + round(A / 4)` |
+| pragmatic | -5000 | 2000 | `10000 - round(M / 2) + round(A / 2)` |
+| moderate | -10000 | 1000 | `10000 - M + A` |
+
+`M` is the intensity-weighted signed supporter displacement away from the
+party's neutral point: sum of
+`max(1, intensity) * (mandate - platform) * sign(platform - 5000)`,
+divided by the summed weights and clamped to -5000..5000. Only modelled
+available mandates and non-neutral party positions enter this signal.
+No usable directional mandate means a neutral common-prior signal, not a
+fabricated saved observation.
+
+For an available gap `G = seatShare - currentSupport`,
+`A = clamp(2 * max(0, G), 0, 5000)` and
+`S = clamp(2 * max(0, -G), 0, 3000)`. With no comparable gap, both derived
+pressures are zero: no evidence-based adjustment is applied. Factors clamp
+to 2500..20000. Raw weights are rounded `baseline * factor / 10000`;
+the existing exact largest-remainder allocator normalizes them to exactly
+10000 in the fixed tendency-table order. Factor fractions use `Math.round`,
+matching the supplied reference; signed ratios use half-away-from-zero
+integer rounding.
+
+The one-time draw uses the shared keyed RNG with system
+`party-leadership.internal-balance`, party ID, effective date and
+`${successionId}:tendency`; it adds no mutable RNG, daily work or scheduler.
+This selects a tendency for one fictional person, not persistent factions
+or per-MP positions, and does not replace parliamentary plurality.
+
+For each issue, the tendency anchor is the party position plus
+`sign(platform - 5000) * round_signed(stance * 1400 / 10000)`,
+bounded to 0..10000. Neutral positions stay neutral in this transform;
+negative stances approach neutral without crossing it. Where mandate
+evidence exists, blend from that anchor toward the mandate with
+`B = clamp(2000 + round(A / 2) - round(S / 4), 1000, 4500)`.
+With no mandate anywhere, `B = 0`; an unavailable individual issue is
+never blended. Final values clamp to the intersection of 0..10000 and
+platform +/-2500. Confidence is `min(partyConfidence, 7000)` and every
+dimension is modelled. Actual mandate evidence may move a profile across
+neutral; the tendency transform alone cannot do so.
+
+New generated records use selection `modelled_internal_balance`, context
+method `internal_party_balance_succession_v1` and provenance method
+`internal_party_balance_succession_v3`. Source successor identity is absent,
+source-leader status unavailable and provenance date is the replacement date.
+The saved context contains coverage/value/source/limitation for support,
+seat share and exactly the six issues, the selected tendency and a profile
+fingerprint. Information invariants recompute weights, keyed selection and
+the exact profile from that saved context plus the static party; they do not
+re-fetch current opinion to reinterpret a past succession. New v3 generated
+provenance must retain a matching contextual succession; relabelling it as
+a historical fallback or deleting its selection proof cannot bypass validation.
+
+Explicit existing members bypass this selection and receive no modelled
+selection evidence. Existing profiles/provenance are preserved; the older
+compatibility fill for missing metadata remains unchanged. Historical
+`modelled_fallback` / `bounded_party_platform_succession_v2` records retain
+their original profiles without new context. A genuine compact fixture
+was generated and round-trip validated by reviewed parent
+`323d702a49ed15eef388841d12b3f54a8acbd466` before runtime editing.
+Schema 13 and existing subsystem versions remain unchanged, with no
+migration or history backfill. The fingerprint checks internal consistency,
+not independent empirical truth or cryptographic authentication.
 
 The start overlay keeps Country first and offers two routes: Country -> Party -> active fictional party leader, or Country -> current fictional executive officeholder. The latter uses active canonical persons with source-reconciled head-of-government/head-of-state offices, independently of party membership. Countries with executive evidence remain selectable even without party coverage. A person holding both roles keeps the same ID in either route, with no duplicate candidate within a list.
 
@@ -124,8 +210,9 @@ Production evidence still has no overlap between the 57 Countries with
 complete procedural coverage and the eight with ideological evidence.
 Plurality does not invent confidence or sourced party profiles to clear this
 gap; explicitly synthetic known-profile tests/benchmarks demonstrate splits.
-Faction/context successor generation remains the separate, unimplemented
-design-intent block.
+Context-derived successor generation uses the separate on-demand mechanism
+above, without making this parliamentary distribution a persistent faction
+state.
 
 ## Situational institutional interest (candidate, pending independent review)
 
@@ -217,11 +304,11 @@ produced and save/reload-validated by reviewed parent
 `61e415d76ae3ff16cf61961df70d93857d7a87e7` before editing runtime; its profiles
 are explicitly synthetic test evidence, not observed political positions.
 
-This pass adds no constitutional-reform gameplay, mutable constitutions,
-elections updating governing blocs, coalition negotiation, persistent factions,
-individual MPs or new successor generation. Existing bounded party-platform
-succession is unchanged; structure/faction/context-based successors remain
-the only outstanding design-intent block. 0.15 remains a review candidate.
+The institutional evaluator adds no constitutional-reform gameplay, mutable
+constitutions, elections updating governing blocs, coalition negotiation,
+persistent factions or individual MPs. Context-derived succession is a
+separate pure, on-demand mechanism as documented above. 0.15 remains a
+review candidate, not an accepted milestone.
 
 ## Persistence, invariants and validation
 
@@ -231,7 +318,7 @@ Global save schema remains 13; the current information subversion is `informatio
 
 Ordinary v3/schema-13 reload does not call leadership initialization, current-mapping reconciliation or retention a second time. Persisted names, office evidence and provenance are validated as saved evidence, independent of the current editorial mapping/name and officeholder tables. Registry mismatches or internally invalid evidence fail explicitly rather than silently rebuilding history. Existing schema-13 games are not automatically backfilled with newly ingested executive persons. Any such change to saved persons requires a separately specified versioned migration.
 
-`npm run information:test` runs focused report/access/briefing/assistance/migration tests. `npm run information:audit` verifies the source-coverage report. `npm run information:benchmark` measures initialization, leader creation, save-size delta, ordinary/monthly scheduler days, fallback succession and an actual full-cap 2,048-entry retained state across all 252 Countries, including new monthly emissions, reference validation and deterministic reload. The broader audit/build/test and world/politics/governance benchmarks are recorded in [the candidate validation evidence](milestone-0.15-candidate-validation.md) after execution.
+`npm run information:test` runs focused report/access/briefing/assistance/migration tests. `npm run information:audit` verifies the source-coverage report. `npm run information:benchmark` measures initialization, leader creation, save-size delta, ordinary/monthly scheduler days, generated succession and an actual full-cap 2,048-entry retained state across all 252 Countries, including new monthly emissions, reference validation and deterministic reload. `npm run governance:benchmark` also measures one context-derived succession, affected Country Region count, evidence bytes and save delta. The broader audit/build/test and world/politics/governance benchmarks are recorded in [the candidate validation evidence](milestone-0.15-candidate-validation.md) after execution.
 
 ## Limitations
 
@@ -241,5 +328,5 @@ Ordinary v3/schema-13 reload does not call leadership initialization, current-ma
 - Fiscal UI exposes the existing corporate-tax and annual infrastructure-budget proposal paths through governance commands; unsupported instruments are not presented as working controls.
 - The current model has no supported urgent briefing source, so automatic urgent pause is not exercised.
 - Proposal reactions and government-visible counterfactual consequences are unavailable, not canonical Reality relabelled as estimates. No crisis-report sensor channel or Public Perception layer is implemented.
-- Internal plurality and explicit-power-transfer institutional interest are candidate behavior using modelled priors, not observed faction shares or party behavioral coefficients. Current fiscal proposals receive zero/not_applicable institutional adjustment. Faction/context-derived successor profiles remain design debt; bounded party-platform succession is unchanged.
+- Internal plurality, explicit-power-transfer institutional interest and context-derived succession are candidate behavior using modelled priors, not observed faction shares or empirically calibrated party coefficients. Current fiscal proposals receive zero/not_applicable institutional adjustment. Succession creates no persistent factions, national leadership-election procedure or automatic leadership challenges.
 - Measurement timings and the save comparison are workload-specific and are not performance thresholds or universal device guarantees.
