@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SimulationState } from '../types';
-import { createFiscalProposal, hasPoliticalAuthority, resolveProposalVote, submitProposal } from '../simulation/governance/runtime';
+import { createFiscalProposal, hasPoliticalAuthority, resolveProposalVote, submitProposal, withdrawProposal } from '../simulation/governance/runtime';
 import { selectUnresolvedFiscalProposal, unresolvedFiscalProposals } from '../simulation/governance/selection';
 import { hasGovernmentInformationAccess, inspectGovernmentProposalEstimates, produceGovernmentProposalEstimate } from '../simulation/information/runtime';
 import type { FiscalCountry, TaxRule } from '../simulation/fiscal/model';
@@ -50,12 +50,6 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
     setInfrastructureBudget(budget ? String(budget.infrastructure) : '');
   }, [countryId, rule?.rateBps, budget?.infrastructure]);
 
-  if (!hasAccess) return <section className="cockpit-section">
-    <h2>Fiscal policy</h2>
-    <p>Government fiscal instruments and confidential estimates are not available to this person: no qualifying executive office is assigned.</p>
-    <p>Party leadership or control of a Country does not grant fiscal authority. No statutory tax rate has been invented.</p>
-  </section>;
-
   const createBudgetDraft = () => {
     try {
       if (!budget || !Number.isSafeInteger(Number(infrastructureBudget)) || Number(infrastructureBudget) < 0) throw new Error('Infrastructure allocation must be a non-negative whole amount.');
@@ -102,9 +96,10 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
 
   return <section className="cockpit-section">
     <h2>Fiscal policy</h2>
+    {!hasAccess && <p>Confidential Government Information estimates are unavailable to this person. Political action requires the corresponding office authority; party leadership or Country selection grants neither capability.</p>}
     <section>
       <h3>Corporate tax</h3>
-      {supportedRule ? <>
+      {!hasAccess && !canProposeTax ? <p>This office does not hold both legislative and fiscal-reform sponsorship authority. Confidential information is unavailable.</p> : supportedRule ? <>
         <p>Current model rule: {(supportedRule.rateBps / 100).toFixed(2)}% · {supportedRule.status} · effective {supportedRule.effectiveDate}</p>
         {canProposeTax ? <>
           <label>Proposed rate (%)
@@ -116,7 +111,7 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
     </section>
     <section>
       <h3>Annual budget</h3>
-      {budget ? <>
+      {!hasAccess && !canProposeBudget ? <p>This office does not hold legislative and budget-reform sponsorship authority. Confidential information is unavailable.</p> : budget ? <>
         <p>Existing modelled annual allocation: {budget.infrastructure} infrastructure budget units. Only the named allocation is changed by this draft.</p>
         {canProposeBudget ? <>
           <label>Proposed infrastructure allocation
@@ -133,10 +128,18 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
         </select>
       </label>
       <p>{draft.status === 'draft' ? 'Draft' : 'Submitted proposal'} {draft.id} · effective {draft.effectiveDate}</p>
+      {draft.effectiveDate < state.date && <p>This proposal's effective date has passed. It cannot be submitted retroactively; withdraw it explicitly before creating a replacement.</p>}
       <details><summary>Canonical proposal content</summary>
         <pre>{JSON.stringify({ effectiveDate: draft.effectiveDate, payload: draft.payload }, null, 2)}</pre>
       </details>
-      {['draft', 'submitted'].includes(draft.status) && <button onClick={() => {
+      {state.governance.player.controlledPersonId === personId && <button onClick={() => {
+        try {
+          onStateChange(withdrawProposal(state, draft.id));
+          setDraftId(undefined);
+          setMessage('Proposal withdrawn. You may create a new draft with an explicit new effective date.');
+        } catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
+      }}>Withdraw proposal</button>}
+      {hasAccess && ['draft', 'submitted'].includes(draft.status) && <button onClick={() => {
         try {
           onStateChange(produceGovernmentProposalEstimate(state, draft.id, personId));
           setMessage(`Government Information estimate recorded for ${state.date}.`);
@@ -151,7 +154,7 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
         {proposalPreview.unsupportedChanges.map(item => <p key={item.path}>{item.path}: unavailable/partial · {item.reason}</p>)}
         {proposalPreview.limitations.map((item, index) => <p key={index}>{item}</p>)}
       </>}
-      {draft.status === 'draft' && canSubmitDraft && <button onClick={() => {
+      {draft.status === 'draft' && canSubmitDraft && <button disabled={draft.effectiveDate < state.date} onClick={() => {
         try { onStateChange(submitProposal(state, draft.id)); setMessage('Submitted. The proposal payload is now immutable. Resolve it through the existing parliamentary decision command.'); }
         catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
       }}>Submit immutable proposal</button>}

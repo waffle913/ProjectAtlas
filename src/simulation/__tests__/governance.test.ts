@@ -247,7 +247,7 @@ describe('governance 0.15 contextual leadership succession', () => {
     }, 30_000);
 
     it('rejects a broken same-party chain with intact profiles and references at invariant/save/reload', () => {
-      const next = replacePartyLeader(generated, record.partyId);
+      const next = replacePartyLeader(resolvePlayerHandoff(generated, record.id, 'continue'), record.partyId);
       assertSimulationInvariants(next, worldContext, 'save');
       const malformed = { ...next, governance: structuredClone(next.governance) };
       const second = malformed.governance.successions[malformed.governance.successionOrder.at(-1)!];
@@ -281,6 +281,99 @@ describe('governance 0.15 contextual leadership succession', () => {
       const restored = restoreSimulationState(serialized, worldRegions, {}, {}, worldContext);
       expect(restored).toEqual(state);
       expect(serializeSimulationState(restored, worldContext)).toBe(serialized);
+    }, 30_000);
+  });
+
+  describe('consolidated closure leadership integrity', () => {
+    it('rejects historical party switches before mutation, permits same-party no-ops and unrelated membership changes', () => {
+      const state = resolvePlayerHandoff(generated, record.id, 'continue');
+      const otherParty = politicalRegistry.countries[record.countryId].partyIds.find(id => id !== record.partyId)!;
+      const before = serializeSimulationState(state, worldContext);
+      expect(() => setPartyMembership(state, record.previousPersonId, otherParty)).toThrow(/succession history/);
+      expect(() => setPartyMembership(state, record.previousPersonId)).toThrow(/succession history/);
+      expect(serializeSimulationState(state, worldContext)).toBe(before);
+      expect(setPartyMembership(state, record.previousPersonId, record.partyId).governance.persons).toEqual(state.governance.persons);
+      let unrelated = createPoliticalPerson(state, { displayName: 'Unrelated closure member', countryId: record.countryId });
+      const id = `person.${String(state.governance.nextPersonSequence).padStart(8, '0')}`;
+      unrelated = setPartyMembership(setPartyMembership(unrelated, id, record.partyId), id, otherParty);
+      expect(unrelated.governance.persons[id].partyId).toBe(otherParty);
+      assertSimulationInvariants(unrelated, worldContext, 'save');
+    }, 30_000);
+
+    it('accepts two sequential Switch handoffs and later unrelated control changes through save/reload', () => {
+      let state = resolvePlayerHandoff(generated, record.id, 'switch');
+      state = replacePartyLeader(state, record.partyId);
+      const second = state.governance.successions[state.governance.successionOrder.at(-1)!];
+      expect(second.playerHandoff?.status).toBe('pending');
+      state = resolvePlayerHandoff(state, second.id, 'switch');
+      expect(state.governance.player.controlledPersonId).toBe(second.newPersonId);
+      expect(state.governance.successions[record.id].playerHandoff?.status).toBe('switched');
+      expect(restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext)).toEqual(state);
+      state = setControlledPerson(state, record.previousPersonId);
+      expect(restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext)).toEqual(state);
+    }, 30_000);
+
+    it('accepts Continue followed by later player control changes without rewriting the historical decision', () => {
+      const continued = resolvePlayerHandoff(generated, record.id, 'continue');
+      const next = setControlledPerson(continued, record.newPersonId);
+      expect(next.governance.successions[record.id]).toEqual(continued.governance.successions[record.id]);
+      expect(restoreSimulationState(serializeSimulationState(next, worldContext), worldRegions, {}, {}, worldContext)).toEqual(next);
+    }, 30_000);
+
+    it('rejects pending control bypass and a second same-party succession without mutating state', () => {
+      const before = serializeSimulationState(generated, worldContext);
+      expect(() => setControlledPerson(generated, record.newPersonId)).toThrow(/pending leadership handoff/);
+      expect(() => setControlledPerson(generated)).toThrow(/pending leadership handoff/);
+      expect(() => replacePartyLeader(generated, record.partyId)).toThrow(/pending player handoff/);
+      expect(() => replacePartyLeader(generated, record.partyId, record.previousPersonId)).toThrow(/pending player handoff/);
+      expect(setControlledPerson(generated, record.previousPersonId).governance).toEqual(generated.governance);
+      expect(serializeSimulationState(generated, worldContext)).toBe(before);
+      const otherPartyId = historicalFallbackFixture.succession.partyId;
+      expect(replacePartyLeader(generated, otherPartyId).governance.successionOrder).toHaveLength(2);
+    }, 30_000);
+
+    const corruptions: Array<[string, (state: SimulationState) => void, RegExp]> = [
+      ['pending decision date', state => { state.governance.successions[record.id].playerHandoff!.decidedOn = state.date; }, /Malformed player handoff/],
+      ['pending control mismatch', state => { state.governance.player.controlledPersonId = record.newPersonId; }, /Malformed player handoff/],
+      ['resolved missing decision date', state => { state.governance.successions[record.id].playerHandoff!.status = 'continued'; }, /Malformed player handoff/],
+      ['resolved future decision date', state => { Object.assign(state.governance.successions[record.id].playerHandoff!, { status: 'continued', decidedOn: '2026-01-02' }); }, /Malformed player handoff/],
+      ['resolved decision predating event', state => { Object.assign(state.governance.successions[record.id].playerHandoff!, { status: 'continued', decidedOn: '2025-12-31' }); }, /Malformed player handoff/],
+      ['unknown provenance method', state => { Object.assign(state.governance.persons[record.previousPersonId].leaderProvenance!, { method: 'invented_method' }); }, /Invalid party leader provenance/],
+      ['future provenance date', state => { state.governance.persons[record.previousPersonId].leaderProvenance!.referenceDate = '2026-01-02'; }, /Invalid party leader provenance/],
+      ['missing profile issue', state => { delete state.governance.persons[record.previousPersonId].leaderProfile!.public_services; }, /Invalid political leader profile/],
+      ['extra profile issue', state => { Object.assign(state.governance.persons[record.previousPersonId].leaderProfile!, { impossible: state.governance.persons[record.previousPersonId].leaderProfile!.public_services }); }, /Invalid political leader profile/],
+      ['array profile structure', state => { Object.assign(state.governance.persons[record.previousPersonId], { leaderProfile: [] }); }, /Invalid political leader profile/],
+      ['null profile dimension', state => { Object.assign(state.governance.persons[record.previousPersonId].leaderProfile!, { public_services: null }); }, /Invalid political leader profile/],
+      ['profile malformed status', state => { Object.assign(state.governance.persons[record.previousPersonId].leaderProfile!.public_services, { status: 'sourced' }); }, /Invalid political leader profile/],
+      ['profile unsafe confidence', state => { state.governance.persons[record.previousPersonId].leaderProfile!.public_services.confidenceBps = 10_001; }, /Invalid political leader profile/],
+    ];
+    it.each(corruptions)('rejects %s at invariant/save/reload', (_name, mutate, error) => {
+      const malformed = { ...generated, governance: structuredClone(generated.governance) };
+      mutate(malformed);
+      expect(informationInvariant.check(malformed, worldContext, 'save').join(' ')).toMatch(error);
+      expect(() => serializeSimulationState(malformed, worldContext)).toThrow(error);
+      expect(() => restoreSimulationState(JSON.stringify(malformed), worldRegions, {}, {}, worldContext)).toThrow(error);
+    }, 30_000);
+
+    it('rejects an arbitrary existing member as the first succession root', () => {
+      let state = createPoliticalPerson(resolvePlayerHandoff(generated, record.id, 'continue'), { displayName: 'Invented initial predecessor', countryId: record.countryId });
+      const id = `person.${String(generated.governance.nextPersonSequence).padStart(8, '0')}`;
+      state = setPartyMembership(state, id, record.partyId);
+      const malformed = { ...state, governance: structuredClone(state.governance) };
+      malformed.governance.successions[record.id].previousPersonId = id;
+      delete malformed.governance.successions[record.id].playerHandoff;
+      expect(informationInvariant.check(malformed, worldContext, 'save').join(' ')).toMatch(/Invalid initial party leadership root/);
+      expect(() => serializeSimulationState(malformed, worldContext)).toThrow(/Invalid initial party leadership root/);
+      expect(() => restoreSimulationState(JSON.stringify(malformed), worldRegions, {}, {}, worldContext)).toThrow(/Invalid initial party leadership root/);
+    }, 30_000);
+    it('rejects persisted history bypassing an earlier pending handoff', () => {
+      const state = replacePartyLeader(resolvePlayerHandoff(generated, record.id, 'continue'), record.partyId);
+      const malformed = { ...state, governance: structuredClone(state.governance) };
+      malformed.governance.successions[record.id].playerHandoff!.status = 'pending';
+      delete malformed.governance.successions[record.id].playerHandoff!.decidedOn;
+      expect(informationInvariant.check(malformed, worldContext, 'save').join(' ')).toMatch(/bypasses a pending handoff/);
+      expect(() => serializeSimulationState(malformed, worldContext)).toThrow(/bypasses a pending handoff/);
+      expect(() => restoreSimulationState(JSON.stringify(malformed), worldRegions, {}, {}, worldContext)).toThrow(/bypasses a pending handoff/);
     }, 30_000);
   });
 

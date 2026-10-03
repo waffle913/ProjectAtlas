@@ -6,6 +6,8 @@ export const GOVERNANCE_VERSION = 'governance-0.14-v1' as const;
 export const AUTHORITY_CAPABILITIES = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information'] as const;
 export type AuthorityCapability = typeof AUTHORITY_CAPABILITIES[number];
 export type PoliticalOfficeRole = 'head_of_government' | 'head_of_state' | 'legislator';
+export const INITIAL_LEADER_PROVENANCE_METHODS = ['reviewed_primary_party_source_v1', 'reviewed_global_party_chair_snapshot_v1', 'reviewed_party_leadership_evidence_v1', 'party_platform_initial_v2'] as const;
+export const LEADER_PROVENANCE_METHODS = [...INITIAL_LEADER_PROVENANCE_METHODS, 'bounded_party_platform_succession_v2', 'internal_party_balance_succession_v3'] as const;
 
 export interface PoliticalOfficeState {
   role: PoliticalOfficeRole;
@@ -41,7 +43,7 @@ export interface PoliticalPersonState {
   leaderProfile?: Record<string, { valueBps: number; confidenceBps: number; status: 'derived' | 'modelled'; limitation: string }>;
   leaderProvenance?: {
     basis: 'sourced_analogue' | 'derived_analogue' | 'modelled_fallback';
-    method: 'reviewed_primary_party_source_v1' | 'reviewed_global_party_chair_snapshot_v1' | 'reviewed_party_leadership_evidence_v1' | 'party_platform_initial_v2' | 'bounded_party_platform_succession_v2' | 'internal_party_balance_succession_v3';
+    method: typeof LEADER_PROVENANCE_METHODS[number];
     sourcePartyId: string;
     referenceDate: string;
     sourceLeaderStatus: 'sourced' | 'derived' | 'unavailable' | 'ambiguous';

@@ -1502,3 +1502,124 @@ claim is included.
 Exact-SHA Ubuntu and Windows Node 22 CI results are reported from actual
 Actions logs after commit/push, separately from local results. Work then
 stops for independent audit; the accepted handoff remains untouched.
+
+## Consolidated closure corrective after 006d75d
+
+Reviewed base: `006d75d34f24125fecd4f667de7f602e4cef88e2`.
+The 270-line consolidated instruction was read completely before design
+or editing. This is a targeted candidate corrective, not acceptance of 0.15.
+The recorded no-code plan covered contracts, causal dependencies, unchanged
+schema/migrations, invariants, adversarial tests, performance and historical
+proof limitations. Implementation and actual-diff review were separate.
+
+### Finding-to-fix and regression mapping
+
+| Finding | Change and regression evidence |
+|---|---|
+| A1 | Membership mutation rejects changing/removing affiliation of any succession-referenced person before mutation. Former-leader switch throws, serialization is byte-equivalent, same-party no-op and unrelated membership changes remain valid |
+| A2 | Pending handoff has no decision date and retains outgoing control. Resolved decisions require a valid event..save date but impose no permanent control constraint. Two sequential Switch records and Continue followed by later control both round-trip |
+| A3 | Control changes and another same-party succession cannot bypass pending handoff. Commands and corrupted persisted bypass histories are rejected; explicit resolution and other-party succession remain valid |
+| A4 | Existing contextual `createdOn === effectiveDate` invariant is preserved and its corruption regression remains green |
+| A5 | Existing contextual generation uniqueness is preserved; existing-member former-leader returns remain valid and are still tested |
+| A6 | Existing party chains remain continuous; the first predecessor requires the declared initial/reconciled provenance methods, matching source-party reference and a pre-event reference date. Arbitrary member roots fail invariant/save/reload; historical schema-12 and genuine bounded-v2 fixtures remain green |
+| B7 | Model method union and runtime whitelist share static declarations for the same six existing methods. Unknown methods and future provenance fail invariant/save/reload; genuine markers are unchanged |
+| B8 | Any present profile has exactly six own issue keys, object structure, bounded safe values/confidence, derived/modelled status and a nonempty limitation. Missing/extra keys, array/null structure, malformed status and unsafe confidence fail without recomputing old profiles |
+| C9 | Numeric monthly reports require modelled status and complete/partial coverage; absent values require unavailable status/coverage. Sourced/observed/derived relabelling and contradictory value/coverage fail invariant/save/reload |
+| C10 | Labour facts match report ID, Country, value, date and coverage-derived evidence; prior values are bounded/material and reconcile with identifiable retained preceding-month evidence. Missing historical proof is preserved explicitly as the limitation below |
+| C11 | Parliamentary facts match saved proposal/Country/outcome, exact chamber projection, resolution date and coverage-derived evidence. Rejected/unavailable results cannot carry adopted-only effective dates or follow-ups; tampered facts fail invariant/save/reload |
+| C12 | Runtime and invariants use one shared existing briefing-ID constructor. Edited labour/parliamentary IDs are rejected; identity/deduplication semantics are unchanged |
+| C13 | Estimates match exact pinned chamber IDs/names/known totals and Country/institution, with no duplicate, missing or extra chambers. An arithmetically consistent 900-seat fabrication fails structural validation without Reality prediction |
+| C14 | Requester existence and Information initialization are date floors for a saved request. Both pre-existence and pre-initialization corruptions fail; no office-tenure reconstruction is introduced |
+| D15 | Own unresolved proposals expose the existing withdrawal command. Draft -> advance past effective date -> submission refusal -> explicit withdrawal -> new dated proposal/submission works and round-trips, without silently changing the expired date |
+| D16 | Sponsorship/action gates are independent of confidential information access. A synthetic office with access removed can submit through its unchanged sponsorship capabilities but cannot estimate; a no-office person retains restrictions and receives no raw fiscal model display |
+| D17 | CountryPanel uses the permitted office-title/source-availability fallback because it has no canonical-person mapping. SSR regression excludes raw real names; original source records remain intact |
+
+A4/A5 required no new runtime changes because the preceding micro-corrective
+already enforced them. D15 uses withdrawal rather than adding an editing form:
+this is the preferred existing-command recovery path, with no implicit redating.
+The synthetic retention and benchmark fixtures now label partial report
+briefings partial, matching the real runtime; genuine historical fixtures
+are untouched.
+
+**C10 historical-proof limitation:** labour facts persist `previousValueBps`,
+not a previous-report ID. Existing reference retention can legitimately
+release that prior report, and an arbitrary nearest retained report is not
+proof of the immediate predecessor. The corrective validates exact current
+report semantics always, and validates the identifiable retained immediately
+preceding monthly report where no intervening retained report exists. Missing
+or irregular prior evidence is not fabricated, replayed from Reality or
+silently set to zero. A positive save/reload regression preserves such a
+legitimate retained-history gap. Complete proof of every historical prior
+comparison is intentionally not claimed: it would require a separately
+authorized persisted-evidence/versioning decision. No new fields or migration
+were added to evade the instruction's versioning boundary.
+
+### Actual validation
+
+All commands ran locally on Windows with `npm.cmd`/`npx.cmd`.
+First focused pass: 293 passed, seven failed in 300 tests. Six failures
+exposed legacy pre-succession-field compatibility in the new command guard;
+the guard preserves the existing absent legacy history without backfilling.
+One assertion used the wrong expected retroactive-submission error text.
+Second focused pass: 299 passed, one pre-existing legacy test exceeded its
+unchanged five-second timeout. The final targeted selection included that
+same test and passed. An initial TypeScript run found two synthetic-fixture
+typing errors; explicit corruption via `Object.assign` and a correctly typed
+Country with its required kind fixed them. No threshold, timeout, budget or
+CI setting was relaxed.
+
+| Executed command / check | Actual final result |
+|---|---|
+| `npx.cmd vitest run src\simulation\__tests__\governance.test.ts src\simulation\__tests__\information.test.ts --testNamePattern='consolidated closure\|conservatively makes a d2f3ce all-abstain' --maxWorkers=1` | Exit 0: 60 passed, 241 skipped; 54.49 s |
+| `npx.cmd tsc -b --pretty false` | Exit 0 |
+| `npm.cmd run governance:audit` | Exit 0: 229/229; 182.18 s |
+| `npm.cmd run governance:benchmark` | Exit 0: 1/1; 9.53 s |
+| `npm.cmd run information:test` | Exit 0: 72/72; 43.71 s |
+| `npm.cmd run information:audit` | Exit 0: unchanged coverage below |
+| `npm.cmd run information:benchmark` | Exit 0: 1/1; 10.21 s |
+| `npm.cmd run politics:audit` | Exit 0: 42/42 in three files; 124.44 s |
+| `git diff --check` | Exit 0; Git CRLF-to-LF advisory only |
+| `npm.cmd run verify -- -- --maxWorkers=1` | Exit 0: data reproduction/audit, production build, 647/647 tests in 30 files; 446.20 s test run. Executed once after the complete corrective |
+| Built-in `rg`, `Math\.random`, all five changed simulation runtime/model/invariant paths | No matches |
+| `git diff --exit-code` on institutional evaluator, plurality, pure leadership mathematics, save/state, Region/War hardening, static data, CI workflow, persistent instructions and accepted handoff | Exit 0 |
+
+There are 59 new regressions: 19 Governance and 40 Information/UI. Corruption
+cases exercise invariants, serialization and schema-13 reload where applicable;
+UI authority fixtures are explicitly synthetic, not a grant of new canonical
+capabilities. Final full verification also covers unchanged old migration,
+fallback, signed arithmetic, zero intensity, former-leader return, conservation,
+determinism and save contracts. No complete verify ran during normal editing.
+
+Governance benchmark: 252 Countries, 281 chambers, 1,287 persons; snapshot
+0.0343 ms, serialization 348.24 ms, initial save 27,268,062 bytes; 20 material
+analyses mean 14.004 ms, synthetic material 13.333 ms, synthetic institutional
+0.309 ms. Resolved proposal remains 17,575 bytes (4,800 plurality and 4,050
+institutional bytes), resolution save growth 18,214 bytes. Contextual succession
+is 3.846 ms across seven Regions, 2,488 evidence bytes, 5,466 incremental save
+bytes. Information benchmark: new-game initialization 783.55 ms, isolated
+leader generation 572.27 ms, ordinary day 0.4164 ms, changed monthly day
+98.04 ms, contextual succession 3.93 ms, current save 15,315,994 bytes.
+The unchanged 2,048-entry/252-Country retained workload measures monthly
+reporting at 68.9 ms; retained-history save 17,771,032 bytes. Politics:
+three years in 95,042.06 ms, 12 ticks/s, weekly snapshot 107.36 ms,
+coincident snapshot 371.69 ms, reload 1,225.91 ms, save 33,547,440 bytes.
+These are workload/host measurements, not a claimed universal speedup.
+
+Coverage remains 948 parties, 35 reviewed bridges, seven derived mappings,
+zero sourced/observed leader mappings, one ambiguous mapping, 940 unavailable
+source mappings and 941 modelled fallback initial leaders. Executive coverage
+remains 392 available records, 342 reconciled persons, three reused party
+leaders and 339 standalone persons. Procedural/ideological coverage remains
+57/eight Countries with zero overlap. No new real datum or licence clearance:
+IPU CC BY-NC-SA 4.0 and previously unconfirmed dataset licences continue to
+block commercial release.
+
+Scope is 12 files: Governance model/runtime, Information model/runtime/
+invariants, Governance/Information tests and the Information benchmark fixture,
+FiscalPolicy, CountryPanel and these two Information/candidate documents.
+Schema 13, Information v3, existing migrations, historical evaluation markers,
+institutional-interest block, plurality, tendency constants/profile bounds,
+RNG/scheduler, permanent IDs, fiscal enactment and war semantics are unchanged.
+No persistent factions, history replay, 0.16, main merge or self-acceptance.
+Exact final-SHA Ubuntu/Windows Node 22 CI is verified after the single push
+and reported from actual logs; then work stops for independent review.

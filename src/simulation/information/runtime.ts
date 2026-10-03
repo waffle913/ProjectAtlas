@@ -5,10 +5,9 @@ import { derivePartyGoalProfile } from '../governance/analysis';
 import { politicalRegistry } from '../politics/registry';
 import type { SchedulerTask, SimulationScheduler } from '../scheduler';
 import type { AdvisorAssistance, BriefingInterpretation, BriefingPresentation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentProposalEstimateInspection, GovernmentReport, InformationState, MinisterialBriefing, Portfolio } from './model';
-import { INFORMATION_MODEL, INFORMATION_VERSION, controlledBriefingCountry, emptyInformation, policyComparisonText, referencedGovernmentReportIds, retainCountryBriefings } from './model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, briefingId, controlledBriefingCountry, emptyInformation, policyComparisonText, referencedGovernmentReportIds, retainCountryBriefings } from './model';
 
 const reportId = (countryId: string, asOfDate: string) => `government-report:${countryId}:unemployment:${asOfDate}`;
-const briefingId = (eventType: MinisterialBriefing['eventType'], countryId: string, sourceId: string) => `briefing:${eventType}:${countryId}:${sourceId}`;
 const portfolioForProposal = (_proposal: PoliticalProposal): Portfolio => 'finance';
 
 function addBriefing(information: InformationState, briefing: MinisterialBriefing, controlledCountryId?: string): InformationState {

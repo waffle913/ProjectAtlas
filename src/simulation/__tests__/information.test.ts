@@ -3,10 +3,13 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { FiscalPolicy } from '../../components/FiscalPolicy';
-import type { SimulationState } from '../../types';
+import { CountryPanel } from '../../components/CountryPanel';
+import entityRegistry from '../../data/entity-registry.json';
+import type { EntityRegistry } from '../../data/registry';
+import type { Country, SimulationState } from '../../types';
 import type { GovernmentReport, MinisterialBriefing } from '../information/model';
 import type { GovernanceGoal, PartyGoalProfile, PoliticalProposal } from '../governance/model';
-import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, inspectProposalSupport, replaceDraftProposal, resolveProposalVote, setControlledPerson, submitProposal } from '../governance/runtime';
+import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, inspectProposalSupport, replaceDraftProposal, resolveProposalVote, setControlledPerson, submitProposal, withdrawProposal } from '../governance/runtime';
 import { derivePartyGoalProfile } from '../governance/analysis';
 import type { PoliticalRegistry } from '../politics/model';
 import { advanceSimulationDays } from '../engine';
@@ -70,7 +73,7 @@ function retentionHistory(counts: (countryId: string) => number, offsets: (count
       id: `briefing:labour_report:${countryId}:${source.id}`, countryId, createdOn: date,
       sourceId: source.id, portfolio: 'economy', access: 'government', eventType: 'labour_report',
       severity: 'advisory', headline: 'Synthetic bounded-retention stress fixture, not a historical observation.',
-      fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, evidenceStatus: 'modelled' },
+      fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, evidenceStatus: 'partial' },
       pauseRequested: false,
     });
   }
@@ -105,7 +108,7 @@ function parliamentaryProposal(state: SimulationState, outcome: 'adopted' | 'rej
   };
   return proposal;
 }
-function approvedProposalWithBaseline() {
+function approvedProposalWithBaseline(adopted = true) {
   const reportState = runInformationMonth({
     ...initial,
     date: '2026-02-01',
@@ -143,7 +146,7 @@ function approvedProposalWithBaseline() {
       const overrides: Partial<Record<GovernanceGoal, Partial<PartyGoalProfile['goals'][GovernanceGoal]>>> = {};
       for (const [goal, direction] of Object.entries(analysis.issueEffects) as Array<[GovernanceGoal, number]>) {
         if (direction) overrides[goal] = {
-          idealPointBps: direction > 0 ? 10_000 : 0,
+          idealPointBps: (direction > 0) === adopted ? 10_000 : 0,
           importanceBps: 10_000,
           compromiseToleranceBps: 10_000,
           confidenceBps: 10_000,
@@ -153,7 +156,7 @@ function approvedProposalWithBaseline() {
       profiles[partyId] = derivePartyGoalProfile(registry.parties[partyId], overrides);
     }
     const estimate = estimateParliamentarySupport(state, proposal, registry, profiles);
-    if (estimate.coverage !== 'complete' || !estimate.chambers.every(chamber => chamber.adopted)) continue;
+    if (estimate.coverage !== 'complete' || (adopted ? !estimate.chambers.every(chamber => chamber.adopted) : estimate.chambers.every(chamber => chamber.adopted))) continue;
     state = resolveProposalVote(submitProposal(state, proposalId), proposalId, registry, profiles);
     return { countryId, baseline, state, proposal: state.governance.proposals[proposalId] };
   }
@@ -161,6 +164,185 @@ function approvedProposalWithBaseline() {
 }
 
 describe('government information and player briefings 0.15', () => {
+  describe('consolidated closure information and UI integrity', () => {
+    let labour: SimulationState, adopted: SimulationState, rejected: SimulationState, unavailable: SimulationState, estimated: SimulationState;
+    let countryId: string, personId: string, proposalId: string;
+    beforeAll(() => {
+      countryId = 'country.sxojze';
+      const executive = Object.values(initial.governance.persons).find(person => person.leaderProvenance?.sourceLeader?.id === 'wikidata:Q566257')!;
+      personId = executive.id;
+      const previous = report(countryId, '2026-01-01', 600), current = report(countryId, '2026-02-01', 800);
+      labour = withReports({ ...initial, date: '2026-02-01' }, [previous, current]);
+      labour.information = { ...labour.information, briefings: [previous, current].map(source => ({
+        id: `briefing:labour_report:${countryId}:${source.id}`, countryId, createdOn: source.asOfDate, sourceId: source.id,
+        portfolio: 'economy', access: 'government', eventType: 'labour_report', severity: 'advisory',
+        headline: 'Synthetic retained comparison evidence', pauseRequested: false,
+        fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, previousValueBps: source === current ? previous.valueBps : undefined, evidenceStatus: 'partial' },
+      })) };
+      let drafted = createFiscalProposal(initial, { countryId, proposerPersonId: personId, effectiveDate: '2026-02-01', payload: { annualBudget: initial.fiscal.countries[countryId].annualBudget } });
+      proposalId = drafted.governance.proposalOrder.at(-1)!;
+      estimated = produceGovernmentProposalEstimate(drafted, proposalId, personId);
+      drafted = setControlledPerson(drafted, personId);
+      unavailable = resolveProposalVote(submitProposal(drafted, proposalId), proposalId);
+      expect(unavailable.governance.proposals[proposalId].voteResult?.outcome).toBe('unavailable');
+      adopted = approvedProposalWithBaseline().state;
+      rejected = approvedProposalWithBaseline(false).state;
+      for (const fixture of [labour, estimated, adopted, rejected, unavailable]) assertSimulationInvariants(fixture, worldContext, 'save');
+    }, 30_000);
+
+    const rejectCorruption = (fixture: SimulationState, mutate: (state: SimulationState) => void, error: RegExp) => {
+      const state = { ...fixture, information: structuredClone(fixture.information), governance: structuredClone(fixture.governance) };
+      mutate(state);
+      expect(informationInvariant.check(state, worldContext, 'save').join(' ')).toMatch(error);
+      expect(() => serializeSimulationState(state, worldContext)).toThrow(error);
+      expect(() => restoreSimulationState(JSON.stringify(state), worldRegions, {}, {}, worldContext)).toThrow(error);
+    };
+    it.each(['sourced', 'observed', 'derived'] as const)('rejects unemployment relabelled %s at invariant/save/reload', status => {
+      rejectCorruption(labour, state => {
+        const source = Object.values(state.information.governmentReportsById)[0];
+        Object.assign(source, { status });
+      }, /Invalid government report semantics/);
+    }, 30_000);
+    it.each(['unavailable-with-value', 'numeric-unavailable-coverage', 'absent-modelled', 'absent-partial'] as const)('rejects inconsistent %s report', kind => {
+      rejectCorruption(labour, state => {
+        const source = Object.values(state.information.governmentReportsById)[0];
+        if (kind === 'unavailable-with-value') source.status = 'unavailable';
+        if (kind === 'numeric-unavailable-coverage') source.coverage = 'unavailable';
+        if (kind === 'absent-modelled' || kind === 'absent-partial') source.valueBps = undefined;
+        if (kind === 'absent-partial') source.status = 'unavailable';
+      }, /Invalid government report semantics/);
+    }, 30_000);
+    it.each(['value', 'country', 'report-id', 'date', 'evidence', 'previous', 'subthreshold-previous'] as const)('rejects labour %s corruption at invariant/save/reload', kind => {
+      rejectCorruption(labour, state => {
+        const briefing = state.information.briefings[1];
+        if (kind === 'value') briefing.fact.valueBps! += 1;
+        if (kind === 'country') briefing.countryId = worldCountryIds.find(id => id !== countryId)!;
+        if (kind === 'report-id') briefing.fact.reportId = state.information.briefings[0].fact.reportId;
+        if (kind === 'date') briefing.createdOn = '2026-01-31';
+        if (kind === 'evidence') briefing.fact.evidenceStatus = 'modelled';
+        if (kind === 'previous') briefing.fact.previousValueBps = 500;
+        if (kind === 'subthreshold-previous') briefing.fact.previousValueBps = 799;
+      }, /Labour briefing/);
+    }, 30_000);
+    it('preserves a legitimate historical labour comparison whose exact prior report is no longer retained', () => {
+      const state = { ...labour, information: structuredClone(labour.information) };
+      const previousId = state.information.briefings.shift()!.fact.reportId!;
+      delete state.information.governmentReportsById[previousId];
+      expect(restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext)).toEqual(state);
+    }, 30_000);
+    it.each(['labour', 'parliamentary'] as const)('rejects edited %s briefing identity', kind => {
+      rejectCorruption(kind === 'labour' ? labour : adopted, state => { state.information.briefings[0].id += ':edited'; }, /noncanonical/);
+    }, 30_000);
+    it.each(['country', 'outcome', 'date', 'evidence', 'chamber-id', 'chamber-name', 'chamber-total', 'chamber-coverage', 'chamber-outcome', 'effective-date'] as const)('rejects parliamentary %s corruption at invariant/save/reload', kind => {
+      rejectCorruption(adopted, state => {
+        const briefing = state.information.briefings.find(item => item.fact.kind === 'parliamentary_result')!;
+        const chamber = briefing.fact.chamberResults![0];
+        if (kind === 'country') briefing.countryId = worldCountryIds.find(id => id !== briefing.countryId)!;
+        if (kind === 'outcome') briefing.fact.outcome = 'rejected';
+        if (kind === 'date') briefing.createdOn = '2025-12-31';
+        if (kind === 'evidence') briefing.fact.evidenceStatus = 'partial';
+        if (kind === 'chamber-id') chamber.chamberId = 'invented';
+        if (kind === 'chamber-name') chamber.displayName = 'Invented chamber';
+        if (kind === 'chamber-total') chamber.totalSeats! += 1;
+        if (kind === 'chamber-coverage') chamber.coverage = 'partial';
+        if (kind === 'chamber-outcome') chamber.outcome = 'rejected';
+        if (kind === 'effective-date') briefing.fact.effectiveDate = '2026-03-01';
+      }, /Parliamentary briefing/);
+    }, 30_000);
+    it.each(['rejected', 'unavailable'] as const)('rejects fabricated adopted-only follow-up and date for %s', outcome => {
+      const fixture = outcome === 'rejected' ? rejected : unavailable;
+      for (const field of ['effectiveDate', 'policyFollowUp'] as const) rejectCorruption(fixture, state => {
+        const fact = state.information.briefings.find(item => item.fact.kind === 'parliamentary_result')!.fact;
+        const source = adopted.information.briefings.find(item => item.fact.kind === 'parliamentary_result')!.fact;
+        if (field === 'effectiveDate') fact.effectiveDate = source.effectiveDate;
+        else fact.policyFollowUp = structuredClone(source.policyFollowUp);
+      }, /Parliamentary briefing/);
+    }, 30_000);
+    it.each(['invented-id', 'name', '900-seats', 'missing', 'duplicate', 'extra'] as const)('rejects structurally %s estimate chamber at invariant/save/reload', kind => {
+      rejectCorruption(estimated, state => {
+        const estimate = state.information.proposalEstimates[0], chambers = estimate.parliamentaryEstimate.chambers;
+        if (kind === 'invented-id') chambers[0].chamberId = 'chamber.fake';
+        if (kind === 'name') chambers[0].displayName = 'Invented legislature';
+        if (kind === '900-seats') { chambers[0].totalSeats = 900; chambers[0].unavailableSeats = 900; }
+        if (kind === 'missing') chambers.pop();
+        if (kind === 'duplicate') chambers.push(structuredClone(chambers[0]));
+        if (kind === 'extra') chambers.push({ ...chambers[0], chamberId: 'chamber.fake' });
+        estimate.parliamentaryEstimate.totalSeats = chambers.reduce((sum, item) => sum + (item.totalSeats ?? 0), 0);
+        estimate.parliamentaryEstimate.unavailableSeats = chambers.reduce((sum, item) => sum + item.unavailableSeats, 0);
+      }, /chamberRegistry/);
+    }, 30_000);
+    it('rejects an estimate requested before the person existed without reconstructing tenure', () => {
+      rejectCorruption(estimated, state => {
+        state.date = '2026-02-01';
+        state.governance.persons[personId].createdOn = '2026-01-02';
+      }, /authorizedRequesterReference/);
+    }, 30_000);
+    it('rejects an estimate predating Information initialization', () => {
+      rejectCorruption(estimated, state => { state.date = '2026-02-01'; state.information.initializedOn = '2026-01-02'; }, /authorizedRequesterReference/);
+    }, 30_000);
+    it('recovers an expired fiscal draft through explicit withdrawal and permits a new dated draft', () => {
+      let state = setControlledPerson(initial, personId);
+      state = createFiscalProposal(state, { countryId, proposerPersonId: personId, effectiveDate: '2026-01-02', payload: { annualBudget: state.fiscal.countries[countryId].annualBudget } });
+      const id = state.governance.proposalOrder.at(-1)!;
+      state = advanceSimulationDays(state, 2);
+      expect(() => submitProposal(state, id)).toThrow(/retroactive/);
+      const markup = renderToStaticMarkup(createElement(FiscalPolicy, { state, countryId, personId, onStateChange: () => undefined }));
+      expect(markup).toContain('Withdraw proposal');
+      expect(markup).toContain('effective date has passed');
+      expect(state.governance.proposals[id].effectiveDate).toBe('2026-01-02');
+      state = withdrawProposal(state, id);
+      expect(selectUnresolvedFiscalProposal(state.governance, countryId, personId)).toBeUndefined();
+      state = createFiscalProposal(state, { countryId, proposerPersonId: personId, effectiveDate: '2026-02-01', payload: { annualBudget: state.fiscal.countries[countryId].annualBudget } });
+      const replacementId = state.governance.proposalOrder.at(-1)!;
+      expect(submitProposal(state, replacementId).governance.proposals[replacementId].status).toBe('submitted');
+      expect(state.governance.proposals[id].status).toBe('withdrawn');
+      expect(restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext)).toEqual(state);
+    }, 30_000);
+    it('renders and exercises sponsorship independently of confidential information without granting new capabilities', () => {
+      let state = setControlledPerson(initial, personId);
+      const person = state.governance.persons[personId];
+      expect(person.office!.authorityProfile.capabilities).toContain('sponsor_budget_reform');
+      state = { ...state, governance: { ...state.governance, persons: { ...state.governance.persons, [personId]: {
+        ...person, office: { ...person.office!, authorityProfile: { ...person.office!.authorityProfile,
+          capabilities: person.office!.authorityProfile.capabilities.filter(capability => capability !== 'access_government_information'),
+        } },
+      } } } };
+      expect(hasGovernmentInformationAccess(state, personId, countryId)).toBe(false);
+      const markup = renderToStaticMarkup(createElement(FiscalPolicy, { state, countryId, personId, onStateChange: () => undefined }));
+      expect(markup).toContain('Create annual-budget proposal');
+      expect(markup).toContain('Proposed infrastructure allocation');
+      state = createFiscalProposal(state, { countryId, proposerPersonId: personId, effectiveDate: '2026-02-01', payload: { annualBudget: state.fiscal.countries[countryId].annualBudget } });
+      const id = state.governance.proposalOrder.at(-1)!;
+      expect(submitProposal(state, id).governance.proposals[id].status).toBe('submitted');
+      expect(() => produceGovernmentProposalEstimate(state, id, personId)).toThrow(/Government office access/i);
+      const draftMarkup = renderToStaticMarkup(createElement(FiscalPolicy, { state, countryId, personId, onStateChange: () => undefined }));
+      expect(draftMarkup).toContain('Submit immutable proposal');
+      expect(draftMarkup).not.toContain('Estimate proposal reactions');
+      expect(draftMarkup).not.toContain('Last Government Information estimate');
+      const noOffice = createPoliticalPerson(state, { displayName: 'No-office closure person', countryId });
+      const noOfficeId = `person.${String(noOffice.governance.nextPersonSequence - 1).padStart(8, '0')}`;
+      const restricted = renderToStaticMarkup(createElement(FiscalPolicy, { state: noOffice, countryId, personId: noOfficeId, onStateChange: () => undefined }));
+      expect(restricted).not.toContain('Submit immutable proposal');
+      expect(restricted).not.toContain('Create annual-budget proposal');
+      expect(restricted).not.toContain('Existing modelled annual allocation');
+      expect(restricted).not.toContain('Current model rule');
+    });
+    it('renders public offices without raw real officeholder identities and retains their source records', () => {
+      const offices = worldPoliticalInputs.offices!;
+      const available = offices.officeholders.find(holder => holder.status === 'available')!;
+      const firstOffice = offices.offices.find(office => office.id === available.officeId)!;
+      const officeholders = offices.offices.filter(office => office.countryId === firstOffice.countryId).map(office => ({
+        office, holder: offices.officeholders.find(holder => holder.officeId === office.id)!,
+      }));
+      const definition = (entityRegistry as EntityRegistry).countries.find(item => item.id === firstOffice.countryId)!;
+      const country: Country = { ...definition, kind: 'sovereign' };
+      const markup = renderToStaticMarkup(createElement(CountryPanel, { country, officeholders }));
+      for (const { holder } of officeholders) if (holder.status === 'available') expect(markup).not.toContain(holder.person.name);
+      expect(markup).toContain('Source record available');
+      expect(officeholders.some(({ holder }) => holder.status === 'available' && holder.person.name)).toBe(true);
+    });
+  });
+
   it('reports split unicameral plurality abstentions with version-neutral limitations', () => {
     const source = parliamentaryProposal(initial, 'adopted'), proposal = structuredClone(source);
     proposal.evaluationVersion = 'plurality-0.15-v1';

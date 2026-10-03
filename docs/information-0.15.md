@@ -16,6 +16,22 @@ Government proposal estimates do not call `analyzeProposal`, `estimatePublicSupp
 
 Each persisted estimate records the analyzed effective date/payload and their deterministic governance fingerprint. IDs include this fingerprint and request date, allowing changed draft content to be re-estimated on the same day. Inspectors mark a content mismatch as `stale`; the normal UI and deeper explanation filter such records out of current estimates. Older fingerprinted estimates remain bounded historical evidence. The fiscal screen selects the controlled person's unresolved canonical proposal in the Country, defaulting deterministically to the latest proposal in canonical order when local selection is absent or invalid; it can resume drafts and submitted proposals after navigation or reload without generating duplicates.
 
+Saved estimate chambers must match the pinned Country/institution chamber IDs,
+names and known seat totals exactly, with no duplicate, missing or extra
+chambers. This validates static structure, never Reality-derived predictions.
+The requester must exist by the request date, which must lie between
+Information initialization and the saved date; absent office-history modelling
+does not authorize reconstruction of past tenure.
+
+Fiscal sponsorship and confidential information access are independent
+capabilities. The screen remains available without information access:
+actions require their existing legislative/fiscal/budget capabilities and
+confidential estimates require `access_government_information`. Own unresolved
+proposals can be withdrawn with the existing controlled-person command,
+including after an effective date has expired. Expired drafts cannot be
+submitted retroactively; withdrawal permits a newly dated draft without
+silently editing the old date. No capability or enactment path is added.
+
 ## Portfolios and briefings
 
 Briefings are event/change-driven records in canonical `InformationState`, grouped by institutional portfolio (`finance`, `economy`, `interior_security`, `social_health`, `foreign_affairs`, `defense`). Portfolios are channels, not minister agents: no per-person cognition loop or duplicate material state is created, and records remain when leadership changes.
@@ -30,6 +46,27 @@ Stable source-based IDs deduplicate events. Feed history has a hard global limit
 Preference applies when canonical retention runs; switching control cannot restore already expired history. Monthly reporting batches new briefings and performs retention/reference cleanup once after collecting the reports, preserving the scheduler's existing causal order. Report records remain while current or referenced by a retained briefing, including temporal policy baselines. If a policy anchor expires under either cap, its dependent structured comparisons and their generated headline clauses are removed, and otherwise-unused baselines are released. Runtime retention and the information invariant share the same reference calculation. Proposal and crisis systems remain the authoritative Reality histories. Current triggers are non-urgent and do not pause simulation. `pauseRequested` is a reserved model field: no current source legitimately emits an urgent event, and no end-to-end automatic urgent-pause behavior is exercised or claimed implemented.
 
 The briefing separates an immutable fact from bounded interpretation. Labour comparisons describe temporal movement between modelled reports and explicitly disclaim isolated policy causation. Proposal explanations use only retained Government Information estimates for an authorized office holder; opposition views remain limited to public vote facts. Neither path reads saved canonical proposal analysis or crisis-monitor drivers.
+
+Save invariants share the runtime briefing-ID constructor. A labour briefing
+must match its referenced report's Country, value, date and coverage-derived
+evidence status. Numeric monthly reports are always modelled, with complete or
+partial coverage; absent values are unavailable with unavailable coverage,
+never sourced/observed/derived or zero-filled. A saved previous value must be
+bounded and represent the material-change threshold. Where the immediately
+preceding monthly report is retained and no intervening retained report exists,
+it must equal that comparison basis. **Historical-proof limitation:** the
+existing record does not persist a previous-report ID and retention may remove
+that report. Missing or irregular comparison evidence is not reconstructed from
+Reality, assumed to be the nearest retained report, or invented during reload.
+Such valid older histories keep their saved bounded comparison; complete
+historical proof would require a separately authorized persisted-evidence change.
+No new field, version or migration is introduced here.
+
+Parliamentary briefing facts reconcile their complete chamber projection,
+Country, outcome, vote date and coverage-derived evidence with the saved vote.
+Only adopted results carry an effective date or policy follow-up anchor;
+rejected/unavailable outcomes cannot fabricate one. Historical resolved
+votes are not recalculated, and results still do not pause the game.
 
 ## Assistance and deeper explanation
 
@@ -61,9 +98,31 @@ An exact source-person/Country match is required to reuse a party leader, and go
 
 New-game initialization explicitly reconciles office identity, Country/role, dates, source record IDs, source-person naming and the modelled authority basis against the installed snapshot and institutional evidence. Ordinary runtime/save/reload validation instead checks the evidence actually saved: nonempty unique source identifiers, Wikidata person identity, Country/person/office consistency, reference/effective dates, role/authority-basis compatibility and the existing capability set. A reference may precede or follow the appointment, but cannot postdate the saved state; an explicit effective start cannot postdate the reference. A person's saved party-leader and executive source identities must agree when both are present. No historical office record is looked up again in `political-offices.json`, and current institutional classification cannot overwrite its recorded authority basis. Existing office evidence contains the necessary fields; the governance model and person shape remain unchanged, so no governance migration or historical-person reconstruction is needed. Source admissibility still belongs to initialization, pinned-data audits and explicitly authorized migrations, not silent reload repair.
 
+The public Country panel has no canonical-person mapping dependency. It therefore
+shows the public office title and source-record availability, not the raw real
+officeholder name. Original person names and source evidence remain intact in
+data/provenance/debug metadata.
+
 ## Succession and player entry
 
 Party leadership changes use an explicit succession record. A different active member of the same party and Country may be supplied explicitly; absent an explicit person, a fictional successor is derived deterministically from the fictional party platform, a modelled common internal tendency prior, current modelled supporter preferences and available sourced legislative representation/current modelled party support. The former person, any unrelated office and player control persist. If the controlled person was the outgoing leader, a persisted pending handoff offers Continue or Switch; resolving either choice changes control at most once.
+
+V1 membership changes cannot move any person referenced by succession history
+to another party or remove their membership; same-party no-ops and unrelated
+persons retain existing behavior. Pending handoffs have no decision date and
+keep control on the outgoing person: control changes and another succession
+for that party must wait for explicit resolution. Resolved Continue/Switch
+records require a valid decision date within event..save date, but do not
+constrain later control. Sequential switches and former-member returns remain
+valid. Each party's first recorded predecessor must have one of the existing
+reviewed-initial or reconciled `party_platform_initial_v2` provenance paths,
+matching its source-party reference; subsequent records must form a continuous
+chain. Historical schema-12 reconciliation is preserved.
+
+Persisted provenance methods use the six declared model methods, with valid
+nonfuture reference dates. Existing profiles must contain exactly the six
+`POLITICAL_ISSUES`, with valid bounded values/confidence and derived/modelled
+status; old profile values are validated, not reinterpreted.
 
 ### Context-derived generated successors
 

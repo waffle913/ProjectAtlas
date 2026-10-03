@@ -105,7 +105,7 @@ describe('full-world information and leadership 0.15 benchmark', () => {
         ...briefingSample, id: `briefing:labour_report:${countryId}:${id}`, countryId, portfolio: 'economy',
         access: 'government', eventType: 'labour_report', createdOn: asOfDate, sourceId: id,
         headline: 'Synthetic unemployment-report retention workload, not simulated historical observations.',
-        fact: { kind: 'labour_report', reportId: id, valueBps: report.valueBps, evidenceStatus: report.status },
+        fact: { kind: 'labour_report', reportId: id, valueBps: report.valueBps, evidenceStatus: report.coverage === 'complete' ? 'modelled' : report.coverage === 'partial' ? 'partial' : 'unavailable' },
       });
     }
     const retained = retainCountryBriefings(historyBriefings, controlledExecutive.countryId);

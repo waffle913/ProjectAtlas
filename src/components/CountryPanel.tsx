@@ -66,7 +66,7 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
         <h2>Public officeholder records · 1 Jan 2026</h2>
         {officeholders.length ? officeholders.map(({ office, holder }) => (
           <div className="fact" key={office.id}>
-            {label(office.title, holder.status === "available" ? holder.person.name : "Unavailable")}
+            {label(office.title, holder.status === "available" ? "Source record available; real identity retained in provenance" : "Unavailable")}
             <small><a href={holder.source.url} target="_blank" rel="noreferrer">{holder.source.name}</a>{holder.status === "available" && holder.startDate ? ` · since ${holder.startDate}` : holder.status === "unavailable" ? ` · checked ${holder.checkedAt}` : ""}</small>
           </div>
         )) : <small>No officeholder record for this entity type.</small>}

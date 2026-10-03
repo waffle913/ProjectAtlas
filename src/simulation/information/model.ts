@@ -106,6 +106,8 @@ export interface MinisterialBriefing {
   pauseRequested: boolean;
 }
 
+export const briefingId = (eventType: MinisterialBriefing['eventType'], countryId: string, sourceId: string) => `briefing:${eventType}:${countryId}:${sourceId}`;
+
 export interface GovernmentProposalEstimate {
   id: string;
   countryId: string;

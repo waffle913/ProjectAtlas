@@ -1,12 +1,12 @@
 import type { SimulationInvariant } from '../invariants';
-import { GOVERNANCE_VERSION, governanceFingerprint, type LeadershipContextMetric, type LeadershipSuccession, type PoliticalPersonState } from '../governance/model';
+import { GOVERNANCE_VERSION, INITIAL_LEADER_PROVENANCE_METHODS, LEADER_PROVENANCE_METHODS, governanceFingerprint, type LeadershipContextMetric, type LeadershipSuccession, type PoliticalPersonState } from '../governance/model';
 import { deriveLeadershipSelectionMetrics, leadershipProfileFromEvidence, LEADERSHIP_SUCCESSION_MODEL, selectLeadershipTendency } from '../governance/leadershipSuccession';
 import { canonicalJson } from '../fingerprint';
 import { POLITICAL_ISSUES } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
 import type { SimulationState } from '../../types';
 import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport } from './model';
-import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, compareBriefings, referencedGovernmentReportIds } from './model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, briefingId, compareBriefings, referencedGovernmentReportIds } from './model';
 import { isSimulationDate as validDate } from '../date';
 
 const statusValues = new Set(['sourced', 'observed', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable']);
@@ -15,6 +15,8 @@ const eventTypeValues = new Set(['proposal_result', 'labour_report', 'crisis_act
 const portfolioValues = new Set<string>(PORTFOLIOS);
 const coverageValues = new Set(['complete', 'partial', 'unavailable']);
 const bounded = (value: unknown, maximum = 10_000) => Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= maximum;
+const leaderMethods = new Set<string>(LEADER_PROVENANCE_METHODS);
+const initialLeaderMethods = new Set<string>(INITIAL_LEADER_PROVENANCE_METHODS);
 
 function validLeadershipMetric(metric: LeadershipContextMetric | undefined, coverages: readonly string[]): boolean {
   return Boolean(metric && typeof metric === 'object' && coverages.includes(metric.coverage)
@@ -75,16 +77,24 @@ function validateProposalEstimate(report: GovernmentProposalEstimate, state: Sim
   const proposal = state.governance.proposals[report.proposalId];
   const publicTotal = report.publicEstimate.supportBps + report.publicEstimate.opposeBps + report.publicEstimate.neutralBps + report.publicEstimate.unknownBps;
   const chambers = report.parliamentaryEstimate.chambers;
+  const institution = politicalRegistry.institutions[politicalRegistry.countries[report.countryId]?.institutionId];
+  const expectedChambers = institution?.chambers ?? [];
+  const requester = state.governance.persons[report.requestedByPersonId];
   const chamberSum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => chambers.reduce((sum, item) => sum + item[field], 0);
   const checks: Record<string, boolean> = {
     proposalReference: Boolean(proposal && proposal.countryId === report.countryId && proposal.createdOn <= report.requestedOn),
     countryAndDate: countryIds.has(report.countryId) && report.id === `government-proposal-estimate:${report.countryId}:${report.proposalId}:${report.requestedOn}:${report.proposalContentFingerprint}` && validDate(report.requestedOn) && report.requestedOn <= state.date,
     contentFingerprint: report.proposalContentFingerprint === governanceFingerprint(report.analyzedContent) && report.analyzedContent.effectiveDate >= proposal?.createdOn,
-    authorizedRequesterReference: state.governance.persons[report.requestedByPersonId]?.countryId === report.countryId,
+    authorizedRequesterReference: requester?.countryId === report.countryId && requester.createdOn <= report.requestedOn
+      && state.information.initializedOn !== undefined && state.information.initializedOn <= report.requestedOn,
     coverageAndConfidence: coverageValues.has(report.coverage) && bounded(report.confidenceBps),
     publicEstimate: [report.publicEstimate.supportBps, report.publicEstimate.opposeBps, report.publicEstimate.neutralBps, report.publicEstimate.unknownBps, report.publicEstimate.confidenceBps].every(value => bounded(value)) && publicTotal === 10_000 && coverageValues.has(report.publicEstimate.coverage),
     parliamentarySeats: [report.parliamentaryEstimate.yesSeats, report.parliamentaryEstimate.noSeats, report.parliamentaryEstimate.abstainSeats, report.parliamentaryEstimate.unavailableSeats, report.parliamentaryEstimate.totalSeats].every(value => Number.isSafeInteger(value) && value >= 0) && bounded(report.parliamentaryEstimate.confidenceBps) && coverageValues.has(report.parliamentaryEstimate.coverage),
     chamberFacts: chambers.every(validateChamberFact),
+    chamberRegistry: (!institution || institution.countryId === report.countryId)
+      && chambers.length === expectedChambers.length && new Set(chambers.map(item => item.chamberId)).size === chambers.length
+      && chambers.every(chamber => expectedChambers.some(expected => expected.id === chamber.chamberId
+        && expected.countryId === report.countryId && expected.displayName === chamber.displayName && expected.totalSeats === chamber.totalSeats)),
     chamberSums: report.parliamentaryEstimate.yesSeats === chamberSum('yesSeats')
       && report.parliamentaryEstimate.noSeats === chamberSum('noSeats')
       && report.parliamentaryEstimate.abstainSeats === chamberSum('abstainSeats')
@@ -126,29 +136,58 @@ export const informationInvariant: SimulationInvariant = {
     const reportIds = new Set<string>();
     const validateReport = (id: string, report: GovernmentReport) => {
       if (report.id !== id || report.id !== `government-report:${report.countryId}:unemployment:${report.asOfDate}` || !context.countryIds.has(report.countryId) || !validDate(report.asOfDate) || report.asOfDate > state.date) errors.push(`Malformed or future government report ${id}.`);
-      if (report.indicator !== 'unemployment_rate' || report.unit !== 'basis_points' || report.source !== 'socioeconomy.monthly' || !statusValues.has(report.status) || !['complete', 'partial', 'unavailable'].includes(report.coverage)) errors.push(`Invalid government report semantics for ${id}.`);
+      if (report.indicator !== 'unemployment_rate' || report.unit !== 'basis_points' || report.source !== 'socioeconomy.monthly'
+        || (report.valueBps === undefined ? report.status !== 'unavailable' || report.coverage !== 'unavailable'
+          : report.status !== 'modelled' || !bounded(report.valueBps) || !['complete', 'partial'].includes(report.coverage))) errors.push(`Invalid government report semantics for ${id}.`);
       if (report.status === 'unavailable' && (report.valueBps !== undefined || report.coverage !== 'unavailable')) errors.push(`Unavailable government report ${id} encodes a value.`);
       if (report.status !== 'unavailable' && (!Number.isSafeInteger(report.valueBps) || report.valueBps! < 0 || report.valueBps! > 10_000)) errors.push(`Government report ${id} has an invalid value.`);
       if (report.status === 'modelled' && !report.limitation) errors.push(`Government report ${id} lacks a model limitation.`);
       reportIds.add(id);
     };
     for (const [id, report] of Object.entries(information.governmentReportsById)) validateReport(id, report);
+    const retainedReportDates = new Map<string, string[]>();
+    for (const report of Object.values(information.governmentReportsById)) {
+      const dates = retainedReportDates.get(report.countryId) ?? [];
+      dates.push(report.asOfDate);
+      retainedReportDates.set(report.countryId, dates);
+    }
     for (const [countryId, report] of Object.entries(information.latestGovernmentReports)) {
       if (report.countryId !== countryId || JSON.stringify(information.governmentReportsById[report.id]) !== JSON.stringify(report)) errors.push(`Latest government report for ${countryId} is not retained in report history.`);
       validateReport(report.id, report);
     }
     const briefingIds = new Set<string>();
     for (const briefing of information.briefings) {
-      if (!briefing.id || briefingIds.has(briefing.id)) errors.push(`Briefing has a missing or duplicate ID: ${briefing.id}.`);
+      if (briefing.id !== briefingId(briefing.eventType, briefing.countryId, briefing.sourceId) || briefingIds.has(briefing.id)) errors.push(`Briefing has a noncanonical or duplicate ID: ${briefing.id}.`);
       briefingIds.add(briefing.id);
       if (!context.countryIds.has(briefing.countryId) || !validDate(briefing.createdOn) || briefing.createdOn > state.date || !portfolioValues.has(briefing.portfolio) || !severityValues.has(briefing.severity) || !eventTypeValues.has(briefing.eventType) || !['public', 'government'].includes(briefing.access) || !briefing.sourceId || !briefing.headline || typeof briefing.pauseRequested !== 'boolean') errors.push(`Malformed briefing ${briefing.id}.`);
       if (briefing.interpretation && !validateInterpretation(briefing.interpretation)) errors.push(`Malformed bounded interpretation for briefing ${briefing.id}.`);
       if (briefing.severity !== 'urgent' && briefing.pauseRequested) errors.push(`Non-urgent briefing ${briefing.id} requests a pause.`);
       if (briefing.fact.kind === 'labour_report' && (briefing.eventType !== 'labour_report' || !briefing.fact.reportId || !reportIds.has(briefing.fact.reportId) || briefing.sourceId !== briefing.fact.reportId || briefing.access !== 'government')) errors.push(`Labour briefing ${briefing.id} has no corresponding internal report.`);
+      if (briefing.fact.kind === 'labour_report') {
+        const report = briefing.fact.reportId ? information.governmentReportsById[briefing.fact.reportId] : undefined;
+        const expectedStatus = report?.coverage === 'complete' ? 'modelled' : report?.coverage === 'partial' ? 'partial' : 'unavailable';
+        if (!report || report.countryId !== briefing.countryId || report.valueBps !== briefing.fact.valueBps
+          || report.asOfDate !== briefing.createdOn || briefing.fact.evidenceStatus !== expectedStatus) errors.push(`Labour briefing ${briefing.id} changes its source report.`);
+        if (briefing.fact.previousValueBps !== undefined) {
+          const previousDate = new Date(`${briefing.createdOn}T00:00:00.000Z`);
+          previousDate.setUTCMonth(previousDate.getUTCMonth() - 1, 1);
+          const comparisonDate = Number.isFinite(previousDate.getTime()) ? previousDate.toISOString().slice(0, 10) : undefined;
+          const previous = comparisonDate && briefing.createdOn.endsWith('-01')
+            ? information.governmentReportsById[`government-report:${briefing.countryId}:unemployment:${comparisonDate}`] : undefined;
+          const hasInterveningRetainedReport = previous && retainedReportDates.get(briefing.countryId)?.some(date => date > previous.asOfDate && date < briefing.createdOn);
+          if (!bounded(briefing.fact.previousValueBps) || !bounded(report?.valueBps)
+            || Math.abs(briefing.fact.previousValueBps - report!.valueBps!) < INFORMATION_MODEL.materialUnemploymentChangeBps
+            || previous && !hasInterveningRetainedReport && previous.valueBps !== briefing.fact.previousValueBps) errors.push(`Labour briefing ${briefing.id} has an invalid retained comparison basis.`);
+        }
+      }
       if (briefing.fact.kind === 'parliamentary_result') {
         const proposal = briefing.fact.proposalId ? state.governance.proposals[briefing.fact.proposalId] : undefined;
         if (briefing.eventType !== 'proposal_result' || !proposal || proposal.countryId !== briefing.countryId || proposal.voteResult?.outcome !== briefing.fact.outcome || briefing.sourceId !== proposal.id) errors.push(`Parliamentary briefing ${briefing.id} has an invalid proposal reference.`);
         if (briefing.access !== 'public' || !['adopted', 'rejected', 'unavailable'].includes(briefing.fact.outcome ?? '')) errors.push(`Parliamentary briefing ${briefing.id} has invalid public result metadata.`);
+        if (briefing.createdOn !== proposal?.voteResult?.resolvedOn
+          || briefing.fact.evidenceStatus !== (proposal?.voteResult?.coverage === 'complete' ? 'modelled' : 'partial')
+          || (briefing.fact.outcome === 'adopted' ? briefing.fact.effectiveDate !== proposal?.effectiveDate
+            : briefing.fact.effectiveDate !== undefined || briefing.fact.policyFollowUp !== undefined)) errors.push(`Parliamentary briefing ${briefing.id} changes its historical vote metadata.`);
         const sourceChambers = proposal?.voteResult?.chambers ?? [];
         const briefingChambers = briefing.fact.chamberResults;
         if (!Array.isArray(briefingChambers) || !briefingChambers.every(validateChamberFact) || briefingChambers.length !== sourceChambers.length) errors.push(`Parliamentary briefing ${briefing.id} has invalid chamber-level facts.`);
@@ -158,18 +197,16 @@ export const informationInvariant: SimulationInvariant = {
           const displayName = politicalRegistry.institutions[politicalRegistry.countries[briefing.countryId]?.institutionId]?.chambers.find(chamber => chamber.id === source.chamberId)?.displayName ?? source.chamberId;
           if (result.chamberId !== source.chamberId || result.displayName !== displayName || result.outcome !== expectedOutcome || result.coverage !== source.coverage || result.yesSeats !== source.yesSeats || result.noSeats !== source.noSeats || result.abstainSeats !== source.abstainSeats || result.unavailableSeats !== source.unavailableSeats || result.totalSeats !== source.totalSeats) errors.push(`Parliamentary briefing ${briefing.id} changes its source chamber result.`);
         }
-        if (briefing.fact.outcome === 'adopted' || briefing.fact.outcome === 'rejected') {
-          if (sourceChambers.length === 1 && sourceChambers[0].coverage === 'complete') {
-            if (briefing.fact.yesSeats !== sourceChambers[0].yesSeats || briefing.fact.noSeats !== sourceChambers[0].noSeats) errors.push(`Unicameral briefing ${briefing.id} does not match its complete chamber result.`);
-          } else if (briefing.fact.yesSeats !== undefined || briefing.fact.noSeats !== undefined) errors.push(`Multichamber briefing ${briefing.id} presents aggregate seats as a single vote.`);
-        }
+        if (sourceChambers.length === 1 && sourceChambers[0].coverage === 'complete') {
+          if (briefing.fact.yesSeats !== proposal?.voteResult?.yesSeats || briefing.fact.noSeats !== proposal?.voteResult?.noSeats) errors.push(`Unicameral briefing ${briefing.id} does not match its complete chamber result.`);
+        } else if (briefing.fact.yesSeats !== undefined || briefing.fact.noSeats !== undefined) errors.push(`Multichamber briefing ${briefing.id} presents aggregate seats as a single vote.`);
         const anchor = briefing.fact.policyFollowUp;
         if (briefing.fact.outcome === 'adopted' && (!anchor || anchor.proposalId !== proposal?.id || anchor.effectiveDate !== proposal?.effectiveDate)) errors.push(`Adopted proposal briefing ${briefing.id} has no matching policy follow-up anchor.`);
         if (anchor) {
           const baselineReport = anchor.baselineReportId ? information.governmentReportsById[anchor.baselineReportId] : undefined;
           if (anchor.proposalId !== proposal?.id || anchor.effectiveDate !== proposal?.effectiveDate || !validDate(anchor.effectiveDate)
             || !['temporal_only', 'supported_counterfactual', 'unavailable'].includes(anchor.attributionStatus)
-            || anchor.attributionStatus === 'temporal_only' && (!baselineReport || anchor.baselineDate !== baselineReport.asOfDate || anchor.baselineValueBps !== baselineReport.valueBps || anchor.baselineValueBps === undefined || anchor.baselineDate! > anchor.effectiveDate)
+            || anchor.attributionStatus === 'temporal_only' && (!baselineReport || baselineReport.countryId !== briefing.countryId || anchor.baselineDate !== baselineReport.asOfDate || anchor.baselineValueBps !== baselineReport.valueBps || anchor.baselineValueBps === undefined || anchor.baselineDate! > anchor.effectiveDate)
             || anchor.attributionStatus === 'unavailable' && (anchor.baselineReportId !== undefined || anchor.baselineDate !== undefined || anchor.baselineValueBps !== undefined)) errors.push(`Proposal briefing ${briefing.id} has an invalid temporal follow-up anchor.`);
         }
       }
@@ -207,14 +244,21 @@ export const informationInvariant: SimulationInvariant = {
         if (activePartyLeaders.has(person.partyId)) errors.push(`Party ${person.partyId} has more than one active leader.`);
         activePartyLeaders.set(person.partyId, person.id);
       }
-      if (person.leaderProfile) for (const [issue, dimension] of Object.entries(person.leaderProfile)) {
-        if (!issue || !Number.isSafeInteger(dimension.valueBps) || dimension.valueBps < 0 || dimension.valueBps > 10_000 || !Number.isSafeInteger(dimension.confidenceBps) || dimension.confidenceBps < 0 || dimension.confidenceBps > 10_000 || !['derived', 'modelled'].includes(dimension.status) || !dimension.limitation) errors.push(`Invalid political leader profile for ${person.id}.`);
+      if (person.leaderProfile !== undefined) {
+        const profile = person.leaderProfile;
+        if (!profile || typeof profile !== 'object' || Array.isArray(profile) || Object.keys(profile).length !== POLITICAL_ISSUES.length
+          || !POLITICAL_ISSUES.every(issue => {
+            const dimension = profile[issue];
+            return Object.hasOwn(profile, issue) && dimension && typeof dimension === 'object' && !Array.isArray(dimension) && bounded(dimension.valueBps) && bounded(dimension.confidenceBps)
+              && ['derived', 'modelled'].includes(dimension.status) && typeof dimension.limitation === 'string' && dimension.limitation.trim();
+          })) errors.push(`Invalid political leader profile for ${person.id}.`);
       }
-      if (person.leaderProvenance && (!['sourced_analogue', 'derived_analogue', 'modelled_fallback'].includes(person.leaderProvenance.basis) || !context.countryIds.has(person.countryId) || !person.partyId || !person.leaderProvenance.sourcePartyId || !validDate(person.leaderProvenance.referenceDate) || !['sourced', 'derived', 'unavailable', 'ambiguous'].includes(person.leaderProvenance.sourceLeaderStatus) || !person.leaderProvenance.limitation)) errors.push(`Invalid party leader provenance for ${person.id}.`);
+      if (person.leaderProvenance && (!leaderMethods.has(person.leaderProvenance.method) || !['sourced_analogue', 'derived_analogue', 'modelled_fallback'].includes(person.leaderProvenance.basis) || !context.countryIds.has(person.countryId) || !person.partyId || !person.leaderProvenance.sourcePartyId || !validDate(person.leaderProvenance.referenceDate) || person.leaderProvenance.referenceDate > state.date || !['sourced', 'derived', 'unavailable', 'ambiguous'].includes(person.leaderProvenance.sourceLeaderStatus) || !person.leaderProvenance.limitation)) errors.push(`Invalid party leader provenance for ${person.id}.`);
       if (person.leaderProvenance?.method === 'internal_party_balance_succession_v3' && !contextualSuccessorIds.has(person.id)) errors.push(`Invalid contextual leadership succession provenance for ${person.id}.`);
     }
     let previousSuccessionDate: string | undefined;
     const latestSuccessorByParty = new Map<string, string>();
+    const pendingParties = new Set<string>();
     for (const successionId of governance.successionOrder) {
       const succession = governance.successions[successionId];
       const previous = governance.persons[succession.previousPersonId], successor = governance.persons[succession.newPersonId];
@@ -222,13 +266,21 @@ export const informationInvariant: SimulationInvariant = {
       if (!validContextualSuccession(state, succession, successor)) errors.push(`Invalid contextual leadership succession ${successionId}.`);
       const previousSuccessorId = latestSuccessorByParty.get(succession.partyId);
       if (previousSuccessorId !== undefined && succession.previousPersonId !== previousSuccessorId) errors.push(`Discontinuous party leadership succession ${successionId}.`);
+      if (previousSuccessorId === undefined && (!previous?.leaderProvenance || !initialLeaderMethods.has(previous.leaderProvenance.method)
+        || previous.leaderProvenance.referenceDate > succession.effectiveDate
+        || previous.leaderProvenance.sourcePartyId !== politicalRegistry.parties[succession.partyId]?.sourceBasis.sourcePartyId)) errors.push(`Invalid initial party leadership root for ${successionId}.`);
+      if (pendingParties.has(succession.partyId)) errors.push(`Party leadership succession ${successionId} bypasses a pending handoff.`);
       latestSuccessorByParty.set(succession.partyId, succession.newPersonId);
       if (validDate(succession.effectiveDate)) {
         if (previousSuccessionDate && succession.effectiveDate < previousSuccessionDate) errors.push(`Party leadership succession dates are not monotonic at ${successionId}.`);
         previousSuccessionDate = succession.effectiveDate;
       }
       const handoff = succession.playerHandoff;
-      if (handoff && (!['pending', 'continued', 'switched'].includes(handoff.status) || handoff.previousPersonId !== succession.previousPersonId || handoff.successorPersonId !== succession.newPersonId || handoff.decidedOn && (!validDate(handoff.decidedOn) || handoff.decidedOn < succession.effectiveDate || handoff.decidedOn > state.date) || handoff.status === 'switched' && governance.player.controlledPersonId !== handoff.successorPersonId || handoff.status === 'continued' && governance.player.controlledPersonId !== handoff.previousPersonId)) errors.push(`Malformed player handoff for succession ${successionId}.`);
+      if (handoff && (!['pending', 'continued', 'switched'].includes(handoff.status) || handoff.previousPersonId !== succession.previousPersonId || handoff.successorPersonId !== succession.newPersonId
+        || (handoff.status === 'pending'
+          ? handoff.decidedOn !== undefined || governance.player.controlledPersonId !== handoff.previousPersonId
+          : !validDate(handoff.decidedOn) || handoff.decidedOn! < succession.effectiveDate || handoff.decidedOn! > state.date))) errors.push(`Malformed player handoff for succession ${successionId}.`);
+      if (handoff?.status === 'pending') pendingParties.add(succession.partyId);
     }
     if (governance.leadersInitializedOn !== undefined) {
       if (!validDate(governance.leadersInitializedOn) || governance.leadersInitializedOn > state.date) errors.push('Party leaders were initialized on an invalid date.');

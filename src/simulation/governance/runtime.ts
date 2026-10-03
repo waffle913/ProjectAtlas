@@ -252,12 +252,17 @@ export function createPoliticalPerson(state: SimulationState, input: { displayNa
 
 export function setControlledPerson(state: SimulationState, id?: string): SimulationState {
   if (id) requirePerson(state, id);
+  const controlledId = state.governance.player.controlledPersonId;
+  if (id !== controlledId && Object.values(state.governance.successions ?? {}).some(succession =>
+    succession.playerHandoff?.status === 'pending' && succession.playerHandoff.previousPersonId === controlledId)) throw new Error('Resolve the pending leadership handoff before changing player control.');
   return cloneGovernance(state, { ...state.governance, player: { controlledPersonId: id } });
 }
 
 export function setPartyMembership(state: SimulationState, personIdValue: string, partyId?: string): SimulationState {
   const person = requirePerson(state, personIdValue);
   if (person.isPartyLeader && partyId !== person.partyId) throw new Error('Replace a party leader through the leadership succession command before changing membership.');
+  if (partyId !== person.partyId && Object.values(state.governance.successions ?? {}).some(succession =>
+    succession.previousPersonId === person.id || succession.newPersonId === person.id)) throw new Error('Party membership referenced by leadership succession history cannot be changed.');
   if (partyId && politicalRegistry.parties[partyId]?.countryId !== person.countryId) throw new Error('Party membership must reference a party in the person\'s Country.');
   const changed = { ...person, partyId, isPartyLeader: partyId ? person.isPartyLeader : false };
   return cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [person.id]: changed } });
@@ -276,6 +281,8 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
   const party = politicalRegistry.parties[partyId];
   if (!party) throw new Error(`Unknown political party: ${partyId}`);
   requireCountry(state, party.countryId);
+  if (Object.values(state.governance.successions ?? {}).some(succession =>
+    succession.partyId === partyId && succession.playerHandoff?.status === 'pending')) throw new Error('Resolve the pending player handoff before another succession for this party.');
   const leaders = Object.values(state.governance.persons).filter(person => person.partyId === partyId && person.isPartyLeader && person.status === 'active');
   if (leaders.length !== 1) throw new Error(`Party ${partyId} must have exactly one active leader before succession.`);
   const previous = leaders[0];
