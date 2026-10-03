@@ -1023,7 +1023,7 @@ describe('government information and player briefings 0.15', () => {
     });
     const migrated = restoreSimulationState(persistedSchema12, worldRegions, {}, {}, worldContext);
     expect(migrated).toMatchObject({
-      schemaVersion: 14,
+      schemaVersion: 15,
       date,
       engine: { tick: 4321, seed: 'schema-12-information-migration' },
       information: { initializedOn: date, latestGovernmentReports: {}, governmentReportsById: {}, briefings: [], proposalEstimates: [] },

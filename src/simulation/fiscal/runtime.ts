@@ -8,6 +8,7 @@ import type { SimulationScheduler } from '../scheduler';
 import { deterministicFingerprint } from '../fingerprint';
 import { executeMilitaryFunding, militaryRequests } from '../military/runtime';
 import { quoteMilitaryPayroll, type MilitaryPayroll } from './militaryPayroll';
+import { tradeCustomsRevenue, tradeDemand } from '../trade/runtime';
 const kinds = ['personal', 'consumption', 'payroll', 'corporate'] as const;
 const taxKind = (category: typeof TAXES[number]) => category === 'employee' || category === 'employer' ? 'payroll' : category;
 const flows = (policy: Policy): Record<typeof TAXES[number], TaxFlow> => Object.fromEntries(TAXES.map(k => [k, { base: 0, liability: 0, collected: 0, status: policy[taxKind(k)]?.status ?? 'unavailable' }])) as Record<typeof TAXES[number], TaxFlow>;
@@ -65,17 +66,30 @@ function taxRegion(r: SocioRegion, owner: string, policy: Policy, previous?: Reg
   const corporation = policy.corporate ? ratio(businessSurplus, policy.corporate.rateBps!, 10000) : 0;
   const vatLiability = e.consumptionByGroup.map(v => consumptionLiability(v, policy.consumption));
   const consumptionTax = vatLiability.map(collected);
+  const purchases = tradePurchasesFor(e, policy, previous);
   const taxes = flows(policy);
   taxes.personal = { ...taxes.personal, base: sum(e.incomeByGroup.map((v, i) => Math.max(0, v - ratio(policy.personal?.allowance ?? 0, persons[i], 12)))), liability: sum(personalLiability), collected: sum(personal) };
   taxes.employee = { ...taxes.employee, base: sum(wage), liability: sum(employeeLiability), collected: sum(employee) };
   taxes.employer = { ...taxes.employer, base: sum(wage), liability: sum(employerLiability), collected: sum(employer) };
-  taxes.consumption = { ...taxes.consumption, base: sum(e.consumptionByGroup.map(v => ratio(v, M.taxableConsumptionBps, 10000))), liability: sum(vatLiability), collected: sum(consumptionTax) };
+  taxes.consumption = { ...taxes.consumption, base: sum(e.consumptionByGroup.map(v => ratio(v, M.taxableConsumptionBps, 10000)))
+    + sum((e.importedConsumptionByGroup ?? []).map(v => ratio(v, M.taxableConsumptionBps, 10000))),
+    liability: sum(vatLiability) + sum((e.importedConsumptionByGroup ?? []).map(v => consumptionLiability(v, policy.consumption))),
+    collected: sum(consumptionTax) + sum(purchases?.importConsumptionTax ?? []) };
   taxes.corporate = { ...taxes.corporate, base: businessSurplus, liability: corporation, collected: collected(corporation) };
   return { owner, taxes, grossIncome: [...e.incomeByGroup], personal, employee, transfers: [0, 0, 0],
     disposable: e.incomeByGroup.map((v, i) => v - personal[i] - employee[i]),
     netConsumption: [...e.consumptionByGroup], consumptionTax, grossExpenditure: e.consumptionByGroup.map((v, i) => v + consumptionTax[i]),
     businessSurplus, retainedBusinessSurplus: businessSurplus - taxes.corporate.collected, labourCost: sum(wage) + sum(employer),
-    privateResidual: previous?.privateResidual ?? e.otherDemandResidual, publicOrders: previous?.publicOrders ?? 0 };
+    privateResidual: previous?.privateResidual ?? e.otherDemandResidual, publicOrders: previous?.publicOrders ?? 0,
+    ...(purchases ? { tradePurchases: purchases } : {}) };
+}
+function tradePurchasesFor(e: NonNullable<SocioRegion['economy']>, policy: Policy, previous?: RegionFiscal): RegionFiscal['tradePurchases'] {
+  if (!e.importedConsumptionByGroup) return undefined;
+  if (!e.importRequestedBudgetByGroup || !previous) throw new Error('Imported purchases require their existing opening fiscal ledger and complete landed expenditure evidence.');
+  return { date: '', importedGoods: [...e.importedConsumptionByGroup],
+    landedPayment: [...e.importRequestedBudgetByGroup],
+    importConsumptionTax: e.importedConsumptionByGroup.map(v => consumptionCollected(v, policy.consumption)),
+    nominalBudget: previous.disposable.map((v, i) => ratio(v, MODEL.consumptionBps[i], 10000)) };
 }
 export function evolveService(s: Service, population: number, spending: number): Service {
   if (!s.referencePopulation || !s.referenceMonthlyCost) return { ...s, status: 'unavailable', spending, fundedCapacity: 0, coverageBps: null };
@@ -147,10 +161,13 @@ export function evaluateImmediateFiscalPolicyCounterfactual(state: SimulationSta
     const proposed = withHeldFlows(taxRegion(state.socioeconomy.regions[regionId], countryId, policy, booked));
     currentKnownRevenue += sum(TAXES.map(key => current.taxes[key].collected)); proposedKnownRevenue += sum(TAXES.map(key => proposed.taxes[key].collected));
     for (const category of TAXES) { currentRevenueByCategory[category] += current.taxes[category].collected; proposedRevenueByCategory[category] += proposed.taxes[category].collected; }
-    for (let index = 0; index < 3; index++) { currentDisposableByIncome[index] += current.disposable[index]; proposedDisposableByIncome[index] += proposed.disposable[index]; currentTransfersByIncome[index] += current.transfers[index]; proposedTransfersByIncome[index] += proposed.transfers[index]; currentDirectTaxByIncome[index] += current.personal[index] + current.employee[index]; proposedDirectTaxByIncome[index] += proposed.personal[index] + proposed.employee[index]; currentConsumptionTaxByIncome[index] += current.consumptionTax[index]; proposedConsumptionTaxByIncome[index] += proposed.consumptionTax[index]; }
+    for (let index = 0; index < 3; index++) { currentDisposableByIncome[index] += current.disposable[index]; proposedDisposableByIncome[index] += proposed.disposable[index]; currentTransfersByIncome[index] += current.transfers[index]; proposedTransfersByIncome[index] += proposed.transfers[index]; currentDirectTaxByIncome[index] += current.personal[index] + current.employee[index]; proposedDirectTaxByIncome[index] += proposed.personal[index] + proposed.employee[index]; currentConsumptionTaxByIncome[index] += current.consumptionTax[index] + (current.tradePurchases?.importConsumptionTax[index] ?? 0); proposedConsumptionTaxByIncome[index] += proposed.consumptionTax[index] + (proposed.tradePurchases?.importConsumptionTax[index] ?? 0); }
     currentEmployerPayroll += current.taxes.employer.collected; proposedEmployerPayroll += proposed.taxes.employer.collected; currentCorporateTax += current.taxes.corporate.collected; proposedCorporateTax += proposed.taxes.corporate.collected;
   }
   const categoryCoverage = Object.fromEntries(TAXES.map(category => [category, country.policy[taxKind(category)] === null ? 'unavailable' : 'complete'])) as ImmediateFiscalPolicyCounterfactual['categoryCoverage'];
+  const unchangedCustoms = country.account?.customsRevenue?.collected ?? 0;
+  currentKnownRevenue = integer(currentKnownRevenue + unchangedCustoms);
+  proposedKnownRevenue = integer(proposedKnownRevenue + unchangedCustoms);
   if (country.account?.militaryPayroll) {
     const gross = country.account.militaryPayroll.gross;
     const current = quoteMilitaryPayroll(state, countryId, gross);
@@ -230,11 +247,15 @@ export function initializeFiscal(state: SimulationState): SimulationState {
   }
   return { ...state, fiscal };
 }
-export function fiscalDemand(state: SimulationState, regionId: string): { householdRequests: number[]; otherDemand: number } | undefined {
+export function baseFiscalDemand(state: SimulationState, regionId: string): { householdRequests: number[]; otherDemand: number } | undefined {
   const r = state.fiscal.regions[regionId], owner = state.regionOwnership[regionId];
   const country = owner ? state.fiscal.countries[owner] : undefined;
   if (!r || !country) return undefined;
   return { householdRequests: r.disposable.map((v, i) => netGoodsBudget(ratio(v, MODEL.consumptionBps[i], 10000), country.policy.consumption)), otherDemand: r.privateResidual + r.publicOrders };
+}
+export function fiscalDemand(state: SimulationState, regionId: string): { householdRequests: number[]; otherDemand: number } | undefined {
+  const base = baseFiscalDemand(state, regionId);
+  return base ? tradeDemand(state, regionId, base) : undefined;
 }
 export function runFiscalMonth(state: SimulationState): SimulationState {
   const f = state.fiscal;
@@ -247,10 +268,13 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     const ids = grouped.get(id) ?? [];
     const taxes = flows(c.policy);
     for (const rid of ids) {
-      const r = taxRegion(state.socioeconomy.regions[rid], id, c.policy, f.regions[rid]); regions[rid] = r;
+      const r = taxRegion(state.socioeconomy.regions[rid], id, c.policy, f.regions[rid]);
+      if (r.tradePurchases) r.tradePurchases.date = state.date;
+      regions[rid] = r;
       for (const k of TAXES) { taxes[k].base += r.taxes[k].base; taxes[k].liability += r.taxes[k].liability; taxes[k].collected += r.taxes[k].collected; }
     }
-    let knownTaxRevenue = sum(TAXES.map(k => taxes[k].collected));
+    const customsCollected = tradeCustomsRevenue(state, id);
+    let knownTaxRevenue = integer(sum(TAXES.map(k => taxes[k].collected)) + customsCollected);
     const otherRevenue = c.revenueCalibration.monthlyAmount;
     let totalRevenue = integer(knownTaxRevenue + otherRevenue);
     const financingRevenue = totalRevenue;
@@ -309,6 +333,10 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     countries[id] = { ...c, cash, debt, arrears, interestArrears: interestObligation - interestPaid, services,
       account: { unit: 'USD_NOMINAL', period: 'MONTH', policyApplied: c.policy, collectionEfficiencyBps: M.collectionBps, date: state.date, taxes,
         knownTaxRevenue, otherRevenue, totalRevenue, appropriated, executed, interestDue, interestPaid, totalSpending,
+        ...(state.trade.countries[id]?.ledger?.date === state.date ? { customsRevenue: {
+          collected: customsCollected, date: state.date, scope: 'admitted_flows_only' as const,
+          unavailableRates: state.trade.routes.filter(route => route.importerId === id && route.tariffBps === null).length,
+        } } : {}),
         militaryPayroll, financingRevenue: militaryPayroll ? financingRevenue : undefined,
         defensePublicOrders,
         primaryBalance: totalRevenue - sum(allocations) - defenseExecuted, overallBalance: totalRevenue - totalSpending,

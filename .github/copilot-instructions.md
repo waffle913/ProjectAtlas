@@ -44,7 +44,7 @@ ProjectAtlas is a realism-first geopolitical, economic, social, political, and m
 ## 0.15 -- accepted parent milestone
 
 0.15 is accepted/validated following the user's independent-review decision.
-0.16 is the current milestone in correction/final review, not yet accepted.
+Corrected 0.16 is the user-directed validated parent; 0.17 is explicitly authorized and pending independent review, not accepted.
 
 Implemented and accepted:
 - Reality -> Government Information -> player-presented-interpretation
@@ -93,9 +93,13 @@ No playable constitutional reforms, mutable constitutions, elections
 updating the governing bloc, or coalition negotiation are implemented by
 the institutional evaluator.
 
-## 0.16 -- correction/final review
+## 0.16 -- corrected validated parent
 
-The isolated military task extends accepted 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705`; 0.16 awaits final review and acceptance. Follow [the military contract](../docs/military-0.16.md): schema 14, conserved reservations within existing labour/population/cohorts, one fiscal payroll/withholding/production flow, explicit unavailable factual coverage, rounded partial UK reference and clearly synthetic opt-in demonstration. Management requires an active resolved executive office and existing information/budget capabilities; legislators/party leaders/Country selection grant none. Preserve monthly priorities 90/150/250, physical ledgers, delayed production proofs, stale government reports and save-date migration without replay. No 0.19 operations/combat/war/control changes or 0.17 systems.
+The isolated military task extends accepted 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705`; original implementation `b27e59f8528bc181c8f69e7af7f9c134e45c9a0a`, corrected HEAD `7580ed683a8164764fbccfbe94bb828da84c57ed`. The user's explicit advancement to 0.17 identifies the corrected HEAD as validated; do not attribute acceptance to our tests or the earlier read-only review. Follow [the military contract](../docs/military-0.16.md): schema-14 origin, conserved reservations within existing labour/population/cohorts, one fiscal payroll/withholding/production flow, explicit unavailable factual coverage, rounded partial UK reference and clearly synthetic opt-in demonstration. Management requires an active resolved executive office and existing information/budget capabilities; legislators/party leaders/Country selection grant none. Preserve monthly priorities 90/150/250, physical ledgers, delayed production proofs, verified readiness-report upgrade, stale government reports and save-date migration without replay. No 0.19 operations/combat/war/control changes.
+
+## 0.17 -- authorized, independent review pending
+
+Follow [the trade contract](../docs/trade-0.17.md): schema 15 / `trade-0.17-v1`, shared monthly priorities 95/110/260, sparse dated goods/invoice/funding evidence, conservative private-residual decomposition and opening-income household purchasing lag. Exports never add output/income on top of existing production; imports never mint domestic GDP. Customs/import VAT use the one fiscal engine and fixed calibration. Historical dated values are priors, not observed 2026 quantities or automatically accessible knowledge. Supplementary physical military inputs constrain existing manufacturing, not readiness. Preserve complete dated import tuples, report-only office-gated inspection, migrations at the saved date, all accepted information rules and structural wars. No 0.18 coercion/sanctions, 0.19 operations or 0.20 treaties; do not self-accept 0.17 or start the next milestone.
 
 ## Future direction and scope
 

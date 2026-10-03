@@ -1,10 +1,12 @@
 # Government information and playable interface (0.15 implementation)
 
-**Status: 0.15 is the accepted/validated parent milestone, following the user's independent-review decision.** 0.16 is the current milestone in correction/final review, not yet accepted. Historical candidate validation records retain their original chronology.
+**Status: 0.15 is accepted/validated following the user's independent-review decision.** The user's explicit 0.17 advancement identifies corrected 0.16 as the validated parent; 0.17 is pending independent review, not accepted. Historical candidate validation records retain their original chronology.
 
 ## Information architecture
 
-The separately authorized [0.16 military channel in final review](military-0.16.md) extends this unchanged information version in schema 14. Monthly government-only military reports are explicit saved projections with validated source/date/licence/fingerprint and material readiness evidence. Ministers/UI never read live capability. Defense advisories reference retained reports, cannot impersonate crisis/urgent/public facts and do not pause. One rounded UK source is a partial historical reference, never a current operational stock. The six accepted 0.15 integrity rules below remain in force; this extension does not constitute acceptance of 0.16.
+The [0.16 military channel](military-0.16.md) extends this unchanged information version in schema 14. Monthly government-only military reports are explicit saved projections with validated source/date/licence/fingerprint and material readiness evidence. Ministers/UI never read live capability. Defense advisories reference retained reports, cannot impersonate crisis/urgent/public facts and do not pause. One rounded UK source is a partial historical reference, never a current operational stock. The six accepted 0.15 integrity rules below remain in force; acceptance follows the later user-directed advancement, not this documentation.
+
+The authorized [0.17 trade channel](trade-0.17.md) retains `information-0.15-v3` in global schema 15. Priority 260 saves partial/unavailable government administrative reports, relevant flows/categories/partners, reconstructed dependencies and dated source/capacity/invoice proofs. Inspectors mark them stale and never reread live Reality. Historical priors are admitted only when every dated normalization input is available; actual publisher dates are not replaced by retrieval dates. Trade briefings are government-only economy advisories without pause. All existing retention paths preserve current/referenced trade reports alongside unchanged labour/military evidence and the six accepted integrity rules. No crisis Reality is promoted to a government sensor.
 
 The engine's canonical Reality remains authoritative. `SimulationState.information` is a delayed, provenance-labelled Government Information layer, not a second economy or a noisy copy of Reality. The current report is a monthly aggregate of the existing regional unemployed and labour-force stocks. Its date follows the socioeconomic monthly report date; a later Reality change does not leak into the stored report. Incomplete coverage stays partial, and absent labour-force coverage is `unavailable` with no numeric value.
 
@@ -46,6 +48,7 @@ Current triggers are:
 
 - a public adopted, rejected or unavailable parliamentary proposal result, recorded from its canonical vote;
 - a monthly modelled unemployment report changing by at least 50 basis points from the previous available report.
+- military administrative advisories and monthly admitted trade reports, each tied to its own saved government evidence.
 
 Stable source-based IDs deduplicate events. Feed history has a hard global limit of **2,048** and a per-Country limit of **256**. Retention first protects the four most recent available briefings per Country, then prefers up to 256 recent entries for the canonical controlled person's Country, then fills remaining slots with the newest remaining entries. With no controlled person there is no player preference. Recency is the persisted `createdOn` date, with opaque briefing IDs compared lexicographically as deterministic ties; the saved array is chronological. Selection is independent of UI Country selection and RNG. The protected floor fits the current 252-Country registry; an incompatible future minimum or duplicate input IDs fail explicitly rather than silently violating the hard bound.
 

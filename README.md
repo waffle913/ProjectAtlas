@@ -1,10 +1,10 @@
-# ProjectAtlas — Milestone 0.16 (final review)
+# ProjectAtlas — Milestone 0.17 (independent review pending)
 
 An original geopolitical, economic, social, political and military simulation, with the scenario start date fixed at **2026-01-01**.
 
 ## Current project status
 
-The current validated parent milestone is **0.15** (save schema 13), following the user's independent-review decision. **0.16 is in correction/final review**, not yet accepted. Current contracts, rationale, known limits and the locked roadmap are consolidated in the [canonical agent handoff](docs/agent-handoff.md). Agents must read it before implementation and must not begin milestone 0.17 without explicit instruction.
+The current validated parent is **corrected 0.16**, exact SHA `7580ed683a8164764fbccfbe94bb828da84c57ed` (save schema 14), as identified by the user's explicit direction to advance to 0.17. This is not acceptance inferred from implementation tests or the earlier read-only review. **0.17 is implemented for independent review, not accepted**; its current save schema is 15. Current contracts, rationale, known limits and the locked roadmap are consolidated in the [canonical agent handoff](docs/agent-handoff.md). No 0.18, 0.19 or 0.20 work is authorized.
 
 Milestone **0.15 is accepted/validated**. Its Government Information, briefing, fictional leadership, succession, playable interface and explicit-power-transfer institutional evaluation contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with historical measured validation retained in [the development validation report](docs/milestone-0.15-candidate-validation.md). Current fiscal proposals have no institutional transfer and retain their material scores.
 
@@ -12,7 +12,9 @@ Earlier validated contracts remain part of the current architecture; this status
 
 ## Run
 
-Milestone **0.16 military capabilities/readiness is in correction/final review**, built on the accepted 0.15 parent. See [the military contract](docs/military-0.16.md) for schema 14, conserved personnel/equipment/stocks, actual fiscal payroll/production, monthly Government Information and strict 0.19 exclusions. The factual scenario retains unavailable operational armies for all 252 Countries; one rounded UK MOD reference is partial historical evidence only. The starting screen offers an opt-in, plainly synthetic single-Country demonstration, with no free treasury or executive powers. Run `npm run military:audit` and `npm run military:benchmark`.
+Milestone **0.16 military capabilities/readiness** preserves the accepted 0.15 parent. See [the military contract](docs/military-0.16.md) for its schema-14 origin, conserved personnel/equipment/stocks, actual fiscal payroll/production, monthly Government Information and strict 0.19 exclusions. The factual scenario retains unavailable operational armies for all 252 Countries; one rounded UK MOD reference is partial historical evidence only. The starting screen offers an opt-in, plainly synthetic single-Country demonstration, with no free treasury or executive powers. Run `npm run military:audit` and `npm run military:benchmark`.
+
+The explicitly authorized **0.17 world trade/strategic dependencies** adds sparse, physically and financially constrained monthly flows, ordinary customs in the existing treasury, gradual prices/substitution, configured stocks, supplementary military manufacturing inputs and dated government-only inspection. See [the complete trade contract](docs/trade-0.17.md). Historical 2024 values are partial priors, never empirical 2026 quantities; no operative factual sector/stock/capacity baseline is fabricated. A separately labelled three-Country synthetic demonstration exercises the mechanisms. Run `npm run trade:audit` and `npm run trade:benchmark`; `npm run trade:data:generate` reproduces pinned evidence offline, while `npm run trade:sources:update` deliberately requests a source update.
 
 `npm install` then `npm run dev`. Run `npm run verify` for country, Region, demographic and economic reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate`, `npm run data:regions:generate`, `npm run data:population:generate` and `npm run data:economy:generate` regenerate derived data offline from checked-in inputs.
 
@@ -58,7 +60,7 @@ Wars are persistent bilateral records keyed only by opaque ProjectAtlas IDs. Mil
 
 Occupation is stored separately in `occupationByRegion`. It never changes sovereign `regionOwnership`, population, economic output, claims, identity or legacy macro ownership. Only opposing belligerents in an active war may occupy one another's Regions, and one Region can have at most one occupation. The map preserves the sovereign owner fill and adds a dashed red occupation boundary.
 
-The attacker objective is satisfied only when it occupies the declared target under that war. Attacker victory then transfers exactly that one Region through `regionOwnership`; every other occupied Region remains with its sovereign owner. Defender victory and white peace transfer nothing. Every peace outcome records the result, retains the ended war, and clears that war's occupations. There is deliberately no war score, combat, pathfinding or alliance model. The separate 0.16 candidate peacetime capability model does not operate or change these structural wars.
+The attacker objective is satisfied only when it occupies the declared target under that war. Attacker victory then transfers exactly that one Region through `regionOwnership`; every other occupied Region remains with its sovereign owner. Defender victory and white peace transfer nothing. Every peace outcome records the result, retains the ended war, and clears that war's occupations. There is deliberately no war score, combat, pathfinding or alliance model. The separate 0.16 peacetime capability and 0.17 trade models do not operate or change these structural wars.
 
 An active `take_region` target must remain sovereignly owned by its defender, including on save reload. Generic `transferRegion()` sovereignty changes require both Countries to be registered in the canonical engine's `fidelityByCountry` entries and reject active war objectives or Regions occupied under an active war, even when not the objective. Explicit war resolution, liberation, ordinary unoccupied non-objective transfers and post-war transfers retain their existing semantics; registered no-op transfers remain valid.
 

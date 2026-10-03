@@ -1,0 +1,3976 @@
+{
+  "referenceCommit": "7580ed683a8164764fbccfbe94bb828da84c57ed",
+  "referenceFixtureSha256": "662d0b32f6e8c47dc3ccd87a6e2866e9725dbb3bdb335ab67c4af5ce0fc7a302",
+  "limitation": "Original schema14 engine ninety-day continuation of the genuine825day synthetic fixture. Not a trade simulation or schema15 oracle; compare preserved preexisting economic/fiscal/military/territorial state with new-engine trade-unavailable continuation, allowing documented newly added fields only.",
+  "continuationDays": 90,
+  "regions": [
+    {
+      "id": "region.synthetic-0",
+      "commonName": "Explicit synthetic test Region 0",
+      "parentCountryId": "country.u6myyj",
+      "initialOwnerCountryId": "country.u6myyj",
+      "administrativeLevel": 1,
+      "externalIds": {},
+      "geographyMapping": {
+        "status": "mapped",
+        "datasetId": "synthetic-test",
+        "sourceFeatureIds": [
+          "0"
+        ]
+      }
+    },
+    {
+      "id": "region.synthetic-1",
+      "commonName": "Explicit synthetic test Region 1",
+      "parentCountryId": "country.1aj872z",
+      "initialOwnerCountryId": "country.1aj872z",
+      "administrativeLevel": 1,
+      "externalIds": {},
+      "geographyMapping": {
+        "status": "mapped",
+        "datasetId": "synthetic-test",
+        "sourceFeatureIds": [
+          "1"
+        ]
+      }
+    }
+  ],
+  "state": {
+    "schemaVersion": 14,
+    "military": {
+      "version": "military-0.16-v1",
+      "initializedOn": "2026-01-01",
+      "countries": {
+        "country.1aj872z": {
+          "status": "unavailable",
+          "limitation": "No complete operational military baseline is installed: authorized/available staff, salaries, equipment, consumables and industry remain unavailable. A partial historical source reference does not initialize a simulated army. Unknown is not zero."
+        },
+        "country.u6myyj": {
+          "status": "available",
+          "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+          "capability": {
+            "source": {
+              "status": "modelled",
+              "publisher": "ProjectAtlas explicit synthetic integration fixture",
+              "url": "scenario:synthetic-military-test",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-10-03",
+              "licence": "ProjectAtlas test fixture (ISC)",
+              "attribution": "ProjectAtlas",
+              "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+              "scenarioFixture": true
+            },
+            "admittedOn": "2026-01-01",
+            "parameters": {
+              "monthlySalaryUsd": 1000,
+              "recruitmentPerMonth": 10,
+              "reductionPerMonth": 5,
+              "trainingMonths": 3,
+              "instructors": 20,
+              "trainingCostPerPersonUsd": 100,
+              "technicians": 10,
+              "factoryUnitsPerMonth": 10,
+              "factoryMaterialPerUnit": 1,
+              "logisticsStaff": 5,
+              "logisticsPersonsPerStaff": 20,
+              "exerciseAmmunitionPerPerson": 1,
+              "exerciseFuelPerPerson": 1,
+              "desiredEquipment": {
+                "personal": 100,
+                "truck": 5
+              },
+              "desiredConsumables": {
+                "ammunition": 500,
+                "fuel": 500
+              }
+            },
+            "authorized": 100,
+            "assignments": {
+              "region.synthetic-0": 100
+            },
+            "trainees": [],
+            "exercisePersonMonths": 100,
+            "payrollArrears": 0,
+            "unpaidMonths": 0,
+            "equipment": {
+              "personal": {
+                "operational": 95,
+                "unavailable": 0,
+                "maintenance": 5,
+                "reserve": 0,
+                "opening": 100,
+                "delivered": 0,
+                "maintenanceClock": 0,
+                "backlogUnitMonths": 5
+              },
+              "truck": {
+                "operational": 8,
+                "unavailable": 0,
+                "maintenance": 2,
+                "reserve": 0,
+                "opening": 5,
+                "delivered": 5,
+                "maintenanceClock": 3,
+                "backlogUnitMonths": 2
+              }
+            },
+            "consumables": {
+              "ammunition": {
+                "quantity": 400,
+                "capacity": 10000,
+                "opening": 1000,
+                "delivered": 0,
+                "consumed": 600
+              },
+              "fuel": {
+                "quantity": 400,
+                "capacity": 10000,
+                "opening": 1000,
+                "delivered": 0,
+                "consumed": 600
+              }
+            },
+            "industrialMaterials": {
+              "opening": 1000,
+              "consumed": 5,
+              "quantity": 995
+            },
+            "orders": [],
+            "nextOrderSequence": 1,
+            "completed": {
+              "quantity": 5,
+              "paidUsd": 250000
+            },
+            "completedByItem": {
+              "truck": {
+                "quantity": 5,
+                "paidUsd": 250000
+              }
+            },
+            "productionSupplyPendingUsd": 0,
+            "productionSupplyReceivedUsd": 0,
+            "productionSupplyRemainderBps": 0,
+            "ai": {
+              "enabled": true,
+              "reason": "Explicit configured peacetime capability maintenance only."
+            },
+            "lastPreparedOn": "2028-07-01",
+            "lastLedger": {
+              "date": "2028-07-01",
+              "requested": {
+                "payroll": 106885,
+                "maintenance": 540,
+                "training": 2000,
+                "production": 0
+              },
+              "executed": {
+                "payroll": 106885,
+                "maintenance": 540,
+                "training": 2000,
+                "production": 0
+              },
+              "openingPayrollArrears": 0,
+              "payrollDue": 100000,
+              "closingPayrollArrears": 0,
+              "grossPayrollPaid": 100000,
+              "employerPayrollCost": 6885,
+              "recruited": 0,
+              "released": 0,
+              "trained": 0,
+              "exercised": 20,
+              "consumedAmmunition": 20,
+              "consumedFuel": 20,
+              "productionUnits": 0,
+              "maintenanceUnits": 5,
+              "deliveredUnits": 1
+            }
+          }
+        }
+      },
+      "lastMonthlyDate": "2028-07-01"
+    },
+    "socioeconomy": {
+      "modelVersion": "socioeconomy-0.10-v1",
+      "regions": {
+        "region.synthetic-0": {
+          "population": 10000,
+          "annualOutputReference": 1200000000,
+          "cohorts": [
+            {
+              "income": "low",
+              "orientation": "left",
+              "persons": 1334
+            },
+            {
+              "income": "low",
+              "orientation": "centre",
+              "persons": 1333
+            },
+            {
+              "income": "low",
+              "orientation": "right",
+              "persons": 1333
+            },
+            {
+              "income": "middle",
+              "orientation": "left",
+              "persons": 1334
+            },
+            {
+              "income": "middle",
+              "orientation": "centre",
+              "persons": 1333
+            },
+            {
+              "income": "middle",
+              "orientation": "right",
+              "persons": 1333
+            },
+            {
+              "income": "high",
+              "orientation": "left",
+              "persons": 667
+            },
+            {
+              "income": "high",
+              "orientation": "centre",
+              "persons": 667
+            },
+            {
+              "income": "high",
+              "orientation": "right",
+              "persons": 666
+            }
+          ],
+          "populationProvenance": {
+            "status": "modelled",
+            "method": "saved_population_no_historical_provenance",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "outputProvenance": {
+            "status": "modelled",
+            "method": "saved_annual_output_no_historical_provenance",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "incomeDistributionProvenance": {
+            "status": "modelled",
+            "method": "modelled_income_shares_20_40_40",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "orientationProvenance": {
+            "status": "modelled",
+            "method": "modelled_noninformative_prior",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "employmentProvenance": {
+            "status": "modelled",
+            "method": "labour_60pct_employed_95pct_prior",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "economy": {
+            "unit": "USD_PER_MONTH",
+            "personsUnit": "PERSONS",
+            "baseOutput": 100000000,
+            "baseEmployed": 5700,
+            "labourForce": 6000,
+            "employed": 5700,
+            "unemployed": 200,
+            "productivity": {
+              "outputUsd": 100000000,
+              "workers": 5700
+            },
+            "capacity": 100000000,
+            "productionCapacity": 100000000,
+            "output": 100000000,
+            "householdIncome": 65000000,
+            "incomeByGroup": [
+              13000000,
+              26000000,
+              26000000
+            ],
+            "householdDemand": 45957747,
+            "demand": 100068045,
+            "consumption": 45926496,
+            "consumptionByGroup": [
+              12689907,
+              19450274,
+              13786315
+            ],
+            "otherDemandResidual": 54110298,
+            "otherDemandRealized": 54073504,
+            "shortage": 68045,
+            "essentialReferenceByGroup": [
+              9880000,
+              12155000,
+              5070000
+            ],
+            "essentialConsumption": 24713546,
+            "basicNeedsCoverageBps": 9118,
+            "shock": {
+              "capacityBps": 10000,
+              "productivityBps": 10000,
+              "labourBps": 10000
+            }
+          }
+        },
+        "region.synthetic-1": {
+          "population": 10000,
+          "annualOutputReference": 1200000000,
+          "cohorts": [
+            {
+              "income": "low",
+              "orientation": "left",
+              "persons": 1334
+            },
+            {
+              "income": "low",
+              "orientation": "centre",
+              "persons": 1333
+            },
+            {
+              "income": "low",
+              "orientation": "right",
+              "persons": 1333
+            },
+            {
+              "income": "middle",
+              "orientation": "left",
+              "persons": 1334
+            },
+            {
+              "income": "middle",
+              "orientation": "centre",
+              "persons": 1333
+            },
+            {
+              "income": "middle",
+              "orientation": "right",
+              "persons": 1333
+            },
+            {
+              "income": "high",
+              "orientation": "left",
+              "persons": 667
+            },
+            {
+              "income": "high",
+              "orientation": "centre",
+              "persons": 667
+            },
+            {
+              "income": "high",
+              "orientation": "right",
+              "persons": 666
+            }
+          ],
+          "populationProvenance": {
+            "status": "modelled",
+            "method": "saved_population_no_historical_provenance",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "outputProvenance": {
+            "status": "modelled",
+            "method": "saved_annual_output_no_historical_provenance",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "incomeDistributionProvenance": {
+            "status": "modelled",
+            "method": "modelled_income_shares_20_40_40",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "orientationProvenance": {
+            "status": "modelled",
+            "method": "modelled_noninformative_prior",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "employmentProvenance": {
+            "status": "modelled",
+            "method": "labour_60pct_employed_95pct_prior",
+            "logicalDate": "2026-01-01",
+            "inputs": [
+              {
+                "dataset": "socioeconomy-0.10-v1",
+                "referenceDate": "2026-01-01"
+              }
+            ]
+          },
+          "economy": {
+            "unit": "USD_PER_MONTH",
+            "personsUnit": "PERSONS",
+            "baseOutput": 100000000,
+            "baseEmployed": 5700,
+            "labourForce": 6000,
+            "employed": 5700,
+            "unemployed": 300,
+            "productivity": {
+              "outputUsd": 100000000,
+              "workers": 5700
+            },
+            "capacity": 100000000,
+            "productionCapacity": 100000000,
+            "output": 100000000,
+            "householdIncome": 65000000,
+            "incomeByGroup": [
+              13000000,
+              26000000,
+              26000000
+            ],
+            "householdDemand": 52350945,
+            "demand": 100000000,
+            "consumption": 52350945,
+            "consumptionByGroup": [
+              13630635,
+              22084343,
+              16635967
+            ],
+            "otherDemandResidual": 47649055,
+            "otherDemandRealized": 47649055,
+            "shortage": 0,
+            "essentialReferenceByGroup": [
+              9880000,
+              12155000,
+              5070000
+            ],
+            "essentialConsumption": 27017179,
+            "basicNeedsCoverageBps": 9968,
+            "shock": {
+              "capacityBps": 10000,
+              "productivityBps": 10000,
+              "labourBps": 10000
+            }
+          }
+        }
+      },
+      "playerCountryIds": [],
+      "administration": [
+        {
+          "countryId": "country.1aj872z",
+          "date": "2026-08-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2026-08-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2026-09-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2026-09-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2026-10-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2026-10-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2026-11-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2026-11-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2026-12-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2026-12-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-01-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-01-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-02-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-02-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-03-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-03-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-04-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-04-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-05-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-05-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-06-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-06-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-07-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-07-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-08-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-08-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-09-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-09-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-10-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-10-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-11-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-11-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2027-12-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2027-12-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2028-01-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2028-01-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2028-02-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2028-02-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2028-03-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2028-03-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2028-04-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2028-04-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2028-05-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2028-05-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2028-06-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2028-06-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.1aj872z",
+          "date": "2028-07-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        },
+        {
+          "countryId": "country.u6myyj",
+          "date": "2028-07-01",
+          "action": "maintain_parameters",
+          "reason": "Execute existing fiscal policy, budget, transfers, interest and bounded financing; report unpaid commitments in fiscal accounts. No political reform.",
+          "observedRegions": 1,
+          "outputUsdMonthly": 100000000,
+          "outputCoverage": "complete"
+        }
+      ],
+      "initializedOn": "2026-01-01",
+      "lastMonthlyDate": "2028-07-01"
+    },
+    "fiscal": {
+      "version": "fiscal-0.11-v2",
+      "countries": {
+        "country.1aj872z": {
+          "policy": {
+            "personal": null,
+            "consumption": {
+              "id": "ca-gst",
+              "countryId": "country.1aj872z",
+              "kind": "consumption",
+              "status": "partial",
+              "scope": "federal",
+              "currency": "CAD",
+              "unit": "annual_currency_units_and_basis_points",
+              "effectiveDate": "2008-01-01",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-09-29",
+              "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html",
+              "document": "CRA GST/HST rate table, with historical federal GST reduction effective 2008",
+              "limitations": "Federal GST only. Provincial portions excluded. Basic groceries zero-rated; exempt supplies not itemized. Taxable share must be modelled.",
+              "rateBps": 500,
+              "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2007/12/prime-minister-rings-new-year-gst-cut.html"
+            },
+            "payroll": null,
+            "corporate": {
+              "id": "ca-corporate",
+              "countryId": "country.1aj872z",
+              "kind": "corporate",
+              "status": "partial",
+              "scope": "federal",
+              "currency": "CAD",
+              "unit": "annual_currency_units_and_basis_points",
+              "effectiveDate": "2012-01-01",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-09-29",
+              "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/corporations/corporation-tax-rates.html",
+              "document": "CRA corporation tax rates, page dated 2025-05-30",
+              "limitations": "General federal net rate only. Provincial rates, small business 9%, manufacturing reductions and financial-sector surcharge excluded.",
+              "rateBps": 1500,
+              "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2011/12/harper-government-highlights-tax-relief-2012.html"
+            }
+          },
+          "policyHistory": [
+            {
+              "date": "2026-01-01",
+              "policy": {
+                "personal": null,
+                "consumption": {
+                  "id": "ca-gst",
+                  "countryId": "country.1aj872z",
+                  "kind": "consumption",
+                  "status": "partial",
+                  "scope": "federal",
+                  "currency": "CAD",
+                  "unit": "annual_currency_units_and_basis_points",
+                  "effectiveDate": "2008-01-01",
+                  "referenceDate": "2026-01-01",
+                  "retrievedAt": "2026-09-29",
+                  "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html",
+                  "document": "CRA GST/HST rate table, with historical federal GST reduction effective 2008",
+                  "limitations": "Federal GST only. Provincial portions excluded. Basic groceries zero-rated; exempt supplies not itemized. Taxable share must be modelled.",
+                  "rateBps": 500,
+                  "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2007/12/prime-minister-rings-new-year-gst-cut.html"
+                },
+                "payroll": null,
+                "corporate": {
+                  "id": "ca-corporate",
+                  "countryId": "country.1aj872z",
+                  "kind": "corporate",
+                  "status": "partial",
+                  "scope": "federal",
+                  "currency": "CAD",
+                  "unit": "annual_currency_units_and_basis_points",
+                  "effectiveDate": "2012-01-01",
+                  "referenceDate": "2026-01-01",
+                  "retrievedAt": "2026-09-29",
+                  "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/corporations/corporation-tax-rates.html",
+                  "document": "CRA corporation tax rates, page dated 2025-05-30",
+                  "limitations": "General federal net rate only. Provincial rates, small business 9%, manufacturing reductions and financial-sector surcharge excluded.",
+                  "rateBps": 1500,
+                  "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2011/12/harper-government-highlights-tax-relief-2012.html"
+                }
+              }
+            }
+          ],
+          "annualBudget": {
+            "health": 18000000,
+            "education": 18000000,
+            "pensions": 24000000,
+            "incomeSupport": 12000000,
+            "infrastructure": 12000000,
+            "administration": 6000000
+          },
+          "cash": 23445900,
+          "debt": 0,
+          "interestRateBps": 200,
+          "debtLimit": 1200000000,
+          "monthlyBorrowingLimit": 20000000,
+          "arrears": {
+            "health": 0,
+            "education": 0,
+            "pensions": 0,
+            "incomeSupport": 0,
+            "infrastructure": 0,
+            "administration": 0
+          },
+          "interestArrears": 0,
+          "services": {
+            "health": {
+              "status": "modelled",
+              "referencePopulation": 10000,
+              "referenceMonthlyCost": 1500000,
+              "required": 1500000,
+              "spending": 1500000,
+              "fundedCapacity": 10000,
+              "capacity": 10000,
+              "coverageBps": 10000,
+              "backlog": 0
+            },
+            "education": {
+              "status": "modelled",
+              "referencePopulation": 10000,
+              "referenceMonthlyCost": 1500000,
+              "required": 1500000,
+              "spending": 1500000,
+              "fundedCapacity": 10000,
+              "capacity": 10000,
+              "coverageBps": 10000,
+              "backlog": 0
+            },
+            "infrastructure": {
+              "status": "modelled",
+              "referencePopulation": 10000,
+              "referenceMonthlyCost": 1000000,
+              "required": 1000000,
+              "spending": 1000000,
+              "fundedCapacity": 10000,
+              "capacity": 10000,
+              "coverageBps": 10000,
+              "backlog": 0
+            }
+          },
+          "revenueCalibration": {
+            "status": "modelled",
+            "monthlyAmount": 3519975,
+            "referenceDate": "2026-01-01",
+            "dataset": "fiscal-0.11-baseline-financing-v1",
+            "method": "Fixed residual equals initial monthly appropriations minus simulated known-tax revenue, floored at zero.",
+            "limitation": "Not an observed tax rate or revenue total; prevents legal-data gaps alone from creating structural deficits. Never recalibrated after reforms."
+          },
+          "debtInitialization": {
+            "status": "modelled",
+            "amount": 0,
+            "referenceDate": "2026-01-01",
+            "dataset": "fiscal-0.11-debt-initialization-v1",
+            "method": "Explicit zero opening stock required by the sandbox financing model.",
+            "limitation": "Modelled initialization, not an observation of real sovereign debt."
+          },
+          "initialization": {
+            "status": "modelled",
+            "date": "2026-01-01",
+            "economicCoverage": "complete",
+            "output": 100000000,
+            "method": "fiscal-0.11-v1; current saved economy; no reconstructed history; 2026 law held fixed until explicit reform (not a prediction of subsequent real law)"
+          },
+          "account": {
+            "unit": "USD_NOMINAL",
+            "period": "MONTH",
+            "policyApplied": {
+              "personal": null,
+              "consumption": {
+                "id": "ca-gst",
+                "countryId": "country.1aj872z",
+                "kind": "consumption",
+                "status": "partial",
+                "scope": "federal",
+                "currency": "CAD",
+                "unit": "annual_currency_units_and_basis_points",
+                "effectiveDate": "2008-01-01",
+                "referenceDate": "2026-01-01",
+                "retrievedAt": "2026-09-29",
+                "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html",
+                "document": "CRA GST/HST rate table, with historical federal GST reduction effective 2008",
+                "limitations": "Federal GST only. Provincial portions excluded. Basic groceries zero-rated; exempt supplies not itemized. Taxable share must be modelled.",
+                "rateBps": 500,
+                "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2007/12/prime-minister-rings-new-year-gst-cut.html"
+              },
+              "payroll": null,
+              "corporate": {
+                "id": "ca-corporate",
+                "countryId": "country.1aj872z",
+                "kind": "corporate",
+                "status": "partial",
+                "scope": "federal",
+                "currency": "CAD",
+                "unit": "annual_currency_units_and_basis_points",
+                "effectiveDate": "2012-01-01",
+                "referenceDate": "2026-01-01",
+                "retrievedAt": "2026-09-29",
+                "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/corporations/corporation-tax-rates.html",
+                "document": "CRA corporation tax rates, page dated 2025-05-30",
+                "limitations": "General federal net rate only. Provincial rates, small business 9%, manufacturing reductions and financial-sector surcharge excluded.",
+                "rateBps": 1500,
+                "effectiveDateEvidence": "https://www.canada.ca/en/news/archive/2011/12/harper-government-highlights-tax-relief-2012.html"
+              }
+            },
+            "collectionEfficiencyBps": 9000,
+            "date": "2028-07-01",
+            "taxes": {
+              "personal": {
+                "base": 65000000,
+                "liability": 0,
+                "collected": 0,
+                "status": "unavailable"
+              },
+              "consumption": {
+                "base": 36645662,
+                "liability": 1832283,
+                "collected": 1649055,
+                "status": "partial"
+              },
+              "employee": {
+                "base": 52000000,
+                "liability": 0,
+                "collected": 0,
+                "status": "unavailable"
+              },
+              "employer": {
+                "base": 52000000,
+                "liability": 0,
+                "collected": 0,
+                "status": "unavailable"
+              },
+              "corporate": {
+                "base": 17500000,
+                "liability": 2625000,
+                "collected": 2362500,
+                "status": "partial"
+              }
+            },
+            "knownTaxRevenue": 4011555,
+            "otherRevenue": 3519975,
+            "totalRevenue": 7531530,
+            "appropriated": {
+              "health": 1500000,
+              "education": 1500000,
+              "pensions": 2000000,
+              "incomeSupport": 1000000,
+              "infrastructure": 1000000,
+              "administration": 500000
+            },
+            "executed": {
+              "health": 1500000,
+              "education": 1500000,
+              "pensions": 2000000,
+              "incomeSupport": 1000000,
+              "infrastructure": 1000000,
+              "administration": 500000
+            },
+            "interestDue": 0,
+            "interestPaid": 0,
+            "totalSpending": 7500000,
+            "primaryBalance": 31530,
+            "overallBalance": 31530,
+            "openingCash": 23414370,
+            "closingCash": 23445900,
+            "openingDebt": 0,
+            "closingDebt": 0,
+            "financingNeed": 0,
+            "borrowed": 0,
+            "repaid": 0,
+            "arrears": {
+              "health": 0,
+              "education": 0,
+              "pensions": 0,
+              "incomeSupport": 0,
+              "infrastructure": 0,
+              "administration": 0
+            },
+            "openingArrears": {
+              "health": 0,
+              "education": 0,
+              "pensions": 0,
+              "incomeSupport": 0,
+              "infrastructure": 0,
+              "administration": 0
+            },
+            "openingInterestArrears": 0,
+            "interestArrears": 0,
+            "transferPaid": 3000000,
+            "stress": {
+              "financingBaselineStatus": "modelled",
+              "unpaidCommitments": 0,
+              "interestBurdenBps": 0,
+              "debtToAnnualOutputBps": 0,
+              "deficitToOutputBps": 0,
+              "pensionFundingGap": 0,
+              "incomeSupportFundingGap": 0,
+              "serviceUnderfunding": 0,
+              "infrastructureBacklog": 0,
+              "disposableIncomeDeclineBps": 0
+            }
+          }
+        },
+        "country.u6myyj": {
+          "policy": {
+            "personal": {
+              "id": "us-pit-2026",
+              "countryId": "country.u6myyj",
+              "kind": "personal",
+              "status": "partial",
+              "scope": "federal",
+              "currency": "USD",
+              "unit": "annual_currency_units_and_basis_points",
+              "effectiveDate": "2026-01-01",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-09-29",
+              "source": "https://www.irs.gov/irb/2025-45_IRB",
+              "document": "Rev. Proc. 2025-32, section 4, tax year 2026",
+              "limitations": "Single filer standard deduction only; credits, itemized deductions, age adjustments, AMT and state taxes excluded.",
+              "allowance": 16100,
+              "bands": [
+                {
+                  "lower": 0,
+                  "rateBps": 1000
+                },
+                {
+                  "lower": 12400,
+                  "rateBps": 1200
+                },
+                {
+                  "lower": 50400,
+                  "rateBps": 2200
+                },
+                {
+                  "lower": 105700,
+                  "rateBps": 2400
+                },
+                {
+                  "lower": 201775,
+                  "rateBps": 3200
+                },
+                {
+                  "lower": 256225,
+                  "rateBps": 3500
+                },
+                {
+                  "lower": 640600,
+                  "rateBps": 3700
+                }
+              ]
+            },
+            "consumption": null,
+            "payroll": {
+              "id": "us-payroll-2026",
+              "countryId": "country.u6myyj",
+              "kind": "payroll",
+              "status": "partial",
+              "scope": "federal",
+              "currency": "USD",
+              "unit": "annual_currency_units_and_basis_points",
+              "effectiveDate": "2026-01-01",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-09-29",
+              "source": "https://www.irs.gov/publications/p15",
+              "document": "Publication 15 (2026), Social security and Medicare taxes",
+              "limitations": "Employees only; additional Medicare uses single-filer threshold. Self employment, FUTA and state schemes excluded.",
+              "employee": [
+                {
+                  "rateBps": 620,
+                  "cap": 184500
+                },
+                {
+                  "rateBps": 145
+                },
+                {
+                  "rateBps": 90,
+                  "threshold": 200000
+                }
+              ],
+              "employer": [
+                {
+                  "rateBps": 620,
+                  "cap": 184500
+                },
+                {
+                  "rateBps": 145
+                }
+              ]
+            },
+            "corporate": {
+              "id": "us-corporate",
+              "countryId": "country.u6myyj",
+              "kind": "corporate",
+              "status": "partial",
+              "scope": "federal",
+              "currency": "USD",
+              "unit": "annual_currency_units_and_basis_points",
+              "effectiveDate": "2018-01-01",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-09-29",
+              "source": "https://uscode.house.gov/view.xhtml?req=(title:26+section:11+edition:prelim)",
+              "document": "26 USC 11(b), 2017 amendment effective tax years after 2017",
+              "limitations": "General federal corporation rate; credits, alternative minimum tax and special entities excluded.",
+              "rateBps": 2100
+            }
+          },
+          "policyHistory": [
+            {
+              "date": "2026-01-01",
+              "policy": {
+                "personal": {
+                  "id": "us-pit-2026",
+                  "countryId": "country.u6myyj",
+                  "kind": "personal",
+                  "status": "partial",
+                  "scope": "federal",
+                  "currency": "USD",
+                  "unit": "annual_currency_units_and_basis_points",
+                  "effectiveDate": "2026-01-01",
+                  "referenceDate": "2026-01-01",
+                  "retrievedAt": "2026-09-29",
+                  "source": "https://www.irs.gov/irb/2025-45_IRB",
+                  "document": "Rev. Proc. 2025-32, section 4, tax year 2026",
+                  "limitations": "Single filer standard deduction only; credits, itemized deductions, age adjustments, AMT and state taxes excluded.",
+                  "allowance": 16100,
+                  "bands": [
+                    {
+                      "lower": 0,
+                      "rateBps": 1000
+                    },
+                    {
+                      "lower": 12400,
+                      "rateBps": 1200
+                    },
+                    {
+                      "lower": 50400,
+                      "rateBps": 2200
+                    },
+                    {
+                      "lower": 105700,
+                      "rateBps": 2400
+                    },
+                    {
+                      "lower": 201775,
+                      "rateBps": 3200
+                    },
+                    {
+                      "lower": 256225,
+                      "rateBps": 3500
+                    },
+                    {
+                      "lower": 640600,
+                      "rateBps": 3700
+                    }
+                  ]
+                },
+                "consumption": null,
+                "payroll": {
+                  "id": "us-payroll-2026",
+                  "countryId": "country.u6myyj",
+                  "kind": "payroll",
+                  "status": "partial",
+                  "scope": "federal",
+                  "currency": "USD",
+                  "unit": "annual_currency_units_and_basis_points",
+                  "effectiveDate": "2026-01-01",
+                  "referenceDate": "2026-01-01",
+                  "retrievedAt": "2026-09-29",
+                  "source": "https://www.irs.gov/publications/p15",
+                  "document": "Publication 15 (2026), Social security and Medicare taxes",
+                  "limitations": "Employees only; additional Medicare uses single-filer threshold. Self employment, FUTA and state schemes excluded.",
+                  "employee": [
+                    {
+                      "rateBps": 620,
+                      "cap": 184500
+                    },
+                    {
+                      "rateBps": 145
+                    },
+                    {
+                      "rateBps": 90,
+                      "threshold": 200000
+                    }
+                  ],
+                  "employer": [
+                    {
+                      "rateBps": 620,
+                      "cap": 184500
+                    },
+                    {
+                      "rateBps": 145
+                    }
+                  ]
+                },
+                "corporate": {
+                  "id": "us-corporate",
+                  "countryId": "country.u6myyj",
+                  "kind": "corporate",
+                  "status": "partial",
+                  "scope": "federal",
+                  "currency": "USD",
+                  "unit": "annual_currency_units_and_basis_points",
+                  "effectiveDate": "2018-01-01",
+                  "referenceDate": "2026-01-01",
+                  "retrievedAt": "2026-09-29",
+                  "source": "https://uscode.house.gov/view.xhtml?req=(title:26+section:11+edition:prelim)",
+                  "document": "26 USC 11(b), 2017 amendment effective tax years after 2017",
+                  "limitations": "General federal corporation rate; credits, alternative minimum tax and special entities excluded.",
+                  "rateBps": 2100
+                }
+              }
+            }
+          ],
+          "annualBudget": {
+            "health": 18000000,
+            "education": 18000000,
+            "pensions": 24000000,
+            "incomeSupport": 12000000,
+            "infrastructure": 12000000,
+            "administration": 6000000,
+            "defense": 12000000
+          },
+          "cash": 304095645,
+          "debt": 0,
+          "interestRateBps": 200,
+          "debtLimit": 1200000000,
+          "monthlyBorrowingLimit": 20000000,
+          "arrears": {
+            "health": 0,
+            "education": 0,
+            "pensions": 0,
+            "incomeSupport": 0,
+            "infrastructure": 0,
+            "administration": 0
+          },
+          "interestArrears": 0,
+          "services": {
+            "health": {
+              "status": "modelled",
+              "referencePopulation": 10000,
+              "referenceMonthlyCost": 1500000,
+              "required": 1500000,
+              "spending": 1500000,
+              "fundedCapacity": 10000,
+              "capacity": 10000,
+              "coverageBps": 10000,
+              "backlog": 0
+            },
+            "education": {
+              "status": "modelled",
+              "referencePopulation": 10000,
+              "referenceMonthlyCost": 1500000,
+              "required": 1500000,
+              "spending": 1500000,
+              "fundedCapacity": 10000,
+              "capacity": 10000,
+              "coverageBps": 10000,
+              "backlog": 0
+            },
+            "infrastructure": {
+              "status": "modelled",
+              "referencePopulation": 10000,
+              "referenceMonthlyCost": 1000000,
+              "required": 1000000,
+              "spending": 1000000,
+              "fundedCapacity": 10000,
+              "capacity": 10000,
+              "coverageBps": 10000,
+              "backlog": 0
+            }
+          },
+          "revenueCalibration": {
+            "status": "modelled",
+            "monthlyAmount": 0,
+            "referenceDate": "2026-01-01",
+            "dataset": "fiscal-0.11-baseline-financing-v1",
+            "method": "Fixed residual equals initial monthly appropriations minus simulated known-tax revenue, floored at zero.",
+            "limitation": "Not an observed tax rate or revenue total; prevents legal-data gaps alone from creating structural deficits. Never recalibrated after reforms."
+          },
+          "debtInitialization": {
+            "status": "modelled",
+            "amount": 0,
+            "referenceDate": "2026-01-01",
+            "dataset": "fiscal-0.11-debt-initialization-v1",
+            "method": "Explicit zero opening stock required by the sandbox financing model.",
+            "limitation": "Modelled initialization, not an observation of real sovereign debt."
+          },
+          "initialization": {
+            "status": "modelled",
+            "date": "2026-01-01",
+            "economicCoverage": "complete",
+            "output": 100000000,
+            "method": "fiscal-0.11-v1; current saved economy; no reconstructed history; 2026 law held fixed until explicit reform (not a prediction of subsequent real law)"
+          },
+          "account": {
+            "unit": "USD_NOMINAL",
+            "period": "MONTH",
+            "policyApplied": {
+              "personal": {
+                "id": "us-pit-2026",
+                "countryId": "country.u6myyj",
+                "kind": "personal",
+                "status": "partial",
+                "scope": "federal",
+                "currency": "USD",
+                "unit": "annual_currency_units_and_basis_points",
+                "effectiveDate": "2026-01-01",
+                "referenceDate": "2026-01-01",
+                "retrievedAt": "2026-09-29",
+                "source": "https://www.irs.gov/irb/2025-45_IRB",
+                "document": "Rev. Proc. 2025-32, section 4, tax year 2026",
+                "limitations": "Single filer standard deduction only; credits, itemized deductions, age adjustments, AMT and state taxes excluded.",
+                "allowance": 16100,
+                "bands": [
+                  {
+                    "lower": 0,
+                    "rateBps": 1000
+                  },
+                  {
+                    "lower": 12400,
+                    "rateBps": 1200
+                  },
+                  {
+                    "lower": 50400,
+                    "rateBps": 2200
+                  },
+                  {
+                    "lower": 105700,
+                    "rateBps": 2400
+                  },
+                  {
+                    "lower": 201775,
+                    "rateBps": 3200
+                  },
+                  {
+                    "lower": 256225,
+                    "rateBps": 3500
+                  },
+                  {
+                    "lower": 640600,
+                    "rateBps": 3700
+                  }
+                ]
+              },
+              "consumption": null,
+              "payroll": {
+                "id": "us-payroll-2026",
+                "countryId": "country.u6myyj",
+                "kind": "payroll",
+                "status": "partial",
+                "scope": "federal",
+                "currency": "USD",
+                "unit": "annual_currency_units_and_basis_points",
+                "effectiveDate": "2026-01-01",
+                "referenceDate": "2026-01-01",
+                "retrievedAt": "2026-09-29",
+                "source": "https://www.irs.gov/publications/p15",
+                "document": "Publication 15 (2026), Social security and Medicare taxes",
+                "limitations": "Employees only; additional Medicare uses single-filer threshold. Self employment, FUTA and state schemes excluded.",
+                "employee": [
+                  {
+                    "rateBps": 620,
+                    "cap": 184500
+                  },
+                  {
+                    "rateBps": 145
+                  },
+                  {
+                    "rateBps": 90,
+                    "threshold": 200000
+                  }
+                ],
+                "employer": [
+                  {
+                    "rateBps": 620,
+                    "cap": 184500
+                  },
+                  {
+                    "rateBps": 145
+                  }
+                ]
+              },
+              "corporate": {
+                "id": "us-corporate",
+                "countryId": "country.u6myyj",
+                "kind": "corporate",
+                "status": "partial",
+                "scope": "federal",
+                "currency": "USD",
+                "unit": "annual_currency_units_and_basis_points",
+                "effectiveDate": "2018-01-01",
+                "referenceDate": "2026-01-01",
+                "retrievedAt": "2026-09-29",
+                "source": "https://uscode.house.gov/view.xhtml?req=(title:26+section:11+edition:prelim)",
+                "document": "26 USC 11(b), 2017 amendment effective tax years after 2017",
+                "limitations": "General federal corporation rate; credits, alternative minimum tax and special entities excluded.",
+                "rateBps": 2100
+              }
+            },
+            "collectionEfficiencyBps": 9000,
+            "date": "2028-07-01",
+            "taxes": {
+              "personal": {
+                "base": 51683333,
+                "liability": 7990733,
+                "collected": 7191660,
+                "status": "partial"
+              },
+              "consumption": {
+                "base": 32148548,
+                "liability": 0,
+                "collected": 0,
+                "status": "unavailable"
+              },
+              "employee": {
+                "base": 52100000,
+                "liability": 3798955,
+                "collected": 3419060,
+                "status": "partial"
+              },
+              "employer": {
+                "base": 52100000,
+                "liability": 3782755,
+                "collected": 3404480,
+                "status": "partial"
+              },
+              "corporate": {
+                "base": 15801203,
+                "liability": 3318253,
+                "collected": 2986428,
+                "status": "partial"
+              }
+            },
+            "knownTaxRevenue": 17001628,
+            "otherRevenue": 0,
+            "totalRevenue": 17001628,
+            "appropriated": {
+              "health": 1500000,
+              "education": 1500000,
+              "pensions": 2000000,
+              "incomeSupport": 1000000,
+              "infrastructure": 1000000,
+              "administration": 500000
+            },
+            "executed": {
+              "health": 1500000,
+              "education": 1500000,
+              "pensions": 2000000,
+              "incomeSupport": 1000000,
+              "infrastructure": 1000000,
+              "administration": 500000
+            },
+            "interestDue": 0,
+            "interestPaid": 0,
+            "totalSpending": 7609425,
+            "militaryPayroll": {
+              "gross": 100000,
+              "employerCost": 6885,
+              "withheldRevenue": 30330,
+              "taxes": {
+                "personal": {
+                  "base": 100000,
+                  "liability": 18400,
+                  "collected": 16560,
+                  "status": "partial"
+                },
+                "consumption": {
+                  "base": 0,
+                  "liability": 0,
+                  "collected": 0,
+                  "status": "unavailable"
+                },
+                "employee": {
+                  "base": 100000,
+                  "liability": 7650,
+                  "collected": 6885,
+                  "status": "partial"
+                },
+                "employer": {
+                  "base": 100000,
+                  "liability": 7650,
+                  "collected": 6885,
+                  "status": "partial"
+                },
+                "corporate": {
+                  "base": 0,
+                  "liability": 0,
+                  "collected": 0,
+                  "status": "partial"
+                }
+              },
+              "slips": [
+                {
+                  "regionId": "region.synthetic-0",
+                  "gross": [
+                    40000,
+                    40000,
+                    20000
+                  ],
+                  "personal": [
+                    4320,
+                    7920,
+                    4320
+                  ],
+                  "employee": [
+                    2754,
+                    2754,
+                    1377
+                  ],
+                  "employer": [
+                    2754,
+                    2754,
+                    1377
+                  ]
+                }
+              ]
+            },
+            "financingRevenue": 16971298,
+            "defensePublicOrders": [
+              {
+                "regionId": "region.synthetic-0",
+                "amount": 2540
+              }
+            ],
+            "primaryBalance": 9392203,
+            "overallBalance": 9392203,
+            "defense": {
+              "authorized": 1000000,
+              "requested": 109425,
+              "obligation": 109425,
+              "executed": 109425,
+              "payroll": 106885,
+              "procurement": 2540
+            },
+            "openingCash": 294703442,
+            "closingCash": 304095645,
+            "openingDebt": 0,
+            "closingDebt": 0,
+            "financingNeed": 0,
+            "borrowed": 0,
+            "repaid": 0,
+            "arrears": {
+              "health": 0,
+              "education": 0,
+              "pensions": 0,
+              "incomeSupport": 0,
+              "infrastructure": 0,
+              "administration": 0
+            },
+            "openingArrears": {
+              "health": 0,
+              "education": 0,
+              "pensions": 0,
+              "incomeSupport": 0,
+              "infrastructure": 0,
+              "administration": 0
+            },
+            "openingInterestArrears": 0,
+            "interestArrears": 0,
+            "transferPaid": 3000000,
+            "stress": {
+              "financingBaselineStatus": "modelled",
+              "unpaidCommitments": 0,
+              "interestBurdenBps": 0,
+              "debtToAnnualOutputBps": 0,
+              "deficitToOutputBps": 0,
+              "pensionFundingGap": 0,
+              "incomeSupportFundingGap": 0,
+              "serviceUnderfunding": 0,
+              "infrastructureBacklog": 0,
+              "disposableIncomeDeclineBps": 0
+            }
+          }
+        }
+      },
+      "regions": {
+        "region.synthetic-1": {
+          "owner": "country.1aj872z",
+          "taxes": {
+            "personal": {
+              "base": 65000000,
+              "liability": 0,
+              "collected": 0,
+              "status": "unavailable"
+            },
+            "consumption": {
+              "base": 36645662,
+              "liability": 1832283,
+              "collected": 1649055,
+              "status": "partial"
+            },
+            "employee": {
+              "base": 52000000,
+              "liability": 0,
+              "collected": 0,
+              "status": "unavailable"
+            },
+            "employer": {
+              "base": 52000000,
+              "liability": 0,
+              "collected": 0,
+              "status": "unavailable"
+            },
+            "corporate": {
+              "base": 17500000,
+              "liability": 2625000,
+              "collected": 2362500,
+              "status": "partial"
+            }
+          },
+          "grossIncome": [
+            13000000,
+            26000000,
+            26000000
+          ],
+          "personal": [
+            0,
+            0,
+            0
+          ],
+          "employee": [
+            0,
+            0,
+            0
+          ],
+          "transfers": [
+            1800000,
+            800000,
+            400000
+          ],
+          "disposable": [
+            14800000,
+            26800000,
+            26400000
+          ],
+          "netConsumption": [
+            13630635,
+            22084343,
+            16635967
+          ],
+          "consumptionTax": [
+            429365,
+            695657,
+            524033
+          ],
+          "grossExpenditure": [
+            14060000,
+            22780000,
+            17160000
+          ],
+          "businessSurplus": 17500000,
+          "retainedBusinessSurplus": 15137500,
+          "labourCost": 52000000,
+          "privateResidual": 43149055,
+          "publicOrders": 4500000
+        },
+        "region.synthetic-0": {
+          "owner": "country.u6myyj",
+          "taxes": {
+            "personal": {
+              "base": 51583333,
+              "liability": 7972333,
+              "collected": 7175100,
+              "status": "partial"
+            },
+            "consumption": {
+              "base": 32148548,
+              "liability": 0,
+              "collected": 0,
+              "status": "unavailable"
+            },
+            "employee": {
+              "base": 52000000,
+              "liability": 3791305,
+              "collected": 3412175,
+              "status": "partial"
+            },
+            "employer": {
+              "base": 52000000,
+              "liability": 3775105,
+              "collected": 3397595,
+              "status": "partial"
+            },
+            "corporate": {
+              "base": 15801203,
+              "liability": 3318253,
+              "collected": 2986428,
+              "status": "partial"
+            }
+          },
+          "grossIncome": [
+            13000000,
+            26000000,
+            26000000
+          ],
+          "personal": [
+            750000,
+            2499000,
+            3926100
+          ],
+          "employee": [
+            716040,
+            1432080,
+            1264055
+          ],
+          "transfers": [
+            1800000,
+            800000,
+            400000
+          ],
+          "disposable": [
+            13366886,
+            22898246,
+            21224148
+          ],
+          "netConsumption": [
+            12689907,
+            19450274,
+            13786315
+          ],
+          "consumptionTax": [
+            0,
+            0,
+            0
+          ],
+          "grossExpenditure": [
+            12689907,
+            19450274,
+            13786315
+          ],
+          "businessSurplus": 15801203,
+          "retainedBusinessSurplus": 12814775,
+          "labourCost": 55397595,
+          "privateResidual": 49607757,
+          "publicOrders": 4502540,
+          "militaryPay": [
+            32926,
+            29326,
+            14303
+          ]
+        }
+      },
+      "reforms": [],
+      "reformReceipts": [
+        {
+          "sequence": 0,
+          "countryId": "country.u6myyj",
+          "effectiveDate": "2026-01-01",
+          "reformFingerprint": "a895dff48d435d22",
+          "recordedBy": "runtime"
+        }
+      ],
+      "nextSequence": 1,
+      "initializedOn": "2026-01-01",
+      "lastMonthlyDate": "2028-07-01"
+    },
+    "crisis": {
+      "version": "crisis-0.12-v1",
+      "evaluations": 300,
+      "countries": {
+        "country.1aj872z": {
+          "currentByType": {
+            "fiscal_stress": {
+              "id": "crisis:country.1aj872z:fiscal_stress:0",
+              "type": "fiscal_stress",
+              "countryId": "country.1aj872z",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "fiscal_stress:unpaid_commitments_to_revenue",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "unpaid_commitments_to_revenue",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 400,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated unpaid commitments divided by simulated total revenue. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "fiscal_stress:interest_burden",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "interest_burden",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1800,
+                  "recoveryThreshold": 1000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated interest paid divided by total revenue. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "fiscal_stress:debt_to_annual_output",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "debt_to_annual_output",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 9000,
+                  "recoveryThreshold": 7000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated debt divided by annualized current output. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "fiscal_stress:deficit_to_output",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "deficit_to_output",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 800,
+                  "recoveryThreshold": 200,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated monthly deficit divided by current monthly output. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "debt_to_annual_output",
+                "deficit_to_output",
+                "interest_burden",
+                "unpaid_commitments_to_revenue"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "public_service_degradation": {
+              "id": "crisis:country.1aj872z:public_service_degradation:0",
+              "type": "public_service_degradation",
+              "countryId": "country.1aj872z",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "public_service_degradation:health_coverage",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "health_coverage",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8000,
+                  "recoveryThreshold": 9000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated health service coverage."
+                  }
+                },
+                {
+                  "id": "public_service_degradation:education_coverage",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "education_coverage",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8000,
+                  "recoveryThreshold": 9000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated education service coverage."
+                  }
+                },
+                {
+                  "id": "public_service_degradation:service_underfunding",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "service_underfunding",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Health and education spending gap against simulated requirements. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "public_service_degradation:service_backlog",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "service_backlog",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 4000,
+                  "recoveryThreshold": 1000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Accumulated health and education backlog against monthly requirements. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "education_coverage",
+                "health_coverage",
+                "service_backlog",
+                "service_underfunding"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "household_distress": {
+              "id": "crisis:country.1aj872z:household_distress:0",
+              "type": "household_distress",
+              "countryId": "country.1aj872z",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "household_distress:unemployment",
+                  "crisisType": "household_distress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "unemployment",
+                  "currentValue": 500,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 900,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Current unemployment divided by current labour force. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:employment_deterioration",
+                  "crisisType": "household_distress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "employment_deterioration",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Employment loss against calibrated baseline employment. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:disposable_income_decline",
+                  "crisisType": "household_distress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "disposable_income_decline",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Monthly decline in simulated household disposable income."
+                  }
+                },
+                {
+                  "id": "household_distress:basic_needs_coverage",
+                  "crisisType": "household_distress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "basic_needs_coverage",
+                  "currentValue": 9968,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Essential consumption divided by calibrated essential reference. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:persistent_shortage",
+                  "crisisType": "household_distress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "persistent_shortage",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Unmet simulated demand divided by total demand. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:household_consumption_coverage",
+                  "crisisType": "household_distress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "household_consumption_coverage",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 9000,
+                  "recoveryThreshold": 9700,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Realized household consumption divided by household demand. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "basic_needs_coverage",
+                "disposable_income_decline",
+                "employment_deterioration",
+                "household_consumption_coverage",
+                "persistent_shortage",
+                "unemployment"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "transfer_system_stress": {
+              "id": "crisis:country.1aj872z:transfer_system_stress:0",
+              "type": "transfer_system_stress",
+              "countryId": "country.1aj872z",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "transfer_system_stress:pension_funding_gap",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "pension_funding_gap",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Pension appropriation not executed. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "transfer_system_stress:income_support_funding_gap",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "income_support_funding_gap",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Income-support appropriation not executed. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "transfer_system_stress:transfer_arrears",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "transfer_arrears",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 200,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Pension and income-support arrears against current appropriations. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "transfer_system_stress:transfer_execution",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "transfer_execution",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Executed transfers against current obligations including opening arrears. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "income_support_funding_gap",
+                "pension_funding_gap",
+                "transfer_arrears",
+                "transfer_execution"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "infrastructure_degradation": {
+              "id": "crisis:country.1aj872z:infrastructure_degradation:0",
+              "type": "infrastructure_degradation",
+              "countryId": "country.1aj872z",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "infrastructure_degradation:infrastructure_coverage",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "infrastructure_coverage",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated infrastructure service coverage."
+                  }
+                },
+                {
+                  "id": "infrastructure_degradation:funded_capacity",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "funded_capacity",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Funded infrastructure capacity against reference population capacity. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "infrastructure_degradation:executed_spending",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "executed_spending",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Executed infrastructure spending against simulated requirement. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "infrastructure_degradation:infrastructure_backlog",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.1aj872z",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "infrastructure_backlog",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 3000,
+                  "recoveryThreshold": 1000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Accumulated infrastructure backlog against monthly requirement. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "executed_spending",
+                "funded_capacity",
+                "infrastructure_backlog",
+                "infrastructure_coverage"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            }
+          },
+          "history": []
+        },
+        "country.u6myyj": {
+          "currentByType": {
+            "fiscal_stress": {
+              "id": "crisis:country.u6myyj:fiscal_stress:0",
+              "type": "fiscal_stress",
+              "countryId": "country.u6myyj",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "fiscal_stress:unpaid_commitments_to_revenue",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "unpaid_commitments_to_revenue",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 400,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated unpaid commitments divided by simulated total revenue. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "fiscal_stress:interest_burden",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "interest_burden",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1800,
+                  "recoveryThreshold": 1000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated interest paid divided by total revenue. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "fiscal_stress:debt_to_annual_output",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "debt_to_annual_output",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 9000,
+                  "recoveryThreshold": 7000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated debt divided by annualized current output. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "fiscal_stress:deficit_to_output",
+                  "crisisType": "fiscal_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "deficit_to_output",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 800,
+                  "recoveryThreshold": 200,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated monthly deficit divided by current monthly output. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "debt_to_annual_output",
+                "deficit_to_output",
+                "interest_burden",
+                "unpaid_commitments_to_revenue"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "public_service_degradation": {
+              "id": "crisis:country.u6myyj:public_service_degradation:0",
+              "type": "public_service_degradation",
+              "countryId": "country.u6myyj",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "public_service_degradation:health_coverage",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "health_coverage",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8000,
+                  "recoveryThreshold": 9000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated health service coverage."
+                  }
+                },
+                {
+                  "id": "public_service_degradation:education_coverage",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "education_coverage",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8000,
+                  "recoveryThreshold": 9000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated education service coverage."
+                  }
+                },
+                {
+                  "id": "public_service_degradation:service_underfunding",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "service_underfunding",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Health and education spending gap against simulated requirements. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "public_service_degradation:service_backlog",
+                  "crisisType": "public_service_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "service_backlog",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 4000,
+                  "recoveryThreshold": 1000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Accumulated health and education backlog against monthly requirements. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "education_coverage",
+                "health_coverage",
+                "service_backlog",
+                "service_underfunding"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "household_distress": {
+              "id": "crisis:country.u6myyj:household_distress:0",
+              "type": "household_distress",
+              "countryId": "country.u6myyj",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "low",
+              "currentPressure": 2275,
+              "maximumPressure": 2625,
+              "maximumSeverity": "low",
+              "currentTripwires": [
+                {
+                  "id": "household_distress:unemployment",
+                  "crisisType": "household_distress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "unemployment",
+                  "currentValue": 500,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 900,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Current unemployment divided by current labour force. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:employment_deterioration",
+                  "crisisType": "household_distress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "employment_deterioration",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Employment loss against calibrated baseline employment. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:disposable_income_decline",
+                  "crisisType": "household_distress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "disposable_income_decline",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Monthly decline in simulated household disposable income."
+                  }
+                },
+                {
+                  "id": "household_distress:basic_needs_coverage",
+                  "crisisType": "household_distress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "basic_needs_coverage",
+                  "currentValue": 9118,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 2275,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 0,
+                  "severityContribution": 2275,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 2275,
+                  "dangerous": false,
+                  "recovered": false,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Essential consumption divided by calibrated essential reference. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:persistent_shortage",
+                  "crisisType": "household_distress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "persistent_shortage",
+                  "currentValue": 7,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Unmet simulated demand divided by total demand. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "household_distress:household_consumption_coverage",
+                  "crisisType": "household_distress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "socioeconomy-0.10-v1",
+                  "indicator": "household_consumption_coverage",
+                  "currentValue": 9993,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 9000,
+                  "recoveryThreshold": 9700,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "derived",
+                    "sourceSystem": "socioeconomy-0.10-v1",
+                    "detail": "Realized household consumption divided by household demand. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [
+                "basic_needs_coverage:2275"
+              ],
+              "recoveryDrivers": [
+                "disposable_income_decline",
+                "employment_deterioration",
+                "household_consumption_coverage",
+                "persistent_shortage",
+                "unemployment"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "transfer_system_stress": {
+              "id": "crisis:country.u6myyj:transfer_system_stress:0",
+              "type": "transfer_system_stress",
+              "countryId": "country.u6myyj",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "transfer_system_stress:pension_funding_gap",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "pension_funding_gap",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Pension appropriation not executed. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "transfer_system_stress:income_support_funding_gap",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "income_support_funding_gap",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1500,
+                  "recoveryThreshold": 500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Income-support appropriation not executed. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "transfer_system_stress:transfer_arrears",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "transfer_arrears",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 1000,
+                  "recoveryThreshold": 200,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Pension and income-support arrears against current appropriations. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "transfer_system_stress:transfer_execution",
+                  "crisisType": "transfer_system_stress",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "transfer_execution",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9500,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Executed transfers against current obligations including opening arrears. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "income_support_funding_gap",
+                "pension_funding_gap",
+                "transfer_arrears",
+                "transfer_execution"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            },
+            "infrastructure_degradation": {
+              "id": "crisis:country.u6myyj:infrastructure_degradation:0",
+              "type": "infrastructure_degradation",
+              "countryId": "country.u6myyj",
+              "episodeOrdinal": 0,
+              "state": "NORMAL",
+              "severity": "none",
+              "currentPressure": 0,
+              "maximumPressure": 0,
+              "maximumSeverity": "none",
+              "currentTripwires": [
+                {
+                  "id": "infrastructure_degradation:infrastructure_coverage",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "infrastructure_coverage",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Simulated infrastructure service coverage."
+                  }
+                },
+                {
+                  "id": "infrastructure_degradation:funded_capacity",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "funded_capacity",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Funded infrastructure capacity against reference population capacity. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "infrastructure_degradation:executed_spending",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "executed_spending",
+                  "currentValue": 10000,
+                  "unit": "BASIS_POINTS",
+                  "direction": "below",
+                  "dangerThreshold": 8500,
+                  "recoveryThreshold": 9300,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Executed infrastructure spending against simulated requirement. Ratio basis: ratio."
+                  }
+                },
+                {
+                  "id": "infrastructure_degradation:infrastructure_backlog",
+                  "crisisType": "infrastructure_degradation",
+                  "countryId": "country.u6myyj",
+                  "sourceSystem": "fiscal-0.11-v2",
+                  "indicator": "infrastructure_backlog",
+                  "currentValue": 0,
+                  "unit": "BASIS_POINTS",
+                  "direction": "above",
+                  "dangerThreshold": 3000,
+                  "recoveryThreshold": 1000,
+                  "exceedanceBps": 0,
+                  "persistenceMonths": 0,
+                  "recoveryMonths": 30,
+                  "severityContribution": 0,
+                  "persistenceContribution": 0,
+                  "deteriorationContribution": 0,
+                  "pressureContribution": 0,
+                  "dangerous": false,
+                  "recovered": true,
+                  "provenance": {
+                    "status": "modelled",
+                    "sourceSystem": "fiscal-0.11-v2",
+                    "detail": "Accumulated infrastructure backlog against monthly requirement. Ratio basis: ratio."
+                  }
+                }
+              ],
+              "dangerousEvaluations": 0,
+              "recoveryEvaluations": 0,
+              "explanation": [],
+              "recoveryDrivers": [
+                "executed_spending",
+                "funded_capacity",
+                "infrastructure_backlog",
+                "infrastructure_coverage"
+              ],
+              "lastEvaluatedOn": "2028-07-01"
+            }
+          },
+          "history": []
+        }
+      },
+      "initializedOn": "2026-02-01",
+      "lastMonthlyDate": "2028-07-01"
+    },
+    "politics": {
+      "version": "politics-0.13-v1",
+      "registryVersion": "political-registry-0.13-v4",
+      "weeklyEvaluations": 0,
+      "countries": {},
+      "regionalOpinion": {},
+      "organizations": {}
+    },
+    "governance": {
+      "version": "governance-0.14-v1",
+      "initializedOn": "2026-01-01",
+      "player": {
+        "controlledPersonId": "person.00000000"
+      },
+      "persons": {
+        "person.00000000": {
+          "id": "person.00000000",
+          "displayName": "Synthetic executive fixture",
+          "countryId": "country.u6myyj",
+          "createdOn": "2026-01-01",
+          "isPartyLeader": false,
+          "status": "active",
+          "office": {
+            "role": "head_of_government",
+            "countryId": "country.u6myyj",
+            "title": "Head of Government",
+            "appointedOn": "2026-01-01",
+            "authorityProfile": {
+              "status": "modelled_constitutional_abstraction",
+              "capabilities": [
+                "access_government_information",
+                "sponsor_budget_reform",
+                "sponsor_fiscal_reform",
+                "sponsor_legislation",
+                "vote_legislation"
+              ],
+              "limitation": "Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule."
+            }
+          }
+        }
+      },
+      "proposals": {},
+      "proposalOrder": [],
+      "nextPersonSequence": 1,
+      "nextProposalSequence": 0,
+      "successions": {},
+      "successionOrder": [],
+      "nextSuccessionSequence": 0
+    },
+    "information": {
+      "version": "information-0.15-v3",
+      "initializedOn": "2026-01-01",
+      "latestGovernmentReports": {
+        "country.1aj872z": {
+          "id": "government-report:country.1aj872z:unemployment:2028-07-01",
+          "countryId": "country.1aj872z",
+          "indicator": "unemployment_rate",
+          "valueBps": 500,
+          "asOfDate": "2028-07-01",
+          "status": "modelled",
+          "coverage": "complete",
+          "unit": "basis_points",
+          "source": "socioeconomy.monthly",
+          "limitation": "Modelled aggregate of the monthly simulated unemployment and labour-force stocks, not a sourced official statistical publication."
+        },
+        "country.u6myyj": {
+          "id": "government-report:country.u6myyj:unemployment:2028-07-01",
+          "countryId": "country.u6myyj",
+          "indicator": "unemployment_rate",
+          "valueBps": 333,
+          "asOfDate": "2028-07-01",
+          "status": "modelled",
+          "coverage": "complete",
+          "unit": "basis_points",
+          "source": "socioeconomy.monthly",
+          "limitation": "Modelled aggregate of the monthly simulated unemployment and labour-force stocks, not a sourced official statistical publication."
+        }
+      },
+      "governmentReportsById": {
+        "government-report:country.1aj872z:unemployment:2028-07-01": {
+          "id": "government-report:country.1aj872z:unemployment:2028-07-01",
+          "countryId": "country.1aj872z",
+          "indicator": "unemployment_rate",
+          "valueBps": 500,
+          "asOfDate": "2028-07-01",
+          "status": "modelled",
+          "coverage": "complete",
+          "unit": "basis_points",
+          "source": "socioeconomy.monthly",
+          "limitation": "Modelled aggregate of the monthly simulated unemployment and labour-force stocks, not a sourced official statistical publication."
+        },
+        "government-report:country.u6myyj:unemployment:2028-07-01": {
+          "id": "government-report:country.u6myyj:unemployment:2028-07-01",
+          "countryId": "country.u6myyj",
+          "indicator": "unemployment_rate",
+          "valueBps": 333,
+          "asOfDate": "2028-07-01",
+          "status": "modelled",
+          "coverage": "complete",
+          "unit": "basis_points",
+          "source": "socioeconomy.monthly",
+          "limitation": "Modelled aggregate of the monthly simulated unemployment and labour-force stocks, not a sourced official statistical publication."
+        }
+      },
+      "briefings": [
+        {
+          "id": "briefing:military_report:country.u6myyj:military-report:country.u6myyj:2028-06-01",
+          "countryId": "country.u6myyj",
+          "portfolio": "defense",
+          "access": "government",
+          "eventType": "military_report",
+          "severity": "advisory",
+          "createdOn": "2028-06-01",
+          "sourceId": "military-report:country.u6myyj:2028-06-01",
+          "headline": "Defense administrative report: delivery completed; 4 units delivered.",
+          "fact": {
+            "kind": "military_report",
+            "reportId": "military-report:country.u6myyj:2028-06-01",
+            "evidenceStatus": "modelled"
+          },
+          "interpretation": {
+            "basis": "modelled",
+            "summary": "Capability limits follow the reported personnel, physical equipment, supplies and funded work.",
+            "tradeoffs": [
+              "Restoration requires time, existing workforce, stock and actual fiscal financing."
+            ],
+            "limitations": [
+              "Modelled administrative census of the configured simulated capability, not observed real readiness or combat effectiveness.",
+              "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation."
+            ]
+          },
+          "pauseRequested": false
+        },
+        {
+          "id": "briefing:military_report:country.u6myyj:military-report:country.u6myyj:2028-07-01",
+          "countryId": "country.u6myyj",
+          "portfolio": "defense",
+          "access": "government",
+          "eventType": "military_report",
+          "severity": "advisory",
+          "createdOn": "2028-07-01",
+          "sourceId": "military-report:country.u6myyj:2028-07-01",
+          "headline": "Defense administrative report: delivery completed; 1 units delivered.",
+          "fact": {
+            "kind": "military_report",
+            "reportId": "military-report:country.u6myyj:2028-07-01",
+            "evidenceStatus": "modelled"
+          },
+          "interpretation": {
+            "basis": "modelled",
+            "summary": "Capability limits follow the reported personnel, physical equipment, supplies and funded work.",
+            "tradeoffs": [
+              "Restoration requires time, existing workforce, stock and actual fiscal financing."
+            ],
+            "limitations": [
+              "Modelled administrative census of the configured simulated capability, not observed real readiness or combat effectiveness.",
+              "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation."
+            ]
+          },
+          "pauseRequested": false
+        }
+      ],
+      "proposalEstimates": [],
+      "militaryReports": {
+        "latest": {
+          "country.1aj872z": {
+            "id": "military-report:country.1aj872z:2028-07-01",
+            "countryId": "country.1aj872z",
+            "asOfDate": "2028-07-01",
+            "producedOn": "2028-07-01",
+            "access": "government",
+            "source": "military.administrative-report",
+            "status": "unavailable",
+            "coverage": "unavailable",
+            "confidenceBps": 0,
+            "uncertainty": "No admitted military capacity data.",
+            "limitation": "No complete operational military baseline is installed: authorized/available staff, salaries, equipment, consumables and industry remain unavailable. A partial historical source reference does not initialize a simulated army. Unknown is not zero.",
+            "alertCodes": [],
+            "fingerprint": "cea5d4d69b175549"
+          },
+          "country.u6myyj": {
+            "readinessVersion": "positive-targets-0.16-v1",
+            "id": "military-report:country.u6myyj:2028-07-01",
+            "countryId": "country.u6myyj",
+            "asOfDate": "2028-07-01",
+            "producedOn": "2028-07-01",
+            "access": "government",
+            "source": "military.administrative-report",
+            "status": "modelled",
+            "coverage": "complete",
+            "confidenceBps": 7000,
+            "uncertainty": "Modelled administrative census of the configured simulated capability, not observed real readiness or combat effectiveness.",
+            "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+            "provenance": {
+              "status": "modelled",
+              "publisher": "ProjectAtlas explicit synthetic integration fixture",
+              "url": "scenario:synthetic-military-test",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-10-03",
+              "licence": "ProjectAtlas test fixture (ISC)",
+              "attribution": "ProjectAtlas",
+              "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+              "scenarioFixture": true
+            },
+            "data": {
+              "authorized": 100,
+              "present": 100,
+              "trainees": 0,
+              "available": 100,
+              "vacancies": 0,
+              "monthlySalaryUsd": 1000,
+              "payrollDue": 100000,
+              "payrollPaid": 100000,
+              "payrollArrears": 0,
+              "expenditureUsd": 109425,
+              "maintenanceBacklog": 7,
+              "exercisePersonMonths": 100,
+              "logisticsCapacity": 100,
+              "readiness": {
+                "components": {
+                  "personnel": 10000,
+                  "equipment": 9500,
+                  "training": 10000,
+                  "stocks": 8000,
+                  "logistics": 10000
+                },
+                "limitingBps": 8000,
+                "logisticsCapacity": 100,
+                "limitation": "Modelled limiting capacity ratios, not combat power. Unspecified equipment/stock requirements are not applicable to this configured scenario; no inference about an unknown real army."
+              },
+              "supportStaff": {
+                "instructors": 20,
+                "technicians": 10,
+                "logistics": 5
+              },
+              "logisticsPersonsPerStaff": 20,
+              "industrialMaterials": 995,
+              "factoryUnitsPerMonth": 10,
+              "deliveredThisMonth": 1,
+              "equipment": [
+                {
+                  "item": "personal",
+                  "total": 100,
+                  "operational": 95,
+                  "unavailable": 0,
+                  "maintenance": 5,
+                  "reserve": 0,
+                  "required": 100
+                },
+                {
+                  "item": "truck",
+                  "total": 10,
+                  "operational": 8,
+                  "unavailable": 0,
+                  "maintenance": 2,
+                  "reserve": 0,
+                  "required": 5
+                }
+              ],
+              "stocks": [
+                {
+                  "item": "ammunition",
+                  "quantity": 400,
+                  "capacity": 10000,
+                  "consumed": 600,
+                  "required": 500
+                },
+                {
+                  "item": "fuel",
+                  "quantity": 400,
+                  "capacity": 10000,
+                  "consumed": 600,
+                  "required": 500
+                }
+              ],
+              "orders": []
+            },
+            "alertCodes": [],
+            "fingerprint": "6c730ad7f95e3fe5"
+          }
+        },
+        "byId": {
+          "military-report:country.1aj872z:2028-07-01": {
+            "id": "military-report:country.1aj872z:2028-07-01",
+            "countryId": "country.1aj872z",
+            "asOfDate": "2028-07-01",
+            "producedOn": "2028-07-01",
+            "access": "government",
+            "source": "military.administrative-report",
+            "status": "unavailable",
+            "coverage": "unavailable",
+            "confidenceBps": 0,
+            "uncertainty": "No admitted military capacity data.",
+            "limitation": "No complete operational military baseline is installed: authorized/available staff, salaries, equipment, consumables and industry remain unavailable. A partial historical source reference does not initialize a simulated army. Unknown is not zero.",
+            "alertCodes": [],
+            "fingerprint": "cea5d4d69b175549"
+          },
+          "military-report:country.u6myyj:2028-06-01": {
+            "readinessVersion": "positive-targets-0.16-v1",
+            "id": "military-report:country.u6myyj:2028-06-01",
+            "countryId": "country.u6myyj",
+            "asOfDate": "2028-06-01",
+            "producedOn": "2028-06-01",
+            "access": "government",
+            "source": "military.administrative-report",
+            "status": "modelled",
+            "coverage": "complete",
+            "confidenceBps": 7000,
+            "uncertainty": "Modelled administrative census of the configured simulated capability, not observed real readiness or combat effectiveness.",
+            "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+            "provenance": {
+              "status": "modelled",
+              "publisher": "ProjectAtlas explicit synthetic integration fixture",
+              "url": "scenario:synthetic-military-test",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-10-03",
+              "licence": "ProjectAtlas test fixture (ISC)",
+              "attribution": "ProjectAtlas",
+              "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+              "scenarioFixture": true
+            },
+            "data": {
+              "authorized": 100,
+              "present": 100,
+              "trainees": 0,
+              "available": 100,
+              "vacancies": 0,
+              "monthlySalaryUsd": 1000,
+              "payrollDue": 100000,
+              "payrollPaid": 100000,
+              "payrollArrears": 0,
+              "expenditureUsd": 109425,
+              "maintenanceBacklog": 5,
+              "exercisePersonMonths": 100,
+              "logisticsCapacity": 100,
+              "readiness": {
+                "components": {
+                  "personnel": 10000,
+                  "equipment": 9600,
+                  "training": 10000,
+                  "stocks": 8400,
+                  "logistics": 10000
+                },
+                "limitingBps": 8400,
+                "logisticsCapacity": 100,
+                "limitation": "Modelled limiting capacity ratios, not combat power. Unspecified equipment/stock requirements are not applicable to this configured scenario; no inference about an unknown real army."
+              },
+              "supportStaff": {
+                "instructors": 20,
+                "technicians": 10,
+                "logistics": 5
+              },
+              "logisticsPersonsPerStaff": 20,
+              "industrialMaterials": 995,
+              "factoryUnitsPerMonth": 10,
+              "deliveredThisMonth": 4,
+              "equipment": [
+                {
+                  "item": "personal",
+                  "total": 100,
+                  "operational": 96,
+                  "unavailable": 0,
+                  "maintenance": 4,
+                  "reserve": 0,
+                  "required": 100
+                },
+                {
+                  "item": "truck",
+                  "total": 9,
+                  "operational": 8,
+                  "unavailable": 0,
+                  "maintenance": 1,
+                  "reserve": 0,
+                  "required": 5
+                }
+              ],
+              "stocks": [
+                {
+                  "item": "ammunition",
+                  "quantity": 420,
+                  "capacity": 10000,
+                  "consumed": 580,
+                  "required": 500
+                },
+                {
+                  "item": "fuel",
+                  "quantity": 420,
+                  "capacity": 10000,
+                  "consumed": 580,
+                  "required": 500
+                }
+              ],
+              "orders": [
+                {
+                  "id": "order.0",
+                  "item": "truck",
+                  "quantity": 5,
+                  "funded": 5,
+                  "delivered": 4,
+                  "orderedOn": "2028-03-11",
+                  "earliestDeliveryOn": "2028-06-01",
+                  "paidUsd": 250000
+                }
+              ]
+            },
+            "alertCodes": [],
+            "fingerprint": "4ddcdc24d6fedfd8"
+          },
+          "military-report:country.u6myyj:2028-07-01": {
+            "readinessVersion": "positive-targets-0.16-v1",
+            "id": "military-report:country.u6myyj:2028-07-01",
+            "countryId": "country.u6myyj",
+            "asOfDate": "2028-07-01",
+            "producedOn": "2028-07-01",
+            "access": "government",
+            "source": "military.administrative-report",
+            "status": "modelled",
+            "coverage": "complete",
+            "confidenceBps": 7000,
+            "uncertainty": "Modelled administrative census of the configured simulated capability, not observed real readiness or combat effectiveness.",
+            "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+            "provenance": {
+              "status": "modelled",
+              "publisher": "ProjectAtlas explicit synthetic integration fixture",
+              "url": "scenario:synthetic-military-test",
+              "referenceDate": "2026-01-01",
+              "retrievedAt": "2026-10-03",
+              "licence": "ProjectAtlas test fixture (ISC)",
+              "attribution": "ProjectAtlas",
+              "limitation": "Entirely synthetic; not a real US army, personnel, wages, equipment, stocks or industry observation.",
+              "scenarioFixture": true
+            },
+            "data": {
+              "authorized": 100,
+              "present": 100,
+              "trainees": 0,
+              "available": 100,
+              "vacancies": 0,
+              "monthlySalaryUsd": 1000,
+              "payrollDue": 100000,
+              "payrollPaid": 100000,
+              "payrollArrears": 0,
+              "expenditureUsd": 109425,
+              "maintenanceBacklog": 7,
+              "exercisePersonMonths": 100,
+              "logisticsCapacity": 100,
+              "readiness": {
+                "components": {
+                  "personnel": 10000,
+                  "equipment": 9500,
+                  "training": 10000,
+                  "stocks": 8000,
+                  "logistics": 10000
+                },
+                "limitingBps": 8000,
+                "logisticsCapacity": 100,
+                "limitation": "Modelled limiting capacity ratios, not combat power. Unspecified equipment/stock requirements are not applicable to this configured scenario; no inference about an unknown real army."
+              },
+              "supportStaff": {
+                "instructors": 20,
+                "technicians": 10,
+                "logistics": 5
+              },
+              "logisticsPersonsPerStaff": 20,
+              "industrialMaterials": 995,
+              "factoryUnitsPerMonth": 10,
+              "deliveredThisMonth": 1,
+              "equipment": [
+                {
+                  "item": "personal",
+                  "total": 100,
+                  "operational": 95,
+                  "unavailable": 0,
+                  "maintenance": 5,
+                  "reserve": 0,
+                  "required": 100
+                },
+                {
+                  "item": "truck",
+                  "total": 10,
+                  "operational": 8,
+                  "unavailable": 0,
+                  "maintenance": 2,
+                  "reserve": 0,
+                  "required": 5
+                }
+              ],
+              "stocks": [
+                {
+                  "item": "ammunition",
+                  "quantity": 400,
+                  "capacity": 10000,
+                  "consumed": 600,
+                  "required": 500
+                },
+                {
+                  "item": "fuel",
+                  "quantity": 400,
+                  "capacity": 10000,
+                  "consumed": 600,
+                  "required": 500
+                }
+              ],
+              "orders": []
+            },
+            "alertCodes": [],
+            "fingerprint": "6c730ad7f95e3fe5"
+          }
+        }
+      }
+    },
+    "date": "2028-07-04",
+    "paused": false,
+    "speed": 1,
+    "territoryOwnership": {},
+    "regionOwnership": {
+      "region.synthetic-0": "country.u6myyj",
+      "region.synthetic-1": "country.1aj872z"
+    },
+    "populationByRegion": {
+      "region.synthetic-0": 10000,
+      "region.synthetic-1": 10000
+    },
+    "economicOutputByRegion": {
+      "region.synthetic-0": 1200000000,
+      "region.synthetic-1": 1200000000
+    },
+    "bilateralRelations": {},
+    "claims": [
+      {
+        "id": "claim.schema14-trade",
+        "claimantCountryId": "country.u6myyj",
+        "regionId": "region.synthetic-1",
+        "type": "territorial",
+        "creationDate": "2026-01-01",
+        "reason": "Explicit synthetic old structural-war migration fixture, not factual history.",
+        "status": "active"
+      }
+    ],
+    "explicitCasusBelli": [],
+    "wars": [
+      {
+        "id": "war.schema14-trade",
+        "attackerCountryId": "country.u6myyj",
+        "defenderCountryId": "country.1aj872z",
+        "status": "active",
+        "startDate": "2026-01-01",
+        "warGoal": "take_region",
+        "targetRegionId": "region.synthetic-1",
+        "declarationCasusBelli": {
+          "id": "claim-derived:claim.schema14-trade:country.1aj872z",
+          "issuerCountryId": "country.u6myyj",
+          "targetCountryId": "country.1aj872z",
+          "type": "territorial_claim",
+          "source": "claim",
+          "creationDate": "2026-01-01",
+          "targetRegionIds": [
+            "region.synthetic-1"
+          ],
+          "reason": "Explicit synthetic old structural-war migration fixture, not factual history.",
+          "claimId": "claim.schema14-trade"
+        }
+      }
+    ],
+    "occupationByRegion": {
+      "region.synthetic-1": {
+        "regionId": "region.synthetic-1",
+        "warId": "war.schema14-trade",
+        "occupierCountryId": "country.u6myyj",
+        "startDate": "2026-01-01"
+      }
+    },
+    "engine": {
+      "seed": "project-atlas-2026",
+      "tick": 915,
+      "fidelityByCountry": {
+        "country.1aj872z": "Standard",
+        "country.u6myyj": "Standard"
+      },
+      "pendingFidelityTransitions": [],
+      "recentFidelityTransitions": [],
+      "pendingImmediateUpdates": [],
+      "nextSequence": 0,
+      "dirtyDomains": []
+    }
+  }
+}

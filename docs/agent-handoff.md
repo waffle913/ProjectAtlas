@@ -4,9 +4,9 @@ This document is the canonical cross-system continuity brief for humans and codi
 
 ## Current validated state
 
-The accepted parent milestone is now **0.15**, following the user's independent-review decision, with save schema 13 and information version `information-0.15-v3`. Its contracts include versioned plurality, institutional evaluation and succession while preserving historical 0.14 records. The earlier accepted base `c8bcb0841f6a75887b2ca520eca88496331aa1fd` remains the milestone 0.14 historical reference, not the current acceptance boundary. Validated milestones 0.8–0.15 are architectural history, not tasks to redo.
+The accepted **0.15 foundation**, following the user's independent-review decision, introduced save schema 13 and information version `information-0.15-v3`. Its contracts include versioned plurality, institutional evaluation and succession while preserving historical 0.14 records. The earlier accepted base `c8bcb0841f6a75887b2ca520eca88496331aa1fd` remains the milestone 0.14 historical reference, not the current acceptance boundary. Validated milestones 0.8–0.15 are architectural history, not tasks to redo.
 
-The current 0.16 task is in correction/final review and is not yet accepted. Do not begin 0.17 without explicit user instruction. This document and the subsystem contracts are context, not permission to implement the roadmap. The current behavior remains limited by known modelled assumptions and data coverage; do not hide those limits by fabricating observations or weakening contracts.
+The user explicitly directed 0.17 from the corrected **validated 0.16** HEAD `7580ed683a8164764fbccfbe94bb828da84c57ed`, schema 14. This advancement is the acceptance boundary, not our tests or the earlier read-only review. **0.17 is now the authorized implementation, schema 15, pending independent review and not accepted.** No 0.18/0.19/0.20 is authorized. This document and subsystem contracts are context, not permission to implement further roadmap items. Known modelled assumptions and unavailable coverage remain explicit.
 
 Key subsystem references:
 
@@ -18,13 +18,17 @@ Key subsystem references:
 - [0.13 politics model](politics-0.13.md)
 - [0.14 governance model](governance-0.14.md)
 - [Accepted 0.15 information and leadership contract](information-0.15.md), with [historical development validation evidence](milestone-0.15-candidate-validation.md)
+- [Corrected 0.16 military contract](military-0.16.md)
+- [0.17 trade contract, independent review pending](trade-0.17.md)
 - Corresponding final validation records: `milestone-0.10-validation.md`, `milestone-0.10-corrective-validation.md`, `milestone-0.11-validation.md`, `milestone-0.12-validation.md`, `milestone-0.13-validation.md` and `milestone-0.14-validation.md`
 
 ## Project purpose and decision rule
 
-### Explicitly authorized 0.16 extension in final review
+### Corrected 0.16 foundation and explicitly authorized 0.17 extension
 
-The current task branch extends accepted 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705` with [military capabilities/readiness](military-0.16.md), schema 14. 0.16 remains in correction/final review; its implementation does not constitute acceptance. Personnel reservations minimally extend the single existing labour identity; actual gross wages/withholding and public procurement use the sole fiscal/economic engines. Migration initializes unavailable coverage at the saved date without replay. Missing factual armies remain unavailable; a partial rounded UK source does not initialize operational stocks. The optional single-Country demonstration is visibly synthetic. Administrative executive management is office-derived and never operational commander authority. No 0.19 wars/combat/movement/control or 0.17 systems are authorized.
+The military source-code parent is accepted 0.15 `ceddc8e04fc470f41155fdc8b6250142fb970705`; original 0.16 implementation is `b27e59f8528bc181c8f69e7af7f9c134e45c9a0a`, corrected 0.16 is `7580ed683a8164764fbccfbe94bb828da84c57ed`. Personnel reservations minimally extend the single existing labour identity; gross wages/withholding and procurement use the sole fiscal/economic engines. Migration initializes unavailable coverage at the saved date without replay. Missing factual armies remain unavailable; the rounded UK reference does not initialize stocks. The optional single-Country demonstration is visibly synthetic. Executive management is office-derived and never operational commander authority.
+
+0.17 adds `trade-0.17-v1` and complete physical/invoice/funding evidence to the same state. Monthly 95 prepares budgets/supply, 100 preserves the existing domestic economy, 110 settles imports, 150 books sole-fiscal customs/import VAT and physical military work, 250/260 produce military/trade reports, 300 observes material crises and 350 applies existing Information retention. Weekly politics remains 400. Imports are paid from saved opening disposable income/private residual; exports are destinations of already represented private output, not extra GDP. This opening-budget decomposition is an autonomous V1 engineering assumption, not separately user-approved modelling direction. Fixed fiscal calibration/public orders are preserved. Historical values do not identify factual physical sectors, capacities, stocks or tariffs. Dated report-only inspection and office-gated stock targets grant no Country-control powers. Supplementary military inputs constrain existing work, not readiness. Preserve the verified schema-14 military readiness upgrade, six Information integrity rules, advanced-save history and structural wars. Full accounting/data/performance limitations are in [trade-0.17.md](trade-0.17.md).
 
 ProjectAtlas is an original geopolitical, economic, social, political and military simulation. Its global scenario begins on **2026-01-01**. Favor realism while keeping the simulation causal, deterministic, computable and performant. Decisions change underlying variables; existing mechanisms produce consequences. Use cohorts and aggregates rather than billions of agents.
 

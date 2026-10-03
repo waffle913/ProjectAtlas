@@ -60,6 +60,15 @@ export const socioeconomicInvariant: SimulationInvariant = {
       if (e.output > e.productionCapacity || e.output > e.demand || e.output !== e.consumption + e.otherDemandRealized || e.demand !== e.householdDemand + e.otherDemandResidual || e.shortage !== e.demand - e.output) fail('Output/demand/consumption accounting failed.');
       if (e.incomeByGroup.reduce((a, b) => a + b, 0) !== e.householdIncome || e.consumptionByGroup.reduce((a, b) => a + b, 0) !== e.consumption || e.householdIncome > e.output) fail('Household income/consumption accounting failed.');
       if (e.basicNeedsCoverageBps > 10000 || e.essentialConsumption > e.consumption) fail('Invalid needs coverage.');
+      const importFields = [e.importedConsumptionByGroup, e.importedReferenceConsumptionByGroup, e.importAvailableNeedsCoverageBps, e.importEssentialConsumption, e.importRequestedBudgetByGroup];
+      const prepared = state.trade.prepared?.regions[id];
+      if (prepared || importFields.some(value => value !== undefined)) {
+        if (!prepared) fail('Imported consumption has no dated funding/fulfillment record.');
+        if ([e.importedConsumptionByGroup, e.importedReferenceConsumptionByGroup, e.importRequestedBudgetByGroup].some(list =>
+          !Array.isArray(list) || list.length !== 3 || !list.every(quantity))
+          || !quantity(e.importAvailableNeedsCoverageBps) || e.importAvailableNeedsCoverageBps > 10000
+          || !quantity(e.importEssentialConsumption)) fail('Invalid or incomplete separately fulfilled imported consumption.');
+      }
     }
     const counts = new Map<string, number>();
     for (const entry of socio.administration) {

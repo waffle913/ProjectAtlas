@@ -4,7 +4,9 @@ This contract is the integration point for simulation systems added after milest
 
 ## Canonical state and invariants
 
-The explicitly authorized [0.16 extension in final review](military-0.16.md) adds the canonical military branch in schema 14, clone/snapshot/delta/save/fidelity coverage and the common military invariant. It runs preparation at monthly priority 90 and government reporting at 250; actual financing/work is executed by the existing fiscal priority 150. Ordinary days preserve branch identity. 0.15 is the accepted parent; 0.16 is not yet accepted. No structural-war/ownership contracts or operational 0.19 systems change.
+The [corrected 0.16 foundation](military-0.16.md), identified as validated by the user's 0.17 advancement, adds the canonical military branch in schema 14, clone/snapshot/delta/save/fidelity coverage and the common military invariant. It runs preparation at monthly priority 90 and government reporting at 250; financing/work remains fiscal priority 150. Ordinary days preserve branch identity. No structural-war/ownership contracts or operational 0.19 systems change.
+
+The authorized [0.17 trade extension](trade-0.17.md), not yet independently accepted, adds `trade-0.17-v1` in current schema 15. Shared monthly priorities 95/110/260 prepare constrained sparse allocations, settle imports after economy 100, and save government reports after fiscal/military 150/250. Customs/import consumption tax use the existing fiscal account. Copy-on-write clones, frozen snapshots, structural deltas, core trade invariants and whole-branch fidelity conservation cover all mutable trade state. Schemas 1-14 initialize trade at the saved date without replay; schema-14/15 military readiness compatibility remains verified before correction. Ordinary days do not recalculate trade pairs.
 
 `SimulationState` in `src/types.ts` is the only mutable, persistent world state. Country and Region registries remain immutable identity metadata. `canonicalWorld()` joins them for coherent reads while retaining references to the original state and registries. Its snapshot is a defensive clone intended for UI, debugging and persistence.
 

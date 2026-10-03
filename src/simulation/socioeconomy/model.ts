@@ -19,6 +19,9 @@ export interface Cohort { income: typeof INCOMES[number]; orientation: typeof OR
 export interface Shock { capacityBps: number; productivityBps: number; labourBps: number }
 export const NO_SHOCK: Shock = { capacityBps: 10000, productivityBps: 10000, labourBps: 10000 };
 export interface Economy {
+  importedConsumptionByGroup?: number[]; importAvailableNeedsCoverageBps?: number;
+  importedReferenceConsumptionByGroup?: number[];
+  importEssentialConsumption?: number; importRequestedBudgetByGroup?: number[];
   unit: 'USD_PER_MONTH'; personsUnit: 'PERSONS';
   baseOutput: number; baseEmployed: number; labourForce: number;
   employed: number; unemployed: number;
@@ -123,6 +126,8 @@ export function evolve(region: SocioRegion, fiscal?: { householdRequests: number
   const essentialConsumption = consumptionByGroup.reduce((sum, v, i) => sum + Math.min(e.essentialReferenceByGroup[i], ratio(v, MODEL.essentialBps[i], 10000)), 0);
   const reference = e.essentialReferenceByGroup.reduce((a, b) => a + b, 0);
   return { ...region, economy: { ...e, productionCapacity, output, employed, unemployed: e.labourForce - employed - militaryPersonnel,
+    ...(e.importedConsumptionByGroup ? { importedConsumptionByGroup: undefined, importAvailableNeedsCoverageBps: undefined,
+      importedReferenceConsumptionByGroup: undefined, importEssentialConsumption: undefined, importRequestedBudgetByGroup: undefined } : {}),
     householdIncome, incomeByGroup, householdDemand, demand, consumption, consumptionByGroup,
     otherDemandRealized: realized[3], shortage: demand - output, essentialConsumption,
     basicNeedsCoverageBps: reference ? ratio(essentialConsumption, 10000, reference) : 10000,
@@ -141,6 +146,10 @@ export function cloneSocioeconomy(s: SocioeconomicState): SocioeconomicState {
       ...r, cohorts: r.cohorts.map(c => ({ ...c })),
       populationProvenance: provenance(r.populationProvenance), outputProvenance: provenance(r.outputProvenance),
       incomeDistributionProvenance: provenance(r.incomeDistributionProvenance), orientationProvenance: provenance(r.orientationProvenance), employmentProvenance: provenance(r.employmentProvenance),
-      economy: r.economy ? { ...r.economy, productivity: { ...r.economy.productivity }, shock: { ...r.economy.shock }, incomeByGroup: [...r.economy.incomeByGroup], consumptionByGroup: [...r.economy.consumptionByGroup], essentialReferenceByGroup: [...r.economy.essentialReferenceByGroup] } : undefined,
+      economy: r.economy ? { ...r.economy,
+        ...(r.economy.importedConsumptionByGroup ? { importedConsumptionByGroup: [...r.economy.importedConsumptionByGroup] } : {}),
+        ...(r.economy.importedReferenceConsumptionByGroup ? { importedReferenceConsumptionByGroup: [...r.economy.importedReferenceConsumptionByGroup] } : {}),
+        ...(r.economy.importRequestedBudgetByGroup ? { importRequestedBudgetByGroup: [...r.economy.importRequestedBudgetByGroup] } : {}),
+        productivity: { ...r.economy.productivity }, shock: { ...r.economy.shock }, incomeByGroup: [...r.economy.incomeByGroup], consumptionByGroup: [...r.economy.consumptionByGroup], essentialReferenceByGroup: [...r.economy.essentialReferenceByGroup] } : undefined,
     }])) };
 }

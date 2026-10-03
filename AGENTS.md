@@ -75,7 +75,7 @@ Do not rewrite a validated milestone merely to simplify a later one. Changes to 
 ## 0.15 -- accepted parent milestone
 
 0.15 is accepted/validated following the user's independent-review decision.
-0.16 is the current milestone in correction/final review, not yet accepted.
+Corrected 0.16 is the user-directed validated parent; 0.17 is the explicitly authorized current milestone, pending independent review and not accepted.
 The contracts below remain the accepted 0.15 foundation.
 
 **Implemented and accepted:**
@@ -132,9 +132,13 @@ This institutional evaluator does not implement playable constitutional
 reforms, mutable constitutions, elections updating the governing bloc, or
 coalition negotiation.
 
-## 0.16 -- correction/final review
+## 0.16 -- corrected validated parent
 
-The isolated military capability task extends accepted 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705`; 0.16 awaits final review and acceptance. Read [the military contract](docs/military-0.16.md). Schema 14 reserves personnel in the existing labour universe; gross payroll/withholding and production use the one fiscal/economic engine. Unavailable factual armies remain unavailable; the UK historical reference is rounded/partial and the opt-in single-Country scenario is explicitly synthetic. Executive administrative management is office-derived, not Country control or operational commander authority. Monthly priorities 90/150/250 and conserved dated ledgers/reports are mandatory. Migration initializes at the saved date without replay. No 0.19 operations, war/control changes or 0.17 systems are implemented.
+The military capability task extends accepted 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705`; original implementation `b27e59f8528bc181c8f69e7af7f9c134e45c9a0a`, corrected parent `7580ed683a8164764fbccfbe94bb828da84c57ed`. The user's new 0.17 direction identifies this corrected HEAD as validated; tests and the previous read-only review did not self-accept it. Read [the military contract](docs/military-0.16.md). Schema 14 introduced reservations in the existing labour universe; gross payroll/withholding and production use the one fiscal/economic engine. Unavailable factual armies remain unavailable; the UK historical reference is rounded/partial and the opt-in single-Country scenario is explicitly synthetic. Executive administrative management is office-derived, not Country control or operational commander authority. Preserve monthly priorities 90/150/250, conserved dated ledgers/reports and verified old-report readiness compatibility. Migration initializes at the saved date without replay. No 0.19 operations or war/control changes.
+
+## 0.17 -- authorized, independent review pending
+
+Read [the trade contract](docs/trade-0.17.md). Schema 15 adds `trade-0.17-v1`; shared monthly priorities 95/110/260 prepare, settle and report trade around the existing economy/fiscal tasks. Imports use the actual saved opening disposable-income/private-residual envelope; exports subdivide existing realized private output. Domestic output/income never gain an additive trade bonus, public orders are not diverted, and customs/import consumption tax enter the sole fiscal engine without recalibrating baseline revenue. Historical value priors do not establish physical production, quantities, tariffs, stocks or government knowledge before all source inputs are available. Preserve unknown versus zero, dated complete funding evidence, physical ledgers, report-only authority-gated UI, save-date migration and permanent IDs. Supplementary military inputs constrain real factory work, never readiness directly. No 0.18 sanctions/coercion, 0.19 operations or 0.20 treaty systems. Implementation is not acceptance.
 
 ## Player, politics, diplomacy, war, and trade direction
 
@@ -150,7 +154,7 @@ Do not implement these actions before their milestone.
 
 International conflict follows persistent issues -> tensions/crisis -> escalation or de-escalation -> explicit use of force -> war. Never turn a relation-score threshold directly into war. Decisions, interests, tensions, and capabilities cause conflict. Keep occupation, control, and sovereignty distinct.
 
-Future trade follows production -> needs -> aggregate trade -> prices -> dependencies -> consequences. Do not invent trade dependencies before real flows exist.
+Trade follows production -> needs -> aggregate trade -> prices -> dependencies -> consequences. Do not invent trade dependencies before real flows exist.
 
 ## Mandatory agent workflow
 

@@ -6,7 +6,7 @@ import { selectableStartingCountryIds, startingPersonCandidates, type PoliticalS
 export function StartGame({ countries, persons, onPlay, initialPath = 'party_leader' }: {
   countries: readonly { id: string; commonName: string }[];
   persons: readonly PoliticalPersonState[];
-  onPlay: (personId: string, syntheticMilitary?: boolean) => void;
+  onPlay: (personId: string, syntheticMilitary?: boolean, syntheticTrade?: boolean) => void;
   initialPath?: PoliticalStartPath;
 }) {
   const availableCountryIds = useMemo(() => selectableStartingCountryIds(persons), [persons]);
@@ -26,10 +26,11 @@ export function StartGame({ countries, persons, onPlay, initialPath = 'party_lea
   const partyStatus = party?.governmentStatus === 'government' ? 'Listed in the current government bloc' : party?.governmentStatus === 'opposition' ? 'Listed in opposition' : 'Government position unavailable';
   const office = selectedPerson?.office;
   const [syntheticMilitary, setSyntheticMilitary] = useState(false);
+  const [syntheticTrade, setSyntheticTrade] = useState(false);
   const [startError, setStartError] = useState('');
   return <div className="start-overlay" role="dialog" aria-modal="true" aria-labelledby="start-heading">
     <div className="start-card">
-      <span className="eyebrow">PROJECTATLAS · 0.16 candidate</span>
+      <span className="eyebrow">PROJECTATLAS · 0.17 candidate</span>
       <h1 id="start-heading">Choose your political starting point</h1>
       <p>Select a Country, then start as a fictional party leader or a current fictional executive officeholder. Party leadership alone does not grant public office or government-information access.</p>
       <label>1. Country
@@ -93,10 +94,12 @@ export function StartGame({ countries, persons, onPlay, initialPath = 'party_lea
       </div>}
       <label><input type="checkbox" checked={syntheticMilitary} onChange={event => setSyntheticMilitary(event.target.checked)} /> Opt into an explicitly synthetic military demonstration for this Country only</label>
       <p>The default preserves unavailable armies. The optional scenario admits50 synthetic personnel from existing labour, modelled stocks/industry and a12millionUSD annual defense ceiling; no money or executive authority is granted. Management still requires a resolved executive office. Reports arrive at the monthly boundary.</p>
+      <label><input type="checkbox" checked={syntheticTrade} onChange={event => setSyntheticTrade(event.target.checked)} /> Opt into an explicitly synthetic three-Country trade demonstration</label>
+      <p>The trade scenario declares three aggregate categories, two existing partners, bounded supply, gradual alternative capacity, stocks and modelled ordinary tariffs. Existing production and expenditure fund every flow; no GDP, cash, historical 2026 observation or public office is granted. Without it, factual physical trade remains unavailable.</p>
       {startError && <p role="alert">{startError}</p>}
       <button className="primary-action" disabled={!selectedPerson} onClick={() => {
         if (!selectedPerson) return;
-        try { onPlay(selectedPerson.id, syntheticMilitary); }
+        try { onPlay(selectedPerson.id, syntheticMilitary, syntheticTrade); }
         catch (error) { setStartError(error instanceof Error ? error.message : String(error)); }
       }}>Play this person</button>
     </div>

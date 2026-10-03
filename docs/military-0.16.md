@@ -1,10 +1,23 @@
-# Military capabilities and readiness 0.16 (correction/final review)
+# Military capabilities and readiness 0.16 (corrected validated foundation)
 
 This explicitly authorized task extends parent `ceddc8e04fc470f41155fdc8b6250142fb970705`.
 0.15 is now the accepted/validated parent following the user's independent-review
-decision; 0.16 remains in correction/final review, not yet accepted. Accepted
-0.8-0.15 contracts remain the foundation. This is administrative peacetime
+decision. The user's explicit new 0.17 direction identifies corrected 0.16
+`7580ed683a8164764fbccfbe94bb828da84c57ed` as validated; this is not acceptance
+inferred from our tests or the earlier read-only review. Original implementation:
+`b27e59f8528bc181c8f69e7af7f9c134e45c9a0a`. Historical correction/measurement
+records below retain their chronology. Accepted 0.8-0.16 contracts remain the foundation. This is administrative peacetime
 capability, not operational use.
+
+The authorized [0.17 trade extension](trade-0.17.md), pending independent review,
+adds an explicitly configured supplementary `industrial_goods` input per actual
+factory unit. Fulfilled domestic/imported units cap both requested and executed
+manufacturing; actual work consumes them exactly once alongside original finite
+industrial materials. No direct readiness, troop operation, war or ownership
+modifier exists. Original next-boundary funding, catalogue delay and economic
+public-resource delivery proofs remain intact. Current global schema is 15;
+the verified bounded old-schema-14 readiness-report upgrade still runs for both
+14 and 15 loads before validating reports.
 
 ## Canonical state and admission
 

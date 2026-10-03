@@ -11,6 +11,7 @@ import { DEFENSE_COSTS, EQUIPMENT_REGISTRY, MILITARY_ITEMS, MILITARY_LIMITS, emp
 import { validateCapability } from './validation';
 import militaryObservations from '../../data/military-observations.json';
 import { militaryDeliveryDate } from './dates';
+import { consumeTradeFactoryInput, tradeFactoryCapacity } from '../trade/runtime';
 
 export function initializeMilitary(state: SimulationState): SimulationState {
   if (state.military.initializedOn) return state;
@@ -247,7 +248,8 @@ export function militaryRequests(state: SimulationState, countryId: string): Def
     p.exerciseFuelPerPerson ? Math.floor((c.consumables.fuel?.quantity ?? 0) / p.exerciseFuelPerPerson) : students);
   const equipment = c.equipment.personal?.operational ?? 0;
   requests.training = integer(Math.min(students, supplies, equipment) * p.trainingCostPerPersonUsd);
-  let capacity = Math.min(p.factoryUnitsPerMonth, p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth);
+  let capacity = Math.min(p.factoryUnitsPerMonth, p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth,
+    tradeFactoryCapacity(state, countryId) ?? p.factoryUnitsPerMonth);
   for (const o of c.orders) {
     const n = o.orderedOn >= state.date ? 0 : Math.min(o.quantity - o.funded, capacity); capacity -= n;
     requests.production = integer(requests.production + n * o.unitCostUsd);
@@ -314,7 +316,8 @@ export function executeMilitaryFunding(state: SimulationState, countryId: string
     if (s) { s.quantity -= n; s.consumed = integer(s.consumed + n); }
   }
   costs.training = integer(trainedThisMonth * p.trainingCostPerPersonUsd);
-  let capacity = Math.min(p.factoryUnitsPerMonth, p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth);
+  let capacity = Math.min(p.factoryUnitsPerMonth, p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth,
+    tradeFactoryCapacity(state, countryId) ?? p.factoryUnitsPerMonth);
   let productionUnits = 0;
   for (const o of c.orders) {
     const n = o.orderedOn >= state.date ? 0 : Math.min(o.quantity - o.funded, capacity, Math.floor((allocation[3] - costs.production) / o.unitCostUsd));
@@ -330,7 +333,7 @@ export function executeMilitaryFunding(state: SimulationState, countryId: string
     recruited: c.pendingPersonnel?.recruited ?? 0, released: c.pendingPersonnel?.released ?? 0, trained, exercised: students,
     consumedAmmunition, consumedFuel, productionUnits, maintenanceUnits, deliveredUnits };
   delete c.pendingPersonnel;
-  const next = replace(state, countryId, c);
+  const next = consumeTradeFactoryInput(replace(state, countryId, c), countryId, productionUnits);
   return { costs, state: { ...next, military: { ...next.military, lastMonthlyDate: state.date } } };
 }
 export const registerMilitaryTasks = (scheduler: SimulationScheduler) => scheduler.register({

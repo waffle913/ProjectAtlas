@@ -2,6 +2,7 @@ import type { EvaluationCoverage, FiscalProposalPayload } from '../governance/mo
 import type { PoliticalIssue } from '../politics/model';
 import type { SimulationState } from '../../types';
 import type { GovernmentMilitaryReport } from '../military/reports';
+import type { GovernmentTradeReport } from '../trade/reports';
 
 export const INFORMATION_VERSION = 'information-0.15-v3' as const;
 export const INFORMATION_MODEL = Object.freeze({
@@ -63,7 +64,7 @@ export interface PolicyTemporalComparison {
 }
 
 export interface BriefingFact {
-  kind: 'parliamentary_result' | 'labour_report' | 'crisis_activation' | 'military_report';
+  kind: 'parliamentary_result' | 'labour_report' | 'crisis_activation' | 'military_report' | 'trade_report';
   proposalId?: string;
   reportId?: string;
   outcome?: 'adopted' | 'rejected' | 'unavailable';
@@ -97,7 +98,7 @@ export interface MinisterialBriefing {
   countryId: string;
   portfolio: Portfolio;
   access: 'public' | 'government';
-  eventType: 'proposal_result' | 'labour_report' | 'crisis_activation' | 'urgent_event' | 'military_report';
+  eventType: 'proposal_result' | 'labour_report' | 'crisis_activation' | 'urgent_event' | 'military_report' | 'trade_report';
   severity: BriefingSeverity;
   createdOn: string;
   sourceId: string;
@@ -168,6 +169,7 @@ export interface GovernmentProposalEstimateInspection extends GovernmentProposal
 }
 
 export interface InformationState {
+  tradeReports?: { latest: Record<string, GovernmentTradeReport>; byId: Record<string, GovernmentTradeReport> };
   militaryReports?: { latest: Record<string, GovernmentMilitaryReport>; byId: Record<string, GovernmentMilitaryReport> };
   version: typeof INFORMATION_VERSION;
   initializedOn?: string;
@@ -183,7 +185,7 @@ export function referencedGovernmentReportIds(information: Pick<InformationState
     .filter(briefing => briefing.fact.kind === 'parliamentary_result' && briefing.fact.proposalId)
     .map(briefing => [briefing.fact.proposalId!, briefing]));
   for (const briefing of information.briefings) {
-    if (briefing.fact.reportId && briefing.fact.kind !== 'military_report') referenced.add(briefing.fact.reportId);
+    if (briefing.fact.reportId && briefing.fact.kind !== 'military_report' && briefing.fact.kind !== 'trade_report') referenced.add(briefing.fact.reportId);
     if (briefing.fact.policyFollowUp?.baselineReportId) referenced.add(briefing.fact.policyFollowUp.baselineReportId);
     for (const comparison of briefing.fact.policyComparisons ?? []) {
       const proposalBriefing = proposalBriefings.get(comparison.proposalId);
@@ -198,6 +200,12 @@ export function retainedMilitaryReports(information: InformationState, briefings
   const reports = information.militaryReports;
   if (!reports) return undefined;
   const ids = new Set([...Object.values(reports.latest).map(r => r.id), ...briefings.filter(b => b.eventType === 'military_report').map(b => b.sourceId)]);
+  return { latest: reports.latest, byId: Object.fromEntries([...ids].sort().map(id => [id, reports.byId[id]])) };
+}
+export function retainedTradeReports(information: InformationState, briefings: readonly MinisterialBriefing[]) {
+  const reports = information.tradeReports;
+  if (!reports) return undefined;
+  const ids = new Set([...Object.values(reports.latest).map(r => r.id), ...briefings.filter(b => b.eventType === 'trade_report').map(b => b.sourceId)]);
   return { latest: reports.latest, byId: Object.fromEntries([...ids].sort().map(id => [id, reports.byId[id]])) };
 }
 

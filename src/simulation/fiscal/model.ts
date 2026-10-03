@@ -20,6 +20,8 @@ export interface HouseholdFlow {
   netConsumption: number[]; consumptionTax: number[]; grossExpenditure: number[];
 }
 export interface RegionFiscal extends HouseholdFlow {
+  tradePurchases?: { date: string; importedGoods: number[]; landedPayment: number[];
+    importConsumptionTax: number[]; nominalBudget: number[] };
   militaryPay?: number[];
   owner: string; taxes: Record<TaxCategory, TaxFlow>;
   businessSurplus: number; retainedBusinessSurplus: number; labourCost: number;
@@ -45,6 +47,7 @@ export interface DebtInitialization extends FiscalProvenance {
   amount: number;
 }
 export interface Account {
+  customsRevenue?: { collected: number; date: string; scope: 'admitted_flows_only'; unavailableRates: number };
   defensePublicOrders?: { regionId: string; amount: number }[];
   militaryPayroll?: import('./militaryPayroll').MilitaryPayroll;
   financingRevenue?: number;

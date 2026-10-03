@@ -1,3 +1,4 @@
+import { emptyTrade } from '../../simulation/trade/model';
 import { emptyMilitary } from '../../simulation/military/model';
 import { emptyFiscal } from '../../simulation/fiscal/model';
 import { emptyCrisis } from '../../simulation/crisis/model';
@@ -62,7 +63,7 @@ describe('milestone 0.9 global data audit', () => {
     const populationByRegion = Object.fromEntries(demographicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselinePopulation]));
     const economicOutputByRegion = Object.fromEntries(economicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselineAnnualOutputUsd]));
     const state: SimulationState = {
-      schemaVersion: 14, military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 15, trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(registry.territories.map(territory => [territory.id, territory.initialOwnerCountryId])),
       regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
       populationByRegion, economicOutputByRegion, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},

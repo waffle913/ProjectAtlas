@@ -1,4 +1,5 @@
 import type { SimulationState } from '../../types';
+import { availableConsumption } from '../trade/runtime';
 import { crisisSeverityRank as severityRank, severityForPressure as severityFor, tripwireFlags, tripwirePersistence, tripwireExceedance, crisisRecoveryPredicate, crisisTippingChance, crisisTripwireSpecification } from './derived';
 import type { SchedulerTaskContext, SimulationScheduler } from '../scheduler';
 import { CRISIS_MODEL as M, CRISIS_TYPES, crisisRngKey, initializeCrisisState, normalEpisode, type CrisisCountryState, type CrisisEpisode, type CrisisEpisodeSummary, type CrisisProvenance, type CrisisSeverity, type CrisisTripwire, type CrisisType, type TripwireDirection } from './model';
@@ -40,8 +41,8 @@ function aggregateSocioeconomy(state: SimulationState) {
     const prior = result.get(countryId) ?? { labourForce: 0, employed: 0, baseEmployed: 0, householdDemand: 0, consumption: 0, demand: 0, shortage: 0, essentialReference: 0, essentialConsumption: 0, output: 0 };
     const economy = region.economy;
     prior.labourForce += economy.labourForce; prior.employed += economy.employed; prior.baseEmployed += economy.baseEmployed;
-    prior.householdDemand += economy.householdDemand; prior.consumption += economy.consumption; prior.demand += economy.demand;
-    prior.shortage += economy.shortage; prior.essentialReference += sum(economy.essentialReferenceByGroup); prior.essentialConsumption += economy.essentialConsumption;
+    prior.householdDemand += economy.householdDemand + sum(economy.importRequestedBudgetByGroup ?? []); prior.consumption += availableConsumption(economy); prior.demand += economy.demand;
+    prior.shortage += economy.shortage; prior.essentialReference += sum(economy.essentialReferenceByGroup); prior.essentialConsumption += economy.importEssentialConsumption ?? economy.essentialConsumption;
     prior.output += economy.output;
     result.set(countryId, prior);
   }

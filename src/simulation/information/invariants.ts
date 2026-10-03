@@ -11,7 +11,7 @@ import { isSimulationDate as validDate } from '../date';
 
 const statusValues = new Set(['sourced', 'observed', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable']);
 const severityValues = new Set(['info', 'advisory', 'important', 'urgent']);
-const eventTypeValues = new Set(['proposal_result', 'labour_report', 'military_report']);
+const eventTypeValues = new Set(['proposal_result', 'labour_report', 'military_report', 'trade_report']);
 const portfolioValues = new Set<string>(PORTFOLIOS);
 const coverageValues = new Set(['complete', 'partial', 'unavailable']);
 const bounded = (value: unknown, maximum = 10_000) => Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= maximum;
@@ -172,7 +172,7 @@ export const informationInvariant: SimulationInvariant = {
         ...(briefing.fact.policyComparisons ?? []).flatMap(comparison => [comparison.effectiveDate, comparison.baselineDate])];
       if (!validInformationDate(briefing.createdOn, information.initializedOn!)
         || factDates.some(date => date !== undefined && !validInformationDate(date, information.initializedOn!))) errors.push(`Briefing ${briefing.id} has an invalid date before Information initialization.`);
-      if (briefing.eventType !== 'military_report' && eventTypeValues.has(briefing.eventType) && (briefing.portfolio !== (briefing.eventType === 'labour_report' ? 'economy' : 'finance')
+      if (briefing.eventType !== 'military_report' && briefing.eventType !== 'trade_report' && eventTypeValues.has(briefing.eventType) && (briefing.portfolio !== (briefing.eventType === 'labour_report' ? 'economy' : 'finance')
         || briefing.severity !== 'advisory' || briefing.pauseRequested !== false)) errors.push(`Briefing ${briefing.id} changes supported event runtime metadata.`);
       if (briefing.fact.policyFollowUp && !['temporal_only', 'unavailable'].includes(briefing.fact.policyFollowUp.attributionStatus)) errors.push(`Briefing ${briefing.id} has an invalid temporal follow-up anchor.`);
       if (briefing.interpretation && !validateInterpretation(briefing.interpretation)) errors.push(`Malformed bounded interpretation for briefing ${briefing.id}.`);

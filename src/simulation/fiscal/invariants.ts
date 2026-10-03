@@ -27,7 +27,15 @@ export const fiscalInvariant: SimulationInvariant = {
       }
       if (![r.privateResidual, r.publicOrders, r.businessSurplus, r.retainedBusinessSurplus, r.labourCost].every(quantity)) fail(id, 'Invalid region fiscal quantity.');
       if (r.businessSurplus - r.taxes.corporate.collected !== r.retainedBusinessSurplus) fail(id, 'Retained business surplus does not reconcile.');
-      if (sum(r.personal) !== r.taxes.personal.collected || sum(r.employee) !== r.taxes.employee.collected || sum(r.consumptionTax) !== r.taxes.consumption.collected) fail(id, 'Household taxes do not reconcile.');
+      if (sum(r.personal) !== r.taxes.personal.collected || sum(r.employee) !== r.taxes.employee.collected
+        || sum(r.consumptionTax) + sum(r.tradePurchases?.importConsumptionTax ?? []) !== r.taxes.consumption.collected) fail(id, 'Household taxes do not reconcile.');
+      if (r.tradePurchases) {
+        const p = r.tradePurchases;
+        if (p.date !== f.lastMonthlyDate || [p.importedGoods, p.landedPayment, p.importConsumptionTax, p.nominalBudget]
+          .some(list => !Array.isArray(list) || list.length !== 3 || !list.every(quantity))
+          || p.importedGoods.some((v, i) => v > p.landedPayment[i]
+            || r.grossExpenditure[i] + p.landedPayment[i] + p.importConsumptionTax[i] > p.nominalBudget[i])) fail(id, 'Import purchases exceeded the existing household expenditure budget.');
+      }
       if (r.militaryPay && (r.militaryPay.length !== 3 || !r.militaryPay.every(quantity))) fail(id, 'Invalid military payroll receipts.');
       const t = regionalTotals.get(r.owner) ?? { transfers: 0, militaryPay: 0, taxes: Object.fromEntries(TAXES.map(k => [k, [0, 0, 0]])) };
       t.transfers += sum(r.transfers);
@@ -60,7 +68,11 @@ export const fiscalInvariant: SimulationInvariant = {
       if (!dateValid(a.date) || a.date !== f.lastMonthlyDate) fail(id, 'Account date does not match fiscal boundary.');
       if (![a.knownTaxRevenue, a.otherRevenue, a.totalRevenue, a.interestDue, a.interestPaid, a.totalSpending, a.openingCash, a.closingCash, a.openingDebt, a.closingDebt, a.financingNeed, a.borrowed, a.repaid, a.interestArrears, a.openingInterestArrears, a.transferPaid].every(quantity)) fail(id, 'Invalid fiscal flow.');
       try { validateBudget(a.appropriated); validateBudget(a.executed); validateBudget(a.arrears); validateBudget(a.openingArrears); } catch (e) { fail(id, String(e)); }
-      if (a.knownTaxRevenue !== sum(TAXES.map(k => a.taxes[k].collected)) || a.otherRevenue !== c.revenueCalibration.monthlyAmount || a.totalRevenue !== a.knownTaxRevenue + a.otherRevenue) fail(id, 'Revenue does not reconcile.');
+      if (a.knownTaxRevenue !== sum(TAXES.map(k => a.taxes[k].collected)) + (a.customsRevenue?.collected ?? 0) || a.otherRevenue !== c.revenueCalibration.monthlyAmount || a.totalRevenue !== a.knownTaxRevenue + a.otherRevenue) fail(id, 'Revenue does not reconcile.');
+      if (a.customsRevenue && (!quantity(a.customsRevenue.collected) || !quantity(a.customsRevenue.unavailableRates)
+        || a.customsRevenue.date !== a.date || a.customsRevenue.scope !== 'admitted_flows_only'
+        || a.customsRevenue.collected !== sum(state.trade.flows.filter(flow => flow.importerId === id).map(flow => flow.customsUsd))
+        || a.customsRevenue.unavailableRates !== state.trade.routes.filter(route => route.importerId === id && route.tariffBps === null).length)) fail(id, 'Customs receipts have no exactly-once admitted trade flows.');
       if (a.stress.financingBaselineStatus !== c.revenueCalibration.status) fail(id, 'Fiscal stress lost financing-baseline provenance.');
       if (a.totalSpending !== sum(Object.values(a.executed)) + (a.defense?.executed ?? 0) + a.interestPaid || a.primaryBalance !== a.totalRevenue - sum(Object.values(a.executed)) - (a.defense?.executed ?? 0) || a.overallBalance !== a.totalRevenue - a.totalSpending) fail(id, 'Spending/balances do not reconcile.');
       if (a.closingCash !== a.openingCash + a.totalRevenue + a.borrowed - a.totalSpending - a.repaid || a.closingCash !== c.cash) fail(id, 'Treasury identity violated.');

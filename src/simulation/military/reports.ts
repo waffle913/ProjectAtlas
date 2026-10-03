@@ -4,7 +4,7 @@ import { deterministicFingerprint } from '../fingerprint';
 import { integer, ratio } from '../socioeconomy/model';
 import { dateValid, sum } from '../fiscal/math';
 import { hasGovernmentInformationAccess } from '../information/runtime';
-import { briefingId, controlledBriefingCountry, retainCountryBriefings } from '../information/model';
+import { briefingId, controlledBriefingCountry, retainCountryBriefings, retainedTradeReports } from '../information/model';
 import { EQUIPMENT_REGISTRY, equipmentTotal, militaryReadiness, militarySupportStaff, presentPersonnel, trainingPersonnel, type MilitaryItem, type MilitarySource } from './model';
 import militaryObservations from '../../data/military-observations.json';
 import { validateMilitarySource } from './validation';
@@ -194,7 +194,7 @@ export function runMilitaryReports(state: SimulationState): SimulationState {
   }
   const retained = retainCountryBriefings(briefings, controlledBriefingCountry(state));
   const referenced = new Set([...Object.values(latest).map(r => r.id), ...retained.filter(b => b.eventType === 'military_report').map(b => b.sourceId)]);
-  return { ...state, information: { ...state.information, briefings: retained, militaryReports: { latest, byId: Object.fromEntries([...referenced].sort().map(id => [id, byId[id]])) } } };
+  return { ...state, information: { ...state.information, briefings: retained, tradeReports: retainedTradeReports(state.information, retained), militaryReports: { latest, byId: Object.fromEntries([...referenced].sort().map(id => [id, byId[id]])) } } };
 }
 export const registerMilitaryReportTasks = (scheduler: SimulationScheduler) => scheduler.register({
   id: 'military.administrative-reports', cadence: 'monthly', priority: 250, run: runMilitaryReports,

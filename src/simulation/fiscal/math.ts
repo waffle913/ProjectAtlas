@@ -63,12 +63,25 @@ export function payrollMonthly(gross: number, workers: number, components: Payro
   return integer(Number((amount + 60000n) / 120000n));
 }
 export const collected = (liability: number) => ratio(liability, FISCAL_MODEL.collectionBps, 10000);
-export const consumptionLiability = (netGoods: number, rule: TaxRule | null) => rule ? ratio(ratio(netGoods, FISCAL_MODEL.taxableConsumptionBps, 10000), rule.rateBps!, 10000) : 0;
+export const consumptionLiabilityAtRate = (netGoods: number, rateBps: number | null) => {
+  if (rateBps === null) return 0;
+  integer(rateBps);
+  if (rateBps > 10000) throw new Error('Invalid consumption tax rate.');
+  return ratio(ratio(netGoods, FISCAL_MODEL.taxableConsumptionBps, 10000), rateBps, 10000);
+};
+export const consumptionLiability = (netGoods: number, rule: TaxRule | null) => consumptionLiabilityAtRate(netGoods, rule === null ? null : rule.rateBps!);
 export const consumptionCollected = (netGoods: number, rule: TaxRule | null) => collected(consumptionLiability(netGoods, rule));
+export const consumptionCollectedAtRate = (netGoods: number, rateBps: number | null) => collected(consumptionLiabilityAtRate(netGoods, rateBps));
 /** Largest integer goods purchase affordable after the collected consumption wedge, including rounding. */
 export function netGoodsBudget(grossBudget: number, rule: TaxRule | null): number {
-  integer(grossBudget); if (!rule || !rule.rateBps) return grossBudget;
+  return netGoodsBudgetAtRate(grossBudget, rule === null ? null : rule.rateBps!);
+}
+export function netGoodsBudgetAtRate(grossBudget: number, rateBps: number | null): number {
+  integer(grossBudget);
+  if (rateBps === null || rateBps === 0) return grossBudget;
+  integer(rateBps);
+  if (rateBps > 10000) throw new Error('Invalid consumption tax rate.');
   let low = 0, high = grossBudget;
-  while (low < high) { const mid = low + Math.ceil((high - low) / 2); if (mid + consumptionCollected(mid, rule) <= grossBudget) low = mid; else high = mid - 1; }
+  while (low < high) { const mid = low + Math.ceil((high - low) / 2); if (mid + consumptionCollectedAtRate(mid, rateBps) <= grossBudget) low = mid; else high = mid - 1; }
   return low;
 }

@@ -15,6 +15,8 @@ import { upgradeInformationState } from './information/migration';
 import { emptyMilitary, MILITARY_VERSION } from './military/model';
 import { initializeMilitary } from './military/runtime';
 import { upgradeMilitaryReportReadiness } from './military/reports';
+import { emptyTrade, TRADE_VERSION } from './trade/model';
+import { initializeTrade } from './trade/runtime';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
 import { assertSimulationInvariants, type InvariantContext } from './invariants';
@@ -23,7 +25,7 @@ import { cloneSimulationState, createEngineState } from './state';
 export interface LegacySimulationStateV1 { schemaVersion?: 1; date: string; paused: boolean; speed: 1 | 2 | 5; territoryOwnership: Record<string, string | undefined> }
 type DiplomacyFields = 'bilateralRelations' | 'claims' | 'explicitCasusBelli';
 type WarFields = 'wars' | 'occupationByRegion';
-type EngineFields = 'engine' | 'socioeconomy' | 'fiscal' | 'crisis' | 'politics' | 'governance' | 'information' | 'military';
+type EngineFields = 'engine' | 'socioeconomy' | 'fiscal' | 'crisis' | 'politics' | 'governance' | 'information' | 'military' | 'trade';
 export interface SimulationStateV2 extends Omit<SimulationState, 'schemaVersion' | 'populationByRegion' | 'economicOutputByRegion' | DiplomacyFields | WarFields | EngineFields> { schemaVersion: 2 }
 export interface SimulationStateV3 extends Omit<SimulationState, 'schemaVersion' | 'economicOutputByRegion' | DiplomacyFields | WarFields | EngineFields> { schemaVersion: 3 }
 export interface SimulationStateV4 extends Omit<SimulationState, 'schemaVersion' | DiplomacyFields | WarFields | EngineFields> { schemaVersion: 4 }
@@ -51,10 +53,10 @@ const countryIdsFor = (state: { territoryOwnership: Record<string, string | unde
 };
 const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
   const countryIds = countryIdsFor(state, regions, context);
-  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 14, military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
+  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 15, trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
   const withPolitics = { ...crisis, politics: initializePolitics(crisis, countryIds, regions), governance: emptyGovernance(crisis.date) };
-  return initializeMilitary(initializePartyLeaders(withPolitics));
+  return initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics)));
 };
 const validationContext = (regions: RegionEntity[], context: DiplomacyContext): InvariantContext => ({ ...context, regions });
 
@@ -69,9 +71,9 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     return map && typeof map === 'object' && !Array.isArray(map)
       ? [[field, { ...Object.fromEntries(regions.map(region => [region.id, undefined])), ...map }]] : [];
   })) };
-  if (version === 7 || version === 8 || version === 9 || version === 10 || version === 11 || version === 12 || version === 13 || version === 14) {
+  if (version === 7 || version === 8 || version === 9 || version === 10 || version === 11 || version === 12 || version === 13 || version === 14 || version === 15) {
     const current = save as SimulationState & { crisis?: SimulationState['crisis']; politics?: SimulationState['politics'] };
-    if (!diplomacyContext) throw new Error('A Country and Region registry context is required to validate a v7-v14 simulation save.');
+    if (!diplomacyContext) throw new Error('A Country and Region registry context is required to validate a v7-v15 simulation save.');
     if (!current.engine || typeof current.engine.seed !== 'string' || !Number.isSafeInteger(current.engine.tick) || !current.engine.fidelityByCountry || !Array.isArray(current.engine.pendingFidelityTransitions) || !Array.isArray(current.engine.recentFidelityTransitions) || !Array.isArray(current.engine.pendingImmediateUpdates) || !Array.isArray(current.engine.dirtyDomains)) throw new Error('Malformed v7 simulation engine state.');
     if (version >= 8 && (!current.socioeconomy || current.socioeconomy.modelVersion !== 'socioeconomy-0.10-v1')) throw new Error('Malformed or unsupported v8 socioeconomic model.');
     if (version >= 9 && !['fiscal-0.11-v1', 'fiscal-0.11-v2'].includes(current.fiscal?.version)) throw new Error('Malformed fiscal model.');
@@ -79,11 +81,12 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     if (version >= 11 && (current.crisis?.version !== 'crisis-0.12-v1' || current.politics?.version !== 'politics-0.13-v1')) throw new Error('Malformed politics or crisis model.');
     if (version >= 12 && current.governance?.version !== 'governance-0.14-v1') throw new Error('Malformed governance model.');
     if (version >= 13 && ![INFORMATION_VERSION, 'information-0.15-v1', 'information-0.15-v2'].includes(current.information?.version)) throw new Error('Malformed government information model.');
-    if (version === 14 && current.military?.version !== MILITARY_VERSION) throw new Error('Malformed military model.');
+    if (version >= 14 && current.military?.version !== MILITARY_VERSION) throw new Error('Malformed military model.');
+    if (version === 15 && current.trade?.version !== TRADE_VERSION) throw new Error('Malformed trade model.');
     const fiscal = version >= 9 ? upgradeFiscalStateV1(current.fiscal, current.date) : emptyFiscal();
     const countryIds = countryIdsFor(current, regions, diplomacyContext);
     const crisis = version >= 10 ? current.crisis! : initializeCrisisState(emptyCrisis(), countryIds, current.date);
-    const base = { ...current, schemaVersion: 14 as const, military: version === 14 ? current.military : emptyMilitary(), information: version >= 13 ? current.information! : emptyInformation(current.date), governance: version >= 12 ? current.governance! : emptyGovernance(current.date), politics: version >= 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
+    const base = { ...current, schemaVersion: 15 as const, trade: version === 15 ? current.trade : emptyTrade(), military: version >= 14 ? current.military : emptyMilitary(), information: version >= 13 ? current.information! : emptyInformation(current.date), governance: version >= 12 ? current.governance! : emptyGovernance(current.date), politics: version >= 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
     const upgraded = cloneSimulationState(base);
     const fiscalRestored = version >= 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
     const savedRegistryVersion = version >= 11 ? (current.politics as { registryVersion?: unknown }).registryVersion : undefined;
@@ -103,6 +106,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     }
     if (version < 14) restored = initializeMilitary(restored);
     else restored = upgradeMilitaryReportReadiness(restored);
+    if (version < 15) restored = initializeTrade(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

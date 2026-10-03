@@ -2,6 +2,7 @@ import type { PoliticalOfficesData } from '../../data/countryData';
 import type { RegionEntity, SimulationState } from '../../types';
 import { allocate, INCOMES, ratio, type SocioRegion } from '../socioeconomy/model';
 import { aggregateNationalSupport } from './aggregation';
+import { availableNeedsCoverage } from '../trade/runtime';
 import type { RegionFiscal } from '../fiscal/model';
 import { emptyPolitics, POLITICAL_ISSUES, POLITICS_MODEL, type CohortPoliticalOpinion, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalOrganization, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
 import { politicalRegistry } from './registry';
@@ -14,7 +15,7 @@ export function politicalExperienceFor(region: SocioRegion, income: typeof INCOM
   const index = INCOMES.indexOf(income), persons = region.cohorts.filter(item => item.income === income).reduce((n, item) => n + item.persons, 0);
   const disposable = fiscal?.disposable[index] ?? region.economy?.incomeByGroup[index] ?? 0, gross = fiscal?.grossIncome[index] ?? region.economy?.incomeByGroup[index] ?? 0;
   const taxes = (fiscal?.personal[index] ?? 0) + (fiscal?.employee[index] ?? 0);
-  return { disposableIncomePerPerson: persons ? Math.floor(disposable / persons) : 0, unemploymentBps: region.economy ? safeRatioBps(region.economy.unemployed, region.economy.labourForce) ?? 0 : 0, basicNeedsCoverageBps: region.economy?.basicNeedsCoverageBps ?? null, taxBurdenBps: safeRatioBps(taxes, gross), serviceCoverageBps: countryServices };
+  return { disposableIncomePerPerson: persons ? Math.floor(disposable / persons) : 0, unemploymentBps: region.economy ? safeRatioBps(region.economy.unemployed, region.economy.labourForce) ?? 0 : 0, basicNeedsCoverageBps: region.economy ? availableNeedsCoverage(region.economy) : null, taxBurdenBps: safeRatioBps(taxes, gross), serviceCoverageBps: countryServices };
 }
 const clamp = (value: number) => Math.max(0, Math.min(10_000, Math.round(value)));
 const blend = (prior: number, target: number, inertia: number) => clamp((prior * inertia + target * (10_000 - inertia)) / 10_000);
