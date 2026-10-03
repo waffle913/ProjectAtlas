@@ -87,18 +87,20 @@ The five ephemeral tendencies retain the common modelled prior:
 | Tendency | Stance bps | Baseline weight bps | Weight factor before clamping |
 |---|---:|---:|---|
 | radical | 10000 | 1000 | `10000 + M - round(A / 2)` |
-| firm | 5000 | 2000 | `10000 + round(M / 2) - round(A / 4)` |
+| firm | 5000 | 2000 | `10000 + round_signed(M / 2) - round(A / 4)` |
 | mainstream | 0 | 4000 | `10000 + S + round(A / 4)` |
-| pragmatic | -5000 | 2000 | `10000 - round(M / 2) + round(A / 2)` |
+| pragmatic | -5000 | 2000 | `10000 - round_signed(M / 2) + round(A / 2)` |
 | moderate | -10000 | 1000 | `10000 - M + A` |
 
 `M` is the intensity-weighted signed supporter displacement away from the
 party's neutral point: sum of
-`max(1, intensity) * (mandate - platform) * sign(platform - 5000)`,
+`intensity * (mandate - platform) * sign(platform - 5000)`,
 divided by the summed weights and clamped to -5000..5000. Only modelled
-available mandates and non-neutral party positions enter this signal.
-No usable directional mandate means a neutral common-prior signal, not a
-fabricated saved observation.
+available mandates, non-neutral party positions and positive intensities
+enter this signal. Zero intensity contributes neither signal nor weight.
+No usable positive-intensity directional mandate means a neutral common-prior
+signal (`M = 0`), not a fabricated saved observation; available representation
+context still applies.
 
 For an available gap `G = seatShare - currentSupport`,
 `A = clamp(2 * max(0, G), 0, 5000)` and
@@ -106,9 +108,11 @@ For an available gap `G = seatShare - currentSupport`,
 pressures are zero: no evidence-based adjustment is applied. Factors clamp
 to 2500..20000. Raw weights are rounded `baseline * factor / 10000`;
 the existing exact largest-remainder allocator normalizes them to exactly
-10000 in the fixed tendency-table order. Factor fractions use `Math.round`,
-matching the supplied reference; signed ratios use half-away-from-zero
-integer rounding.
+10000 in the fixed tendency-table order. Signed mandate fractions use
+`scaledRatioSigned(M, 1, 2)`, with exact half-away-from-zero rounding rather
+than asymmetric `Math.round` on negative halves. Non-negative adaptation
+and stability fractions use the exact `ratio(value, 1, denominator)` helper,
+preserving their existing half-up semantics.
 
 The one-time draw uses the shared keyed RNG with system
 `party-leadership.internal-balance`, party ID, effective date and

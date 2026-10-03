@@ -1369,6 +1369,16 @@ Confidence is `min(partyConfidence, 7000)` and every dimension is modelled.
 Factor fractions use JavaScript `Math.round` exactly as in the reference;
 signed ratios use the existing half-away-from-zero integer helper.
 
+The weighting and factor-rounding statements above record the initial
+integration at `8efffbf2f44d0804a2bea054802f4db5cb4f0b1b`. Its subsequent
+integrity micro-corrective supersedes only those details: zero-intensity
+directional issues contribute neither signal nor weight; positive intensity
+retains its exact weight; all-zero usable intensity gives `M = 0` while
+other available context still applies. Signed mandate halves now use
+`scaledRatioSigned(M, 1, 2)` and non-negative pressure fractions use
+`ratio(value, 1, denominator)`. The original measurements and validation
+results below remain the actual initial-integration receipt.
+
 The supplied reference's mathematics is retained. Mechanical adaptations use
 the actual string engine-seed type, literal tendency types and a typed Map.
 Added integrity guards reject malformed represented cohort opinions and

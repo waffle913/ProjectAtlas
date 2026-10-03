@@ -139,9 +139,9 @@ export function deriveLeadershipSelectionMetrics(
   let weightedSignal = 0, signalWeight = 0;
   for (const issue of POLITICAL_ISSUES) {
     const mandate = evidence.supporterMandate[issue], position = party.issuePositions[issue];
-    if (mandate.coverage !== 'modelled' || mandate.valueBps === undefined || position.preferenceBps === 5_000) continue;
+    if (mandate.coverage !== 'modelled' || mandate.valueBps === undefined || position.preferenceBps === 5_000 || position.intensityBps === 0) continue;
     const radicalnessDelta = (mandate.valueBps - position.preferenceBps) * Math.sign(position.preferenceBps - 5_000);
-    const weight = Math.max(1, position.intensityBps);
+    const weight = position.intensityBps;
     weightedSignal += radicalnessDelta * weight; signalWeight += weight;
   }
   const mandateTendencyBps = clamp(signalWeight ? scaledRatioSigned(weightedSignal, 1, signalWeight) : 0,
@@ -152,10 +152,10 @@ export function deriveLeadershipSelectionMetrics(
   const adaptationPressureBps = gap === undefined ? 0 : clamp(Math.max(0, gap) * 2, 0, LEADERSHIP_SUCCESSION_MODEL.adaptationPressureLimitBps);
   const stabilityPressureBps = gap === undefined ? 0 : clamp(Math.max(0, -gap) * 2, 0, LEADERSHIP_SUCCESSION_MODEL.stabilityPressureLimitBps);
   const factorFor = (id: LeadershipTendency) => clamp(
-    id === 'radical' ? 10_000 + mandateTendencyBps - Math.round(adaptationPressureBps / 2)
-      : id === 'firm' ? 10_000 + Math.round(mandateTendencyBps / 2) - Math.round(adaptationPressureBps / 4)
-        : id === 'mainstream' ? 10_000 + stabilityPressureBps + Math.round(adaptationPressureBps / 4)
-          : id === 'pragmatic' ? 10_000 - Math.round(mandateTendencyBps / 2) + Math.round(adaptationPressureBps / 2)
+    id === 'radical' ? 10_000 + mandateTendencyBps - ratio(adaptationPressureBps, 1, 2)
+      : id === 'firm' ? 10_000 + scaledRatioSigned(mandateTendencyBps, 1, 2) - ratio(adaptationPressureBps, 1, 4)
+        : id === 'mainstream' ? 10_000 + stabilityPressureBps + ratio(adaptationPressureBps, 1, 4)
+          : id === 'pragmatic' ? 10_000 - scaledRatioSigned(mandateTendencyBps, 1, 2) + ratio(adaptationPressureBps, 1, 2)
             : 10_000 - mandateTendencyBps + adaptationPressureBps,
     2_500, 20_000);
   const raw = LEADERSHIP_SUCCESSION_MODEL.tendencies.map(item => ratio(item.baselineWeightBps, factorFor(item.id), 10_000));
@@ -163,7 +163,7 @@ export function deriveLeadershipSelectionMetrics(
   const tendencyWeightsBps = Object.fromEntries(LEADERSHIP_SUCCESSION_MODEL.tendencies.map((item, index) => [item.id, normalized[index]])) as Record<LeadershipTendency, number>;
   const anyMandate = POLITICAL_ISSUES.some(issue => evidence.supporterMandate[issue].coverage === 'modelled' && evidence.supporterMandate[issue].valueBps !== undefined);
   const mandateBlendBps = anyMandate ? clamp(LEADERSHIP_SUCCESSION_MODEL.mandateBlendBaseBps
-    + Math.round(adaptationPressureBps / 2) - Math.round(stabilityPressureBps / 4),
+    + ratio(adaptationPressureBps, 1, 2) - ratio(stabilityPressureBps, 1, 4),
     LEADERSHIP_SUCCESSION_MODEL.mandateBlendMinBps, LEADERSHIP_SUCCESSION_MODEL.mandateBlendMaxBps) : 0;
   return { mandateTendencyBps, adaptationPressureBps, stabilityPressureBps, mandateBlendBps, tendencyWeightsBps };
 }
