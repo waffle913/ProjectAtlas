@@ -97,15 +97,20 @@ describe('full-world information and leadership 0.15 benchmark', () => {
       const asOfDate = new Date(Date.UTC(2026, month, 1)).toISOString().slice(0, 10);
       const source = reportState.information.latestGovernmentReports[countryId];
       const id = `government-report:${countryId}:unemployment:${asOfDate}`;
-      const valueBps = source.valueBps === undefined ? undefined : source.valueBps >= 50 ? source.valueBps - 50 : source.valueBps + 50;
-      const report: GovernmentReport = { ...source, id, asOfDate, valueBps, limitation: 'Synthetic dated monthly report fixture for retention cost measurement; not simulated historical observations.' };
+      const testBaseline = source.valueBps === undefined ? 600 : source.valueBps;
+      const low = testBaseline >= 100 ? testBaseline - 100 : testBaseline + 50;
+      const high = testBaseline >= 100 ? testBaseline - 50 : testBaseline + 100;
+      const valueBps = month % 2 ? low : high, previousValueBps = month % 2 ? high : low;
+      const report: GovernmentReport = { ...source, id, asOfDate, valueBps, status: 'modelled',
+        coverage: source.coverage === 'unavailable' ? 'partial' : source.coverage,
+        limitation: 'Synthetic modelled alternating monthly reports across all Countries for retention cost measurement, including Countries without real report coverage; not simulated historical observations.' };
       historyReports[id] = report;
       historyLatestReports[countryId] = report;
       historyBriefings.push({
         ...briefingSample, id: `briefing:labour_report:${countryId}:${id}`, countryId, portfolio: 'economy',
         access: 'government', eventType: 'labour_report', createdOn: asOfDate, sourceId: id,
         headline: 'Synthetic unemployment-report retention workload, not simulated historical observations.',
-        fact: { kind: 'labour_report', reportId: id, valueBps: report.valueBps, evidenceStatus: report.coverage === 'complete' ? 'modelled' : report.coverage === 'partial' ? 'partial' : 'unavailable' },
+        fact: { kind: 'labour_report', reportId: id, valueBps: report.valueBps, previousValueBps, evidenceStatus: report.coverage === 'complete' ? 'modelled' : 'partial' },
       });
     }
     const retained = retainCountryBriefings(historyBriefings, controlledExecutive.countryId);
@@ -130,7 +135,7 @@ describe('full-world information and leadership 0.15 benchmark', () => {
     expect(historyMonthly.information.briefings.filter(item => item.countryId === controlledExecutive.countryId)).toHaveLength(256);
     for (const countryId of historyCountries) expect(historyMonthly.information.briefings.filter(item => item.countryId === countryId).length).toBeGreaterThanOrEqual(4);
     const historyMonthlyNewBriefings = historyMonthly.information.briefings.filter(item => item.createdOn === historyMonthly.date).length;
-    expect(historyMonthlyNewBriefings).toBe(Object.values(historyLatestReports).filter(report => report.valueBps !== undefined).length);
+    expect(historyMonthlyNewBriefings).toBe(Object.values(reportState.information.latestGovernmentReports).filter(report => report.valueBps !== undefined).length);
     expect(historyMonthlyNewBriefings).toBeGreaterThan(0);
     expect(informationInvariant.check(historyMonthly, worldContext, 'save')).toEqual([]);
     const historySave = serializeSimulationState(historyMonthly, worldContext);

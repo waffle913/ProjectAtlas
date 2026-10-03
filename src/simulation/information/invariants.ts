@@ -11,12 +11,13 @@ import { isSimulationDate as validDate } from '../date';
 
 const statusValues = new Set(['sourced', 'observed', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable']);
 const severityValues = new Set(['info', 'advisory', 'important', 'urgent']);
-const eventTypeValues = new Set(['proposal_result', 'labour_report', 'crisis_activation', 'urgent_event']);
+const eventTypeValues = new Set(['proposal_result', 'labour_report']);
 const portfolioValues = new Set<string>(PORTFOLIOS);
 const coverageValues = new Set(['complete', 'partial', 'unavailable']);
 const bounded = (value: unknown, maximum = 10_000) => Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= maximum;
 const leaderMethods = new Set<string>(LEADER_PROVENANCE_METHODS);
 const initialLeaderMethods = new Set<string>(INITIAL_LEADER_PROVENANCE_METHODS);
+const validInformationDate = (value: unknown, initializedOn: string) => typeof value === 'string' && validDate(value) && value >= initializedOn;
 
 function validLeadershipMetric(metric: LeadershipContextMetric | undefined, coverages: readonly string[]): boolean {
   return Boolean(metric && typeof metric === 'object' && coverages.includes(metric.coverage)
@@ -80,11 +81,15 @@ function validateProposalEstimate(report: GovernmentProposalEstimate, state: Sim
   const institution = politicalRegistry.institutions[politicalRegistry.countries[report.countryId]?.institutionId];
   const expectedChambers = institution?.chambers ?? [];
   const requester = state.governance.persons[report.requestedByPersonId];
+  const payloadKeys = Object.keys(report.analyzedContent.payload);
+  const unsupportedPaths = new Set(report.unsupportedChanges.map(item => item.path));
   const chamberSum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => chambers.reduce((sum, item) => sum + item[field], 0);
   const checks: Record<string, boolean> = {
     proposalReference: Boolean(proposal && proposal.countryId === report.countryId && proposal.createdOn <= report.requestedOn),
     countryAndDate: countryIds.has(report.countryId) && report.id === `government-proposal-estimate:${report.countryId}:${report.proposalId}:${report.requestedOn}:${report.proposalContentFingerprint}` && validDate(report.requestedOn) && report.requestedOn <= state.date,
     contentFingerprint: report.proposalContentFingerprint === governanceFingerprint(report.analyzedContent) && report.analyzedContent.effectiveDate >= proposal?.createdOn,
+    informationInitializationDates: validInformationDate(report.requestedOn, state.information.initializedOn!)
+      && validInformationDate(report.analyzedContent.effectiveDate, state.information.initializedOn!),
     authorizedRequesterReference: requester?.countryId === report.countryId && requester.createdOn <= report.requestedOn
       && state.information.initializedOn !== undefined && state.information.initializedOn <= report.requestedOn,
     coverageAndConfidence: coverageValues.has(report.coverage) && bounded(report.confidenceBps),
@@ -102,7 +107,9 @@ function validateProposalEstimate(report: GovernmentProposalEstimate, state: Sim
       && report.parliamentaryEstimate.totalSeats === chambers.reduce((sum, item) => sum + (item.totalSeats ?? 0), 0),
     directPolicyChanges: report.directPolicyChanges.every(change => Boolean(change.path && change.explanation) && coverageValues.has(change.coverage) && (change.delta === undefined || typeof change.delta === 'number' && Number.isFinite(change.delta))),
     expectedConsequences: report.expectedConsequences.every(item => Boolean(item.goal && item.explanation) && Number.isSafeInteger(item.directionBps) && Math.abs(item.directionBps) <= 10_000 && bounded(item.magnitudeBps) && bounded(item.confidenceBps) && coverageValues.has(item.coverage)),
-    unsupportedChanges: report.unsupportedChanges.every(item => Boolean(item.path && item.reason) && ['partial', 'unavailable'].includes(item.coverage)),
+    unsupportedChanges: report.unsupportedChanges.length === payloadKeys.length && unsupportedPaths.size === payloadKeys.length
+      && payloadKeys.every(path => unsupportedPaths.has(path))
+      && report.unsupportedChanges.every(item => Boolean(item.path && item.reason) && item.coverage === 'unavailable'),
     limitations: report.limitations.every(item => typeof item === 'string'),
     unavailableEvidence: report.coverage === 'unavailable' && report.confidenceBps === 0
       && report.publicEstimate.coverage === 'unavailable' && report.publicEstimate.confidenceBps === 0
@@ -136,12 +143,13 @@ export const informationInvariant: SimulationInvariant = {
     const reportIds = new Set<string>();
     const validateReport = (id: string, report: GovernmentReport) => {
       if (report.id !== id || report.id !== `government-report:${report.countryId}:unemployment:${report.asOfDate}` || !context.countryIds.has(report.countryId) || !validDate(report.asOfDate) || report.asOfDate > state.date) errors.push(`Malformed or future government report ${id}.`);
+      if (!validInformationDate(report.asOfDate, information.initializedOn!)) errors.push(`Government report ${id} has an invalid date before Information initialization.`);
       if (report.indicator !== 'unemployment_rate' || report.unit !== 'basis_points' || report.source !== 'socioeconomy.monthly'
         || (report.valueBps === undefined ? report.status !== 'unavailable' || report.coverage !== 'unavailable'
           : report.status !== 'modelled' || !bounded(report.valueBps) || !['complete', 'partial'].includes(report.coverage))) errors.push(`Invalid government report semantics for ${id}.`);
       if (report.status === 'unavailable' && (report.valueBps !== undefined || report.coverage !== 'unavailable')) errors.push(`Unavailable government report ${id} encodes a value.`);
       if (report.status !== 'unavailable' && (!Number.isSafeInteger(report.valueBps) || report.valueBps! < 0 || report.valueBps! > 10_000)) errors.push(`Government report ${id} has an invalid value.`);
-      if (report.status === 'modelled' && !report.limitation) errors.push(`Government report ${id} lacks a model limitation.`);
+      if (typeof report.limitation !== 'string' || !report.limitation.trim()) errors.push(`Government report ${id} lacks a nonempty limitation.`);
       reportIds.add(id);
     };
     for (const [id, report] of Object.entries(information.governmentReportsById)) validateReport(id, report);
@@ -160,6 +168,13 @@ export const informationInvariant: SimulationInvariant = {
       if (briefing.id !== briefingId(briefing.eventType, briefing.countryId, briefing.sourceId) || briefingIds.has(briefing.id)) errors.push(`Briefing has a noncanonical or duplicate ID: ${briefing.id}.`);
       briefingIds.add(briefing.id);
       if (!context.countryIds.has(briefing.countryId) || !validDate(briefing.createdOn) || briefing.createdOn > state.date || !portfolioValues.has(briefing.portfolio) || !severityValues.has(briefing.severity) || !eventTypeValues.has(briefing.eventType) || !['public', 'government'].includes(briefing.access) || !briefing.sourceId || !briefing.headline || typeof briefing.pauseRequested !== 'boolean') errors.push(`Malformed briefing ${briefing.id}.`);
+      const factDates = [briefing.fact.effectiveDate, briefing.fact.policyFollowUp?.effectiveDate, briefing.fact.policyFollowUp?.baselineDate,
+        ...(briefing.fact.policyComparisons ?? []).flatMap(comparison => [comparison.effectiveDate, comparison.baselineDate])];
+      if (!validInformationDate(briefing.createdOn, information.initializedOn!)
+        || factDates.some(date => date !== undefined && !validInformationDate(date, information.initializedOn!))) errors.push(`Briefing ${briefing.id} has an invalid date before Information initialization.`);
+      if (eventTypeValues.has(briefing.eventType) && (briefing.portfolio !== (briefing.eventType === 'labour_report' ? 'economy' : 'finance')
+        || briefing.severity !== 'advisory' || briefing.pauseRequested !== false)) errors.push(`Briefing ${briefing.id} changes supported event runtime metadata.`);
+      if (briefing.fact.policyFollowUp && !['temporal_only', 'unavailable'].includes(briefing.fact.policyFollowUp.attributionStatus)) errors.push(`Briefing ${briefing.id} has an invalid temporal follow-up anchor.`);
       if (briefing.interpretation && !validateInterpretation(briefing.interpretation)) errors.push(`Malformed bounded interpretation for briefing ${briefing.id}.`);
       if (briefing.severity !== 'urgent' && briefing.pauseRequested) errors.push(`Non-urgent briefing ${briefing.id} requests a pause.`);
       if (briefing.fact.kind === 'labour_report' && (briefing.eventType !== 'labour_report' || !briefing.fact.reportId || !reportIds.has(briefing.fact.reportId) || briefing.sourceId !== briefing.fact.reportId || briefing.access !== 'government')) errors.push(`Labour briefing ${briefing.id} has no corresponding internal report.`);
@@ -168,17 +183,15 @@ export const informationInvariant: SimulationInvariant = {
         const expectedStatus = report?.coverage === 'complete' ? 'modelled' : report?.coverage === 'partial' ? 'partial' : 'unavailable';
         if (!report || report.countryId !== briefing.countryId || report.valueBps !== briefing.fact.valueBps
           || report.asOfDate !== briefing.createdOn || briefing.fact.evidenceStatus !== expectedStatus) errors.push(`Labour briefing ${briefing.id} changes its source report.`);
-        if (briefing.fact.previousValueBps !== undefined) {
-          const previousDate = new Date(`${briefing.createdOn}T00:00:00.000Z`);
-          previousDate.setUTCMonth(previousDate.getUTCMonth() - 1, 1);
-          const comparisonDate = Number.isFinite(previousDate.getTime()) ? previousDate.toISOString().slice(0, 10) : undefined;
-          const previous = comparisonDate && briefing.createdOn.endsWith('-01')
-            ? information.governmentReportsById[`government-report:${briefing.countryId}:unemployment:${comparisonDate}`] : undefined;
-          const hasInterveningRetainedReport = previous && retainedReportDates.get(briefing.countryId)?.some(date => date > previous.asOfDate && date < briefing.createdOn);
-          if (!bounded(briefing.fact.previousValueBps) || !bounded(report?.valueBps)
-            || Math.abs(briefing.fact.previousValueBps - report!.valueBps!) < INFORMATION_MODEL.materialUnemploymentChangeBps
-            || previous && !hasInterveningRetainedReport && previous.valueBps !== briefing.fact.previousValueBps) errors.push(`Labour briefing ${briefing.id} has an invalid retained comparison basis.`);
-        }
+        const previousDate = new Date(`${briefing.createdOn}T00:00:00.000Z`);
+        previousDate.setUTCMonth(previousDate.getUTCMonth() - 1, 1);
+        const comparisonDate = Number.isFinite(previousDate.getTime()) ? previousDate.toISOString().slice(0, 10) : undefined;
+        const previous = comparisonDate && briefing.createdOn.endsWith('-01')
+          ? information.governmentReportsById[`government-report:${briefing.countryId}:unemployment:${comparisonDate}`] : undefined;
+        const hasInterveningRetainedReport = previous && retainedReportDates.get(briefing.countryId)?.some(date => date > previous.asOfDate && date < briefing.createdOn);
+        if (!bounded(briefing.fact.previousValueBps) || !bounded(report?.valueBps)
+          || Math.abs(briefing.fact.previousValueBps! - report!.valueBps!) < INFORMATION_MODEL.materialUnemploymentChangeBps
+          || previous && !hasInterveningRetainedReport && previous.valueBps !== briefing.fact.previousValueBps) errors.push(`Labour briefing ${briefing.id} has an invalid retained comparison basis.`);
       }
       if (briefing.fact.kind === 'parliamentary_result') {
         const proposal = briefing.fact.proposalId ? state.governance.proposals[briefing.fact.proposalId] : undefined;
@@ -205,7 +218,6 @@ export const informationInvariant: SimulationInvariant = {
         if (anchor) {
           const baselineReport = anchor.baselineReportId ? information.governmentReportsById[anchor.baselineReportId] : undefined;
           if (anchor.proposalId !== proposal?.id || anchor.effectiveDate !== proposal?.effectiveDate || !validDate(anchor.effectiveDate)
-            || !['temporal_only', 'supported_counterfactual', 'unavailable'].includes(anchor.attributionStatus)
             || anchor.attributionStatus === 'temporal_only' && (!baselineReport || baselineReport.countryId !== briefing.countryId || anchor.baselineDate !== baselineReport.asOfDate || anchor.baselineValueBps !== baselineReport.valueBps || anchor.baselineValueBps === undefined || anchor.baselineDate! > anchor.effectiveDate)
             || anchor.attributionStatus === 'unavailable' && (anchor.baselineReportId !== undefined || anchor.baselineDate !== undefined || anchor.baselineValueBps !== undefined)) errors.push(`Proposal briefing ${briefing.id} has an invalid temporal follow-up anchor.`);
         }

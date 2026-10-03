@@ -22,6 +22,10 @@ chambers. This validates static structure, never Reality-derived predictions.
 The requester must exist by the request date, which must lie between
 Information initialization and the saved date; absent office-history modelling
 does not authorize reconstruction of past tenure.
+`unsupportedChanges` covers exactly the keys present in the saved analyzed
+payload, once each, with `unavailable` coverage. There is no partial reaction
+channel; duplicate, extra, missing or substituted keys are invalid. Entry
+order does not change this key-set contract.
 
 Fiscal sponsorship and confidential information access are independent
 capabilities. The screen remains available without information access:
@@ -51,8 +55,10 @@ Save invariants share the runtime briefing-ID constructor. A labour briefing
 must match its referenced report's Country, value, date and coverage-derived
 evidence status. Numeric monthly reports are always modelled, with complete or
 partial coverage; absent values are unavailable with unavailable coverage,
-never sourced/observed/derived or zero-filled. A saved previous value must be
-bounded and represent the material-change threshold. Where the immediately
+never sourced/observed/derived or zero-filled. Every report, including
+unavailable reports, retains a nonblank limitation. A saved previous value is
+required for every labour briefing: both values must be bounded numeric bps
+and differ by at least 50 bps, in either direction. Where the immediately
 preceding monthly report is retained and no intervening retained report exists,
 it must equal that comparison basis. **Historical-proof limitation:** the
 existing record does not persist a previous-report ID and retention may remove
@@ -62,17 +68,31 @@ Such valid older histories keep their saved bounded comparison; complete
 historical proof would require a separately authorized persisted-evidence change.
 No new field, version or migration is introduced here.
 
+All Information-owned persisted dates must be valid and no earlier than
+`information.initializedOn`: report/briefing/request dates, analyzed effective
+dates, fact/anchor effective dates, baseline dates and temporal comparison
+dates. Future legal effective dates remain allowed where already supported.
+Historical statutory source/reference dates inside the copied proposal
+payload remain original source metadata, not new Information event dates.
+No reload redates records or reconstructs pre-initialization reports.
+
 Parliamentary briefing facts reconcile their complete chamber projection,
 Country, outcome, vote date and coverage-derived evidence with the saved vote.
 Only adopted results carry an effective date or policy follow-up anchor;
 rejected/unavailable outcomes cannot fabricate one. Historical resolved
 votes are not recalculated, and results still do not pause the game.
+Supported event metadata is fixed to the runtime contract: labour uses
+`economy`, proposal results use `finance`; both are `advisory` with
+`pauseRequested=false`. Reserved urgent/crisis event channels are not
+supported persisted events in 0.15. Follow-up attribution is only
+`temporal_only` or `unavailable`; `supported_counterfactual` remains reserved
+in the type for future work but is rejected by the 0.15 invariant.
 
 ## Assistance and deeper explanation
 
 Guided, Standard and Expert are presentation functions only. They do not enter `SimulationState`, scheduling or RNG. Guided may offer an existing proposal navigation action; Standard includes concise stored interpretation; Expert hides automatic interpretation. All modes retain explicit Tell Me More. The deeper path checks information access and limits itself to fingerprint-matching Government Information estimates, public vote facts or retained modelled labour reports; unsupported consequences are not invented.
 
-The browser preference is saved in local storage, not in the canonical save. All current event classes are advisory or important; none is configured to automatically pause.
+The browser preference is saved in local storage, not in the canonical save. All currently supported event classes are advisory; none can claim urgency or request an automatic pause.
 
 ## Initial leaders and source coverage
 

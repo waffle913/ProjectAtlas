@@ -66,14 +66,14 @@ function retentionHistory(counts: (countryId: string) => number, offsets: (count
   const latestGovernmentReports: Record<string, GovernmentReport> = {};
   for (const countryId of worldCountryIds) for (let index = 0; index < counts(countryId); index += 1) {
     const date = new Date(Date.UTC(2026, 0, 2 + offsets(countryId) + index)).toISOString().slice(0, 10);
-    const source = report(countryId, date, 600);
+    const source = report(countryId, date, 600 + index % 2 * 50);
     governmentReportsById[source.id] = source;
     latestGovernmentReports[countryId] = source;
     briefings.push({
       id: `briefing:labour_report:${countryId}:${source.id}`, countryId, createdOn: date,
       sourceId: source.id, portfolio: 'economy', access: 'government', eventType: 'labour_report',
       severity: 'advisory', headline: 'Synthetic bounded-retention stress fixture, not a historical observation.',
-      fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, evidenceStatus: 'partial' },
+      fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, previousValueBps: 650 - index % 2 * 50, evidenceStatus: 'partial' },
       pauseRequested: false,
     });
   }
@@ -177,7 +177,7 @@ describe('government information and player briefings 0.15', () => {
         id: `briefing:labour_report:${countryId}:${source.id}`, countryId, createdOn: source.asOfDate, sourceId: source.id,
         portfolio: 'economy', access: 'government', eventType: 'labour_report', severity: 'advisory',
         headline: 'Synthetic retained comparison evidence', pauseRequested: false,
-        fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, previousValueBps: source === current ? previous.valueBps : undefined, evidenceStatus: 'partial' },
+        fact: { kind: 'labour_report', reportId: source.id, valueBps: source.valueBps, previousValueBps: source === current ? previous.valueBps : 650, evidenceStatus: 'partial' },
       })) };
       let drafted = createFiscalProposal(initial, { countryId, proposerPersonId: personId, effectiveDate: '2026-02-01', payload: { annualBudget: initial.fiscal.countries[countryId].annualBudget } });
       proposalId = drafted.governance.proposalOrder.at(-1)!;
@@ -197,6 +197,114 @@ describe('government information and player briefings 0.15', () => {
       expect(() => serializeSimulationState(state, worldContext)).toThrow(error);
       expect(() => restoreSimulationState(JSON.stringify(state), worldRegions, {}, {}, worldContext)).toThrow(error);
     };
+    describe('six Government Information integrity gaps', () => {
+      it.each(['absent', 'null', 'negative', 'fractional', 'over-bound', 'equal', 'subthreshold'] as const)('rejects %s labour previous value through invariant/save/reload', kind => {
+        rejectCorruption(labour, state => {
+          const fact = state.information.briefings[1].fact;
+          if (kind === 'absent') delete fact.previousValueBps;
+          if (kind === 'null') Object.assign(fact, { previousValueBps: null });
+          if (kind === 'negative') fact.previousValueBps = -1;
+          if (kind === 'fractional') fact.previousValueBps = 600.5;
+          if (kind === 'over-bound') fact.previousValueBps = 10_001;
+          if (kind === 'equal') fact.previousValueBps = fact.valueBps;
+          if (kind === 'subthreshold') fact.previousValueBps = fact.valueBps! - 49;
+        }, /invalid retained comparison basis/);
+      }, 30_000);
+      it.each([[0, 50], [50, 0], [10_000, 9_950], [9_950, 10_000]])('accepts an exact material boundary from %i to %i, including genuine zero', (previousValueBps, valueBps) => {
+        const source = report(countryId, '2026-02-01', valueBps);
+        const state = withReports({ ...initial, date: source.asOfDate }, [source]);
+        state.information.briefings = [{ ...structuredClone(labour.information.briefings[1]),
+          fact: { kind: 'labour_report', reportId: source.id, valueBps, previousValueBps, evidenceStatus: 'partial' },
+        }];
+        expect(restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext)).toEqual(state);
+      }, 30_000);
+
+      it.each(['modelled', 'unavailable'] as const)('rejects absent/empty/blank limitations on %s reports through invariant/save/reload', status => {
+        for (const limitation of [undefined, '', ' \t\n']) {
+          const fixture = withReports(initial, [report(countryId, initial.date, status === 'modelled' ? 600 : undefined)]);
+          rejectCorruption(fixture, state => {
+            const source = Object.values(state.information.governmentReportsById)[0];
+            Object.assign(source, { limitation });
+            state.information.latestGovernmentReports[countryId] = source;
+          }, /lacks a.*limitation/);
+        }
+      }, 30_000);
+
+      it.each(['report', 'briefing', 'request', 'analyzed-effective', 'fact-effective', 'anchor-effective', 'anchor-baseline'] as const)('rejects a %s date before Information initialization through invariant/save/reload', field => {
+        rejectCorruption(field === 'report' || field === 'briefing' ? labour : field === 'request' || field === 'analyzed-effective' ? estimated : adopted, state => {
+          const before = '2025-12-31';
+          if (field === 'report') Object.values(state.information.governmentReportsById)[0].asOfDate = before;
+          if (field === 'briefing') state.information.briefings[0].createdOn = before;
+          if (field === 'request') state.information.proposalEstimates[0].requestedOn = before;
+          if (field === 'analyzed-effective') state.information.proposalEstimates[0].analyzedContent.effectiveDate = before;
+          const fact = state.information.briefings.find(item => item.fact.kind === 'parliamentary_result')?.fact;
+          if (field === 'fact-effective') fact!.effectiveDate = before;
+          if (field === 'anchor-effective') fact!.policyFollowUp!.effectiveDate = before;
+          if (field === 'anchor-baseline') fact!.policyFollowUp!.baselineDate = before;
+        }, /information.*initialization/i);
+      }, 30_000);
+
+      it.each(['effectiveDate', 'baselineDate'] as const)('rejects policy comparison %s predating Information initialization through invariant/save/reload', field => {
+        const fixture = advanceSimulationDays(adopted, 31);
+        expect(fixture.information.briefings.some(item => item.fact.policyComparisons?.length)).toBe(true);
+        rejectCorruption(fixture, state => {
+          state.information.briefings.find(item => item.fact.policyComparisons?.length)!.fact.policyComparisons![0][field] = '2025-12-31';
+        }, /information.*initialization/i);
+      }, 30_000);
+      it('uses the actual Information initialization floor, not a hardcoded scenario date', () => {
+        rejectCorruption(labour, state => { state.information.initializedOn = '2026-02-01'; }, /before Information initialization/);
+      }, 30_000);
+
+      it.each(['labour_report', 'proposal_result'] as const)('locks %s runtime portfolio, severity and pause metadata through invariant/save/reload', eventType => {
+        for (const patch of [{ portfolio: 'defense' }, { severity: 'important' }, { severity: 'urgent' }, { pauseRequested: true }, { severity: 'urgent', pauseRequested: true }]) {
+          rejectCorruption(eventType === 'labour_report' ? labour : adopted, state => {
+            Object.assign(state.information.briefings.find(item => item.eventType === eventType)!, patch);
+          }, /runtime metadata/);
+        }
+      }, 30_000);
+
+      it('rejects reserved urgent events without a supported observation channel through invariant/save/reload', () => {
+        rejectCorruption(labour, state => {
+          const item = state.information.briefings[0];
+          item.eventType = 'urgent_event'; item.severity = 'urgent'; item.pauseRequested = true;
+          item.id = `briefing:urgent_event:${item.countryId}:${item.sourceId}`;
+        }, /Malformed briefing/);
+      }, 30_000);
+
+      it.each(['proposal_result', 'labour_report'] as const)('rejects unsupported counterfactual attribution on %s through invariant/save/reload', eventType => {
+        rejectCorruption(eventType === 'labour_report' ? labour : adopted, state => {
+          const anchor = structuredClone(adopted.information.briefings.find(item => item.fact.kind === 'parliamentary_result')!.fact.policyFollowUp!);
+          anchor.attributionStatus = 'supported_counterfactual';
+          if (eventType === 'labour_report') {
+            delete anchor.baselineReportId; delete anchor.baselineDate; delete anchor.baselineValueBps;
+          }
+          state.information.briefings.find(item => item.eventType === eventType)!.fact.policyFollowUp = anchor;
+        }, /invalid temporal follow-up anchor/);
+      }, 30_000);
+
+      it.each(['partial', 'duplicate', 'missing', 'extra', 'wrong-key'] as const)('rejects %s unsupportedChanges through invariant/save/reload', kind => {
+        rejectCorruption(estimated, state => {
+          const changes = state.information.proposalEstimates[0].unsupportedChanges;
+          if (kind === 'partial') changes[0].coverage = 'partial';
+          if (kind === 'duplicate') changes.push(structuredClone(changes[0]));
+          if (kind === 'missing') changes.pop();
+          if (kind === 'extra') changes.push({ ...changes[0], path: 'unmodelled-extra' });
+          if (kind === 'wrong-key') changes[0].path = 'policy';
+        }, /unsupportedChanges/);
+      }, 30_000);
+
+      it('accepts exact payload-key coverage independently of entry order and dates equal to initialization', () => {
+        const payload = { policy: initial.fiscal.countries[countryId].policy, annualBudget: initial.fiscal.countries[countryId].annualBudget };
+        let state = createFiscalProposal(initial, { countryId, proposerPersonId: personId, effectiveDate: initial.date, payload });
+        state = produceGovernmentProposalEstimate(state, state.governance.proposalOrder.at(-1)!, personId);
+        const estimate = state.information.proposalEstimates[0];
+        expect(estimate.requestedOn).toBe(state.information.initializedOn);
+        expect(estimate.analyzedContent.effectiveDate).toBe(state.information.initializedOn);
+        expect(estimate.unsupportedChanges.map(item => item.path).sort()).toEqual(['annualBudget', 'policy']);
+        estimate.unsupportedChanges.reverse();
+        expect(restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext)).toEqual(state);
+      }, 30_000);
+    });
     it.each(['sourced', 'observed', 'derived'] as const)('rejects unemployment relabelled %s at invariant/save/reload', status => {
       rejectCorruption(labour, state => {
         const source = Object.values(state.information.governmentReportsById)[0];

@@ -1623,3 +1623,78 @@ RNG/scheduler, permanent IDs, fiscal enactment and war semantics are unchanged.
 No persistent factions, history replay, 0.16, main merge or self-acceptance.
 Exact final-SHA Ubuntu/Windows Node 22 CI is verified after the single push
 and reported from actual logs; then work stops for independent review.
+
+## Six Government Information integrity guards after d1a7fd3
+
+Reviewed parent: `d1a7fd381348f38a24282b20461b2e6d0dede00a`.
+This follow-up addresses only the six explicitly requested Information
+integrity gaps. The no-code plan preceded editing; actual diff review
+followed implementation. It does not accept 0.15 or authorize 0.16.
+
+| Requested gap | Guard and invariant/serialize/reload evidence |
+|---|---|
+| 1: mandatory prior labour value | Every labour briefing requires bounded integer prior/current values with absolute difference >=50 bps. Missing, null, negative, fractional, over-bound, equal and 49-bps prior values fail; exact +/-50 at 0 and 10000 round-trip |
+| 2: report limitation | Every report, including unavailable, requires a nonblank string limitation. Missing, empty and whitespace-only limitations fail for both statuses |
+| 3: initialization floor | Report/briefing/request dates, analyzed effective dates, fact/anchor effective dates and baseline/comparison dates cannot precede Information initialization. Every date surface is tamper-tested; a later initialization floor and equality control prevent hardcoded scenario-date assumptions |
+| 4: supported metadata | Only the current labour/proposal event channels are accepted. Their portfolios are economy/finance respectively, with advisory severity and pauseRequested=false. Changed portfolio, important/urgent severity and pause flags fail; reserved urgent events fail |
+| 5: no counterfactual proof | Follow-up attribution is only temporal_only or unavailable in 0.15. Forged supported_counterfactual attribution fails, including outside a parliamentary fact; the reserved future type remains unchanged |
+| 6: exact unavailable payload coverage | unsupportedChanges matches the exact unique analyzed payload-key set with unavailable coverage. Partial, duplicate, missing, extra and substituted keys fail. A two-key payload with reversed entries remains valid |
+
+Historical statutory/source reference dates within the immutable copied
+proposal payload remain source metadata, not newly produced Information dates.
+Future legal effective dates retain existing semantics. The previously
+documented missing-previous-report-ID retention limitation is unchanged:
+the prior value is now always required and material even when the underlying
+older report has legitimately expired. No missing historical proof is fabricated.
+
+Synthetic retention fixtures now alternate values by exactly 50 bps and
+always carry a prior value. The full-cap benchmark retains all 252 Countries,
+2,048 entries, the 256-entry player cap, four-entry floor, unchanged deadlines
+and actual save/reload assertions. Its synthetic workload explicitly includes
+modelled test values for Countries lacking real report coverage; those are
+not observations or newly fabricated production data. Production monthly
+reports retain their true unavailable coverage and generate 83 numeric change
+briefings, not 252. No producer, dataset, authority or UI code changes.
+
+### Executed validation
+
+| Executed command / check | Actual result |
+|---|---|
+| `npx.cmd vitest run src\simulation\__tests__\information.test.ts --testNamePattern='six Government Information integrity gaps' --maxWorkers=1`, before guards | Exit 1: 21 expected failures, seven passes, 72 skipped; 28 new cases reproduced the missing guards or required rejection diagnostics |
+| `npx.cmd vitest run src\simulation\__tests__\information.test.ts src\simulation\__tests__\informationWorld.test.ts --maxWorkers=1`, initial guards | Exit 0: 102/102; 82.50 s |
+| Final focused command above after boundary controls | Exit 0: 34/34, 72 skipped; 33.85 s |
+| `npx.cmd tsc -b --pretty false` | Exit 0 |
+| `npm.cmd run information:test` | Exit 0: 106/106; 83.42 s |
+| `npm.cmd run information:audit` | Exit 0; unchanged source/leadership coverage |
+| `npm.cmd run information:benchmark` | Exit 0: 1/1; 10.65 s |
+| `git diff --check` | Exit 0; CRLF-to-LF advisory only |
+| `npm.cmd run verify -- -- --maxWorkers=1` | Exit 0: reproducible data audit, production build, 681/681 tests in 30 files; 492.62 s test-run duration. Run exactly once after the complete corrective |
+| Built-in `rg`, `Math\.random`, Information TypeScript paths | No matches |
+| `git diff --exit-code`, Governance/Politics/Fiscal/Crisis, Information producer/model, save/state, data, UI, CI, instructions, README and accepted handoff | Exit 0 |
+
+Thirty-four new tests cover the six gaps and positive boundaries. Every
+corruption case checks invariant rejection, serialization rejection and
+schema-13 reload rejection. Existing Information-v1/v2/schema-12 migrations,
+retention cleanup and historical contracts pass unchanged. No test deadline
+or performance assertion was relaxed.
+
+Information benchmark: initialization 801.78 ms, isolated leader generation
+598 ms, ordinary day 0.4406 ms, changed monthly day 126.39 ms, contextual
+succession 3.9 ms. The corrected 2,048-entry/252-Country synthetic workload
+measures monthly reporting at 80.24 ms and save size 17,998,043 bytes.
+Initial current save remains 15,315,994 bytes. The synthetic-history byte
+change reflects corrected prior-value/numeric test fixtures, not a new
+canonical-state field or a like-for-like performance improvement.
+
+Source coverage remains 948 parties, seven derived leader mappings, zero
+sourced/observed mappings, one ambiguous mapping, 940 unavailable mappings,
+941 modelled fallback initial leaders and 342 reconciled executive persons.
+No source/licence update or commercial-release clearance is claimed.
+
+Scope is five files: Information invariants, Information tests, the directly
+coupled Information benchmark fixture, Information contract and this appended
+receipt. Schema 13, Information v3, types, producers and migrations remain
+unchanged. No historical repair, history replay, 0.16, main merge or
+self-declared acceptance. Commit/push uses the same 0.15 branch; exact-SHA
+Ubuntu/Windows Node 22 CI is read from actual Actions logs before stopping
+for independent review.
