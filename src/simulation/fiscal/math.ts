@@ -1,8 +1,9 @@
 import { integer, ratio } from '../socioeconomy/model';
-import { FISCAL_MODEL, type Band, type PayrollComponent, type Policy, type TaxRule } from './model';
+import { FISCAL_MODEL, type Band, type FiscalCountry, type PayrollComponent, type Policy, type TaxRule } from './model';
 import { isSimulationDate } from '../date';
 export const sum = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0);
 export const dateValid = isSimulationDate;
+export const borrowingCapacity = (country: FiscalCountry) => integer(Math.min(country.monthlyBorrowingLimit, Math.max(0, country.debtLimit - country.debt)));
 export function validateRule(r: TaxRule, countryId: string, date: string) {
   if (!dateValid(r.effectiveDate) || r.effectiveDate > date || r.countryId !== countryId) throw new Error('Invalid or future fiscal rule.');
   if (!['sourced', 'partial', 'modelled'].includes(r.status) || !r.id || !r.document || !r.source || !r.limitations || !dateValid(r.referenceDate) || !dateValid(r.retrievedAt)) throw new Error('Missing rule provenance.');

@@ -72,7 +72,7 @@ Do not rewrite a validated milestone merely to simplify a later one. Changes to 
 - **0.13 politics:** national institutions, chambers, fictional gameplay parties, organizations, and Region/cohort opinion. Real sourced bases may inform fictional parties, but party name, source-ID hashes, and party order must never invent ideology. Historical ideology is a historical prior, not a 2026 observation. Semantically incompatible or missing dimensions stay neutral/modelled/unavailable.
 - **0.14 governance:** the player controls a persistent fictional person, never directly a Country. Party membership, party leadership, and public office are distinct facts; available powers come only from the office actually held. Proposals follow draft -> submitted -> enacted/rejected/unavailable. A submitted payload is immutable and carries a deterministic fingerprint; later changes require a new draft or withdrawal. Political evaluation is situational and causal. Parties vote as deterministic blocks only after continuous evaluation; `UNKNOWN` is distinct from `ABSTAIN` and missing data never becomes an implied rejection. An adopted proposal calls the existing fiscal queue exactly once; governance never writes fiscal state directly or runs a second history engine. Schema-12 migrations preserve real aggregate historical votes as-is, without fabricating party evaluations or replaying history.
 
-## 0.15 -- current milestone (candidate, pending independent review)
+## 0.15 -- parent milestone (candidate, pending independent review)
 
 0.15 is the active milestone. Work has been implemented and pushed for
 review but has **not** been independently accepted; do not describe it as
@@ -132,6 +132,10 @@ not acceptance of the milestone.
 This institutional evaluator does not implement playable constitutional
 reforms, mutable constitutions, elections updating the governing bloc, or
 coalition negotiation.
+
+## 0.16 -- explicitly authorized candidate
+
+The isolated military capability task extends parent `ceddc8e04fc470f41155fdc8b6250142fb970705`, without accepting 0.15 or 0.16. Read [the military contract](docs/military-0.16.md). Schema 14 reserves personnel in the existing labour universe; gross payroll/withholding and production use the one fiscal/economic engine. Unavailable factual armies remain unavailable; the UK historical reference is rounded/partial and the opt-in single-Country scenario is explicitly synthetic. Executive administrative management is office-derived, not Country control or operational commander authority. Monthly priorities 90/150/250 and conserved dated ledgers/reports are mandatory. Migration initializes at the saved date without replay. No 0.19 operations, war/control changes or 0.17 systems are implemented.
 
 ## Player, politics, diplomacy, war, and trade direction
 

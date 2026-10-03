@@ -22,6 +22,7 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
   const budget = fiscal?.annualBudget;
   const [rate, setRate] = useState(rule?.rateBps === undefined ? '' : String(rule.rateBps / 100));
   const [infrastructureBudget, setInfrastructureBudget] = useState(budget ? String(budget.infrastructure) : '');
+  const [defenseBudget, setDefenseBudget] = useState(budget ? String(budget.defense ?? 0) : '');
   const [message, setMessage] = useState('');
   const [draftId, setDraftId] = useState<string>();
   const hasAccess = hasGovernmentInformationAccess(state, personId, countryId);
@@ -48,7 +49,8 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
   useEffect(() => {
     setRate(rule?.rateBps === undefined ? '' : String(rule.rateBps / 100));
     setInfrastructureBudget(budget ? String(budget.infrastructure) : '');
-  }, [countryId, rule?.rateBps, budget?.infrastructure]);
+    setDefenseBudget(budget ? String(budget.defense ?? 0) : '');
+  }, [countryId, rule?.rateBps, budget?.infrastructure, budget?.defense]);
 
   const createBudgetDraft = () => {
     try {
@@ -108,6 +110,20 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
           <button disabled={Boolean(draft) || !rate || !Number.isFinite(Number(rate)) || Math.round(Number(rate) * 100) === supportedRule.rateBps} onClick={createTaxDraft}>Create corporate-tax proposal</button>
         </> : <p>This office does not hold both legislative and fiscal-reform sponsorship authority.</p>}
       </> : <p>Corporate tax rule unavailable for this Country. Missing legal data is not a 0% rate.</p>}
+    </section>
+    <section>
+      <h3>Defense authorization</h3>
+      <p>An explicit modelled spending ceiling, not observed military spending or a capability bonus. Only actual payroll and constrained work are paid; missing military data remains unavailable.</p>
+      {canProposeBudget && budget ? <>
+        <label>Annual defense authorization (USD)<input type="number" min="0" step="1" value={defenseBudget} onChange={event => setDefenseBudget(event.target.value)} /></label>
+        <button disabled={Boolean(draft) || !defenseBudget || !Number.isSafeInteger(Number(defenseBudget)) || Number(defenseBudget) < 0 || Number(defenseBudget) === (budget.defense ?? 0)} onClick={() => {
+          try {
+            const annualBudget = { ...budget, defense: Number(defenseBudget) };
+            const next = createFiscalProposal(state, { proposerPersonId: personId, countryId, effectiveDate: nextDate(state.date), payload: { annualBudget } });
+            setDraftId(next.governance.proposalOrder.at(-1)); onStateChange(next); setMessage('Defense budget draft created; ordinary immutable parliamentary enactment rules apply.');
+          } catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
+        }}>Create defense budget proposal</button>
+      </> : <p>Legislative and budget sponsorship authority is required.</p>}
     </section>
     <section>
       <h3>Annual budget</h3>

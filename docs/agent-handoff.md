@@ -21,6 +21,10 @@ Key subsystem references:
 
 ## Project purpose and decision rule
 
+### Explicitly authorized 0.16 candidate extension
+
+The current task branch extends candidate 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705` with [military capabilities/readiness](military-0.16.md), schema 14. This is explicit user authorization, not acceptance of 0.15 or 0.16 and not a change to the accepted base above. Personnel reservations minimally extend the single existing labour identity; actual gross wages/withholding and public procurement use the sole fiscal/economic engines. Migration initializes unavailable coverage at the saved date without replay. Missing factual armies remain unavailable; a partial rounded UK source does not initialize operational stocks. The optional single-Country demonstration is visibly synthetic. Administrative executive management is office-derived and never operational commander authority. No 0.19 wars/combat/movement/control or 0.17 systems are authorized.
+
 ProjectAtlas is an original geopolitical, economic, social, political and military simulation. Its global scenario begins on **2026-01-01**. Favor realism while keeping the simulation causal, deterministic, computable and performant. Decisions change underlying variables; existing mechanisms produce consequences. Use cohorts and aggregates rather than billions of agents.
 
 A coding agent is an **implementer, not an independent game designer**. Validated code, this handoff and the relevant subsystem documentation outrank an agent's preferred architecture. Do not replace a validated decision just because another approach appears simpler. Preserve engineering rationale—decisions, motivations, rejected approaches, causal reasoning, invariants, assumptions, limitations and compatibility requirements—without attempting to preserve private chain-of-thought.

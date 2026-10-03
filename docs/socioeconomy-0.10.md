@@ -2,6 +2,8 @@
 
 ## Integration and source of truth
 
+The [0.16 candidate personnel integration](military-0.16.md) minimally extends labour conservation to `employed + unemployed + reserved military = labourForce`. `employed` remains productive civilian jobs; reservations share existing population/cohorts and reduce available civilian capacity through existing equations. Military net salary is a funded public-payroll receipt in the sole fiscal household ledger, not another civilian output/GDP/population source. This is an explicit autonomous V1 engineering assumption, not a factual national employment reclassification or a replay of earlier saves.
+
 The reusable 0.8 contracts remain the runtime: `SimulationState`, `SimulationClock`, `SimulationScheduler`, dirty domains, `InvariantRegistry`, fidelity transitions and the existing save loader. No new clock or RNG was added. New code is in `src/simulation/socioeconomy/`:
 
 - `model.ts`: types, central model configuration, exact allocation, monthly equations, defensive copies and diagnostic API.

@@ -23,7 +23,7 @@
     "data:economy:generate": "node scripts/generate-economic-data.mjs",
     "data:economy:verify": "node scripts/verify-economic-data.mjs",
     "data:audit:generate": "node scripts/audit-data.mjs --write",
-    "data:audit": "npm run data:verify && npm run data:regions:verify && npm run data:population:verify && npm run data:economy:verify && node scripts/audit-data.mjs",
+    "data:audit": "npm run data:verify && npm run data:regions:verify && npm run data:population:verify && npm run data:economy:verify && node scripts/audit-data.mjs && node scripts/military-audit.mjs",
     "test": "vitest run",
     "benchmark:world": "vitest run src/simulation/__tests__/worldBenchmark.test.ts --reporter=verbose",
     "verify": "npm run data:audit && npm run build && npm test",
@@ -43,7 +43,9 @@
     "information:audit": "node scripts/party-leader-audit.mjs",
     "information:audit:generate": "node scripts/party-leader-audit.mjs --write",
     "information:test": "vitest run src/simulation/__tests__/information.test.ts --reporter=verbose",
-    "information:benchmark": "vitest run src/simulation/__tests__/informationWorld.test.ts --reporter=verbose"
+    "information:benchmark": "vitest run src/simulation/__tests__/informationWorld.test.ts --reporter=verbose",
+    "military:audit": "node scripts/military-audit.mjs && vitest run src/simulation/__tests__/military.test.ts --maxWorkers=1",
+    "military:benchmark": "vitest run src/simulation/__tests__/militaryWorld.test.ts --maxWorkers=1 --reporter=verbose"
   },
   "repository": {
     "type": "git",

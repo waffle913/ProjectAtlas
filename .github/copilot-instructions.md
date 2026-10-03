@@ -41,7 +41,7 @@ ProjectAtlas is a realism-first geopolitical, economic, social, political, and m
 - Politics 0.13: institutions, chambers, fictional parties/organizations, and Region/cohort opinion. Never derive ideology from party names, source-ID hashes, or ordering. Historical ideology remains a historical prior; semantically unsupported dimensions remain neutral/modelled/unavailable.
 - Governance 0.14: player controls a persistent fictional person, never directly a Country. Party membership, party leadership, and public office are distinct facts; powers come only from the office actually held. Proposals: draft -> submitted -> enacted/rejected/unavailable, with an immutable submitted payload and deterministic fingerprint. Evaluation is situational and causal; parties vote as deterministic blocks; `UNKNOWN != ABSTAIN`; missing data never becomes an implied rejection. Fiscal enactment happens exactly once through the existing fiscal queue. Schema-12 migrations preserve real aggregate historical votes without fabricating party evidence or replaying history.
 
-## 0.15 -- current milestone (candidate, pending independent review)
+## 0.15 -- parent milestone (candidate, pending independent review)
 
 0.15 is the active milestone: implemented and pushed for review, but **not**
 independently accepted. Do not describe it as validated.
@@ -92,6 +92,10 @@ Already implemented (candidate, pending review):
 No playable constitutional reforms, mutable constitutions, elections
 updating the governing bloc, or coalition negotiation are implemented by
 the institutional evaluator.
+
+## 0.16 -- explicitly authorized candidate
+
+The isolated military task extends candidate 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705`; neither milestone is accepted. Follow [the military contract](../docs/military-0.16.md): schema 14, conserved reservations within existing labour/population/cohorts, one fiscal payroll/withholding/production flow, explicit unavailable factual coverage, rounded partial UK reference and clearly synthetic opt-in demonstration. Management requires an active resolved executive office and existing information/budget capabilities; legislators/party leaders/Country selection grant none. Preserve monthly priorities 90/150/250, physical ledgers, delayed production proofs, stale government reports and save-date migration without replay. No 0.19 operations/combat/war/control changes or 0.17 systems.
 
 ## Future direction and scope
 

@@ -1,4 +1,7 @@
+import { emptyMilitary } from './simulation/military/model';
 import { StartGame } from './components/StartGame';
+import { MilitaryCapabilities } from './components/MilitaryCapabilities';
+import { configureSyntheticMilitaryScenario } from './simulation/military/scenario';
 import { BriefingTablet } from './components/BriefingTablet';
 import { FiscalPolicy } from './components/FiscalPolicy';
 import { emptyFiscal } from './simulation/fiscal/model';
@@ -29,7 +32,7 @@ import { initializeNewGame } from "./simulation/initialization";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 13, governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
+  schemaVersion: 14, military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -250,7 +253,12 @@ export default function App() {
     clock.current = new SimulationClock(next);
     setSim(clock.current.snapshot());
   };
-  const startAs = (personId: string) => commitCommand(setControlledPerson(sim, personId));
+  const startAs = (personId: string, syntheticMilitary = false) => {
+    const countryId = sim.governance.persons[personId]?.countryId;
+    if (!countryId) throw new Error('Selected political person has no registered Country.');
+    const next = syntheticMilitary ? configureSyntheticMilitaryScenario(sim, countryId) : sim;
+    commitCommand(setControlledPerson(next, personId));
+  };
   const navItems = [
     ['overview', 'Overview', '⌂'], ['fiscal', 'Fiscality', '¤'], ['economy', 'Economy', '▥'],
     ['politics', 'Politics', '⚑'], ['services', 'Health / services', '＋'],
@@ -264,7 +272,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.15 · GOVERNMENT INFORMATION</small>
+          <small>MILESTONE 0.16 · MILITARY CAPABILITIES · CANDIDATE</small>
         </div>
         <div className="header-tools">
           <Clock state={sim} onChange={changeClock} />
@@ -391,6 +399,8 @@ export default function App() {
           <aside className="panel">
             <FiscalPolicy state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} />
           </aside>
+        ) : activePage === 'military' && controlledPerson && playerCountryId ? (
+          <aside className="panel"><MilitaryCapabilities state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} onBudget={() => setActivePage('fiscal')} /></aside>
         ) : activePage === 'economy' ? (
           <aside className="panel"><h2>Economic information</h2>
             {playerCanReadGovernment && playerCountryId && controlledPerson ? inspectGovernmentReports(sim, playerCountryId, controlledPerson.id).map(report => <section key={report.id}><strong>Labour report · {report.asOfDate}</strong><p>{report.valueBps === undefined ? 'Unavailable' : `Unemployment ${(report.valueBps / 100).toFixed(2)}%`}</p><small>{report.coverage} · {report.limitation}</small></section>) : <p>Current internal economic reports are not available to an opposition person. No public unemployment report is currently implemented.</p>}

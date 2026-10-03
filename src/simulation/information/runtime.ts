@@ -5,7 +5,7 @@ import { derivePartyGoalProfile } from '../governance/analysis';
 import { politicalRegistry } from '../politics/registry';
 import type { SchedulerTask, SimulationScheduler } from '../scheduler';
 import type { AdvisorAssistance, BriefingInterpretation, BriefingPresentation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentProposalEstimateInspection, GovernmentReport, InformationState, MinisterialBriefing, Portfolio } from './model';
-import { INFORMATION_MODEL, INFORMATION_VERSION, briefingId, controlledBriefingCountry, emptyInformation, policyComparisonText, referencedGovernmentReportIds, retainCountryBriefings } from './model';
+import { INFORMATION_MODEL, INFORMATION_VERSION, briefingId, controlledBriefingCountry, emptyInformation, policyComparisonText, referencedGovernmentReportIds, retainCountryBriefings, retainedMilitaryReports } from './model';
 
 const reportId = (countryId: string, asOfDate: string) => `government-report:${countryId}:unemployment:${asOfDate}`;
 const portfolioForProposal = (_proposal: PoliticalProposal): Portfolio => 'finance';
@@ -13,7 +13,7 @@ const portfolioForProposal = (_proposal: PoliticalProposal): Portfolio => 'finan
 function addBriefing(information: InformationState, briefing: MinisterialBriefing, controlledCountryId?: string): InformationState {
   if (information.briefings.some(item => item.id === briefing.id)) return information;
   const briefings = retainCountryBriefings([...information.briefings, briefing], controlledCountryId);
-  return { ...information, briefings, governmentReportsById: retainBriefingReports(information.governmentReportsById, information.latestGovernmentReports, briefings) };
+  return { ...information, briefings, militaryReports: retainedMilitaryReports(information, briefings), governmentReportsById: retainBriefingReports(information.governmentReportsById, information.latestGovernmentReports, briefings) };
 }
 
 function retainBriefingReports(
@@ -280,6 +280,10 @@ export function explainBriefing(state: SimulationState, briefing: MinisterialBri
   if (briefing.fact.kind === 'crisis_activation') {
     return ['No government-visible crisis-report channel is modelled; canonical crisis episodes are not government observations.'];
   }
+  if (briefing.fact.kind === 'military_report') {
+    const report = state.information.militaryReports?.byId[briefing.sourceId];
+    return report ? [report.uncertainty, report.limitation, `Administrative report dated ${report.asOfDate}; alerts: ${report.alertCodes.join(', ') || 'none'}. Later Reality is not read.`] : ['The referenced military report is unavailable.'];
+  }
   return ['No deeper causal explanation is available for this briefing.'];
 }
 
@@ -449,6 +453,7 @@ function monthlyReports(state: SimulationState): SimulationState {
     briefings,
     latestGovernmentReports,
     governmentReportsById: retainBriefingReports(governmentReportsById, latestGovernmentReports, briefings),
+    militaryReports: retainedMilitaryReports(state.information, briefings),
   } };
 }
 

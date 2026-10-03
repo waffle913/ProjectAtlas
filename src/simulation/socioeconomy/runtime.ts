@@ -1,4 +1,5 @@
 import { fiscalDemand } from '../fiscal/runtime';
+import { reservedPersonnel } from '../military/runtime';
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import { clearDirty, markDirty } from '../dirty';
@@ -17,7 +18,7 @@ export function registerSocioeconomicTasks(scheduler: SimulationScheduler): Simu
     for (const id of ids) {
       const region = regions[id];
       if (!region) throw new Error(`Unknown socioeconomic region: ${id}`);
-      regions[id] = monthly ? evolve(region, fiscalDemand(state, id)) : region.economy ? { ...region, economy: projectCapacity(region.economy) } : region;
+      regions[id] = monthly ? evolve(region, fiscalDemand(state, id), reservedPersonnel(state, id)) : region.economy ? { ...region, economy: projectCapacity(region.economy, reservedPersonnel(state, id)) } : region;
     }
     return clearDirty({ ...state, socioeconomy: { ...socio, regions, lastMonthlyDate: monthly ? state.date : socio.lastMonthlyDate } }, 'socioeconomy');
   } }).register({ id: 'administration.monthly', cadence: 'monthly', priority: 200, run: state => {

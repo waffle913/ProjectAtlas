@@ -4,6 +4,7 @@ import type { CrisisState } from './simulation/crisis/model';
 import type { PoliticalState } from './simulation/politics/model';
 import type { GovernanceState } from './simulation/governance/model';
 import type { InformationState } from './simulation/information/model';
+import type { MilitaryState } from './simulation/military/model';
 export type EntityKind = 'sovereign' | 'dependency' | 'disputed' | 'other';
 
 export interface DataSource { name: string; url: string; datasetId: string; retrievedAt: string }
@@ -135,7 +136,8 @@ export interface SimulationEngineState {
   dirtyDomains: DirtyDomainRecord[];
 }
 export interface SimulationState {
-  schemaVersion: 13;
+  schemaVersion: 14;
+  military: MilitaryState;
   governance: GovernanceState;
   information: InformationState;
   politics: PoliticalState;

@@ -4,6 +4,8 @@
 
 ## Information architecture
 
+The separately authorized [0.16 candidate military channel](military-0.16.md) extends this unchanged information version in schema 14. Monthly government-only military reports are explicit saved projections with validated source/date/licence/fingerprint and material readiness evidence. Ministers/UI never read live capability. Defense advisories reference retained reports, cannot impersonate crisis/urgent/public facts and do not pause. One rounded UK source is a partial historical reference, never a current operational stock. The six 0.15 integrity rules below remain in force; neither milestone is accepted by this extension.
+
 The engine's canonical Reality remains authoritative. `SimulationState.information` is a delayed, provenance-labelled Government Information layer, not a second economy or a noisy copy of Reality. The current report is a monthly aggregate of the existing regional unemployed and labour-force stocks. Its date follows the socioeconomic monthly report date; a later Reality change does not leak into the stored report. Incomplete coverage stays partial, and absent labour-force coverage is `unavailable` with no numeric value.
 
 Public parliamentary outcomes are represented as public briefing facts sourced from the existing proposal vote result. Internal labour reports use government access. Canonical crisis episodes are not government sensors: no crisis activation, severity or driver briefing is emitted without a government-visible report channel, which 0.15 does not currently model. Public perception is not implemented as a separate new system in this milestone.

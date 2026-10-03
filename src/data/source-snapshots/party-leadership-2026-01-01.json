@@ -17,7 +17,7 @@
     {
       "snapshotId": "vparty-ideology-2022",
       "path": "src/data/source-snapshots/vparty-ideology-2022.json",
-      "sha256": "57d8e2471ea3481fa1155bdf8275792ee9db6aa31b5c0fdbc57150a006e433fc"
+      "sha256": "e958be638bab68d4ab1976e4332807da6fd72d1ba7ac199e98274094b452f267"
     },
     {
       "snapshotId": "partyfacts-wikidata-2026-10-01",
@@ -32,7 +32,7 @@
     {
       "snapshotId": "party-leadership-evidence-2026-01-01",
       "path": "src/data/source-snapshots/party-leadership-evidence-2026-01-01.json",
-      "sha256": "a28d3994e693bf193afd246479fc72fa2b6b2d8b3d3175739e8aa88f3df6a29f"
+      "sha256": "3716c7c6bcf0b18848b9396e6bb75f21cdc28da500b9c46fb986a063f070e509"
     }
   ],
   "sourceRecords": [

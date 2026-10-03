@@ -34,6 +34,7 @@ export const simulationDelta = (before: SimulationState, after: SimulationState)
   toTick: after.engine.tick,
   date: after.date,
   changedDomains: [
+    structurallyEqual(before.military, after.military) ? undefined : 'military',
     structurallyEqual(before.governance, after.governance) ? undefined : 'governance',
     structurallyEqual(before.information, after.information) ? undefined : 'information',
     structurallyEqual(before.crisis, after.crisis) ? undefined : 'crisis',

@@ -1,3 +1,4 @@
+import { emptyMilitary } from '../military/model';
 import { describe, expect, it } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { cohortsFor, emptySocioeconomy } from '../socioeconomy/model';
@@ -20,7 +21,7 @@ import { simulationDelta } from '../world';
 const ids = ['country.u6myyj', 'country.1aj872z', 'unknown'];
 const regions: RegionEntity[] = ids.map(id => ({ id: `r-${id}`, parentCountryId: id, initialOwnerCountryId: id, commonName: id, administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: [id] } }));
 const context = { regions, regionIds: new Set(regions.map(r => r.id)), countryIds: new Set(ids) };
-const base = (): SimulationState => initializeSocioeconomy({ schemaVersion: 13, governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: Object.fromEntries(regions.map(r => [r.id, r.parentCountryId])), populationByRegion: Object.fromEntries(regions.map(r => [r.id, 10000])), economicOutputByRegion: Object.fromEntries(regions.map(r => [r.id, 1200000000])), bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(ids) }, regions);
+const base = (): SimulationState => initializeSocioeconomy({ schemaVersion: 14, military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: Object.fromEntries(regions.map(r => [r.id, r.parentCountryId])), populationByRegion: Object.fromEntries(regions.map(r => [r.id, 10000])), economicOutputByRegion: Object.fromEntries(regions.map(r => [r.id, 1200000000])), bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(ids) }, regions);
 const initial = () => initializeFiscal(base());
 const us = ids[0], ca = ids[1], rid = `r-${us}`;
 const custom = (rule: TaxRule, changes: Partial<TaxRule>): TaxRule => ({ ...rule, ...changes, status: 'modelled', id: `debug-${rule.id}`, source: 'debug:explicit-policy', document: 'Test reform', limitations: 'Modelled test policy, not observed law.' });
@@ -213,7 +214,7 @@ describe('0.11 causal monthly integration', () => {
     const s = advanceSimulationDays(base(), 420);
     const { fiscal: _f, ...body } = s;
     const restored = migrateSimulationState({ ...body, schemaVersion: 8 }, regions, {}, {}, context);
-    expect(restored.schemaVersion).toBe(13); expect(restored.socioeconomy).toEqual(s.socioeconomy); expect(restored.engine).toEqual(s.engine);
+    expect(restored.schemaVersion).toBe(14); expect(restored.socioeconomy).toEqual(s.socioeconomy); expect(restored.engine).toEqual(s.engine);
     expect(restored.populationByRegion).toEqual(s.populationByRegion);
     expect(restored.fiscal.initializedOn).toBe(s.date); expect(restored.fiscal.lastMonthlyDate).toBeUndefined();
     expect(restored.fiscal.countries[us].account).toBeUndefined(); expect(assertSimulationInvariants(restored, context, 'reload')).toBe(true);
@@ -235,7 +236,7 @@ describe('0.11 causal monthly integration', () => {
     const a = migrateSimulationState(legacy, regions, {}, {}, context);
     const b = migrateSimulationState(legacy, regions, {}, {}, context);
     expect(a).toEqual(b);
-    expect(a.schemaVersion).toBe(13); expect(a.fiscal.version).toBe('fiscal-0.11-v2');
+    expect(a.schemaVersion).toBe(14); expect(a.fiscal.version).toBe('fiscal-0.11-v2');
     expect(a.fiscal.countries.unknown.revenueCalibration.status).toBe('modelled');
     expect(a.fiscal.countries.unknown.debtInitialization).toMatchObject({ status: 'modelled', limitation: expect.stringMatching(/not be interpreted as observed/) });
     expect(a.fiscal.countries.unknown.account).toBeUndefined();

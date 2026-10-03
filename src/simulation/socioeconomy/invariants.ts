@@ -1,6 +1,7 @@
 import type { SimulationInvariant } from '../invariants';
 import { cohortsFor, INCOMES, MODEL, ORIENTATIONS } from './model';
 import { isSimulationDate } from '../date';
+import { reservedPersonnel } from '../military/runtime';
 const quantity = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 export const socioeconomicInvariant: SimulationInvariant = {
   id: 'socioeconomic-conservation',
@@ -55,7 +56,7 @@ export const socioeconomicInvariant: SimulationInvariant = {
       for (const list of [e.incomeByGroup, e.consumptionByGroup, e.essentialReferenceByGroup]) if (!Array.isArray(list) || list.length !== 3 || !list.every(quantity)) fail('Invalid group flow.');
       if (!quantity(e.productivity.outputUsd) || !quantity(e.productivity.workers) || !e.productivity.workers) fail('Invalid rational productivity.');
       if (Object.values(e.shock).some(v => !quantity(v) || v > 10000)) fail('Invalid shock.');
-      if (e.employed + e.unemployed !== e.labourForce || e.labourForce > r.population || e.baseEmployed > e.labourForce) fail('Labour stock conservation failed.');
+      if (e.employed + e.unemployed + reservedPersonnel(state, id) !== e.labourForce || e.labourForce > r.population || e.baseEmployed > e.labourForce) fail('Labour stock conservation failed.');
       if (e.output > e.productionCapacity || e.output > e.demand || e.output !== e.consumption + e.otherDemandRealized || e.demand !== e.householdDemand + e.otherDemandResidual || e.shortage !== e.demand - e.output) fail('Output/demand/consumption accounting failed.');
       if (e.incomeByGroup.reduce((a, b) => a + b, 0) !== e.householdIncome || e.consumptionByGroup.reduce((a, b) => a + b, 0) !== e.consumption || e.householdIncome > e.output) fail('Household income/consumption accounting failed.');
       if (e.basicNeedsCoverageBps > 10000 || e.essentialConsumption > e.consumption) fail('Invalid needs coverage.');

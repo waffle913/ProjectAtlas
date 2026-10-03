@@ -2,10 +2,12 @@ import type { SimulationState } from '../../types';
 import legalData from '../../data/fiscal-rules.json';
 import aggregateData from '../../data/fiscal-aggregates.json';
 import { allocate, INCOMES, integer, MODEL, ratio, type SocioRegion } from '../socioeconomy/model';
-import { collected, consumptionCollected, consumptionLiability, netGoodsBudget, payrollMonthly, progressiveMonthly, sum, validatePolicy, dateValid } from './math';
+import { borrowingCapacity, collected, consumptionCollected, consumptionLiability, netGoodsBudget, payrollMonthly, progressiveMonthly, sum, validatePolicy, dateValid } from './math';
 import { CATEGORIES, FISCAL_MODEL as M, TAXES, emptyFiscal, zeroBudget, type Budget, type FiscalCountry, type FiscalReform, type FiscalState, type Policy, type RegionFiscal, type Service, type TaxFlow, type TaxRule } from './model';
 import type { SimulationScheduler } from '../scheduler';
 import { deterministicFingerprint } from '../fingerprint';
+import { executeMilitaryFunding, militaryRequests } from '../military/runtime';
+import { quoteMilitaryPayroll, type MilitaryPayroll } from './militaryPayroll';
 const kinds = ['personal', 'consumption', 'payroll', 'corporate'] as const;
 const taxKind = (category: typeof TAXES[number]) => category === 'employee' || category === 'employer' ? 'payroll' : category;
 const flows = (policy: Policy): Record<typeof TAXES[number], TaxFlow> => Object.fromEntries(TAXES.map(k => [k, { base: 0, liability: 0, collected: 0, status: policy[taxKind(k)]?.status ?? 'unavailable' }])) as Record<typeof TAXES[number], TaxFlow>;
@@ -16,11 +18,15 @@ export const monthlyBudgetForDate = (annual: Budget, date: string): Budget => {
   return Object.fromEntries(CATEGORIES.map(k => [k, Math.floor(annual[k] / 12) + (Number(date.slice(5, 7)) <= annual[k] % 12 ? 1 : 0)])) as Budget;
 };
 const budgetSum = (b: Budget) => sum(CATEGORIES.map(k => b[k]));
+export const monthlyDefenseAuthorization = (annual: number, date: string) => {
+  integer(annual);
+  return Math.floor(annual / 12) + (Number(date.slice(5, 7)) <= annual % 12 ? 1 : 0);
+};
 interface AggregateObservation {
   countryId: string; referenceDate: string; retrievedAt: string; source: string; dataset: string;
   annualRevenueUsd?: number; debtUsd?: number; limitations: string;
 }
-export function validateBudget(b: Budget) { for (const k of CATEGORIES) integer(b[k]); }
+export function validateBudget(b: Budget) { for (const k of CATEGORIES) integer(b[k]); if (b.defense !== undefined) integer(b.defense); }
 
 /** Deterministic in-schema upgrade for saves written by the initial 0.11 release. */
 export function upgradeFiscalStateV1(fiscal: unknown, date: string): FiscalState {
@@ -135,7 +141,7 @@ export function evaluateImmediateFiscalPolicyCounterfactual(state: SimulationSta
     // Booked ledgers are history, not the current legal baseline after a reform or transfer.
     const withHeldFlows = (ledger: RegionFiscal): RegionFiscal => ({
       ...ledger, transfers: [...transfers],
-      disposable: ledger.grossIncome.map((value, index) => integer(value - ledger.personal[index] - ledger.employee[index] + transfers[index])),
+      disposable: ledger.grossIncome.map((value, index) => integer(value - ledger.personal[index] - ledger.employee[index] + transfers[index] + (booked?.militaryPay?.[index] ?? 0))),
     });
     const current = withHeldFlows(taxRegion(state.socioeconomy.regions[regionId], countryId, country.policy, booked));
     const proposed = withHeldFlows(taxRegion(state.socioeconomy.regions[regionId], countryId, policy, booked));
@@ -145,6 +151,32 @@ export function evaluateImmediateFiscalPolicyCounterfactual(state: SimulationSta
     currentEmployerPayroll += current.taxes.employer.collected; proposedEmployerPayroll += proposed.taxes.employer.collected; currentCorporateTax += current.taxes.corporate.collected; proposedCorporateTax += proposed.taxes.corporate.collected;
   }
   const categoryCoverage = Object.fromEntries(TAXES.map(category => [category, country.policy[taxKind(category)] === null ? 'unavailable' : 'complete'])) as ImmediateFiscalPolicyCounterfactual['categoryCoverage'];
+  if (country.account?.militaryPayroll) {
+    const gross = country.account.militaryPayroll.gross;
+    const current = quoteMilitaryPayroll(state, countryId, gross);
+    const proposed = quoteMilitaryPayroll(state, countryId, gross, policy);
+    currentKnownRevenue = integer(currentKnownRevenue + current.withheldRevenue);
+    proposedKnownRevenue = integer(proposedKnownRevenue + proposed.withheldRevenue);
+    for (const k of TAXES) {
+      currentRevenueByCategory[k] = integer(currentRevenueByCategory[k] + current.taxes[k].collected);
+      proposedRevenueByCategory[k] = integer(proposedRevenueByCategory[k] + proposed.taxes[k].collected);
+    }
+    currentEmployerPayroll += current.employerCost; proposedEmployerPayroll += proposed.employerCost;
+    const bookedByRegion = new Map(country.account.militaryPayroll.slips.map(slip => [slip.regionId, slip]));
+    const owned = new Set(regionIds);
+    for (let n = 0; n < current.slips.length; n++) {
+      if (!owned.has(current.slips[n].regionId)) continue;
+      const booked = bookedByRegion.get(current.slips[n].regionId);
+      for (let i = 0; i < 3; i++) {
+        const oldTax = current.slips[n].personal[i] + current.slips[n].employee[i];
+        const newTax = proposed.slips[n].personal[i] + proposed.slips[n].employee[i];
+        const bookedNet = booked ? booked.gross[i] - booked.personal[i] - booked.employee[i] : 0;
+        currentDisposableByIncome[i] += current.slips[n].gross[i] - oldTax - bookedNet;
+        proposedDisposableByIncome[i] += proposed.slips[n].gross[i] - newTax - bookedNet;
+        currentDirectTaxByIncome[i] += oldTax; proposedDirectTaxByIncome[i] += newTax;
+      }
+    }
+  }
   return { countryId, regionCount: regionIds.length, currentKnownRevenue, proposedKnownRevenue, currentDisposableByIncome, proposedDisposableByIncome, currentTransfersByIncome, proposedTransfersByIncome, currentDirectTaxByIncome, proposedDirectTaxByIncome, currentConsumptionTaxByIncome, proposedConsumptionTaxByIncome, currentEmployerPayroll, proposedEmployerPayroll, currentCorporateTax, proposedCorporateTax, currentRevenueByCategory, proposedRevenueByCategory, categoryCoverage };
 }
 export function initializeFiscal(state: SimulationState): SimulationState {
@@ -208,50 +240,107 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
   const f = state.fiscal;
   if (!f.initializedOn || f.lastMonthlyDate === state.date) return state;
   const grouped = ownedEconomies(state), regions: Record<string, RegionFiscal> = {}, countries: Record<string, FiscalCountry> = {};
-  for (const [id, c] of Object.entries(f.countries)) {
+  const payrolls: MilitaryPayroll[] = [];
+  const defenseOrders: { regionId: string; amount: number }[] = [];
+  let militaryState = state;
+  for (const [id, c] of Object.entries(f.countries).sort(([a], [b]) => a.localeCompare(b))) {
     const ids = grouped.get(id) ?? [];
     const taxes = flows(c.policy);
     for (const rid of ids) {
       const r = taxRegion(state.socioeconomy.regions[rid], id, c.policy, f.regions[rid]); regions[rid] = r;
       for (const k of TAXES) { taxes[k].base += r.taxes[k].base; taxes[k].liability += r.taxes[k].liability; taxes[k].collected += r.taxes[k].collected; }
     }
-    const knownTaxRevenue = sum(TAXES.map(k => taxes[k].collected));
+    let knownTaxRevenue = sum(TAXES.map(k => taxes[k].collected));
     const otherRevenue = c.revenueCalibration.monthlyAmount;
-    const totalRevenue = integer(knownTaxRevenue + otherRevenue);
+    let totalRevenue = integer(knownTaxRevenue + otherRevenue);
+    const financingRevenue = totalRevenue;
     const appropriated = monthlyBudgetForDate(c.annualBudget, state.date);
     const obligations = CATEGORIES.map(k => appropriated[k] + c.arrears[k]);
+    const annualDefense = c.annualBudget.defense ?? 0;
+    const defenseAuthorized = monthlyDefenseAuthorization(annualDefense, state.date);
+    const defenseRequested = sum(Object.values(militaryRequests(militaryState, id)));
+    const defenseObligation = Math.min(defenseRequested, defenseAuthorized);
+    const allObligations = [...obligations, defenseObligation];
     const interestDue = ratio(c.debt, c.interestRateBps, 120000);
     const interestObligation = interestDue + c.interestArrears;
-    const financingNeed = Math.max(0, sum(obligations) + interestObligation - totalRevenue - c.cash);
-    const borrowed = Math.min(financingNeed, c.monthlyBorrowingLimit, Math.max(0, c.debtLimit - c.debt));
+    const financingNeed = Math.max(0, sum(allObligations) + interestObligation - totalRevenue - c.cash);
+    const borrowed = Math.min(financingNeed, borrowingCapacity(c));
     const resources = integer(c.cash + totalRevenue + borrowed);
     const interestPaid = Math.min(resources, interestObligation);
-    const allocations = allocate(ids.length ? Math.min(resources - interestPaid, sum(obligations)) : 0, obligations);
+    const eligible = [...obligations.map(amount => ids.length ? amount : 0), defenseObligation];
+    const allAllocations = allocate(Math.min(resources - interestPaid, sum(eligible)), eligible);
+    const allocations = allAllocations.slice(0, CATEGORIES.length);
+    const militaryPayment = executeMilitaryFunding(militaryState, id, allAllocations[CATEGORIES.length]);
+    militaryState = militaryPayment.state;
+    const defenseExecuted = sum(Object.values(militaryPayment.costs));
+    const militaryLedger = militaryState.military.countries[id]?.capability?.lastLedger;
+    const militaryPayroll = militaryLedger?.date === state.date ? quoteMilitaryPayroll(militaryState, id, militaryLedger.grossPayrollPaid) : undefined;
+    if (militaryPayroll) {
+      payrolls.push(militaryPayroll);
+      for (const k of TAXES) {
+        taxes[k].base = integer(taxes[k].base + militaryPayroll.taxes[k].base);
+        taxes[k].liability = integer(taxes[k].liability + militaryPayroll.taxes[k].liability);
+        taxes[k].collected = integer(taxes[k].collected + militaryPayroll.taxes[k].collected);
+      }
+      knownTaxRevenue = integer(knownTaxRevenue + militaryPayroll.withheldRevenue);
+      totalRevenue = integer(totalRevenue + militaryPayroll.withheldRevenue);
+    }
     const executed = Object.fromEntries(CATEGORIES.map((k, i) => [k, allocations[i]])) as Budget;
     const arrears = Object.fromEntries(CATEGORIES.map((k, i) => [k, obligations[i] - allocations[i]])) as Budget;
-    const totalSpending = sum(allocations) + interestPaid;
-    const repaid = Math.min(resources - totalSpending, c.debt + borrowed);
-    const cash = integer(resources - totalSpending - repaid), debt = integer(c.debt + borrowed - repaid);
+    const totalSpending = sum(allocations) + defenseExecuted + interestPaid;
+    const finalResources = integer(resources + (militaryPayroll?.withheldRevenue ?? 0));
+    const repaid = Math.min(finalResources - totalSpending, c.debt + borrowed);
+    const cash = integer(finalResources - totalSpending - repaid), debt = integer(c.debt + borrowed - repaid);
     const population = sum(ids.map(r => state.socioeconomy.regions[r].population ?? 0));
     const services = { health: evolveService(c.services.health, population, executed.health), education: evolveService(c.services.education, population, executed.education), infrastructure: evolveService(c.services.infrastructure, population, executed.infrastructure) };
     distribute(state, ids, regions, executed);
+    let defensePublicOrders: { regionId: string; amount: number }[] | undefined;
+    if (defenseExecuted || militaryState.military.countries[id]?.capability?.productionSupplyPendingUsd) {
+      const procurement = integer(defenseExecuted - militaryPayment.costs.payroll - militaryPayment.costs.production
+        + militaryState.military.countries[id].capability!.productionSupplyPendingUsd);
+      const recipientIds = ids.length ? ids : Object.keys(militaryState.military.countries[id].capability!.assignments).sort();
+      const goodsByRegion = allocate(procurement, recipientIds.map(r => state.socioeconomy.regions[r].population ?? 0));
+      defensePublicOrders = recipientIds.map((regionId, index) => ({ regionId, amount: goodsByRegion[index] }));
+      defenseOrders.push(...defensePublicOrders);
+    }
     const output = sum(ids.map(r => state.socioeconomy.regions[r].economy!.output));
     const oldDisposable = sum(ids.map(r => sum(f.regions[r]?.disposable ?? [])));
     const disposable = sum(ids.map(r => sum(regions[r].disposable)));
     countries[id] = { ...c, cash, debt, arrears, interestArrears: interestObligation - interestPaid, services,
       account: { unit: 'USD_NOMINAL', period: 'MONTH', policyApplied: c.policy, collectionEfficiencyBps: M.collectionBps, date: state.date, taxes,
         knownTaxRevenue, otherRevenue, totalRevenue, appropriated, executed, interestDue, interestPaid, totalSpending,
-        primaryBalance: totalRevenue - sum(allocations), overallBalance: totalRevenue - totalSpending,
+        militaryPayroll, financingRevenue: militaryPayroll ? financingRevenue : undefined,
+        defensePublicOrders,
+        primaryBalance: totalRevenue - sum(allocations) - defenseExecuted, overallBalance: totalRevenue - totalSpending,
+        defense: state.military.countries[id]?.capability ? { authorized: defenseAuthorized, requested: defenseRequested, obligation: defenseObligation, executed: defenseExecuted, payroll: militaryPayment.costs.payroll, procurement: defenseExecuted - militaryPayment.costs.payroll } : undefined,
         openingCash: c.cash, closingCash: cash, openingDebt: c.debt, closingDebt: debt, financingNeed, borrowed, repaid,
         arrears, openingArrears: c.arrears, openingInterestArrears: c.interestArrears, interestArrears: interestObligation - interestPaid,
         transferPaid: executed.pensions + executed.incomeSupport,
-        stress: { financingBaselineStatus: c.revenueCalibration.status, unpaidCommitments: budgetSum(arrears) + interestObligation - interestPaid, interestBurdenBps: totalRevenue ? ratio(interestPaid, 10000, totalRevenue) : null, debtToAnnualOutputBps: output ? ratio(debt, 10000, output * 12) : null,
+        stress: { financingBaselineStatus: c.revenueCalibration.status, unpaidCommitments: integer(budgetSum(arrears) + interestObligation - interestPaid + (militaryLedger?.closingPayrollArrears ?? 0)), interestBurdenBps: totalRevenue ? ratio(interestPaid, 10000, totalRevenue) : null, debtToAnnualOutputBps: output ? ratio(debt, 10000, output * 12) : null,
           deficitToOutputBps: output ? ratio(Math.max(0, totalSpending - totalRevenue), 10000, output) : null,
           pensionFundingGap: Math.max(0, appropriated.pensions - executed.pensions), incomeSupportFundingGap: Math.max(0, appropriated.incomeSupport - executed.incomeSupport),
           serviceUnderfunding: sum(Object.values(services).map(s => Math.max(0, s.required - s.spending))), infrastructureBacklog: services.infrastructure.backlog,
           disposableIncomeDeclineBps: oldDisposable ? ratio(Math.max(0, oldDisposable - disposable), 10000, oldDisposable) : null } } };
   }
-  return { ...state, fiscal: { ...f, countries, regions, lastMonthlyDate: state.date } };
+  for (const order of defenseOrders) {
+    const ledger = regions[order.regionId];
+    if (!ledger) { if (order.amount) throw new Error('Defense procurement has no existing economic recipient.'); continue; }
+    ledger.publicOrders = integer(ledger.publicOrders + order.amount);
+  }
+  for (const payroll of payrolls) for (const slip of payroll.slips) {
+    if (!sum(slip.gross)) continue;
+    const ledger = regions[slip.regionId];
+    if (!ledger) throw new Error('Funded military payroll has no existing regional household ledger.');
+    const net = slip.gross.map((v, i) => integer(v - slip.personal[i] - slip.employee[i]));
+    ledger.militaryPay = net.map((v, i) => integer(v + (ledger.militaryPay?.[i] ?? 0)));
+    ledger.disposable = ledger.disposable.map((v, i) => integer(v + net[i]));
+  }
+  for (const [id, c] of Object.entries(countries)) {
+    const ids = grouped.get(id) ?? [], oldDisposable = sum(ids.map(r => sum(f.regions[r]?.disposable ?? [])));
+    const disposable = sum(ids.map(r => sum(regions[r].disposable)));
+    c.account!.stress.disposableIncomeDeclineBps = oldDisposable ? ratio(Math.max(0, oldDisposable - disposable), 10000, oldDisposable) : null;
+  }
+  return { ...militaryState, fiscal: { ...f, countries, regions, lastMonthlyDate: state.date } };
 }
 export function validateFiscalReform(state: SimulationState, input: Omit<FiscalReform, 'sequence'>) {
   if (!state.fiscal.initializedOn || !state.fiscal.countries[input.countryId]) throw new Error('Unknown fiscal Country.');

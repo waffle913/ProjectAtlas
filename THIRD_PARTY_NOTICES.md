@@ -30,6 +30,10 @@ The snapshot includes only explicitly reviewed Party Facts ID joins. ProjectAtla
 
 `npm run information:audit` verifies the pinned inputs, stable-ID joins, dated claim selection, ambiguous/unavailable handling, and complete 948-party coverage. It does not make the Party Facts data licence clear or grant redistribution rights.
 
+## UK Ministry of Defence personnel reference (0.16 candidate)
+
+`src/data/military-observations.json` contains only two dated UK Regular Forces figures from [Quarterly service personnel statistics1January2026](https://www.gov.uk/government/statistics/quarterly-service-personnel-statistics-2026/quarterly-service-personnel-statistics-1-january-2026), published2026-04-02, retrieved2026-10-03. Contains public sector information licensed under the [Open Government Licencev3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/); Ministry of Defence, Crown copyright2026. Third-party content is excluded. Independently rounded historical figures are explicitly partial, not exact operational stock partitions, current availability or an admitted army. No factual equipment/pay/industrial dataset is bundled. The optional military scenario and catalogue are ProjectAtlas's original, explicitly modelled assumptions under ISC, not observations.
+
 ## Distribution
 
 Commercial distribution clearance must be resolved before release. The ISC licence for ProjectAtlas code does not authorize commercial use of IPU-derived data, clear the Party Facts crosswalk, or override third-party publication terms. A distributor must review, attribute, replace, separately license, or remove affected datasets and derived outputs as required.

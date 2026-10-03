@@ -8,6 +8,8 @@ The player controls a persistent fictional `PoliticalPersonState`, never a Count
 
 ## Authority
 
+The [0.16 candidate](military-0.16.md) conservatively derives peacetime administrative-defense management from the controlled active executive office, resolved institutional evidence, government information access and existing budget sponsorship. A legislator with both flags still cannot manage forces; party/Country selection grants none. Defense-only proposals record the legal authorization delta, keep future capability unsupported and constrain fiscal pressure by dated actual obligations, not an assumed budget-to-power effect. Existing proposals/votes are not replayed or reinterpreted.
+
 The V1 office roles are `head_of_government`, `head_of_state` and `legislator`. Their authority profile is explicitly `modelled_constitutional_abstraction`. The default head-of-government profile can sponsor legislation, fiscal reform and budget reform and can resolve a legislative vote. A legislator can sponsor and vote on legislation but cannot use the state fiscal powers. The head-of-state default grants no capability. Callers may supply an explicit capability set for future country-specific constitutional rules.
 
 Party leadership never grants state authority. Submission and vote resolution require the proposer to be the currently controlled person, to hold an office in the proposal Country and to have each required capability.

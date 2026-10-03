@@ -1,0 +1,26 @@
+{
+  "version": "military-source-references-0.16-v1",
+  "scenarioDate": "2026-01-01",
+  "records": [
+    {
+      "id": "uk-mod-regular-strength-2026-01-01",
+      "countryId": "country.zwicjl",
+      "status": "partial",
+      "scope": "UK Regular Forces only; not all UK Service personnel or operational availability",
+      "regularPersonnelReported": 136960,
+      "untrainedPersonnelReported": 10720,
+      "roundingPersons": 10,
+      "source": {
+        "status": "sourced",
+        "publisher": "UK Ministry of Defence",
+        "url": "https://www.gov.uk/government/statistics/quarterly-service-personnel-statistics-2026/quarterly-service-personnel-statistics-1-january-2026",
+        "referenceDate": "2026-01-01",
+        "retrievedAt": "2026-10-03",
+        "licence": "Open Government Licence v3.0 (Crown copyright 2026; third-party content excluded)",
+        "attribution": "Contains public sector information licensed under the Open Government Licence v3.0; Ministry of Defence",
+        "limitation": "Official rounded reference, not an exact conserved simulation stock. Totals and subtotals are rounded independently to ten; half-five rounds to a multiple of twenty. UK Regular excludes Gurkhas, full-time reserve and other personnel. Army trained means Phase 1; other Services trained means Phase 2. Untrained is not an unavailable/available partition. First publication 2026-04-02 explicitly documents 2026-01-01; this is not a reconstruction of information publicly known at scenario start. Salary, authorized posts, operational availability, equipment, stocks and industry remain unavailable.",
+        "scenarioFixture": false
+      }
+    }
+  ]
+}

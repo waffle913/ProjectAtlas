@@ -1,3 +1,4 @@
+import { emptyMilitary } from '../../simulation/military/model';
 import { emptyFiscal } from '../../simulation/fiscal/model';
 import { emptyCrisis } from '../../simulation/crisis/model';
 import { emptyPolitics } from '../../simulation/politics/model';
@@ -52,7 +53,7 @@ describe('persistent entity registry', () => {
     const territory = original.territories[0];
     const target = original.territories[1].ownerCountryId!;
     const save = transferTerritory({
-      schemaVersion: 13, governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 14, military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(original.territories.map(t => [t.id, t.ownerCountryId])),
       regionOwnership: {},
       populationByRegion: {},

@@ -92,23 +92,25 @@ export function calibrate(population: number, annualOutput: number, cohorts: Coh
   };
 }
 /** Pure projection: immediate updates change capacity only, never book another month. */
-export function projectCapacity(e: Economy): Economy {
+export function projectCapacity(e: Economy, militaryPersonnel = 0): Economy {
+  integer(militaryPersonnel);
+  if (militaryPersonnel > e.labourForce) throw new Error('Military reservation exceeds existing labour force.');
   const infrastructure = ratio(e.baseOutput, e.shock.capacityBps, 10000);
-  const labour = ratio(e.baseEmployed, e.shock.labourBps, 10000);
+  const labour = Math.min(ratio(e.baseEmployed, e.shock.labourBps, 10000), e.labourForce - militaryPersonnel);
   const productivity = ratio(e.baseOutput, e.shock.productivityBps, 10000);
   const capacity = Math.min(infrastructure, ratio(productivity, labour, e.baseEmployed));
   return { ...e, capacity, productivity: { outputUsd: productivity, workers: e.baseEmployed } };
 }
-export function evolve(region: SocioRegion, fiscal?: { householdRequests: number[]; otherDemand: number }): SocioRegion {
+export function evolve(region: SocioRegion, fiscal?: { householdRequests: number[]; otherDemand: number }, militaryPersonnel = 0): SocioRegion {
   if (!region.economy) return region;
-  const e = { ...projectCapacity(region.economy), otherDemandResidual: fiscal?.otherDemand ?? region.economy.otherDemandResidual };
+  const e = { ...projectCapacity(region.economy, militaryPersonnel), otherDemandResidual: fiscal?.otherDemand ?? region.economy.otherDemandResidual };
   const householdRequests = fiscal?.householdRequests ?? demandByGroup(e.incomeByGroup);
   const householdDemand = householdRequests.reduce((a, b) => a + b, 0);
   const demand = integer(householdDemand + e.otherDemandResidual);
   // Bounded hiring responds to demand; actual employed workers constrain production.
   const potentialOutput = Math.min(e.capacity, demand);
   const desiredJobs = e.productivity.outputUsd ? Math.min(e.labourForce, ratio(potentialOutput, e.baseEmployed, e.productivity.outputUsd)) : 0;
-  const availableJobs = ratio(e.baseEmployed, e.shock.labourBps, 10000);
+  const availableJobs = Math.min(ratio(e.baseEmployed, e.shock.labourBps, 10000), e.labourForce - militaryPersonnel);
   const employed = Math.min(availableJobs, ratio(e.employed, 10000 - MODEL.employmentAdjustmentBps, 10000) + ratio(desiredJobs, MODEL.employmentAdjustmentBps, 10000));
   const productionCapacity = Math.min(e.capacity, ratio(e.productivity.outputUsd, employed, e.baseEmployed));
   const output = Math.min(productionCapacity, demand);
@@ -120,7 +122,7 @@ export function evolve(region: SocioRegion, fiscal?: { householdRequests: number
   const consumption = consumptionByGroup.reduce((a, b) => a + b, 0);
   const essentialConsumption = consumptionByGroup.reduce((sum, v, i) => sum + Math.min(e.essentialReferenceByGroup[i], ratio(v, MODEL.essentialBps[i], 10000)), 0);
   const reference = e.essentialReferenceByGroup.reduce((a, b) => a + b, 0);
-  return { ...region, economy: { ...e, productionCapacity, output, employed, unemployed: e.labourForce - employed,
+  return { ...region, economy: { ...e, productionCapacity, output, employed, unemployed: e.labourForce - employed - militaryPersonnel,
     householdIncome, incomeByGroup, householdDemand, demand, consumption, consumptionByGroup,
     otherDemandRealized: realized[3], shortage: demand - output, essentialConsumption,
     basicNeedsCoverageBps: reference ? ratio(essentialConsumption, 10000, reference) : 10000,

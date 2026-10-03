@@ -13,13 +13,14 @@ export type Policy = Record<TaxKind, TaxRule | null>;
 export const TAXES: TaxCategory[] = ['personal', 'consumption', 'employee', 'employer', 'corporate'];
 export const CATEGORIES = ['health', 'education', 'pensions', 'incomeSupport', 'infrastructure', 'administration'] as const;
 export type Spending = typeof CATEGORIES[number];
-export type Budget = Record<Spending, number>;
+export type Budget = Record<Spending, number> & { defense?: number };
 export interface TaxFlow { base: number; liability: number; collected: number; status: 'partial' | 'modelled' | 'sourced' | 'unavailable' }
 export interface HouseholdFlow {
   grossIncome: number[]; personal: number[]; employee: number[]; transfers: number[]; disposable: number[];
   netConsumption: number[]; consumptionTax: number[]; grossExpenditure: number[];
 }
 export interface RegionFiscal extends HouseholdFlow {
+  militaryPay?: number[];
   owner: string; taxes: Record<TaxCategory, TaxFlow>;
   businessSurplus: number; retainedBusinessSurplus: number; labourCost: number;
   privateResidual: number; publicOrders: number;
@@ -44,6 +45,10 @@ export interface DebtInitialization extends FiscalProvenance {
   amount: number;
 }
 export interface Account {
+  defensePublicOrders?: { regionId: string; amount: number }[];
+  militaryPayroll?: import('./militaryPayroll').MilitaryPayroll;
+  financingRevenue?: number;
+  defense?: { authorized: number; requested: number; obligation: number; executed: number; payroll: number; procurement: number };
   unit: 'USD_NOMINAL'; period: 'MONTH'; policyApplied: Policy; collectionEfficiencyBps: number;
   date: string; taxes: Record<TaxCategory, TaxFlow>;
   knownTaxRevenue: number; otherRevenue: number; totalRevenue: number;

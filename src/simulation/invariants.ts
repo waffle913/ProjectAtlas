@@ -4,6 +4,7 @@ import { socioeconomicInvariant } from './socioeconomy/invariants';
 import { politicsInvariant } from './politics/invariants';
 import { governanceInvariant } from './governance/invariants';
 import { informationInvariant } from './information/invariants';
+import { militaryInvariant } from './military/invariants';
 import type { RegionEntity, SimulationState } from '../types';
 import { validateDiplomacyState, type DiplomacyContext } from './diplomacy';
 import { validateWarState } from './war';
@@ -33,11 +34,12 @@ export const coreInvariants: readonly SimulationInvariant[] = [
   politicsInvariant,
   governanceInvariant,
   informationInvariant,
+  militaryInvariant,
   {
     id: 'canonical-state-shape',
     check: state => {
       const errors: string[] = [];
-      if (state.schemaVersion !== 13) errors.push(`Expected schema 13, received ${state.schemaVersion}.`);
+      if (state.schemaVersion !== 14) errors.push(`Expected schema 14, received ${state.schemaVersion}.`);
       if (!validDate(state.date) || !Number.isSafeInteger(state.engine.tick) || state.engine.tick < 0 || !nonEmpty(state.engine.seed)) errors.push('Simulation date, tick or seed is malformed.');
       if (typeof state.paused !== 'boolean' || ![1, 2, 5].includes(state.speed)) errors.push('Simulation pause or speed is malformed.');
       if (Object.values(state.populationByRegion).some(value => value !== undefined && (!Number.isSafeInteger(value) || value < 0))) errors.push('Region population contains an invalid quantity.');
@@ -138,7 +140,7 @@ export function assertSimulationInvariants(state: SimulationState, context: Inva
   return registry.assert(state, context, phase);
 }
 
-const conservedFields = ['governance', 'information', 'politics', 'crisis', 'fiscal', 'socioeconomy', 'territoryOwnership', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'bilateralRelations', 'claims', 'explicitCasusBelli', 'wars', 'occupationByRegion'] as const;
+const conservedFields = ['military', 'governance', 'information', 'politics', 'crisis', 'fiscal', 'socioeconomy', 'territoryOwnership', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'bilateralRelations', 'claims', 'explicitCasusBelli', 'wars', 'occupationByRegion'] as const;
 export function validateFidelityConservation(before: SimulationState, after: SimulationState): InvariantViolation[] {
   return conservedFields.flatMap(field => JSON.stringify(before[field]) === JSON.stringify(after[field]) ? [] : [{ invariantId: `fidelity-conserves-${field}`, phase: 'fidelity-transition' as const, message: `${field} changed during a fidelity-only transition.` }]);
 }
