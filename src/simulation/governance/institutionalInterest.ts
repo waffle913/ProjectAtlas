@@ -36,6 +36,10 @@ export function isInstitutionalPowerTransfer(value: unknown): value is Instituti
     && typeof item.explanation === 'string' && Boolean(item.explanation.trim());
 }
 
+export function institutionalTransferKey(effect: InstitutionalPowerTransfer): string {
+  return `${effect.lever}|${effect.from}|${effect.to}`;
+}
+
 function chamberStake(registry: PoliticalRegistry, countryId: string, partyId: string, chamberId: string): PartyInstitutionalStake {
   const country = registry.countries[countryId], institution = registry.institutions[country?.institutionId];
   const chamber = institution?.chambers.find(item => item.id === chamberId), party = registry.parties[partyId];
@@ -66,7 +70,10 @@ function executiveStake(registry: PoliticalRegistry, countryId: string, partyId:
   if (coalitionCoverage === 'unavailable') {
     return { holder: 'executive', coverage: 'unavailable', limitation: 'Governing-bloc evidence is unavailable; listed parties alone do not establish executive leverage.' };
   }
-  const blocCoverage = ambiguous ? 'partial' : coalitionCoverage;
+  if (ambiguous) {
+    return { holder: 'executive', coverage: 'unavailable', limitation: 'Governing-bloc composition is ambiguous; executive leverage is not inferred from incomplete membership.' };
+  }
+  const blocCoverage = coalitionCoverage;
   if (!governingPartyIds.includes(partyId)) {
     return { holder: 'executive', stakeBps: 0, coverage: blocCoverage, limitation: 'Party is outside the reconciled governing bloc. Zero executive stake is structural, not an opposition penalty.' };
   }
@@ -121,7 +128,8 @@ export function evaluatePartyInstitutionalInterest(
     materialAgreementBps: material.agreementBps, materialConfidenceBps: material.confidenceBps, materialCoverage: material.coverage,
     materialBaselineFingerprint: governanceFingerprint({ agreementBps: material.agreementBps, confidenceBps: material.confidenceBps, coverage: material.coverage }),
   };
-  if (!Array.isArray(effects) || effects.some(item => !isInstitutionalPowerTransfer(item)) || new Set(effects.map(item => item.id)).size !== effects.length) {
+  if (!Array.isArray(effects) || effects.some(item => !isInstitutionalPowerTransfer(item)) || new Set(effects.map(item => item.id)).size !== effects.length
+    || new Set(effects.map(institutionalTransferKey)).size !== effects.length) {
     return {
       ...baseline, status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0, effects: [], positiveDrivers: [],
       negativeDrivers: ['Institutional evidence is malformed or duplicated.'],

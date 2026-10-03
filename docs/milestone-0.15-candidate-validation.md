@@ -1203,3 +1203,108 @@ licence and previously unconfirmed data licences still block commercial release.
 No successor-generation block, 0.16, main merge or self-acceptance is included.
 Exact-SHA Ubuntu/Windows Node 22 CI is reported after push from actual logs,
 separately from these local results; work then stops for independent audit.
+
+### Ambiguous executive leverage and semantic transfer uniqueness correction
+
+Independent review of `e56dd6fcf86c51e0bf1a5f9cd22a2eef2c28b170`
+accepted the preceding strict UNKNOWN corrections and requested two final
+institutional micro-corrections. This record supersedes the earlier allowance
+for an ambiguous governing bloc to yield partial numeric executive leverage.
+It is a candidate validation record, not acceptance of 0.15.
+
+Any ambiguous Country governing-bloc derivation now makes executive stake
+unavailable, with no numeric stake, for every party, including a sole listed
+governing party, an outside party and each listed coalition member. Structural
+government/opposition status remains diagnostic only. Unresolved membership
+can alter the magnitude or even the direction of institutional self-interest;
+it cannot be represented by a reduced-confidence central estimate. Through
+the accepted strict UNKNOWN path, a transfer involving this executive yields
+unavailable institutional status/coverage, confidence zero and adjustment
+zero, preserving material agreement for debug. Its party vote and all party
+seats become UNKNOWN, never ABSTAIN. Unambiguous partial evidence remains
+calculable with its existing 7,000 confidence cap.
+
+Effect arrays must have unique IDs and unique semantic transfer keys.
+The shared evaluator/invariant helper returns exactly
+`${effect.lever}|${effect.from}|${effect.to}`. Different IDs, source text or
+explanations do not distinguish the same causal transfer. Duplicate keys are
+rejected as malformed evidence without silently deduplicating or weighting
+rows. Different levers, source chambers and reverse directions remain valid
+distinct transfers. V1 has no weight field; weighted or repeated same-type
+clauses would require an explicit future model/version change.
+
+The no-code plan preceded edits. Thirteen regression cases were added before
+the runtime guards: ten failed as expected and three valid-distinction
+controls passed. They cover ambiguity for outside/sole/coalition parties,
+clearing ambiguity to restore exactly the previous partial result, duplicate
+semantics despite different IDs/provenance, valid lever/source/direction
+distinctions and accidental mean weighting. A balanced transfer pair formerly
+yielded agreement 5,000/ABSTAIN, but duplicating its negative row changed it to
+3,400/NO; the duplicate now yields UNKNOWN with no institutional adjustment.
+Saved-state cases rebuild both parliamentary estimates and vote results,
+proving the invariant, serialization and schema-13 reload reject a
+self-consistent semantic duplicate, not merely stale or mismatched metadata.
+
+The final focused command was:
+
+```powershell
+npx.cmd vitest run src\simulation\__tests__\governance.test.ts --testNamePattern='ambiguous governing-bloc composition|clearing governing-bloc ambiguity|self-consistent saved v2 semantic|repeated semantic transfer keys|distinct institutional transfers|duplicate causal transfer' --reporter=verbose
+```
+
+| Executed command / check | Actual result |
+|---|---|
+| Focused 13-case selection before guards | Exit 1: 10 expected failures, 3 passes, 147 skipped; 14.04 s |
+| Focused selection after guards | Exit 0: 13/13, 147 skipped; 30.19 s; final delivery rerun 13/13 in 7.95 s |
+| `npx.cmd tsc -b --pretty false` | Exit 0 |
+| `npm.cmd run governance:audit`, first two attempts | Each exit 1, 159/160: different unchanged tests exceeded their existing 5-second deadline; 160.84 s and 186.63 s |
+| Isolated existing timed-out cases | Both passed together, 2/2 with 158 skipped; 8.06 s. The leader-order case also passed alone in 11.09 s |
+| `npm.cmd run governance:audit`, final attempt | Exit 0: 160/160; 152.18 s |
+| `npm.cmd run governance:benchmark` | Exit 0: 1/1, test 4,828 ms, total 8.78 s |
+| `npm.cmd run information:test` | Exit 0: 32/32; 23.90 s |
+| `npm.cmd run information:audit` | Exit 0: unchanged 948 parties, 7 derived mappings, 1 ambiguous, 940 unavailable, 342 reconciled executive identities, no accepted mapping without a fictional analogue |
+| `npm.cmd run politics:audit` | Exit 0: 42/42 in three files; 130.38 s |
+| `npm.cmd run verify -- -- --maxWorkers=1` | Exit 0: data reproducibility/audit, production build and 538/538 tests in 30 files; 367.93 s test-run duration |
+| `git diff --check` | Exit 0 |
+| Built-in `rg`, `Math\.random`, both changed runtime files | No matches |
+| `git diff --exit-code`, model/marker, resolution, material analysis, plurality, old fixtures, data/scripts, CI and accepted handoff | Exit 0 |
+
+The two initial full-audit failures were deadline failures in the unchanged
+leader insertion-order and architectural invariant/RNG tests, not assertion
+failures. Both passed in isolation, and the final normal audit and full
+verification passed without changing tests, timeouts, benchmark thresholds or
+CI. The cause of those initial local timing failures has not been established;
+no claim of proven resource contention is made. Original failure logs remain
+in session artifacts.
+
+Governance benchmark: 20 material analyses at mean 14.28 ms, synthetic
+material analyses 14.137 ms and synthetic institutional/plurality evaluations
+0.31 ms for four parties; snapshot 0.0329 ms, serialization 374.36 ms,
+initial save 27,268,062 bytes. Resolved proposal remains 17,575 bytes,
+including 4,800 distribution bytes and 4,050 institutional-evidence bytes.
+Submitted-to-resolved save growth remains 18,214 bytes; full-world initial
+to resolved growth is 19,456 bytes. Politics benchmark: three simulated years
+in 100,623.47 ms, 11 ticks/s, weekly snapshot 122.49 ms, coincident snapshot
+407.85 ms, reload 747.26 ms and save 33,547,440 bytes. These are host/workload
+measurements, not a before/after speedup claim.
+
+Scope is exactly `governance/institutionalInterest.ts`,
+`governance/invariants.ts`, Governance tests, current Information documentation
+and this appended record. The actual runtime, test and documentation diffs
+were reviewed separately. Existing complete/partial formulas, 6,000 scaling,
+strategic plurality, material-only public evaluation, fiscal empty effects,
+schema 13, `situational-plurality-0.15-v2` and old plurality-v1 votes are
+unchanged. The stronger evidence check remains version-gated to v2. No state,
+save layout, migration, historical vote rewrite, registry/source-data change,
+new system, scheduler or RNG is introduced.
+
+Coverage and licence limitations remain unchanged: 57 procedurally resolvable
+Countries, eight with ideological evidence and zero overlap. IPU
+CC BY-NC-SA 4.0 and previously unconfirmed V-Party, Party Facts bridge and
+primary-source licences still block commercial release. Executive leverage
+remains a modelled proxy when evidence permits it; ambiguous membership is
+now honestly unavailable rather than numerically guessed.
+
+Exact-SHA Ubuntu/Windows Node 22 results are reported from actual Actions
+logs after commit/push, separately from local validation. No successor-generation
+work, 0.16, main merge or self-declared 0.15 acceptance is included; the
+accepted handoff remains untouched. Work stops for independent review.

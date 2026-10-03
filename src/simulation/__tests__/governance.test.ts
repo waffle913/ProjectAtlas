@@ -328,7 +328,7 @@ describe('governance 0.15 situational institutional interest', () => {
     expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive').stakeBps).toBeUndefined();
   });
 
-  it('averages coalition shares equally across sourced chambers and caps partial or ambiguous evidence confidence', () => {
+  it('averages coalition shares equally across sourced chambers and caps partial evidence confidence', () => {
     const fixture = institutionalFixture(30);
     fixture.institution.governingPartyIds = [fixture.oppositionId, fixture.governmentId];
     const second = structuredClone(fixture.chamber); second.id = 'chamber.synthetic-second'; second.totalSeats = 200;
@@ -339,9 +339,52 @@ describe('governance 0.15 situational institutional interest', () => {
     const material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
     const partial = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material);
     expect(partial).toMatchObject({ coverage: 'partial', confidenceBps: 7_000 });
-    fixture.registry.countries[fixture.countryId].coverage.coalition = 'sourced';
+  });
+
+  it.each(['outside', 'sole', 'coalition'] as const)('keeps ambiguous governing-bloc composition unavailable for %s executive leverage', position => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 });
+    if (position === 'coalition') fixture.institution.governingPartyIds = [fixture.oppositionId, fixture.governmentId];
+    fixture.institution.governingBlocDerivations.push({
+      sourceText: 'Unresolved additional governing-party match, test only.', method: 'normalized_source_party_name_substring_v1',
+      matchedPartyIds: [], ambiguous: true,
+    });
+    analysis.institutionalEffects = [fixture.effect];
+    const partyIds = position === 'coalition' ? [fixture.oppositionId, fixture.governmentId]
+      : [position === 'sole' ? fixture.governmentId : fixture.oppositionId];
+    for (const coalitionCoverage of ['sourced', 'partial'] as const) {
+      fixture.registry.countries[fixture.countryId].coverage.coalition = coalitionCoverage;
+      for (const partyId of partyIds) {
+        const stake = derivePartyInstitutionalStake(fixture.registry, fixture.countryId, partyId, 'executive');
+        expect(stake.coverage).toBe('unavailable'); expect(stake.stakeBps).toBeUndefined();
+        const goals = institutionalProfile(partyId);
+        const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, partyId, fixture.registry, goals, analysis);
+        expect(evaluation.institutionalInterest).toMatchObject({
+          status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0,
+          governmentStatus: fixture.institution.governingPartyIds.includes(partyId) ? 'government' : 'opposition',
+        });
+        expect(evaluation.institutionalInterest!.effects[0].toStakeBps).toBeUndefined();
+        expect(evaluation).toMatchObject({ agreementBps: 6_000, confidenceBps: 0, vote: 'unknown' });
+        const distribution = evaluatePartyInternalVoteDistribution(analysis, goals, evaluation);
+        expect(distribution).toMatchObject({ yesBps: 0, noBps: 0, abstainBps: 0, unknownBps: 10_000 });
+        expect(allocatePartySeats(fixture.chamber.seatsByParty[partyId], distribution)).toEqual({
+          yesSeats: 0, noSeats: 0, abstainSeats: 0, unknownSeats: fixture.chamber.seatsByParty[partyId],
+        });
+      }
+    }
+  });
+
+  it('restores partial calculable behavior after clearing governing-bloc ambiguity without changing its evidence', () => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 }), goals = institutionalProfile(fixture.oppositionId);
+    fixture.registry.countries[fixture.countryId].coverage.coalition = 'partial'; analysis.institutionalEffects = [fixture.effect];
+    const before = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(before.institutionalInterest).toMatchObject({ status: 'modelled', coverage: 'partial', confidenceBps: 7_000, adjustmentBps: -3_360 });
     fixture.institution.governingBlocDerivations[0].ambiguous = true;
-    expect(evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material)).toEqual(partial);
+    expect(evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis)).toMatchObject({
+      confidenceBps: 0, vote: 'unknown', institutionalInterest: { status: 'unavailable', adjustmentBps: 0 },
+    });
+    fixture.institution.governingBlocDerivations[0].ambiguous = false;
+    expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive')).toMatchObject({ coverage: 'partial', stakeBps: 0 });
+    expect(evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis)).toEqual(before);
   });
 
   it('does not infer opposition or executive stake from a missing governing bloc', () => {
@@ -447,6 +490,73 @@ describe('governance 0.15 situational institutional interest', () => {
     const saved = serializeSimulationState(state, worldContext), loaded = restoreSimulationState(saved, worldRegions, {}, {}, worldContext);
     expect(loaded).toEqual(state); expect(serializeSimulationState(loaded, worldContext)).toBe(saved);
   }, 30_000);
+
+  it.each(['invariant', 'serialize', 'reload'] as const)('rejects a self-consistent saved v2 semantic transfer duplicate at %s', boundary => {
+    const state = institutionalEvidenceState(), proposal = state.governance.proposals[historicalPlurality.proposal.id];
+    expect(governanceInvariant.check(state, worldContext, 'save')).toEqual([]);
+    proposal.analysis!.institutionalEffects!.push({
+      ...proposal.analysis!.institutionalEffects![0], id: 'synthetic.saved-semantic-duplicate',
+      source: 'Different test source for the same causal transfer.', explanation: 'Different wording does not create another transfer.',
+    });
+    const profiles = Object.fromEntries(politicalRegistry.countries[proposal.countryId].partyIds.map(id => [id, institutionalProfile(id, true)]));
+    // Rebuild both copies so rejection cannot rely on stale or mismatched evidence.
+    const estimate = estimateParliamentarySupport(state, proposal, politicalRegistry, profiles, proposal.analysis);
+    proposal.parliamentaryEstimate = estimate;
+    proposal.status = estimate.coverage === 'complete' ? 'rejected' : 'unavailable';
+    proposal.voteResult = estimate.coverage === 'complete'
+      ? { ...structuredClone(estimate), outcome: 'rejected', resolvedOn: state.date }
+      : { ...structuredClone(estimate), outcome: 'unavailable', reason: 'institutional_data_unavailable', resolvedOn: state.date };
+    if (boundary === 'invariant') expect(governanceInvariant.check(state, worldContext, 'save').join(' ')).toContain('Invalid institutional evidence');
+    else if (boundary === 'serialize') expect(() => serializeSimulationState(state, worldContext)).toThrow(/Invalid institutional evidence/);
+    else expect(() => restoreSimulationState(JSON.stringify(state), worldRegions, {}, {}, worldContext)).toThrow(/Invalid institutional evidence/);
+  }, 30_000);
+
+  it.each(['different IDs', 'different provenance'] as const)('rejects repeated semantic transfer keys despite %s', difference => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 1_000 }), goals = institutionalProfile(fixture.oppositionId);
+    const duplicate = {
+      ...fixture.effect, id: 'synthetic.semantic-duplicate',
+      ...(difference === 'different provenance' ? { source: 'Another test source.', explanation: 'Another explanation of the same transfer.' } : {}),
+    };
+    analysis.institutionalEffects = [fixture.effect, duplicate];
+    const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(evaluation.institutionalInterest).toMatchObject({ status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0, effects: [] });
+    expect(evaluation.negativeDrivers).toContain('Institutional evidence is malformed or duplicated.');
+    expect(evaluation).toMatchObject({ agreementBps: 6_000, confidenceBps: 0, vote: 'unknown' });
+    expect(evaluatePartyInternalVoteDistribution(analysis, goals, evaluation)).toMatchObject({ yesBps: 0, noBps: 0, abstainBps: 0, unknownBps: 10_000 });
+    expect(analysis.institutionalEffects).toEqual([fixture.effect, duplicate]);
+  });
+
+  it.each(['lever', 'source chamber', 'reverse direction'] as const)('keeps distinct institutional transfers valid when changing %s', distinction => {
+    const fixture = institutionalFixture(), material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
+    const distinct: InstitutionalPowerTransfer = { ...fixture.effect, id: 'synthetic.distinct-transfer' };
+    if (distinction === 'lever') distinct.lever = 'amendment_power';
+    else if (distinction === 'source chamber') {
+      const chamber = structuredClone(fixture.chamber); chamber.id = 'chamber.synthetic-other-source';
+      chamber.seatsByParty = { [fixture.oppositionId]: 40, [fixture.governmentId]: 60 };
+      fixture.institution.chambers.push(chamber); distinct.from = `chamber:${chamber.id}`;
+    } else { distinct.from = fixture.effect.to; distinct.to = fixture.effect.from; }
+    const result = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect, distinct], material);
+    expect(result).toMatchObject({
+      status: 'modelled', coverage: 'complete', confidenceBps: 10_000,
+      adjustmentBps: distinction === 'lever' ? -4_800 : distinction === 'source chamber' ? -3_600 : 0,
+    });
+    expect(result.effects.map(effect => effect.id)).toEqual([fixture.effect.id, distinct.id]);
+  });
+
+  it('prevents a duplicate causal transfer from weighting one side of a balanced mean twice', () => {
+    const fixture = institutionalFixture(), analysis = distributionAnalysis({ infrastructure: 0 }), goals = institutionalProfile(fixture.oppositionId, true);
+    const reverse: InstitutionalPowerTransfer = { ...fixture.effect, id: 'synthetic.balancing-transfer', from: fixture.effect.to, to: fixture.effect.from };
+    analysis.institutionalEffects = [fixture.effect, reverse];
+    const balanced = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(balanced).toMatchObject({ agreementBps: 5_000, vote: 'abstain', institutionalInterest: { adjustmentBps: 0 } });
+    analysis.institutionalEffects.push({ ...fixture.effect, id: 'synthetic.reweighted-duplicate' });
+    expect(new Set(analysis.institutionalEffects.map(effect => effect.id)).size).toBe(3);
+    const duplicated = evaluatePartyProposal(initial, historicalPlurality.proposal, fixture.oppositionId, fixture.registry, goals, analysis);
+    expect(duplicated).toMatchObject({
+      agreementBps: 5_000, confidenceBps: 0, vote: 'unknown',
+      institutionalInterest: { status: 'unavailable', coverage: 'unavailable', adjustmentBps: 0 },
+    });
+  });
 
   const tamperCases: Array<[string, (proposal: PoliticalProposal) => void]> = [
     ['government status', proposal => { const interest = institutionalTamperTarget(proposal).institutionalInterest!; interest.governmentStatus = interest.governmentStatus === 'government' ? 'opposition' : 'government'; }],

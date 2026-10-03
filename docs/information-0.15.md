@@ -139,6 +139,15 @@ adjustment. Coalition leverage remains a documented V1 modelled proxy.
 `institutionalInterest.ts` is pure and on-demand. A transfer names a legal
 lever, source and destination holders, source/explanation, confidence and
 coverage. Holders are `none`, `executive` or a Country-owned chamber.
+Effect IDs and semantic transfer identities must both be unique within an
+analysis. The exact semantic key is `${lever}|${from}|${to}`; a different
+ID, source or explanation does not create a distinct causal transfer.
+Duplicate keys are rejected as malformed evidence, never silently
+deduplicated or averaged as extra weight. Different levers, source holders
+or destination holders remain distinct. V1 has no effect-weight field;
+weighted or repeated same-type clauses require an explicit future model/version
+change.
+
 Chamber stake is the party's complete sourced seat share; absence in a
 complete reconciled allocation is a known zero, whereas unsourced seats
 remain unavailable. A sole reconciled governing party has full executive
@@ -148,9 +157,14 @@ seat share within the governing bloc, using sourced allocations only.
 An absent governing bloc, unavailable governing-bloc coverage or unusable
 coalition seat evidence stays unavailable, never a fabricated 50/50 split.
 A nonempty governing-party list does not establish executive leverage without
-usable bloc evidence. Ambiguity may degrade otherwise usable evidence to partial,
-but cannot promote unavailable evidence to partial. Current governing blocs are
-the pinned 0.13 derivations, not a newly mutable political system.
+usable bloc evidence. Any ambiguous governing-bloc derivation makes executive
+leverage unavailable, without a numeric stake, for every party: sole listed,
+outside or coalition member. Unresolved membership may alter the estimated
+stake or even the direction of institutional self-interest; it is not a
+numeric central estimate at reduced confidence. Structural government status
+may remain diagnostic only. Unambiguous partial evidence retains its existing
+calculable behavior. Current governing blocs are the pinned 0.13 derivations,
+not a newly mutable political system.
 
 For each known transfer, raw interest is destination stake minus source stake.
 Confidence is the minimum of transfer confidence and the coverage cap
@@ -184,7 +198,8 @@ Government Information predictions.
 
 New `situational-plurality-0.15-v2` records require explicit effect arrays and
 per-party institutional evidence. The existing governance invariant validates
-holders, levers, unique IDs, ranges and provenance, then reuses the pure
+holders, levers, unique IDs and semantic transfer keys, ranges and provenance,
+then reuses the pure
 evaluator with the saved material baseline and pinned registry and compares
 the canonical record and final agreement/confidence/coverage. A deterministic
 `materialBaselineFingerprint` also detects independently corrupted baselines

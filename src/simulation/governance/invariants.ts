@@ -6,7 +6,7 @@ import { politicalRegistry } from '../politics/registry';
 import { persistedOfficeEvidenceErrors } from './officeEvidence';
 import { GOVERNANCE_GOALS, GOVERNANCE_VOTE_THRESHOLDS, aggregateIssueEffects } from './analysis';
 import { allocatePartySeats, INTERNAL_PARTY_DISTRIBUTION_MODEL } from './internalPartyDistribution';
-import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, isInstitutionalPowerTransfer } from './institutionalInterest';
+import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, institutionalTransferKey, isInstitutionalPowerTransfer } from './institutionalInterest';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint,
   type ChamberSupportEstimate, type PartyChamberEvaluation, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis,
@@ -127,7 +127,8 @@ function validateAnalysis(analysis: ProposalAnalysis): boolean {
 
 function validateInstitutionalEvidence(proposal: PoliticalProposal): boolean {
   const effects = proposal.analysis?.institutionalEffects;
-  if (!Array.isArray(effects) || !effects.every(isInstitutionalPowerTransfer) || new Set(effects.map(item => item.id)).size !== effects.length) return false;
+  if (!Array.isArray(effects) || !effects.every(isInstitutionalPowerTransfer) || new Set(effects.map(item => item.id)).size !== effects.length
+    || new Set(effects.map(institutionalTransferKey)).size !== effects.length) return false;
   const country = politicalRegistry.countries[proposal.countryId], institution = politicalRegistry.institutions[country?.institutionId];
   for (const effect of effects) for (const holder of [effect.from, effect.to]) {
     if (holder.startsWith('chamber:') && (!institution || institution.countryId !== proposal.countryId
