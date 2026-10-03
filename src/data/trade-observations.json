@@ -1,0 +1,2396 @@
+{
+  "version": "trade-observations-0.17-v1",
+  "scenarioDate": "2026-01-01",
+  "records": [
+    {
+      "id": "census.us-canada.exports.2024",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "unclassified_goods",
+      "annualValueUsd": 350605600000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "source": {
+        "status": "observed",
+        "publisher": "United States Census Bureau",
+        "dataset": "Trade in Goods with Canada, 2024 annual total, nominal not seasonally adjusted",
+        "url": "https://www.census.gov/foreign-trade/balance/c1220.html",
+        "referenceDate": "2024-12-31",
+        "publishedOn": null,
+        "retrievedAt": "2026-10-03",
+        "licence": "US federal government factual statistical data; public domain. Census open data policy: https://www.census.gov/topics/research/research-transparency-public-access/open-data.html",
+        "attribution": "U.S. Census Bureau, Foreign Trade",
+        "transformation": "Published annual total 350605.6 million nominal USD multiplied by 1000000; no category or physical quantity inferred.",
+        "limitation": "One bilateral goods total, rounded to 0.1 million USD; includes goods only, excludes services. Retrieved revision is a historical prior, not 2026 trade. Original publication date is unavailable: government knowledge is conservatively withheld until retrieval. No sector production, stocks, tariffs or customs territory inferred.",
+        "synthetic": false
+      },
+      "aggregateOnly": true,
+      "availableOn": "2026-10-03"
+    },
+    {
+      "id": "census.canada-us.exports.2024",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "unclassified_goods",
+      "annualValueUsd": 411771600000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "source": {
+        "status": "observed",
+        "publisher": "United States Census Bureau",
+        "dataset": "Trade in Goods with Canada, 2024 annual total US imports, nominal not seasonally adjusted",
+        "url": "https://www.census.gov/foreign-trade/balance/c1220.html",
+        "referenceDate": "2024-12-31",
+        "publishedOn": null,
+        "retrievedAt": "2026-10-03",
+        "licence": "US federal government factual statistical data; public domain. Census open data policy: https://www.census.gov/topics/research/research-transparency-public-access/open-data.html",
+        "attribution": "U.S. Census Bureau, Foreign Trade",
+        "transformation": "Published annual US imports total 411771.6 million nominal USD multiplied by 1000000 and labelled Canada-to-US from the US reporter perspective.",
+        "limitation": "Reporter-side imports are not mirror exporter-reported exports; valuation and revisions can differ. One rounded bilateral goods total, no quantity/category breakdown. Historical prior only; source publication date unavailable, government admission no earlier than retrieval. No production, stocks, tariff or customs territory inferred.",
+        "synthetic": false
+      },
+      "aggregateOnly": true,
+      "availableOn": "2026-10-03"
+    },
+    {
+      "id": "statcan.2024.CHN.1.capital_goods",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "capital_goods",
+      "annualValueUsd": 7920593517,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 10849629000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083108 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.chemicals_pharmaceuticals",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "chemicals_pharmaceuticals",
+      "annualValueUsd": 3522353628,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 4824920000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083050 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.consumer_goods",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "consumer_goods",
+      "annualValueUsd": 20125121186,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 27567391000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083224 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.electronics",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "electronics",
+      "annualValueUsd": 17814297708,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 24402025000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083137 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.energy",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "energy",
+      "annualValueUsd": 156452767,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 214309000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082963 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.food",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "food",
+      "annualValueUsd": 496373923,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 679933000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082934 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.industrial_goods",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "industrial_goods",
+      "annualValueUsd": 8846189225,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 12117510000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083021,1567083079 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.raw_materials",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "raw_materials",
+      "annualValueUsd": 43248649,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 59242000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082992 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.transport_equipment",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "transport_equipment",
+      "annualValueUsd": 5972413491,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 8181012000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083166,1567083195 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.1.unclassified_goods",
+      "exporterId": "country.j4e5mk",
+      "importerId": "country.1aj872z",
+      "category": "unclassified_goods",
+      "annualValueUsd": 17228793,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 23600000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083253 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.capital_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "capital_goods",
+      "annualValueUsd": 415019711,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 568494000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083485 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.chemicals_pharmaceuticals",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "chemicals_pharmaceuticals",
+      "annualValueUsd": 1068271280,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 1463318000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083427 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.consumer_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "consumer_goods",
+      "annualValueUsd": 1247295956,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 1708546000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083601 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.electronics",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "electronics",
+      "annualValueUsd": 564242955,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 772900000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083514 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.energy",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "energy",
+      "annualValueUsd": 3901061469,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 5343674000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083340 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.food",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "food",
+      "annualValueUsd": 6417095926,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 8790138000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083311 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.industrial_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "industrial_goods",
+      "annualValueUsd": 3449540809,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 4725181000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083398,1567083456 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.raw_materials",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "raw_materials",
+      "annualValueUsd": 4053069791,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 5551895000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083369 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.transport_equipment",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "transport_equipment",
+      "annualValueUsd": 326868156,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 447744000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083543,1567083572 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.CHN.2.unclassified_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.j4e5mk",
+      "category": "unclassified_goods",
+      "annualValueUsd": 29845963,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 40883000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083630 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.capital_goods",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "capital_goods",
+      "annualValueUsd": 1249265586,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 1711244000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083110 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.chemicals_pharmaceuticals",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "chemicals_pharmaceuticals",
+      "annualValueUsd": 364560520,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 499375000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083052 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.consumer_goods",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "consumer_goods",
+      "annualValueUsd": 1483629727,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 2032276000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083226 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.electronics",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "electronics",
+      "annualValueUsd": 615353336,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 842911000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083139 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.energy",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "energy",
+      "annualValueUsd": 481722879,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 659864000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082965 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.food",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "food",
+      "annualValueUsd": 27901153,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 38219000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082936 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.industrial_goods",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "industrial_goods",
+      "annualValueUsd": 378210688,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 518073000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083023,1567083081 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.raw_materials",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "raw_materials",
+      "annualValueUsd": 79870054,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 109406000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082994 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.transport_equipment",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "transport_equipment",
+      "annualValueUsd": 2258765513,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 3094057000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083168,1567083197 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.1.unclassified_goods",
+      "exporterId": "country.zwicjl",
+      "importerId": "country.1aj872z",
+      "category": "unclassified_goods",
+      "annualValueUsd": 261381954,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 358041000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083255 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.capital_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "capital_goods",
+      "annualValueUsd": 296822164,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 406587000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083487 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.chemicals_pharmaceuticals",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "chemicals_pharmaceuticals",
+      "annualValueUsd": 165824938,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 227147000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083429 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.consumer_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "consumer_goods",
+      "annualValueUsd": 474770769,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 650341000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083603 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.electronics",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "electronics",
+      "annualValueUsd": 332577749,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 455565000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083516 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.energy",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "energy",
+      "annualValueUsd": 1017606220,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 1393917000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083342 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.food",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "food",
+      "annualValueUsd": 546476858,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 748564000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083313 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.industrial_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "industrial_goods",
+      "annualValueUsd": 16520593517,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 22629909000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083400,1567083458 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.raw_materials",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "raw_materials",
+      "annualValueUsd": 135712513,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 185899000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083371 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.transport_equipment",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "transport_equipment",
+      "annualValueUsd": 518683749,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 710493000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083545,1567083574 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.GBR.2.unclassified_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.zwicjl",
+      "category": "unclassified_goods",
+      "annualValueUsd": 74009344,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 101378000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083632 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.capital_goods",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "capital_goods",
+      "annualValueUsd": 30797115637,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 42185889000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083107 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.chemicals_pharmaceuticals",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "chemicals_pharmaceuticals",
+      "annualValueUsd": 31127909914,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 42639011000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083049 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.consumer_goods",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "consumer_goods",
+      "annualValueUsd": 41706127172,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 57129053000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083223 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.electronics",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "electronics",
+      "annualValueUsd": 17976859396,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 24624702000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083136 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.energy",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "energy",
+      "annualValueUsd": 21400633669,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 29314588000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082962 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.food",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "food",
+      "annualValueUsd": 11300154037,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 15478951000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082933 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.industrial_goods",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "industrial_goods",
+      "annualValueUsd": 38259031975,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 52407222000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083020,1567083078 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.raw_materials",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "raw_materials",
+      "annualValueUsd": 3141779092,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 4303609000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567082991 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.transport_equipment",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "transport_equipment",
+      "annualValueUsd": 69634213754,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 95384946000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083165,1567083194 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.1.unclassified_goods",
+      "exporterId": "country.u6myyj",
+      "importerId": "country.1aj872z",
+      "category": "unclassified_goods",
+      "annualValueUsd": 10246656446,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 14035870000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083252 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.capital_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "capital_goods",
+      "annualValueUsd": 23305086874,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 31923308000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083484 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.chemicals_pharmaceuticals",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "chemicals_pharmaceuticals",
+      "annualValueUsd": 26487774128,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 36282953000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083426 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.consumer_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "consumer_goods",
+      "annualValueUsd": 48094085268,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 65879278000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083600 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.electronics",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "electronics",
+      "annualValueUsd": 13699926997,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 18766160000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083513 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.energy",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "energy",
+      "annualValueUsd": 125351056359,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 171705877000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083339 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.food",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "food",
+      "annualValueUsd": 20391763761,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 27932638000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083310 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.industrial_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "industrial_goods",
+      "annualValueUsd": 66721730910,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 91395427000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083397,1567083455 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.raw_materials",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "raw_materials",
+      "annualValueUsd": 4693817346,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 6429591000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083368 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.transport_equipment",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "transport_equipment",
+      "annualValueUsd": 67279199153,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 92159047000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083542,1567083571 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    },
+    {
+      "id": "statcan.2024.USA.2.unclassified_goods",
+      "exporterId": "country.1aj872z",
+      "importerId": "country.u6myyj",
+      "category": "unclassified_goods",
+      "annualValueUsd": 4071182654,
+      "originalCurrency": "CAD",
+      "originalAnnualValue": 5576706000,
+      "temporalStatus": "historical_prior",
+      "coverage": "partial",
+      "availableOn": "2026-10-03",
+      "inputs": [
+        {
+          "publisher": "Bank of Canada",
+          "publishedOn": null,
+          "dataset": "Bank of Canada FXAUSDCAD annual average 2024: 1 USD = 1.3698 CAD",
+          "url": "https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31",
+          "referenceDate": "2024-12-31",
+          "retrievedAt": "2026-10-03",
+          "licence": "Bank of Canada permission to reproduce, attribution and paid-product notice: https://www.bankofcanada.ca/terms/",
+          "attribution": "Bank of Canada. Annual average exchange rate used for approximate CAD-to-USD conversion.",
+          "limitation": "Annual average conversion is not transaction-level USD valuation. Bank of Canada content is available free of charge on its website; prospective purchasers must be informed before sale. Original annual-series publication date unavailable; government admission is no earlier than retrieval."
+        }
+      ],
+      "source": {
+        "publisher": "Statistics Canada",
+        "dataset": "Table 12-10-0175-01, International merchandise trade by province, commodity, and Principal Trading Partners",
+        "url": "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501",
+        "referenceDate": "2024-12-31",
+        "retrievedAt": "2026-10-03",
+        "licence": "Statistics Canada Open Licence: https://www.statcan.gc.ca/en/terms-conditions/open-licence",
+        "attribution": "Adapted from Statistics Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by Statistics Canada of this product.",
+        "limitation": "Canada national level only. Imports use customs-clearance geography; domestic exports exclude re-exports. Selected three partners, mutually exclusive top-level NAPCS groups; services and other balance-of-payments adjustments excluded. No physical quantity, production, stock or tariff observation.",
+        "status": "derived",
+        "publishedOn": "2026-02-19",
+        "transformation": "Sum all twelve 2024 months for vectors 1567083629 in thousand CAD, multiply by1000, combine disjoint NAPCS groups, divide by annual average1.3698CAD/USD using BigInt half-up rounding. Trade revision published 2026-02-19; complete transformed evidence is conservatively government-accessible only at retrieval.",
+        "synthetic": false
+      }
+    }
+  ]
+}

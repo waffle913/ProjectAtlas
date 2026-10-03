@@ -34,6 +34,40 @@ The snapshot includes only explicitly reviewed Party Facts ID joins. ProjectAtla
 
 `src/data/military-observations.json` contains only two dated UK Regular Forces figures from [Quarterly service personnel statistics1January2026](https://www.gov.uk/government/statistics/quarterly-service-personnel-statistics-2026/quarterly-service-personnel-statistics-1-january-2026), published2026-04-02, retrieved2026-10-03. Contains public sector information licensed under the [Open Government Licencev3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/); Ministry of Defence, Crown copyright2026. Third-party content is excluded. Independently rounded historical figures are explicitly partial, not exact operational stock partitions, current availability or an admitted army. No factual equipment/pay/industrial dataset is bundled. The optional military scenario and catalogue are ProjectAtlas's original, explicitly modelled assumptions under ISC, not observations.
 
+## Historical merchandise trade (0.17 candidate)
+
+`src/data/trade-observations.json` bundles two 2024 US/Canada annual
+goods-value references from the [US Census Bureau](https://www.census.gov/foreign-trade/balance/c1220.html)
+(federal factual statistics, public domain), plus sixty historical
+bilateral/category value observations adapted from Statistics Canada
+[Table 12-10-0175-01](https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1210017501).
+The [Statistics Canada Open Licence](https://www.statcan.gc.ca/en/terms-conditions/open-licence)
+permits reuse and sale with accurate attribution. Adapted from Statistics
+Canada, Table 12-10-0175-01, 2024. This does not constitute an endorsement by
+Statistics Canada of this product.
+
+The pinned extract contains 864 monthly observations, selected national
+Canada imports/domestic exports with the United States, China and United
+Kingdom, retrieved 2026-10-03. Category mappings combine only disjoint
+top-level NAPCS groups; domestic exports exclude re-exports. No physical
+production, quantities, logistics capacities, stocks or tariffs are sourced.
+2024 historical evidence is never presented as an observed 2026 flow.
+
+Approximate annual USD conversion uses the Bank of Canada's
+[2024 annual average FXAUSDCAD series](https://www.bankofcanada.ca/valet/observations/FXAUSDCAD/json?start_date=2024-01-01&end_date=2024-12-31),
+1 USD = 1.3698 CAD. This is an annual average conversion, not transaction-level
+USD valuation. Attribution: Bank of Canada. Its [reproduction terms](https://www.bankofcanada.ca/terms/)
+require attribution and, for paid products, a pre-sale notice:
+**Bank of Canada content is available free of charge on the Bank of Canada
+website; prospective purchasers must be informed before sale.**
+That notice is also carried in the source records and trade inspection.
+The original FX publication date is unavailable; admission of the complete
+transformed historical evidence to Government Information is conservatively
+no earlier than retrieval 2026-10-03.
+
+UN Comtrade was investigated but not bundled because its redistribution
+terms require permission. No data licence is inferred from transport tooling.
+
 ## Distribution
 
 Commercial distribution clearance must be resolved before release. The ISC licence for ProjectAtlas code does not authorize commercial use of IPU-derived data, clear the Party Facts crosswalk, or override third-party publication terms. A distributor must review, attribute, replace, separately license, or remove affected datasets and derived outputs as required.
