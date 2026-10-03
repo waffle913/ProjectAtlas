@@ -2,7 +2,7 @@ import { allocate, integer, ratio } from '../socioeconomy/model';
 import { sum } from '../fiscal/math';
 
 export const MILITARY_VERSION = 'military-0.16-v1' as const;
-export const MILITARY_LIMITS = Object.freeze({ orders: 128, completedOrders: 24, trainingMonths: 120 });
+export const MILITARY_LIMITS = Object.freeze({ orders: 128, trainingMonths: 120 });
 const equipmentDefinitions = {
   personal: { family: 'individual', unitCostUsd: 1000, maintenanceCostUsd: 10, maintenanceIntervalMonths: 24, productionMonths: 1, consumable: false, logisticsPersons: 0 },
   truck: { family: 'vehicle', unitCostUsd: 50000, maintenanceCostUsd: 500, maintenanceIntervalMonths: 6, productionMonths: 2, consumable: false, logisticsPersons: 20 },
@@ -95,8 +95,8 @@ export function militaryReadiness(c: MilitaryCapability) {
   const present = presentPersonnel(c), available = present - trainingPersonnel(c);
   const proportion = (value: number, target: number) => !target || value >= target ? 10000 : ratio(value, 10000, target);
   const personnel = proportion(available, c.authorized);
-  const equipment = Object.entries(c.parameters.desiredEquipment).map(([key, target]) => proportion(c.equipment[key as MilitaryItem]?.operational ?? 0, target!));
-  const stocks = Object.entries(c.parameters.desiredConsumables).map(([key, target]) => proportion(c.consumables[key as MilitaryItem]?.quantity ?? 0, target!));
+  const equipment = Object.entries(c.parameters.desiredEquipment).filter(([, target]) => target !== undefined && target > 0).map(([key, target]) => proportion(c.equipment[key as MilitaryItem]?.operational ?? 0, target!));
+  const stocks = Object.entries(c.parameters.desiredConsumables).filter(([, target]) => target !== undefined && target > 0).map(([key, target]) => proportion(c.consumables[key as MilitaryItem]?.quantity ?? 0, target!));
   const training = proportion(Math.min(available, c.exercisePersonMonths), available);
   const vehicles = sum(Object.entries(c.equipment).map(([key, e]) => integer(e!.operational * EQUIPMENT_REGISTRY[key as MilitaryItem].logisticsPersons)));
   const staff = militarySupportStaff(c).logistics;

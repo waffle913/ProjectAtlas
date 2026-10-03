@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { EQUIPMENT_REGISTRY, MILITARY_ITEMS, DEFENSE_COSTS, emptyMilitary, equipmentTotal, militaryReadiness, militarySupportStaff, presentPersonnel, trainingPersonnel, type MilitaryParameters } from '../military/model';
-import { admitMilitaryBaseline, initializeMilitary, placeMilitaryOrder, reservedPersonnel, setMilitaryAuthorization } from '../military/runtime';
+import { admitMilitaryBaseline, initializeMilitary, placeMilitaryOrder, prepareMilitaryMonth, reservedPersonnel, setMilitaryAuthorization } from '../military/runtime';
 import { inspectMilitaryReports, runMilitaryReports } from '../military/reports';
+import * as militaryDates from '../military/dates';
 import { emptySocioeconomy } from '../socioeconomy/model';
 import { initializeSocioeconomy } from '../socioeconomy/initialization';
 import { emptyFiscal } from '../fiscal/model';
@@ -77,6 +78,147 @@ const month = (state: SimulationState) => {
 const territory = (state: SimulationState) => [state.wars, state.regionOwnership, state.occupationByRegion, state.claims, state.explicitCasusBelli];
 
 describe('0.16 explicit synthetic causal integration (not factual armies)', () => {
+  it('rejects an invalid AI-created order before returning monthly preparation, without changing the input', () => {
+    const initial = militaryFixture(), state = revokePoliticalOffice(initial, person(initial));
+    cap(state).consumables.ammunition = { opening: 0, delivered: 0, consumed: 0, quantity: 0, capacity: 10000 };
+    const before = structuredClone(state);
+    const deliveryDate = vi.spyOn(militaryDates, 'militaryDeliveryDate').mockReturnValueOnce('1900-01-01');
+    try {
+      expect(() => prepareMilitaryMonth(state)).toThrow('Invalid military order identity/date.');
+      expect(deliveryDate).toHaveBeenCalledTimes(2);
+      expect(state).toEqual(before);
+    } finally {
+      deliveryDate.mockRestore();
+    }
+  });
+  it.each([
+    { name: 'zero equipment', equipment: { personal: 0, truck: 0 }, stocks: { ammunition: 500, fuel: 500 }, expectedEquipment: null, expectedStocks: 10000 },
+    { name: 'zero consumables', equipment: { personal: 100, truck: 5 }, stocks: { ammunition: 0, fuel: 0 }, expectedEquipment: 10000, expectedStocks: null },
+    { name: 'mixed zero and positive targets', equipment: { personal: 0, truck: 10 }, stocks: { ammunition: 0, fuel: 2000 }, expectedEquipment: 5000, expectedStocks: 5000 },
+    { name: 'no positive targets', equipment: { personal: 0, truck: 0 }, stocks: { ammunition: 0, fuel: 0 }, expectedEquipment: null, expectedStocks: null },
+  ])('derives applicable readiness and saved government evidence for $name', targets => {
+    let state = militaryFixture();
+    const c = cap(state);
+    c.authorized = 40; c.exercisePersonMonths = 40;
+    c.parameters.desiredEquipment = targets.equipment; c.parameters.desiredConsumables = targets.stocks;
+    const readiness = militaryReadiness(c);
+    expect(readiness.components).toEqual({ personnel: 10000, equipment: targets.expectedEquipment, training: 10000, stocks: targets.expectedStocks, logistics: 10000 });
+    expect(readiness.limitingBps).toBe(Math.min(...Object.values(readiness.components).filter((v): v is number => v !== null)));
+    state = runMilitaryReports(state);
+    const report = state.information.militaryReports!.latest[militaryCountry];
+    expect(report.data!.readiness).toEqual(readiness);
+    expect(report.data!.equipment.map(e => e.required)).toEqual([targets.equipment.personal, targets.equipment.truck]);
+    expect(report.data!.stocks.map(s => s.required)).toEqual([targets.stocks.ammunition, targets.stocks.fuel]);
+    const restored = restoreSimulationState(serializeSimulationState(state, militaryContext), militaryRegions, {}, {}, militaryContext);
+    expect(restored).toEqual(state);
+    expect(month(restored)).toEqual(month(state));
+    if (targets.expectedEquipment === null || targets.expectedStocks === null) {
+      const forged = structuredClone(state), forgedReport = forged.information.militaryReports!.latest[militaryCountry];
+      forgedReport.data!.readiness.components[targets.expectedEquipment === null ? 'equipment' : 'stocks'] = 10000;
+      forgedReport.fingerprint = deterministicFingerprint({ ...forgedReport, fingerprint: undefined });
+      expect(() => serializeSimulationState(forged, militaryContext)).toThrow(/readiness is not derived/);
+      expect(() => restoreSimulationState(JSON.stringify(forged), militaryRegions, {}, {}, militaryContext)).toThrow(/readiness is not derived/);
+    }
+  });
+  it('upgrades only derived zero-target readiness in the original schema-14 report shape, rejecting corrupt legacy evidence', () => {
+    let state = militaryFixture();
+    cap(state).parameters.desiredEquipment = { personal: 0, truck: 0 };
+    cap(state).parameters.desiredConsumables = { ammunition: 0, fuel: 0 };
+    state = month(setMilitaryAuthorization(state, militaryCountry, person(state), 1000));
+    state = month(state);
+    state = advanceSimulationDays(setMilitaryAuthorization(state, militaryCountry, person(state), 3000), 10);
+    const legacy = structuredClone(state), report = legacy.information.militaryReports!.latest[militaryCountry];
+    for (const historical of Object.values(legacy.information.militaryReports!.byId)) {
+      if (!historical.data) continue;
+      Reflect.deleteProperty(historical, 'readinessVersion');
+      historical.data.readiness.components.equipment = historical.data.readiness.components.stocks = 10000;
+      historical.fingerprint = deterministicFingerprint({ ...historical, fingerprint: undefined });
+    }
+    expect(report.data!.authorized).toBe(1000);
+    expect(report.asOfDate < state.date).toBe(true);
+    expect(cap(state).authorized).toBe(3000);
+    const restored = restoreSimulationState(JSON.stringify(legacy), militaryRegions, {}, {}, militaryContext);
+    expect(restored).toEqual(state);
+    expect(month(restored)).toEqual(month(state));
+    for (const mode of ['badReadiness', 'badFingerprint', 'inconsistentLatest'] as const) {
+      const invalid = structuredClone(legacy), r = invalid.information.militaryReports!.byId[report.id];
+      if (mode === 'badReadiness') {
+        r.data!.readiness.components.stocks = 5000;
+        r.fingerprint = deterministicFingerprint({ ...r, fingerprint: undefined });
+      } else if (mode === 'badFingerprint') r.fingerprint = 'corrupt evidence';
+      else {
+        const latest = { ...r, uncertainty: 'Different independently fingerprinted evidence.' };
+        latest.fingerprint = deterministicFingerprint({ ...latest, fingerprint: undefined });
+        invalid.information.militaryReports!.latest[militaryCountry] = latest;
+      }
+      expect(() => restoreSimulationState(JSON.stringify(invalid), militaryRegions, {}, {}, militaryContext)).toThrow();
+    }
+  });
+  it('preserves unaffected original schema-14 reports and briefings byte-for-byte', () => {
+    let state = militaryFixture();
+    state = month(setMilitaryAuthorization(state, militaryCountry, person(state), 1000));
+    const report = state.information.militaryReports!.latest[militaryCountry];
+    Reflect.deleteProperty(report, 'readinessVersion');
+    report.fingerprint = deterministicFingerprint({ ...report, fingerprint: undefined });
+    const evidence = JSON.stringify(state.information.militaryReports), briefings = JSON.stringify(state.information.briefings);
+    const restored = restoreSimulationState(JSON.stringify(state), militaryRegions, {}, {}, militaryContext);
+    expect(JSON.stringify(restored.information.militaryReports)).toBe(evidence);
+    expect(JSON.stringify(restored.information.briefings)).toBe(briefings);
+    expect(restored).toEqual(state);
+  });
+  it.each(['missingVersion', 'unknownVersion'] as const)('rejects corrected zero-target reports with %s on save and reload', mode => {
+    let state = militaryFixture();
+    cap(state).parameters.desiredEquipment = { personal: 0, truck: 0 };
+    state = month(state);
+    const report = state.information.militaryReports!.latest[militaryCountry];
+    if (mode === 'missingVersion') Reflect.deleteProperty(report, 'readinessVersion');
+    else Reflect.set(report, 'readinessVersion', 'unrecognized');
+    report.fingerprint = deterministicFingerprint({ ...report, fingerprint: undefined });
+    expect(() => serializeSimulationState(state, militaryContext)).toThrow();
+    expect(() => restoreSimulationState(JSON.stringify(state), militaryRegions, {}, {}, militaryContext)).toThrow();
+  });
+  it.each(['initialClean', 'appearance', 'change', 'clearance', 'delivery', 'alertAndDelivery'] as const)('emits truthful dated advisory evidence for %s without pausing', mode => {
+    let state = militaryFixture();
+    if (mode === 'change') cap(state).consumables.ammunition!.opening = cap(state).consumables.ammunition!.quantity = 130;
+    if (mode === 'change' || mode === 'clearance' || mode === 'alertAndDelivery') state = setMilitaryAuthorization(state, militaryCountry, person(state), 1000);
+    const beforeTerritory = structuredClone(territory(state));
+    state = runMilitaryReports(state);
+    const initialCount = state.information.briefings.filter(b => b.eventType === 'military_report').length;
+    expect(initialCount).toBe(mode === 'change' || mode === 'clearance' || mode === 'alertAndDelivery' ? 1 : 0);
+    if (mode === 'appearance') state = setMilitaryAuthorization(state, militaryCountry, person(state), 1000);
+    if (mode === 'clearance') state = setMilitaryAuthorization(state, militaryCountry, person(state), 60);
+    if (mode === 'delivery' || mode === 'alertAndDelivery') state = placeMilitaryOrder(state, militaryCountry, person(state), 'fuel', 10);
+    state = month(state);
+    if (mode === 'delivery' || mode === 'alertAndDelivery') {
+      expect(state.information.briefings.filter(b => b.eventType === 'military_report')).toHaveLength(initialCount);
+      state = month(state);
+    }
+    const report = state.information.militaryReports!.latest[militaryCountry];
+    const briefings = state.information.briefings.filter(b => b.eventType === 'military_report');
+    expect(briefings).toHaveLength(initialCount + (mode === 'initialClean' ? 0 : 1));
+    if (mode !== 'initialClean') {
+      const briefing = briefings.at(-1)!;
+      expect(briefing.sourceId).toBe(report.id); expect(briefing.createdOn).toBe(report.producedOn);
+      expect(briefing.access).toBe('government'); expect(briefing.severity).toBe('advisory'); expect(briefing.pauseRequested).toBe(false);
+      if (mode === 'clearance') {
+        expect(report.alertCodes).toEqual([]); expect(report.data!.deliveredThisMonth).toBe(0);
+        expect(briefing.headline).toBe('Defense administrative report: no active alerts.');
+      } else if (mode === 'delivery' || mode === 'alertAndDelivery') {
+        expect(report.data!.deliveredThisMonth).toBeGreaterThan(0);
+        expect(briefing.headline).toBe(`Defense administrative report: ${mode === 'delivery' ? 'delivery completed' : 'personnel_shortfall'}; ${report.data!.deliveredThisMonth} units delivered.`);
+      } else {
+        expect(report.alertCodes).toEqual(mode === 'appearance' ? ['personnel_shortfall'] : ['personnel_shortfall', 'consumable_shortfall']);
+        expect(briefing.headline).toBe(`Defense administrative report: ${report.alertCodes.join(', ')}.`);
+      }
+    }
+    expect(state.paused).toBe(false);
+    expect(territory(state)).toEqual(beforeTerritory);
+    expect(runMilitaryReports(state)).toEqual(state);
+    expect(assertSimulationInvariants(state, militaryContext, 'save')).toBe(true);
+    const restored = restoreSimulationState(serializeSimulationState(state, militaryContext), militaryRegions, {}, {}, militaryContext);
+    expect(restored).toEqual(state);
+    expect(month(restored)).toEqual(month(state));
+  });
   it('keeps catalogue definitions and deterministic static allocation lists immutable outside saves', () => {
     expect(Object.isFrozen(EQUIPMENT_REGISTRY)).toBe(true);
     for (const d of Object.values(EQUIPMENT_REGISTRY)) expect(Object.isFrozen(d)).toBe(true);

@@ -4,7 +4,7 @@ This contract is the integration point for simulation systems added after milest
 
 ## Canonical state and invariants
 
-The explicitly authorized [0.16 candidate](military-0.16.md) adds the canonical military branch in schema 14, clone/snapshot/delta/save/fidelity coverage and the common military invariant. It runs preparation at monthly priority 90 and government reporting at 250; actual financing/work is executed by the existing fiscal priority 150. Ordinary days preserve branch identity. 0.15 remains unaccepted, and no structural-war/ownership contracts or operational 0.19 systems change.
+The explicitly authorized [0.16 extension in final review](military-0.16.md) adds the canonical military branch in schema 14, clone/snapshot/delta/save/fidelity coverage and the common military invariant. It runs preparation at monthly priority 90 and government reporting at 250; actual financing/work is executed by the existing fiscal priority 150. Ordinary days preserve branch identity. 0.15 is the accepted parent; 0.16 is not yet accepted. No structural-war/ownership contracts or operational 0.19 systems change.
 
 `SimulationState` in `src/types.ts` is the only mutable, persistent world state. Country and Region registries remain immutable identity metadata. `canonicalWorld()` joins them for coherent reads while retaining references to the original state and registries. Its snapshot is a defensive clone intended for UI, debugging and persistence.
 

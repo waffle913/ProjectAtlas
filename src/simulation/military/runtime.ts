@@ -225,6 +225,7 @@ export function prepareMilitaryMonth(state: SimulationState): SimulationState {
     c.lastPreparedOn = state.date;
     next = replace(next, id, c);
     peacetimeAI(c, next, id);
+    next = replace(next, id, c);
   }
   return next === state ? state : reconcileWorkforce(next);
 }

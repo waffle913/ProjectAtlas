@@ -4,9 +4,9 @@ This document is the canonical cross-system continuity brief for humans and codi
 
 ## Current validated state
 
-The accepted base is `c8bcb0841f6a75887b2ca520eca88496331aa1fd` (milestone 0.14 final). The project has validated milestones 0.8–0.14 and is at save schema 12, with governance model `governance-0.14-v1` and current proposal evaluation `situational-0.14-v2`. The previous accepted milestones are architectural history, not tasks to redo.
+The accepted parent milestone is now **0.15**, following the user's independent-review decision, with save schema 13 and information version `information-0.15-v3`. Its contracts include versioned plurality, institutional evaluation and succession while preserving historical 0.14 records. The earlier accepted base `c8bcb0841f6a75887b2ca520eca88496331aa1fd` remains the milestone 0.14 historical reference, not the current acceptance boundary. Validated milestones 0.8–0.15 are architectural history, not tasks to redo.
 
-The next roadmap entry is 0.15, but it must not begin without explicit user instruction. This document and the subsystem contracts are context, not permission to implement the roadmap. The current behavior remains limited by known modelled assumptions and data coverage; do not hide those limits by fabricating observations or weakening contracts.
+The current 0.16 task is in correction/final review and is not yet accepted. Do not begin 0.17 without explicit user instruction. This document and the subsystem contracts are context, not permission to implement the roadmap. The current behavior remains limited by known modelled assumptions and data coverage; do not hide those limits by fabricating observations or weakening contracts.
 
 Key subsystem references:
 
@@ -17,13 +17,14 @@ Key subsystem references:
 - [0.12 crisis model](crisis-0.12.md)
 - [0.13 politics model](politics-0.13.md)
 - [0.14 governance model](governance-0.14.md)
+- [Accepted 0.15 information and leadership contract](information-0.15.md), with [historical development validation evidence](milestone-0.15-candidate-validation.md)
 - Corresponding final validation records: `milestone-0.10-validation.md`, `milestone-0.10-corrective-validation.md`, `milestone-0.11-validation.md`, `milestone-0.12-validation.md`, `milestone-0.13-validation.md` and `milestone-0.14-validation.md`
 
 ## Project purpose and decision rule
 
-### Explicitly authorized 0.16 candidate extension
+### Explicitly authorized 0.16 extension in final review
 
-The current task branch extends candidate 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705` with [military capabilities/readiness](military-0.16.md), schema 14. This is explicit user authorization, not acceptance of 0.15 or 0.16 and not a change to the accepted base above. Personnel reservations minimally extend the single existing labour identity; actual gross wages/withholding and public procurement use the sole fiscal/economic engines. Migration initializes unavailable coverage at the saved date without replay. Missing factual armies remain unavailable; a partial rounded UK source does not initialize operational stocks. The optional single-Country demonstration is visibly synthetic. Administrative executive management is office-derived and never operational commander authority. No 0.19 wars/combat/movement/control or 0.17 systems are authorized.
+The current task branch extends accepted 0.15 parent `ceddc8e04fc470f41155fdc8b6250142fb970705` with [military capabilities/readiness](military-0.16.md), schema 14. 0.16 remains in correction/final review; its implementation does not constitute acceptance. Personnel reservations minimally extend the single existing labour identity; actual gross wages/withholding and public procurement use the sole fiscal/economic engines. Migration initializes unavailable coverage at the saved date without replay. Missing factual armies remain unavailable; a partial rounded UK source does not initialize operational stocks. The optional single-Country demonstration is visibly synthetic. Administrative executive management is office-derived and never operational commander authority. No 0.19 wars/combat/movement/control or 0.17 systems are authorized.
 
 ProjectAtlas is an original geopolitical, economic, social, political and military simulation. Its global scenario begins on **2026-01-01**. Favor realism while keeping the simulation causal, deterministic, computable and performant. Decisions change underlying variables; existing mechanisms produce consequences. Use cohorts and aggregates rather than billions of agents.
 
@@ -102,9 +103,9 @@ Other limits are documented in subsystem contracts and validation reports. Examp
 
 ## Locked future direction (not authorization to implement)
 
-### Player interface and information: 0.15
+### Player interface and information: accepted 0.15 and original direction
 
-0.15 is the next planned milestone and is **out of scope unless explicitly requested**. Its direction is a playable information/interface layer while preserving Reality / Government Information / Public Perception separation. Planned navigation uses a left vertical set of major categories (for example, fiscality, economy, security, health, politics, diplomacy and military) with clickable subcategories (for example, security -> military, police, intelligence, justice and operations). Top-right shows date/time; bottom-right has time controls and nearby map filters such as economic, political, relations and logistics; a tablet/news entry point can surface information; Region context actions may be available by right-click (for example, Region information, construction or a state of emergency); and transient minister-style notifications should not permanently cover the screen. Only urgent/grave information should automatically pause gameplay; routine legislation should not constantly interrupt.
+0.15 is now accepted; its implemented scope is recorded in [the information contract](information-0.15.md). The following original interface direction remains context, not a claim that every planned action is implemented. Its direction is a playable information/interface layer while preserving Reality / Government Information / Public Perception separation. Planned navigation uses a left vertical set of major categories (for example, fiscality, economy, security, health, politics, diplomacy and military) with clickable subcategories (for example, security -> military, police, intelligence, justice and operations). Top-right shows date/time; bottom-right has time controls and nearby map filters such as economic, political, relations and logistics; a tablet/news entry point can surface information; Region context actions may be available by right-click (for example, Region information, construction or a state of emergency); and transient minister-style notifications should not permanently cover the screen. Only urgent/grave information should automatically pause gameplay; routine legislation should not constantly interrupt.
 
 No arbitrary sliders for actual policy values: use explicit values (for example, corporate tax 30% -> 20%). Players may inspect reaction estimates where appropriate, but estimates are not authoritative policy outcomes. Planned action examples such as emergency declaration or construction are not implemented by this handoff.
 

@@ -10,6 +10,7 @@ import militaryObservations from '../../data/military-observations.json';
 import { validateMilitarySource } from './validation';
 import { militaryDeliveryDate } from './dates';
 
+const READINESS_VERSION = 'positive-targets-0.16-v1' as const;
 export interface MilitaryReportData {
   authorized: number; present: number; trainees: number; available: number; vacancies: number;
   monthlySalaryUsd: number; payrollDue: number; payrollPaid: number; payrollArrears: number;
@@ -24,6 +25,7 @@ export interface MilitaryReportData {
   readiness: ReturnType<typeof militaryReadiness>;
 }
 export interface GovernmentMilitaryReport {
+  readinessVersion?: typeof READINESS_VERSION;
   historicalReference?: typeof militaryObservations.records[number];
   id: string; countryId: string; asOfDate: string; producedOn: string;
   access: 'government'; source: 'military.administrative-report';
@@ -38,9 +40,14 @@ export function inspectMilitaryReports(state: SimulationState, countryId: string
   return report ? structuredClone({ ...report, stale: report.asOfDate < state.date }) : undefined;
 }
 export function validateMilitaryReport(report: GovernmentMilitaryReport, initializedOn: string, date: string) {
+  validateReport(report, initializedOn, date, false);
+}
+function validateReport(report: GovernmentMilitaryReport, initializedOn: string, date: string, allowLegacyReadiness: boolean) {
+  const legacyReadiness = allowLegacyReadiness && report.readinessVersion === undefined;
   if (report.id !== `military-report:${report.countryId}:${report.producedOn}` || !dateValid(report.asOfDate) || !dateValid(report.producedOn)
     || report.asOfDate < initializedOn || report.asOfDate > report.producedOn || report.producedOn > date
     || report.source !== 'military.administrative-report' || report.access !== 'government'
+    || report.readinessVersion !== undefined && report.readinessVersion !== READINESS_VERSION
     || typeof report.uncertainty !== 'string' || !report.uncertainty.trim() || typeof report.limitation !== 'string' || !report.limitation.trim()
     || !Array.isArray(report.alertCodes) || report.confidenceBps !== (report.data ? 7000 : 0)
     || report.status !== (report.data ? 'modelled' : 'unavailable') || report.coverage !== (report.data ? 'complete' : 'unavailable')
@@ -74,11 +81,14 @@ export function validateMilitaryReport(report: GovernmentMilitaryReport, initial
     [s.quantity, s.capacity, s.consumed].forEach(integer); if (s.required !== null) integer(s.required);
     if (!EQUIPMENT_REGISTRY[s.item]?.consumable || s.quantity > s.capacity) throw new Error('Military report consumables invalid.');
   }
+  const zeroOnlyTargets = (d.equipment.some(e => e.required === 0) && !d.equipment.some(e => e.required !== null && e.required > 0))
+    || (d.stocks.some(s => s.required === 0) && !d.stocks.some(s => s.required !== null && s.required > 0));
+  if (!legacyReadiness && zeroOnlyTargets && report.readinessVersion === undefined) throw new Error('Military zero-target readiness requires versioned report semantics.');
   const proportion = (n: number, target: number) => !target || n >= target ? 10000 : ratio(n, 10000, target);
   const transport = sum(d.equipment.map(e => integer(e.operational * EQUIPMENT_REGISTRY[e.item].logisticsPersons)));
   if (d.logisticsCapacity !== Math.min(transport, integer(d.supportStaff.logistics * d.logisticsPersonsPerStaff))) throw new Error('Military report logistics has no conserved material means.');
-  const equipment = d.equipment.filter(e => e.required !== null).map(e => proportion(e.operational, e.required!));
-  const stocks = d.stocks.filter(s => s.required !== null).map(s => proportion(s.quantity, s.required!));
+  const equipment = d.equipment.filter(e => e.required !== null && (legacyReadiness || e.required > 0)).map(e => proportion(e.operational, e.required!));
+  const stocks = d.stocks.filter(s => s.required !== null && (legacyReadiness || s.required > 0)).map(s => proportion(s.quantity, s.required!));
   const components = { personnel: proportion(d.available, d.authorized), equipment: equipment.length ? Math.min(...equipment) : null,
     training: proportion(d.exercisePersonMonths, d.available), stocks: stocks.length ? Math.min(...stocks) : null, logistics: proportion(d.logisticsCapacity, d.available) };
   if (deterministicFingerprint(components) !== deterministicFingerprint(d.readiness.components)
@@ -91,6 +101,30 @@ export function validateMilitaryReport(report: GovernmentMilitaryReport, initial
       || o.paidUsd !== integer(o.funded * EQUIPMENT_REGISTRY[o.item].unitCostUsd) || o.delivered && report.asOfDate < o.earliestDeliveryOn) throw new Error('Invalid reported military order.');
   }
   if (deterministicFingerprint(report.alertCodes) !== deterministicFingerprint(militaryAlertCodes(d))) throw new Error('Military alert does not follow report evidence.');
+  return { ...components, equipment: d.equipment.some(e => e.required !== null && e.required > 0) ? components.equipment : null,
+    stocks: d.stocks.some(s => s.required !== null && s.required > 0) ? components.stocks : null };
+}
+export function upgradeMilitaryReportReadiness(state: SimulationState): SimulationState {
+  const reports = state.information.militaryReports;
+  if (!reports) return state;
+  for (const report of Object.values(reports.latest)) {
+    if (!reports.byId[report.id] || JSON.stringify(report) !== JSON.stringify(reports.byId[report.id])) throw new Error('Latest military report is not retained.');
+  }
+  const earliest = state.military.initializedOn! > state.information.initializedOn! ? state.military.initializedOn! : state.information.initializedOn!;
+  const byId = { ...reports.byId };
+  let changed = false;
+  for (const [id, report] of Object.entries(reports.byId)) {
+    if (!report.data || report.readinessVersion !== undefined) continue;
+    const components = validateReport(report, earliest, state.date, true)!;
+    if (deterministicFingerprint(components) === deterministicFingerprint(report.data.readiness.components)) continue;
+    const upgraded: GovernmentMilitaryReport = { ...report, readinessVersion: READINESS_VERSION, data: { ...report.data,
+      readiness: { ...report.data.readiness, components, limitingBps: Math.min(...Object.values(components).filter((v): v is number => v !== null)) } } };
+    upgraded.fingerprint = deterministicFingerprint({ ...upgraded, fingerprint: undefined });
+    validateMilitaryReport(upgraded, earliest, state.date);
+    byId[id] = upgraded; changed = true;
+  }
+  return changed ? { ...state, information: { ...state.information, militaryReports: { byId,
+    latest: Object.fromEntries(Object.entries(reports.latest).map(([id, report]) => [id, byId[report.id]])) } } } : state;
 }
 export function militaryAlertCodes(d: MilitaryReportData): string[] {
   const codes: string[] = [];
@@ -101,7 +135,11 @@ export function militaryAlertCodes(d: MilitaryReportData): string[] {
   if (d.maintenanceBacklog > sum(d.equipment.map(e => e.total))) codes.push('maintenance_backlog');
   return codes;
 }
-export const militaryReportHeadline = (report: GovernmentMilitaryReport) => `Defense administrative report: ${report.alertCodes.length ? report.alertCodes.join(', ') : 'delivery completed'}${report.data?.deliveredThisMonth ? `; ${report.data.deliveredThisMonth} units delivered` : ''}.`;
+export function militaryReportHeadline(report: GovernmentMilitaryReport) {
+  const delivered = report.data?.deliveredThisMonth ?? 0;
+  const status = report.alertCodes.length ? report.alertCodes.join(', ') : delivered ? 'delivery completed' : 'no active alerts';
+  return `Defense administrative report: ${status}${delivered ? `; ${delivered} units delivered` : ''}.`;
+}
 export const militaryReportInterpretation = (report: GovernmentMilitaryReport) => ({
   basis: 'modelled' as const, summary: 'Capability limits follow the reported personnel, physical equipment, supplies and funded work.',
   tradeoffs: ['Restoration requires time, existing workforce, stock and actual fiscal financing.'], limitations: [report.uncertainty, report.limitation],
@@ -131,6 +169,7 @@ export function runMilitaryReports(state: SimulationState): SimulationState {
       orders: c.orders.map(({ id, item, quantity, funded, delivered, orderedOn, earliestDeliveryOn, paidUsd }) => ({ id, item, quantity, funded, delivered, orderedOn, earliestDeliveryOn, paidUsd })),
     } : undefined;
     const report: GovernmentMilitaryReport = {
+      readinessVersion: data ? READINESS_VERSION : undefined,
       id: `military-report:${id}:${state.date}`, countryId: id, asOfDate: c?.lastLedger?.date ?? state.date, producedOn: state.date,
       access: 'government', source: 'military.administrative-report', status: data ? 'modelled' : 'unavailable', coverage: data ? 'complete' : 'unavailable',
       confidenceBps: data ? 7000 : 0, uncertainty: data ? 'Modelled administrative census of the configured simulated capability, not observed real readiness or combat effectiveness.' : 'No admitted military capacity data.',
@@ -142,7 +181,7 @@ export function runMilitaryReports(state: SimulationState): SimulationState {
     validateMilitaryReport(report, state.information.initializedOn!, state.date);
     const previous = latest[id];
     latest[id] = report; byId[report.id] = report;
-    const changedAlerts = report.alertCodes.length && deterministicFingerprint(previous?.alertCodes ?? []) !== deterministicFingerprint(report.alertCodes);
+    const changedAlerts = deterministicFingerprint(previous?.alertCodes ?? []) !== deterministicFingerprint(report.alertCodes);
     const delivered = c?.lastLedger?.deliveredUnits ?? 0;
     if (changedAlerts || delivered) briefings.push({
       id: briefingId('military_report', id, report.id), countryId: id, portfolio: 'defense', access: 'government',

@@ -1,7 +1,10 @@
 # Milestone 0.15 candidate validation evidence
 
-**Status: implementation evidence for independent review; 0.15 is not accepted.**
-The canonical handoff remains at accepted milestone 0.14.
+**Current status: 0.15 is accepted/validated following the user's independent-review decision.**
+0.16 is in correction/final review, not yet accepted. This historical report
+retains its filename, dated candidate descriptions and original execution
+evidence; statements about acceptance below describe their development-time
+context, not the current milestone status.
 
 The earlier sections retain the previous corrective-pass evidence through
 `81109d98a685398c8938eb2b1931634f4c4bcabe`. The current scoped internal-party

@@ -14,6 +14,7 @@ import { initializeInformationState } from './information/runtime';
 import { upgradeInformationState } from './information/migration';
 import { emptyMilitary, MILITARY_VERSION } from './military/model';
 import { initializeMilitary } from './military/runtime';
+import { upgradeMilitaryReportReadiness } from './military/reports';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
 import { assertSimulationInvariants, type InvariantContext } from './invariants';
@@ -101,6 +102,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
       restored = upgradeInformationState(restored);
     }
     if (version < 14) restored = initializeMilitary(restored);
+    else restored = upgradeMilitaryReportReadiness(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

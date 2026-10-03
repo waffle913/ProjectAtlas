@@ -1,18 +1,18 @@
-# ProjectAtlas — Milestone 0.14
+# ProjectAtlas — Milestone 0.16 (final review)
 
 An original geopolitical, economic, social, political and military simulation, with the scenario start date fixed at **2026-01-01**.
 
 ## Current project status
 
-The current validated milestone is **0.14** (save schema 12): player-character governance and political decisions integrate with the existing fiscal system. Current contracts, rationale, known limits and the locked roadmap are consolidated in the [canonical agent handoff](docs/agent-handoff.md). Agents must read it before implementation and must not begin milestone 0.15 without explicit instruction.
+The current validated parent milestone is **0.15** (save schema 13), following the user's independent-review decision. **0.16 is in correction/final review**, not yet accepted. Current contracts, rationale, known limits and the locked roadmap are consolidated in the [canonical agent handoff](docs/agent-handoff.md). Agents must read it before implementation and must not begin milestone 0.17 without explicit instruction.
 
-Milestone **0.15 is under implementation and independent review** on a task branch; it is not yet an accepted milestone. Its candidate Government Information, briefing, fictional leadership, succession, playable interface and explicit-power-transfer institutional evaluation contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with measured validation recorded in [the candidate validation report](docs/milestone-0.15-candidate-validation.md). Current fiscal proposals have no institutional transfer and retain their material scores. Do not treat this candidate as changing the accepted-milestone status or canonical handoff.
+Milestone **0.15 is accepted/validated**. Its Government Information, briefing, fictional leadership, succession, playable interface and explicit-power-transfer institutional evaluation contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with historical measured validation retained in [the development validation report](docs/milestone-0.15-candidate-validation.md). Current fiscal proposals have no institutional transfer and retain their material scores.
 
 Earlier validated contracts remain part of the current architecture; this status does not replace their technical documentation. The 0.10 socioeconomic model is documented in [the model and migration contract](docs/socioeconomy-0.10.md) and [per-Country coverage](src/data/socioeconomic-coverage-report.json). `npm run economy:audit` verifies the reproducible report; `npm run benchmark:world` measures the actual monthly world runtime alongside the historical probe.
 
 ## Run
 
-Milestone **0.16 military capabilities/readiness is an explicitly authorized candidate**, built on the still-unaccepted 0.15 parent. See [the military contract](docs/military-0.16.md) for schema 14, conserved personnel/equipment/stocks, actual fiscal payroll/production, monthly Government Information and strict 0.19 exclusions. The factual scenario retains unavailable operational armies for all 252 Countries; one rounded UK MOD reference is partial historical evidence only. The starting screen offers an opt-in, plainly synthetic single-Country demonstration, with no free treasury or executive powers. Run `npm run military:audit` and `npm run military:benchmark`.
+Milestone **0.16 military capabilities/readiness is in correction/final review**, built on the accepted 0.15 parent. See [the military contract](docs/military-0.16.md) for schema 14, conserved personnel/equipment/stocks, actual fiscal payroll/production, monthly Government Information and strict 0.19 exclusions. The factual scenario retains unavailable operational armies for all 252 Countries; one rounded UK MOD reference is partial historical evidence only. The starting screen offers an opt-in, plainly synthetic single-Country demonstration, with no free treasury or executive powers. Run `npm run military:audit` and `npm run military:benchmark`.
 
 `npm install` then `npm run dev`. Run `npm run verify` for country, Region, demographic and economic reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate`, `npm run data:regions:generate`, `npm run data:population:generate` and `npm run data:economy:generate` regenerate derived data offline from checked-in inputs.
 

@@ -1,10 +1,10 @@
 # Government information and playable interface (0.15 implementation)
 
-**Status: implementation candidate; these corrections await independent review and 0.15 is not accepted.** The canonical handoff continues to identify 0.14 as the latest accepted milestone.
+**Status: 0.15 is the accepted/validated parent milestone, following the user's independent-review decision.** 0.16 is the current milestone in correction/final review, not yet accepted. Historical candidate validation records retain their original chronology.
 
 ## Information architecture
 
-The separately authorized [0.16 candidate military channel](military-0.16.md) extends this unchanged information version in schema 14. Monthly government-only military reports are explicit saved projections with validated source/date/licence/fingerprint and material readiness evidence. Ministers/UI never read live capability. Defense advisories reference retained reports, cannot impersonate crisis/urgent/public facts and do not pause. One rounded UK source is a partial historical reference, never a current operational stock. The six 0.15 integrity rules below remain in force; neither milestone is accepted by this extension.
+The separately authorized [0.16 military channel in final review](military-0.16.md) extends this unchanged information version in schema 14. Monthly government-only military reports are explicit saved projections with validated source/date/licence/fingerprint and material readiness evidence. Ministers/UI never read live capability. Defense advisories reference retained reports, cannot impersonate crisis/urgent/public facts and do not pause. One rounded UK source is a partial historical reference, never a current operational stock. The six accepted 0.15 integrity rules below remain in force; this extension does not constitute acceptance of 0.16.
 
 The engine's canonical Reality remains authoritative. `SimulationState.information` is a delayed, provenance-labelled Government Information layer, not a second economy or a noisy copy of Reality. The current report is a monthly aggregate of the existing regional unemployed and labour-force stocks. Its date follows the socioeconomic monthly report date; a later Reality change does not leak into the stored report. Incomplete coverage stays partial, and absent labour-force coverage is `unavailable` with no numeric value.
 
@@ -240,7 +240,7 @@ The start overlay keeps Country first and offers two routes: Country -> Party ->
 
 Both routes ultimately invoke the existing `setControlledPerson`; they neither create an office nor change membership, leadership or capabilities. The UI displays fictional names, office titles, modelled capabilities and their limitations, including explicit no-office, unresolved-authority and unavailable-membership messages. Source real names remain provenance/debug metadata. Opposition leaders remain selectable without receiving executive access; unresolved executive officeholders remain selectable without inferred powers. Countries lacking both eligible party leaders and reconciled executives remain unavailable rather than receiving invented people or parties.
 
-## Internal party plurality (candidate, pending independent review)
+## Internal party plurality (accepted 0.15)
 
 New parliamentary evaluations use `continuous_issue_distribution_v1`, with
 `internal_party_distribution_v1` procedure and
@@ -299,7 +299,7 @@ Context-derived successor generation uses the separate on-demand mechanism
 above, without making this parliamentary distribution a persistent faction
 state.
 
-## Situational institutional interest (candidate, pending independent review)
+## Situational institutional interest (accepted 0.15)
 
 Party evaluation supports situational institutional self-interest when
 proposal analysis contains explicit legal power transfers. The effect is
@@ -392,8 +392,8 @@ are explicitly synthetic test evidence, not observed political positions.
 The institutional evaluator adds no constitutional-reform gameplay, mutable
 constitutions, elections updating governing blocs, coalition negotiation,
 persistent factions or individual MPs. Context-derived succession is a
-separate pure, on-demand mechanism as documented above. 0.15 remains a
-review candidate, not an accepted milestone.
+separate pure, on-demand mechanism as documented above. These are accepted
+0.15 contracts; acceptance does not imply empirical calibration.
 
 ## Persistence, invariants and validation
 
@@ -413,5 +413,5 @@ Ordinary v3/schema-13 reload does not call leadership initialization, current-ma
 - Fiscal UI exposes the existing corporate-tax and annual infrastructure-budget proposal paths through governance commands; unsupported instruments are not presented as working controls.
 - The current model has no supported urgent briefing source, so automatic urgent pause is not exercised.
 - Proposal reactions and government-visible counterfactual consequences are unavailable, not canonical Reality relabelled as estimates. No crisis-report sensor channel or Public Perception layer is implemented.
-- Internal plurality, explicit-power-transfer institutional interest and context-derived succession are candidate behavior using modelled priors, not observed faction shares or empirically calibrated party coefficients. Current fiscal proposals receive zero/not_applicable institutional adjustment. Succession creates no persistent factions, national leadership-election procedure or automatic leadership challenges.
+- Internal plurality, explicit-power-transfer institutional interest and context-derived succession are accepted 0.15 behavior using modelled priors, not observed faction shares or empirically calibrated party coefficients. Current fiscal proposals receive zero/not_applicable institutional adjustment. Succession creates no persistent factions, national leadership-election procedure or automatic leadership challenges.
 - Measurement timings and the save comparison are workload-specific and are not performance thresholds or universal device guarantees.

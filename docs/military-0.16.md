@@ -1,8 +1,10 @@
-# Military capabilities and readiness 0.16 (candidate)
+# Military capabilities and readiness 0.16 (correction/final review)
 
 This explicitly authorized task extends parent `ceddc8e04fc470f41155fdc8b6250142fb970705`.
-Neither 0.15 nor 0.16 is independently accepted. Accepted 0.8-0.14 contracts remain
-the foundation. This is administrative peacetime capability, not operational use.
+0.15 is now the accepted/validated parent following the user's independent-review
+decision; 0.16 remains in correction/final review, not yet accepted. Accepted
+0.8-0.15 contracts remain the foundation. This is administrative peacetime
+capability, not operational use.
 
 ## Canonical state and admission
 
@@ -144,7 +146,18 @@ operational equipment, qualified exercise evidence, required consumables and
 logistical throughput. Material ratios saturate before division to avoid overflow.
 The limiting ratio is an explanatory bottleneck, **not combat effectiveness**.
 Transport depends on actual operational trucks and apportioned logistics staff.
+Only strictly positive equipment/consumable targets enter their respective
+readiness components. No positive target means `null`, excluded from the
+limiting ratio; explicit `required: 0` remains visible in dated reports.
+Report validation reconstructs the same applicability from reported evidence.
 Zero configured need is distinguishable from missing coverage.
+New modelled reports mark `readinessVersion: positive-targets-0.16-v1`.
+Schema-14 reload verifies an unmarked report's original fingerprint and full
+legacy evidence before correcting zero-only components from `10000` to `null`
+and updating its fingerprint/version. Only saved report evidence is used, never
+current Reality or historical simulation replay. Unaffected unmarked reports
+and all briefings remain unchanged; inconsistent latest/retained copies and
+corrupt legacy ratios are rejected. The global save schema remains 14.
 
 Management commands require the controlled active person, government information
 access, an executive office (`head_of_government` or `head_of_state`), a non-unresolved
@@ -170,6 +183,8 @@ that shared forecast margin. Future receipts are not guaranteed. Only later
 actual fiscal allocation can fund manufacture, and delivery still requires
 time/material/public-demand fulfillment. The forecast is not another treasury,
 prepayment or a budget-to-power effect. AI chooses no threats, wars or objectives.
+Monthly preparation validates the capability again after AI decisions, before
+returning canonical state; an invalid AI-created commitment cannot escape it.
 
 ## Government Information, UI and ordering
 
@@ -190,7 +205,10 @@ staleness. New report records do not weaken the six prior information-integrity
 rules or succession/institutional UNKNOWN contracts.
 
 The defense portfolio receives deduplicated advisory alerts for changed material
-shortfalls/backlogs/arrears and actual deliveries, referencing retained reports.
+shortfalls/backlogs/arrears, including clearance of the last alert, and actual
+deliveries, referencing retained reports. An initial report with no alerts or
+deliveries emits no briefing. Headlines distinguish active alerts, actual
+deliveries and no active alerts; a clearance without delivery never claims one.
 They do not auto-pause or impersonate reserved crisis/urgent events. Existing
 difficulty interpretation remains downstream. Reports retain current evidence
 for every Country plus reports referenced by bounded retained briefings; no
@@ -256,8 +274,11 @@ annexation, peace, victory or defeat. Every military command/month leaves the
 pre-existing structural-war state untouched, including nonempty war/occupation
 fixtures. No 0.17 systems are introduced. This V1 is generic and modelled, not
 empirical global military calibration or a full military organizational model.
+Global military calibration remains deferred debt before 0.19. Long-workload
+performance remains under surveillance for later rebenchmarking, not a target
+for this bounded post-audit correction.
 
-## Candidate validation record
+## Original candidate validation record (before the post-audit correction)
 
 Final local validation on Windows / Node 24.21.0:
 
@@ -326,3 +347,43 @@ from dependency restoration (two moderate, four high) were not hidden or fixed
 through unrelated upgrades. Military UI report-only rendering/controls are
 covered by SSR tests; the development server returned HTTP 200, but no automated
 interactive-browser click/screenshot validation is claimed.
+
+## Post-audit correction validation (pending user diff review)
+
+This bounded correction starts from `b27e59f8528bc181c8f69e7af7f9c134e45c9a0a`.
+0.15 acceptance follows the user's independent-review decision; 0.16 still
+requires the user's final complete-diff review. Earlier execution records above
+describe their original revisions, not this correction.
+
+The four repairs are final post-AI capability validation, positive-only
+equipment/stock readiness, advisory notification on the last alert's clearance
+with truthful headlines, and removal of the unused completed-order limit.
+The directly coupled schema-14 compatibility correction validates old saved
+evidence before changing affected derived zero-target components only. It
+preserves dates, physical/fiscal state, source observations, retained briefings
+and unaffected reports; it does not read current Reality or replay history.
+
+Fifteen new regression cases cover invalid AI-created dates, four target
+configurations, old saved-report compatibility/staleness and corrupt evidence,
+missing/unknown readiness versions, and six alert/delivery transitions.
+They include save/reload, deterministic continuation, no pause, government
+access and unchanged structural-war/ownership fields. The initial eleven-case
+reproduction failed five cases before the code repairs; the separate original
+zero-target schema-14 compatibility test also failed before its bounded upgrade.
+No existing test, benchmark threshold or dependency was weakened or changed.
+
+| Command | Actual result (Windows, Node 24.21.0) |
+| --- | --- |
+| `npm run military:audit` | 82/82 passed; 252 unavailable factual operative capabilities, one partial historical reference, zero factual operative admissions. |
+| `npm run military:benchmark` | 1/1 passed; runner 15.60 s, workload 11.229 s, unchanged 30-second threshold. |
+| `npm run verify -- -- --maxWorkers=1` | Exit 0; pinned-data audit, TypeScript and production build passed; 764/764 tests in 32/32 files, Vitest 481.28 s. Existing large-bundle warning remains. |
+| `npm run information:audit` | Passed; 948 gameplay parties, seven derived leader mappings, 941 modelled fallback leaders, unchanged source coverage. |
+| `git diff --check` and introduced runtime TODO/FIXME/stub/Math.random scan | Passed; no introduced forbidden markers. |
+
+The 31-day military sample retained 252 reports across 252 Countries / 4574
+Regions with one synthetic capability: initialization 1002.14 ms, ordinary-day
+mean 20.42 ms, weekly mean 724.05 ms, monthly 693.19 ms, cached/cold snapshot
+0.0033/483.83 ms, save/reload 470.45/693.43 ms, save size 31993837 bytes.
+These remain local workload measurements, not a long-term performance guarantee.
+Global calibration before 0.19, later long-workload rebenchmarking and existing
+commercial data-licence blockers remain deferred; no 0.17 or 0.19 work is added.
