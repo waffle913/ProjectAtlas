@@ -192,29 +192,46 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
   const flows: TradeFlow[] = [];
   const routeUsed = new Map<string, number>();
   const executableRoutes = routes.filter(r => r.tariffBps !== null);
-  const executedRoutes = new Set<string>();
-  for (;;) {
-    let best: { route: TradeRoute; quantity: number; flow: TradeFlow; numerator: bigint; denominator: bigint } | undefined;
-    for (const route of executableRoutes) {
-      if (executedRoutes.has(route.id)) continue;
+  const version = new Map<string, number>();
+  const currentVersion = (k: string) => version.get(k) ?? 0;
+  const bumpVersion = (k: string) => version.set(k, currentVersion(k) + 1);
+  type Candidate = { route: TradeRoute; quantity: number; flow: TradeFlow; numerator: bigint; denominator: bigint; buyerVersion: number; sellerVersion: number };
+  const candidateFor = (route: TradeRoute): Candidate | undefined => {
       const seller = key(route.exporterId, route.category), buyer = key(route.importerId, route.category);
       const market = countries[route.exporterId].markets[route.category]!;
       const physicalMaximum = Math.min(exportRemaining.get(seller) ?? 0, remainingNeed.get(buyer) ?? 0, route.establishedCapacity);
-      if (!physicalMaximum) continue;
+      if (!physicalMaximum) return undefined;
       const sellerMaximum = affordableQuantity(exportBackingRemaining.get(seller) ?? 0, physicalMaximum, n => money(n, market.priceMicroUsd));
-      if (!sellerMaximum) continue;
+      if (!sellerMaximum) return undefined;
       const quantity = affordableQuantity(importBudgets.get(buyer) ?? 0, sellerMaximum,
         n => quoteFlow(route, market.priceMicroUsd, n, market.unit, state.date).landedUsd);
-      if (!quantity) continue;
+      if (!quantity) return undefined;
       const flow = quoteFlow(route, market.priceMicroUsd, quantity, market.unit, state.date);
       const numerator = BigInt(flow.landedUsd), denominator = BigInt(quantity);
-      if (!best || numerator * best.denominator < best.numerator * denominator
-        || numerator * best.denominator === best.numerator * denominator && route.id.localeCompare(best.route.id) < 0) {
-        best = { route, quantity, flow, numerator, denominator };
+      return { route, quantity, flow, numerator, denominator, buyerVersion: currentVersion(buyer), sellerVersion: currentVersion(seller) };
+  };
+  const candidates: (Candidate | undefined)[] = executableRoutes.map(candidateFor);
+  const better = (a: Candidate, b: Candidate) => {
+    const lhs = a.numerator * BigInt(b.denominator), rhs = b.numerator * BigInt(a.denominator);
+    return lhs === rhs ? a.route.id.localeCompare(b.route.id) < 0 : lhs < rhs;
+  };
+  for (;;) {
+    let bestIndex = -1;
+    for (let i = 0; i < candidates.length; i++) {
+      let candidate = candidates[i];
+      if (!candidate) continue;
+      const buyer = key(candidate.route.importerId, candidate.route.category);
+      const seller = key(candidate.route.exporterId, candidate.route.category);
+      if (candidate.buyerVersion !== currentVersion(buyer) || candidate.sellerVersion !== currentVersion(seller)) {
+        candidate = candidateFor(candidate.route);
+        candidates[i] = candidate;
+        if (!candidate) continue;
       }
+      if (bestIndex < 0 || better(candidate, candidates[bestIndex]!)) bestIndex = i;
     }
-    if (!best) break;
-    executedRoutes.add(best.route.id);
+    if (bestIndex < 0) break;
+    const best = candidates[bestIndex]!;
+    candidates[bestIndex] = undefined;
     const seller = key(best.route.exporterId, best.route.category), buyer = key(best.route.importerId, best.route.category);
     const market = countries[best.route.exporterId].markets[best.route.category]!;
     flows.push(best.flow); routeUsed.set(best.route.id, best.quantity);
@@ -227,6 +244,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
     importer.imports = integer(importer.imports + best.quantity); importer.importValueUsd = integer(importer.importValueUsd + best.flow.valueUsd);
     importer.importPaymentUsd = integer(importer.importPaymentUsd + best.flow.landedUsd);
     importer.logisticsUsd = integer(importer.logisticsUsd + best.flow.logisticsUsd); importer.customsUsd = integer(importer.customsUsd + best.flow.customsUsd);
+    bumpVersion(seller); bumpVersion(buyer);
   }
   for (const id of active) {
     const ids = grouped.get(id) ?? [], country = countries[id];
@@ -264,9 +282,11 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
         householdPayment = integer(householdPayment + ledger.importPaymentUsd);
         importedGoods = integer(importedGoods + ledger.importValueUsd);
         referenceGoods = integer(referenceGoods + ledger.importReferenceUsd);
-        if (CATEGORY_REGISTRY[m.category].essential) essentialGoods = integer(essentialGoods + ledger.importReferenceUsd);
-        const importShortfallUnits = Math.max(0, m.importNeedPerMonth - ledger.imports - Math.max(0, ledger.domesticConsumed - m.domesticNeedPerMonth));
-        householdShortfall = integer(householdShortfall + money(importShortfallUnits, m.baselinePriceMicroUsd));
+        if (CATEGORY_REGISTRY[m.category].essential) {
+          essentialGoods = integer(essentialGoods + ledger.importReferenceUsd);
+          const importShortfallUnits = Math.max(0, m.importNeedPerMonth - ledger.imports - Math.max(0, ledger.domesticConsumed - m.domesticNeedPerMonth));
+          householdShortfall = integer(householdShortfall + money(importShortfallUnits, m.baselinePriceMicroUsd));
+        }
       } else industrialPayment = integer(industrialPayment + ledger.importPaymentUsd);
       productionBacking = integer(productionBacking + ledger.productionBackingUsd);
     }
@@ -275,7 +295,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
     const goods = allocate(importedGoods, paid);
     const reference = allocate(referenceGoods, groupWeights);
     const essentials = allocate(essentialGoods, reference);
-    const shortfalls = allocate(householdShortfall, groupWeights);
+    const shortfalls = sum(groupWeights) ? allocate(householdShortfall, groupWeights) : groupWeights.map(() => 0);
     const industrial = allocate(industrialPayment, ids.map(r => state.fiscal.regions[r].privateResidual));
     const backingWeights = ids.map((r, index) => {
       const d = baseFiscalDemand(state, r)!;

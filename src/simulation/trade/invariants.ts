@@ -165,6 +165,23 @@ export const tradeInvariant: SimulationInvariant = {
           || sum(recipients.map(p => p.industrialBudgetUsd)) !== sum(industrial.map(l => l.importPaymentUsd))
           || sum(recipients.map(p => p.productionBackingUsd)) !== sum(c.ledger.categories.map(l => l.productionBackingUsd))) throw new Error('Trade regional funding/production counterparties do not reconcile.');
         const ordered = Object.entries(prepared.regions).filter(([, p]) => p.owner === id).sort(([a], [b]) => a.localeCompare(b));
+        const groupWeights = ordered.flatMap(([, p]) => p.netBudgetByGroup);
+        const householdShortfall = sum(c.ledger.categories.filter(l => c.markets[l.category]!.use === 'household'
+          && ['food', 'energy', 'chemicals_pharmaceuticals'].includes(l.category)).map(l => {
+            const m = c.markets[l.category]!;
+            return money(Math.max(0, m.importNeedPerMonth - l.imports - Math.max(0, l.domesticConsumed - m.domesticNeedPerMonth)), m.baselinePriceMicroUsd);
+          }));
+        const shortfalls = sum(groupWeights) ? allocate(householdShortfall, groupWeights) : groupWeights.map(() => 0);
+        ordered.forEach(([, p], regionIndex) => {
+          for (let i = 0; i < 3; i++) {
+            const shortfall = shortfalls[regionIndex * 3 + i];
+            const availableDomestic = Math.max(0, p.netBudgetByGroup[i] - p.householdLandedByGroup[i] - shortfall);
+            const expected = Math.min(availableDomestic, netGoodsBudgetAtRate(
+              integer(p.nominalBudgetByGroup[i] - p.householdLandedByGroup[i] - consumptionCollectedAtRate(p.importedGoodsByGroup[i], p.consumptionTaxRateBps)),
+              p.consumptionTaxRateBps));
+            if (p.householdRequests[i] !== expected) throw new Error('Household import shortfall does not reconstruct from canonical trade evidence.');
+          }
+        });
         const reference = allocate(sum(household.map(l => l.importReferenceUsd)), ordered.flatMap(([, p]) => p.netBudgetByGroup));
         const essential = allocate(sum(household.filter(l => ['food', 'energy', 'chemicals_pharmaceuticals'].includes(l.category))
           .map(l => l.importReferenceUsd)), reference);

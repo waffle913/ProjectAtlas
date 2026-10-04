@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import type { RegionEntity } from '../../types';
 import { tradeCountries, tradeRegions, tradeContext, tradeFixture, tradeMonth } from './tradeFixture';
 import { assertSimulationInvariants, validateFidelityConservation } from '../invariants';
-import { money, quoteFlow, deriveDependency, affordableQuantity } from '../trade/model';
+import { money, quoteFlow, deriveDependency, affordableQuantity, TRADE_CATEGORIES } from '../trade/model';
 import { admitTradeMarket, admitTradeRoute, availableConsumption, availableNeedsCoverage, prepareTradeMonth, setTradeStockTarget } from '../trade/runtime';
 import { syntheticTradeMarket, SYNTHETIC_TRADE_SOURCE } from '../trade/scenario';
 import { governmentHistoricalTrade, tradeObservations, validateTradeObservations, tradeEvidenceAvailableOn } from '../trade/data';
@@ -669,5 +669,101 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
       .toBeGreaterThanOrEqual(availableNeedsCoverage(slow.socioeconomy.regions[regionId].economy!));
     expect(assertSimulationInvariants(slow, tradeContext, 'save')).toBe(true);
     expect(assertSimulationInvariants(gradual, tradeContext, 'save')).toBe(true);
+  });
+  it('does not crash when an admitted household market temporarily has no economic recipient', () => {
+    let state = tradeFixture(false);
+    state = admitTradeMarket(state, tradeCountries[2], syntheticTradeMarket('food', {
+      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 80,
+      domesticReplacementCapacity: 30, domesticReplacementPerMonth: 2, importCapacityPerMonth: 80,
+    }));
+    state.socioeconomy.regions[tradeRegions[2].id].economy = undefined;
+    delete state.fiscal.regions[tradeRegions[2].id];
+    const next = tradeMonth(state);
+    expect(next.trade.countries[tradeCountries[2]].ledger!.categories[0].shortage).toBe(80);
+    expect(assertSimulationInvariants(next, tradeContext, 'save')).toBe(true);
+  });
+  it('tolerates a Country whose household allocation weights are all zero', () => {
+    let state = tradeFixture(false);
+    state = admitTradeMarket(state, tradeCountries[2], syntheticTradeMarket('food', {
+      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 80,
+      domesticReplacementCapacity: 30, domesticReplacementPerMonth: 2, importCapacityPerMonth: 80,
+    }));
+    state.fiscal.regions[tradeRegions[2].id].disposable = [0, 0, 0];
+    const next = tradeMonth(state);
+    expect(next.trade.countries[tradeCountries[2]].ledger!.categories[0].shortage).toBe(80);
+    expect(assertSimulationInvariants(next, tradeContext, 'save')).toBe(true);
+  });
+  it.each(['understated', 'overstated', 'reassigned'] as const)('rejects forged %s household import shortfall', kind => {
+    let state = tradeFixture(false);
+    state = admitTradeMarket(state, tradeCountries[2], syntheticTradeMarket('food', {
+      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 80,
+      domesticReplacementCapacity: 30, domesticReplacementPerMonth: 2, importCapacityPerMonth: 80,
+    }));
+    state = tradeMonth(state);
+    const p = state.trade.prepared!.regions[tradeRegions[2].id];
+    if (kind === 'understated') {
+      p.householdRequests[0]++;
+      p.unspentNetBudgetByGroup[0] = p.netBudgetByGroup[0] - p.householdRequests[0] - p.householdLandedByGroup[0];
+    } else if (kind === 'overstated') {
+      p.householdRequests[0]--;
+      p.unspentNetBudgetByGroup[0] = p.netBudgetByGroup[0] - p.householdRequests[0] - p.householdLandedByGroup[0];
+    } else {
+      const h0 = p.householdRequests[0], h1 = p.householdRequests[1];
+      const u0 = p.unspentNetBudgetByGroup[0], u1 = p.unspentNetBudgetByGroup[1];
+      p.householdRequests[0] = h1; p.householdRequests[1] = h0;
+      p.unspentNetBudgetByGroup[0] = u1; p.unspentNetBudgetByGroup[1] = u0;
+    }
+    expect(() => serializeSimulationState(state, tradeContext)).toThrow();
+    expect(() => restoreSimulationState(JSON.stringify(state), tradeRegions, {}, {}, tradeContext)).toThrow();
+  });
+  it('does not let nonessential import shortages masquerade as essential-needs pressure', () => {
+    const baseline = tradeMonth(tradeFixture(false));
+    let essential = tradeFixture(false);
+    essential = admitTradeMarket(essential, tradeCountries[2], syntheticTradeMarket('food', {
+      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 80,
+      domesticReplacementCapacity: 30, domesticReplacementPerMonth: 2, importCapacityPerMonth: 80,
+      priceMicroUsd: 1000000000000, baselinePriceMicroUsd: 1000000000000,
+    }));
+    let nonessential = tradeFixture(false);
+    nonessential = admitTradeMarket(nonessential, tradeCountries[2], syntheticTradeMarket('consumer_goods', {
+      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 80,
+      domesticReplacementCapacity: 30, domesticReplacementPerMonth: 2, importCapacityPerMonth: 80,
+      priceMicroUsd: 1000000000000, baselinePriceMicroUsd: 1000000000000,
+    }));
+    const a = tradeMonth(essential), c = tradeMonth(nonessential), regionId = tradeRegions[2].id;
+    const b = baseline.socioeconomy.regions[regionId].economy!;
+    const ea = a.socioeconomy.regions[regionId].economy!, ec = c.socioeconomy.regions[regionId].economy!;
+    expect(availableConsumption(ea)).toBeLessThan(availableConsumption(b));
+    expect(availableConsumption(ec)).toBe(availableConsumption(b));
+    expect(availableNeedsCoverage(ea)).toBeLessThan(availableNeedsCoverage(b));
+    expect(availableNeedsCoverage(ec)).toBe(availableNeedsCoverage(b));
+    expect(ea.importEssentialConsumption!).toBeLessThan(b.essentialConsumption);
+    expect(ec.importEssentialConsumption!).toBe(b.essentialConsumption);
+    expect(assertSimulationInvariants(a, tradeContext, 'save')).toBe(true);
+    expect(assertSimulationInvariants(c, tradeContext, 'save')).toBe(true);
+  });
+  it('keeps route-aware allocation deterministic and conserved beyond the 80-route benchmark', () => {
+    let state = tradeFixture(false);
+    for (const [i, id] of tradeCountries.entries()) for (const category of TRADE_CATEGORIES) {
+      state = admitTradeMarket(state, id, syntheticTradeMarket(category, {
+        productionPerMonth: i < 2 ? 30 : 0, domesticNeedPerMonth: 0, importNeedPerMonth: i < 2 ? 0 : 10,
+        exportCapacityPerMonth: i < 2 ? 50 : 0, importCapacityPerMonth: i < 2 ? 0 : 50,
+      }));
+    }
+    for (const exporter of tradeCountries) for (const importer of tradeCountries) {
+      if (exporter === importer) continue;
+      for (const category of TRADE_CATEGORIES) {
+        state = admitTradeRoute(state, { id: `route.scale:${category}:${exporter}:${importer}`, exporterId: exporter, importerId: importer, category,
+          source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 50, establishedCapacity: 50, expansionPerMonth: 0, logisticsBps: 250, tariffBps: 500 });
+      }
+    }
+    expect(state.trade.routes).toHaveLength(12 * TRADE_CATEGORIES.length);
+    const a = tradeMonth(state);
+    const shuffled = structuredClone(state);
+    shuffled.trade.routes.reverse();
+    const b = tradeMonth(shuffled);
+    expect(a.trade).toEqual(b.trade);
+    expect(a.trade.flows.length).toBeGreaterThan(0);
+    expect(assertSimulationInvariants(a, tradeContext, 'save')).toBe(true);
   });
 });

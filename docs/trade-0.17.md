@@ -201,7 +201,9 @@ by effective average landed cost using BigInt cross-multiplication, with stable
 permanent route ID tie-breaking. The selection is recomputed as allocation state
 changes rather than hard-coded to a one-unit quote, so whole-USD rounding of
 FOB/logistics/customs cannot reverse the economic ordering for the transaction
-that is actually about to execute.
+that is actually about to execute. Candidate quotes are cached and only
+recomputed when their buyer or seller allocation state changes, avoiding a
+route-count-quadratic rescan of the full executable set.
 Each delivery is bounded by shared seller supply, buyer need, category/route
 capacity and an affordable whole-integer quote. Multiple buyers never receive
 the same unit. Budgets are existing resource envelopes, not GDP-percent imports.
@@ -230,10 +232,13 @@ Missing imports never instantaneously reappear as generic domestic output: the
 single socioeconomic/output engine only realizes the existing demand envelope,
 and replacement is explicitly limited by `domesticReplacementCapacity` and
 `domesticReplacementPerMonth`. When household imports are short, the remaining
-household request is reduced by the reference value of the unfulfilled import
-need, so generic domestic output cannot recreate the missing physical goods;
-the resulting material shortfall appears in `availableConsumption` and relaxes
-only as imports, stocks or admitted gradual domestic replacement increase.
+household request is reduced only by the reference value of unfulfilled
+**essential** household import need, so generic domestic output cannot recreate
+missing essential food/energy/medicine; the resulting material shortfall appears
+in `availableConsumption` and relaxes only as imports, stocks or admitted gradual
+domestic replacement increase. Nonessential import shortages remain visible in
+trade ledgers, prices and reports without being conflated into essential-needs
+coverage.
 
 ## Stocks and military inputs
 
@@ -357,18 +362,18 @@ are excluded. The existing genuine800-day schema13 golden fixture is unchanged.
 
 ## Measured performance and validation
 
-Final local `npm run verify -- -- --maxWorkers=1`: **836/836 tests in 34 files**,
-**532.17s**, Windows/Node24.21.0, including all data audits, the TypeScript/Vite
+Final local `npm run verify -- -- --maxWorkers=1`: **843/843 tests in 34 files**,
+**519.05s**, Windows/Node24.21.0, including all data audits, the TypeScript/Vite
 build and the full single-worker Vitest suite. This is a local measurement, not
 GitHub Actions, and does not by itself make 0.17 accepted.
 
 Final `npm run trade:audit`: **62/62** source records, 864 monthly points, eight
-rejected source corruptions; the 71-test trade unit suite passed. The full verify
+rejected source corruptions; the 78-test trade unit suite passed. The full verify
 data audit also reproduced country, Region, population, economic, military and
 trade artifacts from pinned inputs.
 
-Final `npm run trade:benchmark -- --silent=false`: **1/1**, test76.21s,
-runner80.41s, Windows/Node24.21.0 without competing agent-owned audits.
+Final `npm run trade:benchmark -- --silent=false`: **1/1**, test66.84s,
+runner71.12s, Windows/Node24.21.0 without competing agent-owned audits.
 Real permanent world:
 **252 Countries/4,574 Regions**, eight synthetic trade participants, five categories,
 40 markets,80 routes/active/peak flows,20 dependencies;365days/12months/51weekly/
@@ -376,16 +381,16 @@ Real permanent world:
 
 | Measurement | Final local trade workload | Previous corrected-parent year, no trade |
 | --- | ---: | ---: |
-| Initialization | 974.83 ms | 1,007.53 ms |
-| Scenario configuration | 38.84 ms | Not applicable |
-| Annual ticking | 62,783.21 ms | 58,819.54 ms |
-| Ordinary day mean | 1.60 ms | 1.71 ms |
-| Monthly day mean | 598.31 ms | 486.30 ms |
-| Weekly day mean | 1,080.79 ms | 1,028.74 ms |
-| Warm snapshot | 0.0027 ms | 0.0026 ms |
-| Cold snapshot | 494.74 ms | 514.86 ms |
-| Serialization | 803.21 ms | 487.32 ms |
-| Reload | 1,029.28 ms | 663.67 ms |
+| Initialization | 953.90 ms | 1,007.53 ms |
+| Scenario configuration | 37.70 ms | Not applicable |
+| Annual ticking | 53,788.67 ms | 58,819.54 ms |
+| Ordinary day mean | 1.41 ms | 1.71 ms |
+| Monthly day mean | 553.89 ms | 486.30 ms |
+| Weekly day mean | 915.99 ms | 1,028.74 ms |
+| Warm snapshot | 0.0031 ms | 0.0026 ms |
+| Cold snapshot | 488.39 ms | 514.86 ms |
+| Serialization | 765.97 ms | 487.32 ms |
+| Reload | 1,011.06 ms | 663.67 ms |
 | Save bytes | 40,190,533 | 33,011,474 |
 
 The previous corrected-parent column is retained only as a historical reference;
