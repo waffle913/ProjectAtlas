@@ -202,8 +202,9 @@ permanent route ID tie-breaking. The selection is recomputed as allocation state
 changes rather than hard-coded to a one-unit quote, so whole-USD rounding of
 FOB/logistics/customs cannot reverse the economic ordering for the transaction
 that is actually about to execute. Candidate quotes are cached and only
-recomputed when their buyer or seller allocation state changes, avoiding a
-route-count-quadratic rescan of the full executable set.
+kept in a priority queue ordered by that exact effective landed cost; buyer and
+seller version stamps lazily invalidate only affected candidates, so the former
+full-array best-candidate rescan is avoided.
 Each delivery is bounded by shared seller supply, buyer need, category/route
 capacity and an affordable whole-integer quote. Multiple buyers never receive
 the same unit. Budgets are existing resource envelopes, not GDP-percent imports.

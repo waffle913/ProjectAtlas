@@ -210,29 +210,52 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
       const numerator = BigInt(flow.landedUsd), denominator = BigInt(quantity);
       return { route, quantity, flow, numerator, denominator, buyerVersion: currentVersion(buyer), sellerVersion: currentVersion(seller) };
   };
-  const candidates: (Candidate | undefined)[] = executableRoutes.map(candidateFor);
   const better = (a: Candidate, b: Candidate) => {
     const lhs = a.numerator * BigInt(b.denominator), rhs = b.numerator * BigInt(a.denominator);
     return lhs === rhs ? a.route.id.localeCompare(b.route.id) < 0 : lhs < rhs;
   };
-  for (;;) {
-    let bestIndex = -1;
-    for (let i = 0; i < candidates.length; i++) {
-      let candidate = candidates[i];
-      if (!candidate) continue;
-      const buyer = key(candidate.route.importerId, candidate.route.category);
-      const seller = key(candidate.route.exporterId, candidate.route.category);
-      if (candidate.buyerVersion !== currentVersion(buyer) || candidate.sellerVersion !== currentVersion(seller)) {
-        candidate = candidateFor(candidate.route);
-        candidates[i] = candidate;
-        if (!candidate) continue;
-      }
-      if (bestIndex < 0 || better(candidate, candidates[bestIndex]!)) bestIndex = i;
+  const heap: Candidate[] = [];
+  const pushCandidate = (candidate: Candidate) => {
+    heap.push(candidate);
+    let index = heap.length - 1;
+    while (index > 0) {
+      const parent = (index - 1) >> 1;
+      if (!better(heap[index], heap[parent])) break;
+      [heap[index], heap[parent]] = [heap[parent], heap[index]];
+      index = parent;
     }
-    if (bestIndex < 0) break;
-    const best = candidates[bestIndex]!;
-    candidates[bestIndex] = undefined;
+  };
+  const popCandidate = (): Candidate | undefined => {
+    if (!heap.length) return undefined;
+    const top = heap[0], last = heap.pop()!;
+    if (heap.length) {
+      heap[0] = last;
+      let index = 0;
+      for (;;) {
+        const left = index * 2 + 1, right = left + 1;
+        let target = index;
+        if (left < heap.length && better(heap[left], heap[target])) target = left;
+        if (right < heap.length && better(heap[right], heap[target])) target = right;
+        if (target === index) break;
+        [heap[index], heap[target]] = [heap[target], heap[index]];
+        index = target;
+      }
+    }
+    return top;
+  };
+  for (const route of executableRoutes) {
+    const candidate = candidateFor(route);
+    if (candidate) pushCandidate(candidate);
+  }
+  for (;;) {
+    const best = popCandidate();
+    if (!best) break;
     const seller = key(best.route.exporterId, best.route.category), buyer = key(best.route.importerId, best.route.category);
+    if (best.buyerVersion !== currentVersion(buyer) || best.sellerVersion !== currentVersion(seller)) {
+      const fresh = candidateFor(best.route);
+      if (fresh) pushCandidate(fresh);
+      continue;
+    }
     const market = countries[best.route.exporterId].markets[best.route.category]!;
     flows.push(best.flow); routeUsed.set(best.route.id, best.quantity);
     exportRemaining.set(seller, exportRemaining.get(seller)! - best.quantity);

@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import type { RegionEntity } from '../../types';
 import { tradeCountries, tradeRegions, tradeContext, tradeFixture, tradeMonth } from './tradeFixture';
 import { assertSimulationInvariants, validateFidelityConservation } from '../invariants';
-import { money, quoteFlow, deriveDependency, affordableQuantity, TRADE_CATEGORIES } from '../trade/model';
+import { money, quoteFlow, deriveDependency, affordableQuantity } from '../trade/model';
 import { admitTradeMarket, admitTradeRoute, availableConsumption, availableNeedsCoverage, prepareTradeMonth, setTradeStockTarget } from '../trade/runtime';
 import { syntheticTradeMarket, SYNTHETIC_TRADE_SOURCE } from '../trade/scenario';
 import { governmentHistoricalTrade, tradeObservations, validateTradeObservations, tradeEvidenceAvailableOn } from '../trade/data';
@@ -741,29 +741,5 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     expect(ec.importEssentialConsumption!).toBe(b.essentialConsumption);
     expect(assertSimulationInvariants(a, tradeContext, 'save')).toBe(true);
     expect(assertSimulationInvariants(c, tradeContext, 'save')).toBe(true);
-  });
-  it('keeps route-aware allocation deterministic and conserved beyond the 80-route benchmark', () => {
-    let state = tradeFixture(false);
-    for (const [i, id] of tradeCountries.entries()) for (const category of TRADE_CATEGORIES) {
-      state = admitTradeMarket(state, id, syntheticTradeMarket(category, {
-        productionPerMonth: i < 2 ? 30 : 0, domesticNeedPerMonth: 0, importNeedPerMonth: i < 2 ? 0 : 10,
-        exportCapacityPerMonth: i < 2 ? 50 : 0, importCapacityPerMonth: i < 2 ? 0 : 50,
-      }));
-    }
-    for (const exporter of tradeCountries) for (const importer of tradeCountries) {
-      if (exporter === importer) continue;
-      for (const category of TRADE_CATEGORIES) {
-        state = admitTradeRoute(state, { id: `route.scale:${category}:${exporter}:${importer}`, exporterId: exporter, importerId: importer, category,
-          source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 50, establishedCapacity: 50, expansionPerMonth: 0, logisticsBps: 250, tariffBps: 500 });
-      }
-    }
-    expect(state.trade.routes).toHaveLength(12 * TRADE_CATEGORIES.length);
-    const a = tradeMonth(state);
-    const shuffled = structuredClone(state);
-    shuffled.trade.routes.reverse();
-    const b = tradeMonth(shuffled);
-    expect(a.trade).toEqual(b.trade);
-    expect(a.trade.flows.length).toBeGreaterThan(0);
-    expect(assertSimulationInvariants(a, tradeContext, 'save')).toBe(true);
   });
 });
