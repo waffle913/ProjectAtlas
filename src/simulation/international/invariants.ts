@@ -20,7 +20,11 @@ export const internationalInvariant: SimulationInvariant = {
     if (!['unavailable', 'partial', 'sourced'].includes(international.factualCoverage.status) || !validDate(international.factualCoverage.referenceDate) || !international.factualCoverage.limitation?.trim()) errors.push('Malformed international factual coverage.');
     if (!bounded(international.nextActionSequence, Number.MAX_SAFE_INTEGER)) errors.push('Invalid international action sequence.');
     if (new Set(international.actionOrder).size !== international.actionOrder.length || international.actionOrder.some(id => !international.actions[id]) || Object.keys(international.actions).some(id => !international.actionOrder.includes(id))) errors.push('International action order does not reconcile.');
-    const protectedActive = (action: (typeof international.actions)[string]) => action.kind !== 'condemnation' && action.status === 'active';
+    const protectedActive = (action: (typeof international.actions)[string]) => {
+      if (action.kind === 'condemnation') return false;
+      if (action.status === 'active') return true;
+      return Boolean(action.ceasesOn && state.date < action.ceasesOn);
+    };
     const pruneableActions = Object.values(international.actions).filter(action => !protectedActive(action));
     if (pruneableActions.length > INTERNATIONAL_MODEL.actionRetentionGlobal) errors.push('International historical action history exceeds its global bound.');
     const seen = new Set<string>();

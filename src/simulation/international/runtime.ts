@@ -44,7 +44,9 @@ function retainActions(state: SimulationState, actions: Record<string, Internati
   const cutoff = monthsAgo(state.date, INTERNATIONAL_MODEL.condemnationDecayMonths);
   const protectedIds = new Set(order.filter(id => {
     const action = actions[id];
-    return action.kind !== 'condemnation' && action.status === 'active';
+    if (action.kind === 'condemnation') return false;
+    if (action.status === 'active') return true;
+    return Boolean(action.ceasesOn && state.date < action.ceasesOn);
   }));
   const pruneable = order.filter(id => {
     if (protectedIds.has(id)) return false;
@@ -52,7 +54,7 @@ function retainActions(state: SimulationState, actions: Record<string, Internati
     if (action.kind === 'condemnation') return action.declaredOn >= cutoff;
     return Boolean(action.ceasesOn && action.ceasesOn >= cutoff);
   });
-  const historicalCapacity = Math.max(0, INTERNATIONAL_MODEL.actionRetentionGlobal - protectedIds.size);
+  const historicalCapacity = INTERNATIONAL_MODEL.actionRetentionGlobal;
   const perPair = new Map<string, number>();
   const retainedPruneable = pruneable.filter(id => {
     if (!historicalCapacity) return false;

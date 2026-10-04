@@ -173,6 +173,17 @@ describe('0.18 international tensions, crises and sanctions', () => {
     expect(Object.values(state.international.actions).filter(a => a.kind === 'condemnation').length).toBeLessThanOrEqual(64);
     expect(assertSimulationInvariants(state, tradeContext, 'save')).toBe(true);
   });
+  it('retains a lifted restriction through its ceasesOn boundary', () => {
+    let state = intlFixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food']);
+    state = tradeMonth(state);
+    const action = state.international.actions[state.international.actionOrder.at(-1)!];
+    state = liftSanction(state, action.id, person);
+    state = condemn(state, tradeCountries[0], tradeCountries[2], person, 'Added after lift');
+    expect(state.international.actions[action.id]).toBeDefined();
+    expect(assertSimulationInvariants(state, tradeContext, 'save')).toBe(true);
+  });
   it('rejects forged international episode pressure, severity and drivers', () => {
     let state = tradeMonth(intlFixture());
     state = condemn(state, tradeCountries[0], tradeCountries[2], state.governance.player.controlledPersonId!, 'Pressure');
