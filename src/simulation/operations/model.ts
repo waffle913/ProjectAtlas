@@ -4,7 +4,7 @@ export const OPERATIONS_VERSION = 'operations-0.19-v1' as const;
 export type ComponentCoverage = 'sourced' | 'derived' | 'modelled' | 'unavailable';
 export type ComponentKind = 'decisive' | 'secondary';
 export type RegionControl = 'sovereign_controlled' | 'contested' | 'foreign_controlled';
-export type DeploymentStatus = 'deploying' | 'deployed' | 'withdrawing' | 'withdrawn';
+export type DeploymentStatus = 'deploying' | 'deployed' | 'moving' | 'withdrawing' | 'withdrawn';
 
 export interface StrategicComponent {
   id: string;

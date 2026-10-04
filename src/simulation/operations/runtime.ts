@@ -1,6 +1,7 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import { integer } from '../socioeconomy/model';
+import type { SchedulerTaskContext } from '../scheduler';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import { EQUIPMENT_REGISTRY, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
 import { emptyOperations, OPERATIONS_MODEL, operationsComponentId, operationsDeploymentId, validMilitaryItem,
@@ -101,7 +102,54 @@ export function orderMovement(state: SimulationState, deploymentId: string, pers
   if (deployment.status === 'withdrawn') throw new Error('A withdrawn deployment cannot move.');
   if (!state.regionOwnership[targetRegionId]) throw new Error(`Unknown Region: ${targetRegionId}`);
   const effectiveOn = nextDay(state.date);
-  return { ...state, operations: { ...state.operations, deployments: { ...state.operations.deployments, [deploymentId]: { ...deployment, order: { targetRegionId, effectiveOn, kind: 'move' } } } } };
+  return { ...state, operations: { ...state.operations, deployments: { ...state.operations.deployments, [deploymentId]: { ...deployment, status: 'moving', order: { targetRegionId, effectiveOn, kind: 'move' } } } } };
+}
+
+export function supplyDeployment(state: SimulationState, deploymentId: string, personId: string, ammunition: number, fuel: number): SimulationState {
+  const deployment = state.operations.deployments[deploymentId];
+  if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
+  requireAuthority(state, deployment.countryId, personId);
+  integer(ammunition); integer(fuel);
+  const capability = state.military.countries[deployment.countryId]?.capability;
+  if (!capability) throw new Error('Supply requires an admitted military capability.');
+  const ammo = capability.consumables.ammunition?.quantity ?? 0;
+  const fuelStock = capability.consumables.fuel?.quantity ?? 0;
+  if (ammunition > ammo || fuel > fuelStock) throw new Error('Supply transfer exceeds canonical national stock.');
+  const nextAmmo = deployment.supply.ammunition + ammunition, nextFuel = deployment.supply.fuel + fuel;
+  const capabilityNext = {
+    ...capability,
+    consumables: {
+      ...capability.consumables,
+      ammunition: capability.consumables.ammunition ? { ...capability.consumables.ammunition, quantity: ammo - ammunition, consumed: (capability.consumables.ammunition.consumed ?? 0) + ammunition } : capability.consumables.ammunition,
+      fuel: capability.consumables.fuel ? { ...capability.consumables.fuel, quantity: fuelStock - fuel, consumed: (capability.consumables.fuel.consumed ?? 0) + fuel } : capability.consumables.fuel,
+    },
+  };
+  return {
+    ...state,
+    military: { ...state.military, countries: { ...state.military.countries, [deployment.countryId]: { ...state.military.countries[deployment.countryId], capability: capabilityNext } } },
+    operations: { ...state.operations, deployments: { ...state.operations.deployments, [deploymentId]: { ...deployment, supply: { ammunition: nextAmmo, fuel: nextFuel } } } },
+  };
+}
+
+export function runOperationsDay(state: SimulationState, context: SchedulerTaskContext): SimulationState {
+  let next = state;
+  for (const id of [...next.operations.deploymentOrder]) {
+    const deployment = next.operations.deployments[id];
+    if (!deployment) continue;
+    if (deployment.status === 'deploying') {
+      next = { ...next, operations: { ...next.operations, deployments: { ...next.operations.deployments, [id]: { ...deployment, status: 'deployed' } } } };
+    } else if (deployment.status === 'moving') {
+      const order = deployment.order;
+      if (order && order.effectiveOn <= next.date) {
+        const adjacency = next.operations.adjacency[deployment.currentRegionId] ?? [];
+        if (!adjacency.includes(order.targetRegionId)) throw new Error('Movement order is not along represented land adjacency.');
+        next = { ...next, operations: { ...next.operations, deployments: { ...next.operations.deployments, [id]: { ...deployment, currentRegionId: order.targetRegionId, status: 'deployed', order: undefined } } } };
+      }
+    } else if (deployment.status === 'withdrawing' && deployment.withdrawalEffectiveOn && deployment.withdrawalEffectiveOn <= next.date) {
+      next = { ...next, operations: { ...next.operations, deployments: { ...next.operations.deployments, [id]: { ...deployment, status: 'withdrawn', order: undefined } } } };
+    }
+  }
+  return next;
 }
 
 function nextDay(iso: string): string {
@@ -154,4 +202,4 @@ export function deployedPersonnelTotal(state: SimulationState, countryId: string
   return total;
 }
 
-export const registerOperationsTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'operations.daily', cadence: 'daily', priority: OPERATIONS_MODEL.schedulerPriority, run: state => state });
+export const registerOperationsTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'operations.daily', cadence: 'daily', priority: OPERATIONS_MODEL.schedulerPriority, run: runOperationsDay });

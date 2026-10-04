@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { militaryFixture, militaryCountry, otherCountry, militaryRegions, militaryContext } from './military.test';
 import { assertSimulationInvariants } from '../invariants';
 import { createPoliticalPerson, setControlledPerson } from '../governance/runtime';
-import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, withdrawDeployment } from '../operations/runtime';
+import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, supplyDeployment, withdrawDeployment } from '../operations/runtime';
+import { advanceSimulationDays } from '../engine';
 
 const fixture = () => initializeOperations(militaryFixture());
 
@@ -61,5 +62,30 @@ describe('0.19 operational foundation', () => {
     const corrupt = structuredClone(state);
     corrupt.operations.deployments[corrupt.operations.deploymentOrder[0]].equipment.ammunition = 1;
     expect(() => assertSimulationInvariants(corrupt, militaryContext, 'save')).toThrow();
+  });
+  it('transfers finite supply from canonical stocks into a deployment cache', () => {
+    let state = fixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = deploy(state, { countryId: militaryCountry, personId: person, sourceRegionId: militaryRegions[0].id, currentRegionId: militaryRegions[0].id, personnel: 1 });
+    const id = state.operations.deploymentOrder[0];
+    const beforeAmmo = state.military.countries[militaryCountry].capability!.consumables.ammunition?.quantity ?? 0;
+    state = supplyDeployment(state, id, person, 10, 5);
+    expect(state.operations.deployments[id].supply.ammunition).toBe(10);
+    expect(state.operations.deployments[id].supply.fuel).toBe(5);
+    expect(state.military.countries[militaryCountry].capability!.consumables.ammunition?.quantity).toBe(beforeAmmo - 10);
+    expect(() => supplyDeployment(state, id, person, 999999, 0)).toThrow();
+    expect(assertSimulationInvariants(state, militaryContext, 'save')).toBe(true);
+  });
+  it('executes prospective adjacent movement and blocks nonadjacent movement', () => {
+    let state = fixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = deploy(state, { countryId: militaryCountry, personId: person, sourceRegionId: militaryRegions[0].id, currentRegionId: militaryRegions[0].id, personnel: 1 });
+    const id = state.operations.deploymentOrder[0];
+    state.operations.adjacency = { [militaryRegions[0].id]: [militaryRegions[1].id], [militaryRegions[1].id]: [militaryRegions[0].id] };
+    state = orderMovement(state, id, person, militaryRegions[1].id);
+    const moved = advanceSimulationDays(state, 1);
+    expect(moved.operations.deployments[id].currentRegionId).toBe(militaryRegions[1].id);
+    expect(moved.operations.deployments[id].status).toBe('deployed');
+    expect(assertSimulationInvariants(moved, militaryContext, 'save')).toBe(true);
   });
 });
