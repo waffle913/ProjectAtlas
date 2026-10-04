@@ -43,6 +43,13 @@ export const operationsInvariant: SimulationInvariant = {
     for (const [regionId, control] of Object.entries(operations.regionControl)) {
       if (!context.regionIds.has(regionId) || !['sovereign_controlled', 'contested', 'foreign_controlled'].includes(control)) errors.push(`Invalid operations region control ${regionId}.`);
     }
+    for (const [regionId, neighbours] of Object.entries(operations.adjacency)) {
+      if (!context.regionIds.has(regionId) || !Array.isArray(neighbours) || new Set(neighbours).size !== neighbours.length) errors.push(`Malformed operations adjacency for ${regionId}.`);
+      for (const neighbour of neighbours) {
+        if (!context.regionIds.has(neighbour) || neighbour === regionId) errors.push(`Invalid operations adjacency edge ${regionId}->${neighbour}.`);
+        if (!(operations.adjacency[neighbour] ?? []).includes(regionId)) errors.push(`Asymmetric operations adjacency edge ${regionId}<->${neighbour}.`);
+      }
+    }
     for (const [id, component] of Object.entries(operations.components)) {
       if (id !== component.id || !context.regionIds.has(component.regionId) || !['decisive', 'secondary'].includes(component.kind) || !['sourced', 'derived', 'modelled', 'unavailable'].includes(component.coverage) || typeof component.contested !== 'boolean' || component.controllingCountryId !== undefined && !context.countryIds.has(component.controllingCountryId) || !component.provenance?.trim()) errors.push(`Malformed strategic component ${id}.`);
     }

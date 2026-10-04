@@ -12,7 +12,7 @@ import { validateCapability } from './validation';
 import militaryObservations from '../../data/military-observations.json';
 import { militaryDeliveryDate } from './dates';
 import { consumeTradeFactoryInput, tradeFactoryCapacity } from '../trade/runtime';
-import { deployedPersonnelByRegion } from '../operations/runtime';
+import { deployedEquipmentByCountry, deployedPersonnelByRegion } from '../operations/runtime';
 
 export function initializeMilitary(state: SimulationState): SimulationState {
   if (state.military.initializedOn) return state;
@@ -208,16 +208,18 @@ export function prepareMilitaryMonth(state: SimulationState): SimulationState {
     const affordable = p.monthlySalaryUsd ? Math.floor((fiscal?.annualBudget.defense ?? 0) / 12 / p.monthlySalaryUsd) : c.authorized;
     const recruited = c.payrollArrears ? 0 : Math.min(Math.max(0, Math.min(c.authorized, affordable) - present), p.recruitmentPerMonth, sum(free));
     const retentionTarget = c.unpaidMonths >= 3 ? Math.min(c.authorized, Math.floor((c.lastLedger?.grossPayrollPaid ?? 0) / p.monthlySalaryUsd)) : c.authorized;
-    const released = Math.min(Math.max(0, present - retentionTarget), p.reductionPerMonth);
+    let released = Math.min(Math.max(0, present - retentionTarget), p.reductionPerMonth);
     if (released) {
       const reservations = deployedPersonnelByRegion(state, id);
       const releasable = Object.fromEntries(Object.keys(c.assignments).sort().map(r => [r, Math.max(0, (c.assignments[r] ?? 0) - (reservations.get(r) ?? 0))]));
       const keys = Object.keys(releasable).sort(), counts = allocate(Math.min(released, sum(Object.values(releasable))), keys.map(r => releasable[r]));
+      const actualReleased = sum(counts);
+      released = actualReleased;
       keys.forEach((r, i) => c.assignments[r] -= counts[i]);
-      let left = Math.min(released, trainingPersonnel(c));
+      let left = Math.min(actualReleased, trainingPersonnel(c));
       for (const t of c.trainees.sort((a, b) => a.monthsCompleted - b.monthsCompleted)) { const removed = Math.min(left, t.persons); t.persons -= removed; left -= removed; }
       c.trainees = c.trainees.filter(t => t.persons);
-      c.exercisePersonMonths = Math.min(c.exercisePersonMonths, present - released - trainingPersonnel(c));
+      c.exercisePersonMonths = Math.min(c.exercisePersonMonths, present - actualReleased - trainingPersonnel(c));
     }
     if (recruited) {
       const counts = allocate(recruited, free);
@@ -288,7 +290,8 @@ export function executeMilitaryFunding(state: SimulationState, countryId: string
     e.maintenance -= fromMaintenance; e.unavailable -= repaired - fromMaintenance; e.operational += repaired;
     costs.maintenance += repaired * d.maintenanceCostUsd; technicians -= repaired; maintenanceUnits += repaired;
     const unitMonths = BigInt(e.operational) + BigInt(e.maintenanceClock);
-    const due = Math.min(e.operational, Number(unitMonths / BigInt(d.maintenanceIntervalMonths)));
+    const reservedEquipment = deployedEquipmentByCountry(state, countryId)[item] ?? 0;
+    const due = Math.min(Math.max(0, e.operational - reservedEquipment), Number(unitMonths / BigInt(d.maintenanceIntervalMonths)));
     e.operational -= due; e.maintenance += due;
     e.maintenanceClock = Number(unitMonths % BigInt(d.maintenanceIntervalMonths));
     const expired = Math.min(e.maintenance, Math.max(0, e.maintenance - support.technicians));

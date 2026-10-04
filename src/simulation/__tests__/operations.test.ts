@@ -43,4 +43,15 @@ describe('0.19 operational foundation', () => {
     expect(state.operations.deployments[id].status).toBe('withdrawing');
     expect(assertSimulationInvariants(state, militaryContext, 'save')).toBe(true);
   });
+  it('rejects consumable or over-allocated deployment equipment', () => {
+    let state = fixture();
+    const person = state.governance.player.controlledPersonId!;
+    expect(() => deploy(state, { countryId: militaryCountry, personId: person, sourceRegionId: militaryRegions[0].id, currentRegionId: militaryRegions[0].id, personnel: 1, equipment: { ammunition: 1 } })).toThrow();
+    expect(() => deploy(state, { countryId: militaryCountry, personId: person, sourceRegionId: militaryRegions[0].id, currentRegionId: militaryRegions[0].id, personnel: 1, equipment: { truck: 999999 } })).toThrow();
+  });
+  it('validates symmetric adjacency', () => {
+    let state = fixture();
+    state.operations.adjacency = { [militaryRegions[0].id]: [militaryRegions[1].id], [militaryRegions[1].id]: [militaryRegions[0].id] };
+    expect(assertSimulationInvariants(state, militaryContext, 'save')).toBe(true);
+  });
 });

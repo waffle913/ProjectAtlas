@@ -133,4 +133,16 @@ export function deployedPersonnelByRegion(state: SimulationState, countryId: str
   return map;
 }
 
+export function deployedEquipmentByCountry(state: SimulationState, countryId: string): Partial<Record<MilitaryItem, number>> {
+  const equipment: Partial<Record<MilitaryItem, number>> = {};
+  for (const deployment of Object.values(state.operations.deployments)) {
+    if (deployment.countryId !== countryId || deployment.status === 'withdrawn') continue;
+    for (const [item, quantity] of Object.entries(deployment.equipment)) {
+      const key = item as MilitaryItem;
+      equipment[key] = (equipment[key] ?? 0) + (quantity as number);
+    }
+  }
+  return equipment;
+}
+
 export const registerOperationsTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'operations.daily', cadence: 'daily', priority: OPERATIONS_MODEL.schedulerPriority, run: state => state });
