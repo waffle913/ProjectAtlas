@@ -40,7 +40,7 @@ describe('0.19 operational foundation', () => {
     state = orderMovement(state, id, person, militaryRegions[1].id);
     expect(state.operations.deployments[id].order!.effectiveOn.localeCompare(state.date)).toBeGreaterThan(0);
     state = withdrawDeployment(state, id, person);
-    expect(state.operations.deployments[id].status).toBe('withdrawn');
+    expect(state.operations.deployments[id].status).toBe('withdrawing');
     expect(assertSimulationInvariants(state, militaryContext, 'save')).toBe(true);
   });
 });

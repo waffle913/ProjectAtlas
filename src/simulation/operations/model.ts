@@ -33,6 +33,7 @@ export interface Deployment {
   status: DeploymentStatus;
   losses: DeploymentLosses;
   order?: { targetRegionId: string; effectiveOn: string; kind: 'move' };
+  withdrawalEffectiveOn?: string;
   provenance: 'modelled' | 'synthetic';
   limitation: string;
 }

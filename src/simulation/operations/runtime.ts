@@ -2,14 +2,19 @@ import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import { integer } from '../socioeconomy/model';
 import { hasGovernmentInformationAccess } from '../information/runtime';
-import { equipmentTotal, presentPersonnel, trainingPersonnel, type MilitaryCapability, type MilitaryItem } from '../military/model';
+import { EQUIPMENT_REGISTRY, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
 import { emptyOperations, OPERATIONS_MODEL, operationsComponentId, operationsDeploymentId, validMilitaryItem,
   type Deployment, type OperationsState, type RegionControl, type StrategicComponent } from './model';
 
 export function initializeOperations(state: SimulationState): SimulationState {
   if (state.operations.initializedOn) return state;
   const components = deterministicComponents(state);
-  return { ...state, operations: { ...emptyOperations(state.date), components: components.byId, componentOrder: components.order, nextComponentSequence: components.order.length } };
+  const regionControl: Record<string, RegionControl> = {};
+  for (const regionId of Object.keys(state.regionOwnership).sort()) {
+    const occupation = state.occupationByRegion[regionId];
+    regionControl[regionId] = occupation ? 'foreign_controlled' : 'sovereign_controlled';
+  }
+  return { ...state, operations: { ...emptyOperations(state.date), components: components.byId, componentOrder: components.order, nextComponentSequence: components.order.length, regionControl } };
 }
 
 export function hasOperationsAuthority(state: SimulationState, countryId: string, personId: string): boolean {
@@ -18,7 +23,7 @@ export function hasOperationsAuthority(state: SimulationState, countryId: string
     && hasGovernmentInformationAccess(state, personId, countryId)
     && (person?.office?.role === 'head_of_government' || person?.office?.role === 'head_of_state')
     && person.office.evidence?.authorityBasis !== 'institutional_authority_unresolved'
-    && Boolean(person?.office?.authorityProfile.capabilities.includes('sponsor_budget_reform'));
+    && Boolean(person?.office?.authorityProfile.capabilities.includes('command_military_operations'));
 }
 
 function requireAuthority(state: SimulationState, countryId: string, personId: string) {
@@ -31,7 +36,9 @@ function deterministicComponents(state: SimulationState): { byId: Record<string,
   for (const regionId of Object.keys(state.regionOwnership).sort()) {
     for (let index = 0; index < OPERATIONS_MODEL.componentFallbackDecisive; index++) {
       const id = `component.abstract:${regionId}:${index}`;
-      byId[id] = { id, regionId, kind: 'decisive', coverage: 'modelled', contested: false, provenance: 'Abstract modelled decisive component; no sourced strategic-component dataset is admitted.' };
+      const owner = state.regionOwnership[regionId];
+      const occupier = state.occupationByRegion[regionId]?.occupierCountryId;
+      byId[id] = { id, regionId, kind: 'decisive', coverage: 'modelled', contested: false, controllingCountryId: occupier ?? owner, provenance: occupier ? 'Legacy established control at migration boundary; no simulated capture history.' : 'Abstract modelled decisive component controlled by its sovereign owner.' };
       order.push(id);
     }
   }
@@ -52,19 +59,26 @@ export function deploy(state: SimulationState, input: { countryId: string; perso
   if (input.personnel <= 0) throw new Error('A deployment requires positive personnel.');
   const capability = state.military.countries[input.countryId]?.capability;
   if (!capability) throw new Error('Military operations require an admitted synthetic/modelled capability; unavailable factual armies cannot fabricate a force.');
+  if (!capability.assignments[input.sourceRegionId]) throw new Error('Deployment source Region has no represented military assignment.');
+  if (input.currentRegionId !== input.sourceRegionId) throw new Error('A new land deployment must start in its source Region; movement requires a separate order.');
   const deployedPersonnel = deployedTotals(state, input.countryId).personnel;
   const available = Math.max(0, presentPersonnel(capability) - trainingPersonnel(capability));
   if (deployedPersonnel + input.personnel > available) throw new Error('Deployment exceeds qualified available personnel.');
+  const assignment = capability.assignments[input.sourceRegionId] ?? 0;
+  if (deployedPersonnel + input.personnel > assignment) throw new Error('Deployment exceeds personnel actually assigned to the source Region.');
   const equipment = input.equipment ?? {};
   for (const [item, quantity] of Object.entries(equipment)) {
     if (!validMilitaryItem(item)) throw new Error(`Unknown military equipment item: ${item}`);
     integer(quantity as number);
-    if ((capability.equipment[item as MilitaryItem]?.operational ?? 0) < deployedTotals(state, input.countryId).equipment[item as MilitaryItem]! + (quantity as number)) throw new Error(`Deployment exceeds operational equipment stock for ${item}.`);
+    if (EQUIPMENT_REGISTRY[item as MilitaryItem].consumable) throw new Error(`Consumable item cannot be allocated to a deployment: ${item}`);
+    const stock = capability.equipment[item as MilitaryItem]?.operational ?? 0;
+    const alreadyDeployed = deployedTotals(state, input.countryId).equipment[item as MilitaryItem] ?? 0;
+    if (alreadyDeployed + (quantity as number) > stock) throw new Error(`Deployment exceeds operational equipment stock for ${item}.`);
   }
   const id = operationsDeploymentId(state.operations.nextDeploymentSequence);
   const record: Deployment = {
     id, countryId: input.countryId, warId: input.warId, sourceRegionId: input.sourceRegionId, currentRegionId: input.currentRegionId,
-    personnel: input.personnel, equipment, supply: input.supply ?? { ammunition: 0, fuel: 0 }, status: 'deploying',
+    personnel: input.personnel, equipment, supply: { ammunition: 0, fuel: 0 }, status: 'deploying',
     losses: { personnel: 0, equipment: {} }, provenance: 'modelled', limitation: 'Modelled aggregate operational deployment; not an observed real-world force disposition.',
   };
   return { ...state, operations: { ...state.operations, deployments: { ...state.operations.deployments, [id]: record }, deploymentOrder: [...state.operations.deploymentOrder, id], nextDeploymentSequence: state.operations.nextDeploymentSequence + 1 } };
@@ -75,7 +89,7 @@ export function withdrawDeployment(state: SimulationState, deploymentId: string,
   if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   requireAuthority(state, deployment.countryId, personId);
   if (deployment.status === 'withdrawn') return state;
-  return { ...state, operations: { ...state.operations, deployments: { ...state.operations.deployments, [deploymentId]: { ...deployment, status: 'withdrawn' } } } };
+  return { ...state, operations: { ...state.operations, deployments: { ...state.operations.deployments, [deploymentId]: { ...deployment, status: 'withdrawing', withdrawalEffectiveOn: nextDay(state.date) } } } };
 }
 
 export function orderMovement(state: SimulationState, deploymentId: string, personId: string, targetRegionId: string): SimulationState {
