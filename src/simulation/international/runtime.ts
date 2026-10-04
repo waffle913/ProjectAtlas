@@ -42,21 +42,25 @@ function requireCountry(state: SimulationState, countryId: string) {
 
 function retainActions(state: SimulationState, actions: Record<string, InternationalAction>, order: string[]): { actions: Record<string, InternationalAction>; order: string[] } {
   const cutoff = monthsAgo(state.date, INTERNATIONAL_MODEL.condemnationDecayMonths);
-  const kept = order.filter(id => {
+  const protectedIds = new Set(order.filter(id => {
     const action = actions[id];
-    if (action.kind !== 'condemnation' && action.status === 'active') return true;
+    return action.kind !== 'condemnation' && action.status === 'active';
+  }));
+  const pruneable = order.filter(id => {
+    if (protectedIds.has(id)) return false;
+    const action = actions[id];
     if (action.kind === 'condemnation') return action.declaredOn >= cutoff;
-    if (action.ceasesOn && action.ceasesOn >= cutoff) return true;
-    return false;
+    return Boolean(action.ceasesOn && action.ceasesOn >= cutoff);
   });
   const perPair = new Map<string, number>();
-  const retained = kept.filter(id => {
+  const retainedPruneable = pruneable.filter(id => {
     const action = actions[id], key = internationalPairKey(action.actorCountryId, action.targetCountryId);
     const count = perPair.get(key) ?? 0;
     if (count >= INTERNATIONAL_MODEL.actionRetentionPerPair) return false;
     perPair.set(key, count + 1);
     return true;
-  }).slice(-INTERNATIONAL_MODEL.actionRetentionGlobal).sort((a, b) => a.localeCompare(b));
+  }).slice(-Math.max(0, INTERNATIONAL_MODEL.actionRetentionGlobal - protectedIds.size));
+  const retained = [...protectedIds, ...retainedPruneable].sort((a, b) => a.localeCompare(b));
   return { actions: Object.fromEntries(retained.map(id => [id, actions[id]])), order: retained };
 }
 

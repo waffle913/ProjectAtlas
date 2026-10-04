@@ -1,6 +1,6 @@
 import type { SimulationInvariant } from '../invariants';
 import { isSimulationDate as validDate } from '../date';
-import { internationalPairKey, INTERNATIONAL_MODEL, INTERNATIONAL_VERSION, validInternationalCategory } from './model';
+import { internationalPairKey, INTERNATIONAL_MODEL, INTERNATIONAL_VERSION, internationalSeverityFor, validInternationalCategory } from './model';
 import { blockedRouteKeysForDate, routeRestrictionKey } from './runtime';
 
 const phaseValues = new Set(['NORMAL', 'PRESSURE', 'ACTIVE', 'RECOVERING']);
@@ -56,15 +56,19 @@ export const internationalInvariant: SimulationInvariant = {
     for (const [pairKey, episode] of Object.entries(international.episodes)) {
       if (!context.countryIds.has(episode.countryAId) || !context.countryIds.has(episode.countryBId) || episode.countryAId === episode.countryBId || episode.pairKey !== pairKey || pairKey !== internationalPairKey(episode.countryAId, episode.countryBId)) errors.push(`Malformed international episode pair ${pairKey}.`);
       if (!phaseValues.has(episode.phase) || !severityValues.has(episode.severity) || !bounded(episode.pressure, INTERNATIONAL_MODEL.maximumPressure) || !bounded(episode.maximumPressure, INTERNATIONAL_MODEL.maximumPressure) || !severityValues.has(episode.maximumSeverity) || severityRank[episode.maximumSeverity] < severityRank[episode.severity] || episode.maximumPressure < episode.pressure || !bounded(episode.dangerousEvaluations, Number.MAX_SAFE_INTEGER) || !bounded(episode.recoveryEvaluations, Number.MAX_SAFE_INTEGER) || !Array.isArray(episode.drivers) || !Array.isArray(episode.history) || episode.history.length > INTERNATIONAL_MODEL.historyLimitPerPair || episode.lastEvaluatedOn !== undefined && (!validDate(episode.lastEvaluatedOn) || episode.lastEvaluatedOn > state.date)) errors.push(`Malformed international episode ${pairKey}.`);
+      const driverKeys = episode.drivers.map(driver => `${driver.kind}|${driver.detail}`);
+      if (new Set(driverKeys).size !== driverKeys.length
+        || driverKeys.some((key, index) => index && key < driverKeys[index - 1])) errors.push(`International drivers are duplicated or not canonically ordered on ${pairKey}.`);
+      const pressure = Math.min(INTERNATIONAL_MODEL.maximumPressure, episode.drivers.reduce((sum, driver) => sum + driver.weightBps, 0));
+      if (episode.pressure !== pressure || episode.severity !== internationalSeverityFor(episode.pressure)) errors.push(`International episode pressure/severity does not reconstruct on ${pairKey}.`);
       for (const driver of episode.drivers) if (!driver.kind || !driver.detail || !bounded(driver.weightBps, INTERNATIONAL_MODEL.maximumPressure)) errors.push(`Malformed international driver on ${pairKey}.`);
       for (const [index, summary] of episode.history.entries()) {
         if (summary.pairKey !== pairKey || !validDate(summary.endedOn) || summary.endedOn > state.date || !bounded(summary.maximumPressure, INTERNATIONAL_MODEL.maximumPressure) || !severityValues.has(summary.maximumSeverity) || index && summary.endedOn < episode.history[index - 1].endedOn) errors.push(`Malformed international episode history ${pairKey}.`);
       }
     }
-    const blocked = blockedRouteKeysForDate({ ...state, international }, state.date);
     for (const flow of state.trade.flows) {
       const route = state.trade.routes.find(r => r.id === flow.routeId);
-      if (route && blocked.has(routeRestrictionKey(route))) errors.push(`Blocked international flow exists for ${flow.routeId} on ${flow.date}.`);
+      if (route && blockedRouteKeysForDate({ ...state, international }, flow.date).has(routeRestrictionKey(route))) errors.push(`Blocked international flow exists for ${flow.routeId} on ${flow.date}.`);
     }
     return errors;
   },

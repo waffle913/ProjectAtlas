@@ -157,4 +157,31 @@ describe('0.18 international tensions, crises and sanctions', () => {
     expect(sanctionBlocksRoute(lifted, route, liftedAction.ceasesOn!)).toBe(false);
     expect(assertSimulationInvariants(lifted, tradeContext, 'save')).toBe(true);
   });
+  it('validates booked flows against their own historical date, not current state', () => {
+    const booked = tradeMonth(intlFixture());
+    let state = imposeExportRestriction(booked, tradeCountries[0], tradeCountries[2], booked.governance.player.controlledPersonId!, ['food']);
+    state = advanceSimulationDays(state, 1);
+    expect(assertSimulationInvariants(state, tradeContext, 'save')).toBe(true);
+  });
+  it('never prunes active restrictions under historical retention pressure', () => {
+    let state = intlFixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food']);
+    const actionId = state.international.actionOrder.at(-1)!;
+    for (let i = 0; i < 120; i++) state = condemn(state, tradeCountries[0], tradeCountries[3], person, `Historical ${i}`);
+    expect(state.international.actions[actionId]).toBeDefined();
+    expect(assertSimulationInvariants(state, tradeContext, 'save')).toBe(true);
+  });
+  it('rejects forged international episode pressure, severity and drivers', () => {
+    let state = tradeMonth(intlFixture());
+    state = condemn(state, tradeCountries[0], tradeCountries[2], state.governance.player.controlledPersonId!, 'Pressure');
+    state = tradeMonth(state);
+    const pairKey = Object.keys(state.international.episodes).find(key => key.includes(tradeCountries[0]) && key.includes(tradeCountries[2]))!;
+    const corrupt = structuredClone(state);
+    corrupt.international.episodes[pairKey].pressure = 999;
+    expect(() => assertSimulationInvariants(corrupt, tradeContext, 'save')).toThrow();
+    const dup = structuredClone(state);
+    dup.international.episodes[pairKey].drivers.push(structuredClone(dup.international.episodes[pairKey].drivers[0]));
+    expect(() => assertSimulationInvariants(dup, tradeContext, 'save')).toThrow();
+  });
 });

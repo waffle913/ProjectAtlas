@@ -143,3 +143,12 @@ export function normalInternationalEpisode(countryAId: string, countryBId: strin
     history: [],
   };
 }
+
+export function internationalSeverityFor(pressure: number): InternationalSeverity {
+  const s = INTERNATIONAL_MODEL.severity;
+  if (pressure >= s.critical) return 'critical';
+  if (pressure >= s.severe) return 'severe';
+  if (pressure >= s.moderate) return 'moderate';
+  if (pressure >= s.low) return 'low';
+  return 'none';
+}
