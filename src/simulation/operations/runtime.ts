@@ -112,6 +112,7 @@ export function supplyDeployment(state: SimulationState, deploymentId: string, p
   integer(ammunition); integer(fuel);
   const capability = state.military.countries[deployment.countryId]?.capability;
   if (!capability) throw new Error('Supply requires an admitted military capability.');
+  if (!supplyPathExists(state, deployment)) throw new Error('Supply path does not exist from a friendly source to this deployment.');
   const ammo = capability.consumables.ammunition?.quantity ?? 0;
   const fuelStock = capability.consumables.fuel?.quantity ?? 0;
   if (ammunition > ammo || fuel > fuelStock) throw new Error('Supply transfer exceeds canonical national stock.');
@@ -131,6 +132,24 @@ export function supplyDeployment(state: SimulationState, deploymentId: string, p
   };
 }
 
+function supplyPathExists(state: SimulationState, deployment: Deployment): boolean {
+  if (deployment.currentRegionId === deployment.sourceRegionId) return true;
+  const queue = [deployment.sourceRegionId], seen = new Set<string>([deployment.sourceRegionId]);
+  while (queue.length) {
+    const current = queue.shift()!;
+    if (current === deployment.currentRegionId) return true;
+    for (const neighbour of state.operations.adjacency[current] ?? []) {
+      if (seen.has(neighbour)) continue;
+      const owner = state.regionOwnership[neighbour];
+      const control = state.operations.regionControl[neighbour];
+      if (owner === deployment.countryId || (control === 'foreign_controlled' && state.occupationByRegion[neighbour]?.occupierCountryId === deployment.countryId)) {
+        seen.add(neighbour); queue.push(neighbour);
+      }
+    }
+  }
+  return false;
+}
+
 export function runOperationsDay(state: SimulationState, context: SchedulerTaskContext): SimulationState {
   let next = state;
   for (const id of [...next.operations.deploymentOrder]) {
@@ -143,6 +162,7 @@ export function runOperationsDay(state: SimulationState, context: SchedulerTaskC
       if (order && order.effectiveOn <= next.date) {
         const adjacency = next.operations.adjacency[deployment.currentRegionId] ?? [];
         if (!adjacency.includes(order.targetRegionId)) throw new Error('Movement order is not along represented land adjacency.');
+        if (!movementAccess(next, deployment, order.targetRegionId)) throw new Error('Movement access is denied through neutral or inaccessible territory.');
         next = { ...next, operations: { ...next.operations, deployments: { ...next.operations.deployments, [id]: { ...deployment, currentRegionId: order.targetRegionId, status: 'deployed', order: undefined } } } };
       }
     } else if (deployment.status === 'withdrawing' && deployment.withdrawalEffectiveOn && deployment.withdrawalEffectiveOn <= next.date) {
@@ -150,6 +170,17 @@ export function runOperationsDay(state: SimulationState, context: SchedulerTaskC
     }
   }
   return next;
+}
+
+function movementAccess(state: SimulationState, deployment: Deployment, targetRegionId: string): boolean {
+  const owner = state.regionOwnership[targetRegionId];
+  if (owner === deployment.countryId) return true;
+  if (state.occupationByRegion[targetRegionId]?.occupierCountryId === deployment.countryId) return true;
+  if (deployment.warId) {
+    const war = state.wars.find(w => w.id === deployment.warId);
+    if (war && war.status === 'active' && owner === (war.attackerCountryId === deployment.countryId ? war.defenderCountryId : war.attackerCountryId)) return true;
+  }
+  return false;
 }
 
 function nextDay(iso: string): string {
