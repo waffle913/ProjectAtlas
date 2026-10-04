@@ -295,7 +295,7 @@ export function executeMilitaryFunding(state: SimulationState, countryId: string
     const reservedEquipment = deployedEquipmentByCountry(state, countryId)[item] ?? 0;
     const due = Math.min(Math.max(0, e.operational - reservedEquipment), Number(unitMonths / BigInt(d.maintenanceIntervalMonths)));
     e.operational -= due; e.maintenance += due;
-    e.maintenanceClock = Number(unitMonths % BigInt(d.maintenanceIntervalMonths));
+    e.maintenanceClock = Number(unitMonths - BigInt(due) * BigInt(d.maintenanceIntervalMonths));
     const expired = Math.min(e.maintenance, Math.max(0, e.maintenance - support.technicians));
     e.maintenance -= expired; e.unavailable += expired;
     e.backlogUnitMonths = integer(e.backlogUnitMonths + e.maintenance + e.unavailable);

@@ -54,4 +54,12 @@ describe('0.19 operational foundation', () => {
     state.operations.adjacency = { [militaryRegions[0].id]: [militaryRegions[1].id], [militaryRegions[1].id]: [militaryRegions[0].id] };
     expect(assertSimulationInvariants(state, militaryContext, 'save')).toBe(true);
   });
+  it('rejects consumable equipment forged into deployment equipment', () => {
+    let state = fixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = deploy(state, { countryId: militaryCountry, personId: person, sourceRegionId: militaryRegions[0].id, currentRegionId: militaryRegions[0].id, personnel: 1 });
+    const corrupt = structuredClone(state);
+    corrupt.operations.deployments[corrupt.operations.deploymentOrder[0]].equipment.ammunition = 1;
+    expect(() => assertSimulationInvariants(corrupt, militaryContext, 'save')).toThrow();
+  });
 });

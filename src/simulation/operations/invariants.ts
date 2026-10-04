@@ -1,7 +1,7 @@
 import type { SimulationInvariant } from '../invariants';
 import { isSimulationDate as validDate } from '../date';
 import { OPERATIONS_MODEL, OPERATIONS_VERSION, operationsComponentId, validMilitaryItem } from './model';
-import { equipmentTotal, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
+import { EQUIPMENT_REGISTRY, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
 
 export const operationsInvariant: SimulationInvariant = {
   id: 'operations-0.19-conservation',
@@ -22,7 +22,9 @@ export const operationsInvariant: SimulationInvariant = {
         const war = state.wars.find(w => w.id === deployment.warId);
         if (!war || (war.attackerCountryId !== deployment.countryId && war.defenderCountryId !== deployment.countryId)) errors.push(`Deployment ${id} references an invalid or non-belligerent war.`);
       }
-      for (const [item, quantity] of Object.entries(deployment.equipment)) if (!validMilitaryItem(item) || !Number.isSafeInteger(quantity) || quantity < 0) errors.push(`Invalid deployment equipment on ${id}.`);
+      for (const [item, quantity] of Object.entries(deployment.equipment)) {
+        if (!validMilitaryItem(item) || !Number.isSafeInteger(quantity) || quantity < 0 || EQUIPMENT_REGISTRY[item as MilitaryItem].consumable) errors.push(`Invalid deployment equipment on ${id}.`);
+      }
       if (deployment.order && (!context.regionIds.has(deployment.order.targetRegionId) || !validDate(deployment.order.effectiveOn))) errors.push(`Invalid deployment movement order on ${id}.`);
       if (deployment.withdrawalEffectiveOn !== undefined && (!validDate(deployment.withdrawalEffectiveOn) || deployment.status !== 'withdrawing')) errors.push(`Invalid deployment withdrawal chronology on ${id}.`);
       if (!Number.isSafeInteger(deployment.supply.ammunition) || deployment.supply.ammunition < 0 || !Number.isSafeInteger(deployment.supply.fuel) || deployment.supply.fuel < 0) errors.push(`Invalid deployment supply on ${id}.`);
