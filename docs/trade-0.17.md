@@ -192,11 +192,16 @@ Unknown tariff (`null`) blocks execution and executable alternatives, not a
 zero-rate invoice. Known zero is a non-null real zero. No actual tariff schedule
 or customs-union boundary is fabricated.
 
-Compatible priced routes sort by the exact whole-USD landed unit cost returned by
-the same integer `quoteFlow` invoice used during execution, then stable permanent
-route ID. The sort never uses an unrounded `price * (10000 + logistics + tariff)`
-approximation, so invoice rounding of FOB/logistics/customs cannot reverse the
-economic ordering and make the importer pay a dearer route first.
+Compatible priced routes are selected iteratively from the same integer
+`quoteFlow` invoice used during execution. At each allocation step the candidate
+quantity for every remaining route is recomputed from the current buyer need and
+budget, seller exportable supply and financial backing, and route established
+capacity; the exact landed invoice for that candidate quantity is then compared
+by effective average landed cost using BigInt cross-multiplication, with stable
+permanent route ID tie-breaking. The selection is recomputed as allocation state
+changes rather than hard-coded to a one-unit quote, so whole-USD rounding of
+FOB/logistics/customs cannot reverse the economic ordering for the transaction
+that is actually about to execute.
 Each delivery is bounded by shared seller supply, buyer need, category/route
 capacity and an affordable whole-integer quote. Multiple buyers never receive
 the same unit. Budgets are existing resource envelopes, not GDP-percent imports.
@@ -224,9 +229,11 @@ configured in V1; no giant supply-chain graph or invented substitute supply.
 Missing imports never instantaneously reappear as generic domestic output: the
 single socioeconomic/output engine only realizes the existing demand envelope,
 and replacement is explicitly limited by `domesticReplacementCapacity` and
-`domesticReplacementPerMonth`. A bounded regression test confirms the shortage
-persists across the configured gradual-replacement window rather than being
-absorbed by an unbounded second production path.
+`domesticReplacementPerMonth`. When household imports are short, the remaining
+household request is reduced by the reference value of the unfulfilled import
+need, so generic domestic output cannot recreate the missing physical goods;
+the resulting material shortfall appears in `availableConsumption` and relaxes
+only as imports, stocks or admitted gradual domestic replacement increase.
 
 ## Stocks and military inputs
 
@@ -350,18 +357,18 @@ are excluded. The existing genuine800-day schema13 golden fixture is unchanged.
 
 ## Measured performance and validation
 
-Final local `npm run verify -- -- --maxWorkers=1`: **832/832 tests in 34 files**,
-**531.35s**, Windows/Node24.21.0, including all data audits, the TypeScript/Vite
+Final local `npm run verify -- -- --maxWorkers=1`: **836/836 tests in 34 files**,
+**532.17s**, Windows/Node24.21.0, including all data audits, the TypeScript/Vite
 build and the full single-worker Vitest suite. This is a local measurement, not
 GitHub Actions, and does not by itself make 0.17 accepted.
 
 Final `npm run trade:audit`: **62/62** source records, 864 monthly points, eight
-rejected source corruptions; the 67-test trade unit suite passed. The full verify
+rejected source corruptions; the 71-test trade unit suite passed. The full verify
 data audit also reproduced country, Region, population, economic, military and
 trade artifacts from pinned inputs.
 
-Final `npm run trade:benchmark -- --silent=false`: **1/1**, test73.12s,
-runner78.23s, Windows/Node24.21.0 without competing agent-owned audits.
+Final `npm run trade:benchmark -- --silent=false`: **1/1**, test76.21s,
+runner80.41s, Windows/Node24.21.0 without competing agent-owned audits.
 Real permanent world:
 **252 Countries/4,574 Regions**, eight synthetic trade participants, five categories,
 40 markets,80 routes/active/peak flows,20 dependencies;365days/12months/51weekly/
@@ -369,16 +376,16 @@ Real permanent world:
 
 | Measurement | Final local trade workload | Previous corrected-parent year, no trade |
 | --- | ---: | ---: |
-| Initialization | 983.95 ms | 1,007.53 ms |
-| Scenario configuration | 37.72 ms | Not applicable |
-| Annual ticking | 59,502.09 ms | 58,819.54 ms |
+| Initialization | 974.83 ms | 1,007.53 ms |
+| Scenario configuration | 38.84 ms | Not applicable |
+| Annual ticking | 62,783.21 ms | 58,819.54 ms |
 | Ordinary day mean | 1.60 ms | 1.71 ms |
-| Monthly day mean | 1,334.36 ms | 486.30 ms |
-| Weekly day mean | 843.23 ms | 1,028.74 ms |
-| Warm snapshot | 0.0036 ms | 0.0026 ms |
-| Cold snapshot | 510.14 ms | 514.86 ms |
-| Serialization | 796.60 ms | 487.32 ms |
-| Reload | 1,029.84 ms | 663.67 ms |
+| Monthly day mean | 598.31 ms | 486.30 ms |
+| Weekly day mean | 1,080.79 ms | 1,028.74 ms |
+| Warm snapshot | 0.0027 ms | 0.0026 ms |
+| Cold snapshot | 494.74 ms | 514.86 ms |
+| Serialization | 803.21 ms | 487.32 ms |
+| Reload | 1,029.28 ms | 663.67 ms |
 | Save bytes | 40,190,533 | 33,011,474 |
 
 The previous corrected-parent column is retained only as a historical reference;

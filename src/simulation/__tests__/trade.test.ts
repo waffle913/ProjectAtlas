@@ -5,7 +5,7 @@ import type { RegionEntity } from '../../types';
 import { tradeCountries, tradeRegions, tradeContext, tradeFixture, tradeMonth } from './tradeFixture';
 import { assertSimulationInvariants, validateFidelityConservation } from '../invariants';
 import { money, quoteFlow, deriveDependency, affordableQuantity } from '../trade/model';
-import { admitTradeMarket, admitTradeRoute, availableConsumption, prepareTradeMonth, setTradeStockTarget } from '../trade/runtime';
+import { admitTradeMarket, admitTradeRoute, availableConsumption, availableNeedsCoverage, prepareTradeMonth, setTradeStockTarget } from '../trade/runtime';
 import { syntheticTradeMarket, SYNTHETIC_TRADE_SOURCE } from '../trade/scenario';
 import { governmentHistoricalTrade, tradeObservations, validateTradeObservations, tradeEvidenceAvailableOn } from '../trade/data';
 import { inspectTradeReports, runTradeReports } from '../trade/reports';
@@ -595,5 +595,79 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     expect(ledger.domesticConsumed).toBe(2);
     expect(ledger.shortage).toBe(78);
     expect(assertSimulationInvariants(second, tradeContext, 'save')).toBe(true);
+  });
+  it('selects the route whose actual executable invoice is cheaper rather than the one-unit invoice', () => {
+    let state = tradeFixture(false);
+    const sellerA = tradeCountries[0], sellerB = tradeCountries[1], buyer = tradeCountries[2];
+    state = admitTradeMarket(state, sellerA, syntheticTradeMarket('food', { productionPerMonth: 10, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 10 }));
+    state = admitTradeMarket(state, sellerB, syntheticTradeMarket('food', { productionPerMonth: 10, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 10 }));
+    state = admitTradeMarket(state, buyer, syntheticTradeMarket('food', { importNeedPerMonth: 10, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, importCapacityPerMonth: 10 }));
+    state = admitTradeRoute(state, { id: 'route.ten:a', exporterId: sellerA, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 10, establishedCapacity: 10, expansionPerMonth: 0, logisticsBps: 500, tariffBps: 4500 });
+    state = admitTradeRoute(state, { id: 'route.ten:b', exporterId: sellerB, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 10, establishedCapacity: 10, expansionPerMonth: 0, logisticsBps: 0, tariffBps: 5000 });
+    expect(quoteFlow(state.trade.routes.find(r => r.id === 'route.ten:a')!, 1000000, 1, 'synthetic_aggregate_unit', state.date).landedUsd).toBe(1);
+    expect(quoteFlow(state.trade.routes.find(r => r.id === 'route.ten:b')!, 1000000, 1, 'synthetic_aggregate_unit', state.date).landedUsd).toBe(2);
+    expect(quoteFlow(state.trade.routes.find(r => r.id === 'route.ten:a')!, 1000000, 10, 'synthetic_aggregate_unit', state.date).landedUsd).toBe(16);
+    expect(quoteFlow(state.trade.routes.find(r => r.id === 'route.ten:b')!, 1000000, 10, 'synthetic_aggregate_unit', state.date).landedUsd).toBe(15);
+    const out = tradeMonth(state);
+    expect(out.trade.flows).toHaveLength(1);
+    expect(out.trade.flows[0].routeId).toBe('route.ten:b');
+    expect(out.trade.flows[0].quantity).toBe(10);
+    expect(out.trade.flows[0].landedUsd).toBe(15);
+    expect(assertSimulationInvariants(out, tradeContext, 'save')).toBe(true);
+  });
+  it('respects differing route capacities while selecting the cheaper effective route first', () => {
+    let state = tradeFixture(false);
+    const sellerA = tradeCountries[0], sellerB = tradeCountries[1], buyer = tradeCountries[2];
+    state = admitTradeMarket(state, sellerA, syntheticTradeMarket('food', { productionPerMonth: 10, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 3 }));
+    state = admitTradeMarket(state, sellerB, syntheticTradeMarket('food', { productionPerMonth: 10, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 10 }));
+    state = admitTradeMarket(state, buyer, syntheticTradeMarket('food', { importNeedPerMonth: 10, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, importCapacityPerMonth: 10 }));
+    state = admitTradeRoute(state, { id: 'route.cap:a', exporterId: sellerA, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 3, establishedCapacity: 3, expansionPerMonth: 0, logisticsBps: 0, tariffBps: 0 });
+    state = admitTradeRoute(state, { id: 'route.cap:b', exporterId: sellerB, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 10, establishedCapacity: 10, expansionPerMonth: 0, logisticsBps: 0, tariffBps: 5000 });
+    const out = tradeMonth(state);
+    const byRoute = Object.fromEntries(out.trade.flows.map(f => [f.routeId, f.quantity]));
+    expect(byRoute['route.cap:a']).toBe(3);
+    expect(byRoute['route.cap:b']).toBe(7);
+    expect(out.trade.flows.reduce((n, f) => n + f.quantity, 0)).toBe(10);
+    expect(assertSimulationInvariants(out, tradeContext, 'save')).toBe(true);
+  });
+  it('carries failed essential imports into real household material shortage instead of generic domestic substitution', () => {
+    const imported = tradeMonth(tradeFixture());
+    let blocked = tradeFixture();
+    blocked.trade.routes = blocked.trade.routes.map(r => ({ ...r, tariffBps: null }));
+    const missing = tradeMonth(blocked);
+    const regionId = tradeRegions[2].id;
+    expect(imported.trade.flows.length).toBeGreaterThan(0);
+    expect(missing.trade.flows).toEqual([]);
+    expect(missing.trade.countries[tradeCountries[2]].ledger!.categories[0].shortage).toBe(80);
+    const a = imported.socioeconomy.regions[regionId].economy!;
+    const b = missing.socioeconomy.regions[regionId].economy!;
+    expect(availableConsumption(b)).toBeLessThan(availableConsumption(a));
+    expect(availableNeedsCoverage(b)).toBeLessThanOrEqual(availableNeedsCoverage(a));
+    expect(assertSimulationInvariants(missing, tradeContext, 'save')).toBe(true);
+  });
+  it('relaxes the import-shortage material consequence only as explicit domestic replacement increases', () => {
+    const blockedWithReplacement = (perMonth: number) => {
+      let state = tradeFixture(false);
+      state = admitTradeMarket(state, tradeCountries[2], syntheticTradeMarket('food', {
+        productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 80,
+        domesticReplacementCapacity: 30, domesticReplacementPerMonth: perMonth, importCapacityPerMonth: 80,
+        priceMicroUsd: 10000000000, baselinePriceMicroUsd: 10000000000,
+      }));
+      return tradeMonth(tradeMonth(state));
+    };
+    const slow = blockedWithReplacement(0), gradual = blockedWithReplacement(2);
+    expect(slow.trade.countries[tradeCountries[2]].markets.food!.replacementQuantity).toBe(0);
+    expect(gradual.trade.countries[tradeCountries[2]].markets.food!.replacementQuantity).toBe(2);
+    const regionId = tradeRegions[2].id;
+    expect(availableConsumption(gradual.socioeconomy.regions[regionId].economy!))
+      .toBeGreaterThan(availableConsumption(slow.socioeconomy.regions[regionId].economy!));
+    expect(availableNeedsCoverage(gradual.socioeconomy.regions[regionId].economy!))
+      .toBeGreaterThanOrEqual(availableNeedsCoverage(slow.socioeconomy.regions[regionId].economy!));
+    expect(assertSimulationInvariants(slow, tradeContext, 'save')).toBe(true);
+    expect(assertSimulationInvariants(gradual, tradeContext, 'save')).toBe(true);
   });
 });
