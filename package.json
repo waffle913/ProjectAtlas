@@ -49,6 +49,7 @@
     "trade:audit": "node scripts/trade-audit.mjs && vitest run src/simulation/__tests__/trade.test.ts --maxWorkers=1",
     "trade:benchmark": "vitest run src/simulation/__tests__/tradeWorld.test.ts --maxWorkers=1 --reporter=verbose",
     "international:audit": "vitest run src/simulation/__tests__/international.test.ts --maxWorkers=1",
+    "international:benchmark": "vitest run src/simulation/__tests__/internationalBenchmark.test.ts --maxWorkers=1 --reporter=verbose",
     "trade:data:generate": "node scripts/trade-audit.mjs --write",
     "trade:sources:update": "node scripts/update-trade-source.mjs"
   },

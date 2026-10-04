@@ -6,6 +6,7 @@ import { isSimulationDate } from '../date';
 import { TRADE_VERSION, TRADE_MODEL, money, quoteFlow, tradeSum as sum, affordableQuantity } from './model';
 import { validateMarket, validateRoute } from './runtime';
 import { validateTradeReport, tradeHeadline, tradeInterpretation } from './reports';
+import { sanctionBlocksRoute } from '../international/runtime';
 
 export const tradeInvariant: SimulationInvariant = {
   id: 'trade-goods-payments-evidence',
@@ -30,6 +31,7 @@ export const tradeInvariant: SimulationInvariant = {
         || f.priceMicroUsd !== t.countries[f.exporterId]?.ledger?.categories.find(l => l.category === f.category)?.priceMicroUsd
         || !context.countryIds.has(f.importerId) || !context.countryIds.has(f.exporterId)
         || f.exporterId === f.importerId
+        || sanctionBlocksRoute(state, r, f.date)
         || deterministicFingerprint(f) !== deterministicFingerprint(quoteFlow(r, f.priceMicroUsd, f.quantity, f.unit, f.date))) throw new Error('Invalid trade route/quantity/payment/customs proof.');
       seenFlows.add(f.routeId);
     });
@@ -78,7 +80,7 @@ export const tradeInvariant: SimulationInvariant = {
         if (l.militaryInputConsumed !== (m.militaryInputPerFactoryUnit && military?.date === ledger.date
           ? integer(military.productionUnits * m.militaryInputPerFactoryUnit) : 0)) throw new Error('Trade input consumption lacks matching real military factory work.');
         const pressure = !l.exportableCapacity || l.exports !== l.exportableCapacity ? 0 : sum(t.routes
-          .filter(r => r.exporterId === id && r.category === l.category && r.tariffBps !== null).map(r => {
+          .filter(r => r.exporterId === id && r.category === l.category && r.tariffBps !== null && !sanctionBlocksRoute(state, r, ledger.date)).map(r => {
             const buyer = t.countries[r.importerId].ledger!.categories.find(l => l.category === r.category)!;
             const used = t.flows.find(f => f.routeId === r.id)?.quantity ?? 0;
             return affordableQuantity(buyer.unspentUsd, Math.min(buyer.shortage, r.capacityPerMonth - used),
@@ -94,6 +96,7 @@ export const tradeInvariant: SimulationInvariant = {
           a.productionCapacityBackingUsd, a.nonExportProduction, a.exportValueUsd].forEach(integer);
         if (!route || !supply || route.importerId !== id || route.exporterId !== a.supplierId
           || route.category !== a.category || route.tariffBps === null || a.unit !== country.markets[a.category]?.unit
+          || sanctionBlocksRoute(state, route, ledger.date)
           || t.flows.some(f => f.routeId === a.routeId) || a.spareCapacity !== route.establishedCapacity
           || a.exportableCapacity !== supply.exportableCapacity || a.exportedQuantity !== supply.exports
           || a.remainingBackingUsd !== supply.productionCapacityBackingUsd - supply.productionBackingUsd

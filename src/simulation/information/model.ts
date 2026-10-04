@@ -3,6 +3,7 @@ import type { PoliticalIssue } from '../politics/model';
 import type { SimulationState } from '../../types';
 import type { GovernmentMilitaryReport } from '../military/reports';
 import type { GovernmentTradeReport } from '../trade/reports';
+import type { InternationalActionKind, InternationalDriver, InternationalPhase, InternationalSeverity } from '../international/model';
 
 export const INFORMATION_VERSION = 'information-0.15-v3' as const;
 export const INFORMATION_MODEL = Object.freeze({
@@ -168,9 +169,37 @@ export interface GovernmentProposalEstimateInspection extends GovernmentProposal
   stale: boolean;
 }
 
+export interface GovernmentInternationalAssessment {
+  pairKey: string;
+  countryAId: string;
+  countryBId: string;
+  phase: InternationalPhase;
+  severity: InternationalSeverity;
+  pressure: number;
+  drivers: InternationalDriver[];
+}
+
+export interface GovernmentInternationalReport {
+  id: string;
+  countryId: string;
+  asOfDate: string;
+  producedOn: string;
+  source: 'international.administrative-report';
+  access: 'government';
+  coverage: 'partial' | 'unavailable';
+  status: 'modelled' | 'unavailable';
+  confidenceBps: number;
+  limitation: string;
+  uncertainty: string;
+  assessments: GovernmentInternationalAssessment[];
+  restrictions: { actorCountryId: string; targetCountryId: string; kind: InternationalActionKind; categories: string[]; effectiveOn: string; liftedOn?: string }[];
+  fingerprint: string;
+}
+
 export interface InformationState {
   tradeReports?: { latest: Record<string, GovernmentTradeReport>; byId: Record<string, GovernmentTradeReport> };
   militaryReports?: { latest: Record<string, GovernmentMilitaryReport>; byId: Record<string, GovernmentMilitaryReport> };
+  internationalReports?: { latest: Record<string, GovernmentInternationalReport>; byId: Record<string, GovernmentInternationalReport> };
   version: typeof INFORMATION_VERSION;
   initializedOn?: string;
   latestGovernmentReports: Record<string, GovernmentReport>;

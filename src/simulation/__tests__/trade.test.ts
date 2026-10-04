@@ -322,7 +322,7 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     const continued = advanceSimulationDays(state, 90);
     for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'governance', 'politics', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
     expect(continued.date).toBe('2028-07-04'); expect(continued.trade.flows).toEqual([]);
-    const { tradeReports: _newReporting, ...oldInformation } = continued.information;
+    const { tradeReports: _newReporting, internationalReports: _newInternational, ...oldInformation } = continued.information;
     expect(oldInformation).toEqual(oracle.state.information);
     expect(assertSimulationInvariants(continued, context, 'save')).toBe(true);
   });

@@ -1,7 +1,7 @@
 import type { SimulationInvariant } from '../invariants';
 import { GOVERNANCE_VERSION, INITIAL_LEADER_PROVENANCE_METHODS, LEADER_PROVENANCE_METHODS, governanceFingerprint, type LeadershipContextMetric, type LeadershipSuccession, type PoliticalPersonState } from '../governance/model';
 import { deriveLeadershipSelectionMetrics, leadershipProfileFromEvidence, LEADERSHIP_SUCCESSION_MODEL, selectLeadershipTendency } from '../governance/leadershipSuccession';
-import { canonicalJson } from '../fingerprint';
+import { canonicalJson, deterministicFingerprint } from '../fingerprint';
 import { POLITICAL_ISSUES } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
 import type { SimulationState } from '../../types';
@@ -241,6 +241,18 @@ export const informationInvariant: SimulationInvariant = {
     }
     const referencedReportIds = referencedGovernmentReportIds(information);
     if (Object.keys(information.governmentReportsById).some(id => !referencedReportIds.has(id)) || [...referencedReportIds].some(id => !information.governmentReportsById[id])) errors.push('Government report history does not match current and briefing references.');
+    const internationalReports = information.internationalReports;
+    if (internationalReports) {
+      for (const [id, report] of Object.entries(internationalReports.byId)) {
+        if (id !== report.id || report.countryId !== (internationalReports.latest[report.countryId]?.countryId) || report.id !== `international-report:${report.countryId}:${report.producedOn}` || !context.countryIds.has(report.countryId) || !validDate(report.asOfDate) || !validDate(report.producedOn) || report.asOfDate > report.producedOn || report.producedOn > state.date || report.source !== 'international.administrative-report' || report.access !== 'government' || !['partial', 'unavailable'].includes(report.coverage) || !['modelled', 'unavailable'].includes(report.status) || !bounded(report.confidenceBps) || !report.limitation?.trim() || !report.uncertainty?.trim() || !Array.isArray(report.assessments) || !Array.isArray(report.restrictions) || report.fingerprint !== deterministicFingerprint({ ...report, fingerprint: undefined })) errors.push(`Malformed international report ${id}.`);
+        for (const assessment of report.assessments) {
+          if (!assessment.pairKey || !context.countryIds.has(assessment.countryAId) || !context.countryIds.has(assessment.countryBId) || !['NORMAL', 'PRESSURE', 'ACTIVE', 'RECOVERING'].includes(assessment.phase) || !['none', 'low', 'moderate', 'severe', 'critical'].includes(assessment.severity) || !bounded(assessment.pressure, 100_000) || !Array.isArray(assessment.drivers)) errors.push(`Malformed international assessment in ${id}.`);
+        }
+      }
+      for (const [countryId, report] of Object.entries(internationalReports.latest)) {
+        if (report.countryId !== countryId || canonicalJson(internationalReports.byId[report.id]) !== canonicalJson(report)) errors.push(`Latest international report for ${countryId} is not retained.`);
+      }
+    }
     const governance = state.governance;
     if (governance.version !== GOVERNANCE_VERSION || !governance.successions || !Array.isArray(governance.successionOrder) || !Number.isSafeInteger(governance.nextSuccessionSequence) || governance.nextSuccessionSequence < 0 || new Set(governance.successionOrder).size !== governance.successionOrder.length || governance.successionOrder.some(id => !governance.successions[id]) || Object.keys(governance.successions).some(id => !governance.successionOrder.includes(id))) errors.push('Leadership succession order does not reconcile.');
     const contextualSuccessorIds = new Set<string>();

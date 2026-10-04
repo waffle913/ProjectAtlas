@@ -52,9 +52,22 @@ Sanctions block matching 0.17 route direction/category at execution time; routes
 capacity, provenance and previous flows remain intact. Lifting restores future
 eligibility.
 
+Restrictions have an unambiguous prospective effective interval: declared on date
+D, effective from the next logical simulation day, and, when lifted, historically
+active only until the lifting date. `sanctionBlocksRoute(..., historicalDate)`
+uses that interval rather than current status, so same-day post-trade sanctions
+do not invalidate already-booked flows.
+
+Action history is bounded: active restrictions are never pruned; lifted actions
+and old condemnations are retained only within documented global/per-pair limits
+so historical interval validation and current reports remain possible.
+
 Unsupported in 0.18 because no full banking/capital system exists: asset freezes,
 SWIFT exclusion, reserve seizure, banking/capital sanctions, and secondary
 sanctions. These remain explicit V1 limitations.
+
+Factual 2026 sanctions coverage is explicitly `unavailable`: empty gameplay
+action history is not evidence of zero real-world sanctions.
 
 ## Tension and lifecycle
 
@@ -72,15 +85,19 @@ information access. This is an explicit modelled executive abstraction, not a
 factual constitutional claim.
 
 Public condemnations and sanctions are public facts. Internal assessments
-(dependency exposure, pressure, drivers, severity) are government-gated and
-stale-safe; the UI never reads live canonical international state.
+(dependency exposure, pressure, drivers, severity) are saved dated government
+reports produced by a separate `international.reports` scheduler task and are
+government-gated and stale-safe; the UI never reads live canonical international
+state.
 
 ## Scheduler and performance
 
 `international.monthly` runs at priority 320, after trade/material crises and
 before Information retention. State is sparse and keyed by active pairs and
-actions; no all-pairs 252x252 scan exists. Trade sanction lookup is O(active
-actions) per route.
+actions; no all-pairs 252x252 scan exists. `international.reports` runs at 340,
+after assessment and before Information retention. Trade sanction legality uses
+a derived blocked-route key set computed once per monthly preparation, avoiding
+an actions-per-route rescan.
 
 ## Factual coverage and synthetic assumptions
 
@@ -91,4 +108,6 @@ dataset is imported.
 ## Validation
 
 Run `npm run international:audit`, `npm run trade:audit`, `npm run trade:benchmark`
-and the full `npm run verify -- -- --maxWorkers=1`.
+and the full `npm run verify -- -- --maxWorkers=1`. `npm run international:benchmark`
+exercises bounded synthetic pairs/restrictions on the real 252-Country/4,574-Region
+world.

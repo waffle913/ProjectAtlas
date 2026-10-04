@@ -2,13 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { tradeFixture, tradeMonth, tradeCountries, tradeContext, tradeRegions } from './tradeFixture';
 import { assertSimulationInvariants } from '../invariants';
 import { createPoliticalPerson, assignPoliticalOffice, setControlledPerson, revokePoliticalOffice } from '../governance/runtime';
-import { createClaim } from '../diplomacy';
+import { createClaim, renounceClaim } from '../diplomacy';
 import { advanceSimulationDays } from '../engine';
 import { restoreSimulationState } from '../save';
+import { simulationDelta } from '../world';
 import {
   condemn, hasInternationalAuthority, imposeExportRestriction, imposeImportRestriction, initializeInternational,
   inspectInternationalAssessments, liftSanction, publicInternationalActions, sanctionBlocksRoute,
 } from '../international/runtime';
+import { INTERNATIONAL_MODEL } from '../international/model';
 
 const intlFixture = () => initializeInternational(tradeFixture());
 
@@ -40,7 +42,7 @@ describe('0.18 international tensions, crises and sanctions', () => {
     state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], state.governance.player.controlledPersonId!, ['food']);
     expect(state.trade.routes.length).toBe(intlFixture().trade.routes.length);
     const route = state.trade.routes.find(r => r.exporterId === tradeCountries[0] && r.importerId === tradeCountries[2] && r.category === 'food')!;
-    expect(sanctionBlocksRoute(state, route)).toBe(true);
+    expect(sanctionBlocksRoute(state, route, '2026-01-02')).toBe(true);
     const after = tradeMonth(state);
     expect(after.trade.flows.some(f => f.exporterId === tradeCountries[0] && f.importerId === tradeCountries[2] && f.category === 'food')).toBe(false);
     expect(after.trade.flows.some(f => f.exporterId === tradeCountries[1] && f.importerId === tradeCountries[2] && f.category === 'food')).toBe(true);
@@ -78,10 +80,11 @@ describe('0.18 international tensions, crises and sanctions', () => {
     state = condemn(state, tradeCountries[0], tradeCountries[2], state.governance.player.controlledPersonId!, 'Public condemnation');
     const publicActions = publicInternationalActions(state, tradeCountries[0]);
     expect(publicActions.some(action => action.kind === 'condemnation')).toBe(true);
-    const person = state.governance.player.controlledPersonId!;
-    expect(inspectInternationalAssessments(state, tradeCountries[0], person)).toBeDefined();
-    expect(inspectInternationalAssessments(revokePoliticalOffice(state, person), tradeCountries[0], person)).toBeUndefined();
-    const later = advanceSimulationDays(tradeMonth(state), 1);
+    const monthly = tradeMonth(state);
+    const person = monthly.governance.player.controlledPersonId!;
+    expect(inspectInternationalAssessments(monthly, tradeCountries[0], person)).toBeDefined();
+    expect(inspectInternationalAssessments(revokePoliticalOffice(monthly, person), tradeCountries[0], person)).toBeUndefined();
+    const later = advanceSimulationDays(monthly, 1);
     const assessment = inspectInternationalAssessments(later, tradeCountries[0], person)?.[0];
     expect(assessment?.stale).toBe(true);
   });
@@ -96,5 +99,45 @@ describe('0.18 international tensions, crises and sanctions', () => {
     expect(restored.international.initializedOn).toBe(restored.date);
     expect(restored.trade).toEqual(state.trade);
     expect(assertSimulationInvariants(restored, tradeContext, 'reload')).toBe(true);
+  });
+  it('distinguishes declaration from prospective effective date for same-day sanctions', () => {
+    const before = tradeMonth(intlFixture());
+    let state = imposeExportRestriction(before, tradeCountries[0], tradeCountries[2], before.governance.player.controlledPersonId!, ['food']);
+    const action = state.international.actions[state.international.actionOrder.at(-1)!];
+    expect(action.declaredOn).toBe(before.date);
+    expect(action.effectiveOn.localeCompare(action.declaredOn)).toBeGreaterThan(0);
+    const route = state.trade.routes.find(r => r.exporterId === tradeCountries[0] && r.importerId === tradeCountries[2] && r.category === 'food')!;
+    expect(sanctionBlocksRoute(state, route, action.declaredOn)).toBe(false);
+    expect(sanctionBlocksRoute(state, route, action.effectiveOn)).toBe(true);
+  });
+  it('does not let duplicate restrictions or repeated condemnations manufacture unlimited pressure', () => {
+    let state = intlFixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food']);
+    state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food']);
+    state = condemn(state, tradeCountries[0], tradeCountries[2], person, 'One');
+    state = condemn(state, tradeCountries[0], tradeCountries[2], person, 'Two');
+    state = tradeMonth(state);
+    const episode = Object.values(state.international.episodes).find(e => e.countryAId === tradeCountries[0] && e.countryBId === tradeCountries[2]);
+    const sanctionDrivers = episode?.drivers.filter(d => d.kind === 'sanction') ?? [];
+    expect(sanctionDrivers.length).toBeLessThanOrEqual(1);
+    expect(episode?.pressure).toBeLessThanOrEqual(INTERNATIONAL_MODEL.maximumPressure);
+  });
+  it('lets claim-only episodes recover and resolve after renunciation', () => {
+    let state = intlFixture();
+    const claimId = 'claim.intl.recover';
+    state = createClaim(state, { id: claimId, claimantCountryId: tradeCountries[0], regionId: Object.keys(state.regionOwnership).find(id => state.regionOwnership[id] === tradeCountries[2])!, type: 'territorial', creationDate: state.date }, tradeContext);
+    state = tradeMonth(state);
+    expect(Object.values(state.international.episodes).some(e => e.pressure > 0)).toBe(true);
+    state = renounceClaim(state, claimId);
+    for (let i = 0; i < 6; i++) state = tradeMonth(state);
+    const episode = Object.values(state.international.episodes).find(e => e.countryAId === tradeCountries[0] && e.countryBId === tradeCountries[2]);
+    expect(episode?.phase).toBe('NORMAL');
+  });
+  it('reports international changes in simulation delta', () => {
+    const before = intlFixture();
+    const after = condemn(before, tradeCountries[0], tradeCountries[2], before.governance.player.controlledPersonId!, 'Delta condemnation');
+    expect(simulationDelta(before, after).changedDomains).toContain('international');
+    expect(simulationDelta(before, before).changedDomains).not.toContain('international');
   });
 });
