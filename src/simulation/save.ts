@@ -115,7 +115,10 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     else restored = upgradeMilitaryReportReadiness(restored);
     if (version < 15) restored = initializeTrade(restored);
     if (version < 16) restored = initializeInternational(restored);
-    if (version < 17) restored = initializeOperations(restored);
+    if (version < 17) {
+      if (version === 16) restored = upgradeOperationsAuthority(restored);
+      restored = initializeOperations(restored);
+    }
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }
@@ -153,6 +156,17 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
   const finalContext = diplomacyContext ?? { countryIds: countryIdsFor(migrated, regions), regionIds: new Set(regions.map(region => region.id)) };
   assertSimulationInvariants(migrated, validationContext(regions, finalContext), 'reload');
   return migrated;
+}
+
+function upgradeOperationsAuthority(state: SimulationState): SimulationState {
+  const persons = { ...state.governance.persons };
+  for (const [id, person] of Object.entries(persons)) {
+    if (!person.office || !['head_of_government', 'head_of_state'].includes(person.office.role)
+      || person.office.evidence?.authorityBasis === 'institutional_authority_unresolved'
+      || person.office.authorityProfile.capabilities.includes('command_military_operations')) continue;
+    persons[id] = { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: [...person.office.authorityProfile.capabilities, 'command_military_operations' as const].sort() as typeof person.office.authorityProfile.capabilities } } };
+  }
+  return { ...state, governance: { ...state.governance, persons } };
 }
 
 export function serializeSimulationState(state: SimulationState, context?: InvariantContext) {

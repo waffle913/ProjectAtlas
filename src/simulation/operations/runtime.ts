@@ -48,7 +48,7 @@ function deterministicComponents(state: SimulationState): { byId: Record<string,
 export function ensureRegionControl(state: SimulationState): SimulationState {
   const control: Record<string, RegionControl> = { ...state.operations.regionControl };
   for (const regionId of Object.keys(state.regionOwnership).sort()) {
-    if (!control[regionId]) control[regionId] = 'sovereign_controlled';
+    control[regionId] = state.occupationByRegion[regionId] ? 'foreign_controlled' : 'sovereign_controlled';
   }
   return { ...state, operations: { ...state.operations, regionControl: control } };
 }
@@ -65,8 +65,10 @@ export function deploy(state: SimulationState, input: { countryId: string; perso
   const available = Math.max(0, presentPersonnel(capability) - trainingPersonnel(capability));
   if (deployedPersonnel + input.personnel > available) throw new Error('Deployment exceeds qualified available personnel.');
   const assignment = capability.assignments[input.sourceRegionId] ?? 0;
-  if (deployedPersonnel + input.personnel > assignment) throw new Error('Deployment exceeds personnel actually assigned to the source Region.');
+  const regionDeployed = deployedPersonnelByRegion(state, input.countryId).get(input.sourceRegionId) ?? 0;
+  if (regionDeployed + input.personnel > assignment) throw new Error('Deployment exceeds personnel actually assigned to the source Region.');
   const equipment = input.equipment ?? {};
+  if (input.supply && (input.supply.ammunition || input.supply.fuel)) throw new Error('Initial deployment supply is not yet supported; supply transfer is deferred to Pass 2.');
   for (const [item, quantity] of Object.entries(equipment)) {
     if (!validMilitaryItem(item)) throw new Error(`Unknown military equipment item: ${item}`);
     integer(quantity as number);
@@ -120,6 +122,15 @@ function deployedTotals(state: SimulationState, countryId: string) {
     }
   }
   return { personnel, equipment };
+}
+
+export function deployedPersonnelByRegion(state: SimulationState, countryId: string): ReadonlyMap<string, number> {
+  const map = new Map<string, number>();
+  for (const deployment of Object.values(state.operations.deployments)) {
+    if (deployment.countryId !== countryId || deployment.status === 'withdrawn') continue;
+    map.set(deployment.sourceRegionId, (map.get(deployment.sourceRegionId) ?? 0) + deployment.personnel);
+  }
+  return map;
 }
 
 export const registerOperationsTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'operations.daily', cadence: 'daily', priority: OPERATIONS_MODEL.schedulerPriority, run: state => state });

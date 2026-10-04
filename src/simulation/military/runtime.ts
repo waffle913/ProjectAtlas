@@ -12,6 +12,7 @@ import { validateCapability } from './validation';
 import militaryObservations from '../../data/military-observations.json';
 import { militaryDeliveryDate } from './dates';
 import { consumeTradeFactoryInput, tradeFactoryCapacity } from '../trade/runtime';
+import { deployedPersonnelByRegion } from '../operations/runtime';
 
 export function initializeMilitary(state: SimulationState): SimulationState {
   if (state.military.initializedOn) return state;
@@ -209,7 +210,9 @@ export function prepareMilitaryMonth(state: SimulationState): SimulationState {
     const retentionTarget = c.unpaidMonths >= 3 ? Math.min(c.authorized, Math.floor((c.lastLedger?.grossPayrollPaid ?? 0) / p.monthlySalaryUsd)) : c.authorized;
     const released = Math.min(Math.max(0, present - retentionTarget), p.reductionPerMonth);
     if (released) {
-      const keys = Object.keys(c.assignments).sort(), counts = allocate(released, keys.map(r => c.assignments[r]));
+      const reservations = deployedPersonnelByRegion(state, id);
+      const releasable = Object.fromEntries(Object.keys(c.assignments).sort().map(r => [r, Math.max(0, (c.assignments[r] ?? 0) - (reservations.get(r) ?? 0))]));
+      const keys = Object.keys(releasable).sort(), counts = allocate(Math.min(released, sum(Object.values(releasable))), keys.map(r => releasable[r]));
       keys.forEach((r, i) => c.assignments[r] -= counts[i]);
       let left = Math.min(released, trainingPersonnel(c));
       for (const t of c.trainees.sort((a, b) => a.monthsCompleted - b.monthsCompleted)) { const removed = Math.min(left, t.persons); t.persons -= removed; left -= removed; }
