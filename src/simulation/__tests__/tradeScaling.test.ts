@@ -1,3 +1,4 @@
+import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
 import { describe, expect, it } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
@@ -28,7 +29,7 @@ const scalingContext = { regions: scalingRegions, countryIds: new Set(scalingCou
 
 function scalingFixture(): SimulationState {
   let state: SimulationState = {
-    schemaVersion: 16, international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
+    schemaVersion: 17, operations: emptyOperations(), international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
     politics: emptyPolitics(), socioeconomy: emptySocioeconomy(), governance: emptyGovernance('2026-01-01'),
     information: emptyInformation('2026-01-01'), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
     regionOwnership: Object.fromEntries(scalingRegions.map(r => [r.id, r.initialOwnerCountryId])),

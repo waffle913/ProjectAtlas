@@ -1,3 +1,4 @@
+import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
 import { emptyMilitary } from '../military/model';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -1024,7 +1025,7 @@ describe('government information and player briefings 0.15', () => {
     });
     const migrated = restoreSimulationState(persistedSchema12, worldRegions, {}, {}, worldContext);
     expect(migrated).toMatchObject({
-      schemaVersion: 16,
+      schemaVersion: 17,
       date,
       engine: { tick: 4321, seed: 'schema-12-information-migration' },
       information: { initializedOn: date, latestGovernmentReports: {}, governmentReportsById: {}, briefings: [], proposalEstimates: [] },

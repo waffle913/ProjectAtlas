@@ -1,3 +1,4 @@
+import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
@@ -25,7 +26,7 @@ const countries = new Set(['country.a', 'country.b']);
 const region: RegionEntity = { id: 'region.a', parentCountryId: 'country.a', initialOwnerCountryId: 'country.a', commonName: 'A', administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: ['geometry-a'] } };
 const context = { countryIds: countries, regionIds: new Set([region.id]), regions: [region] };
 const initial = (seed = 'seed.001'): SimulationState => ({
-  schemaVersion: 16, international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+  schemaVersion: 17, operations: emptyOperations(), international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
   territoryOwnership: { 'territory.a': 'country.a' }, regionOwnership: { [region.id]: 'country.a' },
   populationByRegion: { [region.id]: 1_000 }, economicOutputByRegion: { [region.id]: 5_000 },
   bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},

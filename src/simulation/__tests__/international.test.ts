@@ -94,7 +94,7 @@ describe('0.18 international tensions, crises and sanctions', () => {
     saved.schemaVersion = 15;
     delete saved.international;
     const restored = restoreSimulationState(JSON.stringify(saved), tradeRegions, {}, {}, tradeContext);
-    expect(restored.schemaVersion).toBe(16);
+    expect(restored.schemaVersion).toBe(17);
     expect(restored.international.version).toBe('international-0.18-v1');
     expect(restored.international.initializedOn).toBe(restored.date);
     expect(restored.trade).toEqual(state.trade);

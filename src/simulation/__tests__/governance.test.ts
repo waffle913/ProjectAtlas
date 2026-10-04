@@ -1,3 +1,4 @@
+import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
 import { emptyMilitary } from '../military/model';
 /// <reference types="node" />
@@ -1009,7 +1010,7 @@ describe('governance 0.15 situational institutional interest', () => {
     const saved = serializeSimulationState(resolved, worldContext), restored = restoreSimulationState(saved, worldRegions, {}, {}, worldContext);
     expect(restored).toEqual(resolved); expect(serializeSimulationState(restored, worldContext)).toBe(saved);
     expect(restored.governance.proposals[proposalId].evaluationVersion).toBe('situational-plurality-0.15-v2');
-    expect(restored.schemaVersion).toBe(16); expect(restored.date).toBe(submitted.date); expect(restored.engine).toEqual(submitted.engine);
+    expect(restored.schemaVersion).toBe(17); expect(restored.date).toBe(submitted.date); expect(restored.engine).toEqual(submitted.engine);
     for (const branch of ['fiscal', 'socioeconomy', 'politics', 'crisis', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion'] as const) expect(resolved[branch]).toBe(submitted[branch]);
     expect(restored.governance.proposals[proposalId].voteResult!.chambers.flatMap(chamber => chamber.partyEvaluations ?? []).every(item => item.institutionalInterest?.status === 'not_applicable')).toBe(true);
   }, 30_000);
@@ -1319,7 +1320,7 @@ describe('final foundation stored governance evidence', () => {
 
 describe('governance 0.14 player and political decisions', () => {
   it('initializes party leaders and materializes sourced executives independently of party-leadership coverage', () => {
-    expect(initial).toMatchObject({ schemaVersion: 16, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
+    expect(initial).toMatchObject({ schemaVersion: 17, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
     expect(Object.values(initial.governance.persons).filter(person => person.isPartyLeader && person.status === 'active')).toHaveLength(Object.keys(politicalRegistry.parties).length);
     const offices = new Map(politicalOffices.offices.map(office => [office.id, office]));
     const eligible = politicalOffices.officeholders.filter(record => {
@@ -1507,7 +1508,7 @@ describe('governance 0.14 player and political decisions', () => {
       },
     };
     const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
-    expect(restored.schemaVersion).toBe(16);
+    expect(restored.schemaVersion).toBe(17);
     expect(restored.date).toBe(started.date);
     expect(restored.engine.tick).toBe(started.engine.tick);
     expect(restored.engine.seed).toBe(started.engine.seed);
@@ -1879,7 +1880,7 @@ describe('governance 0.14 player and political decisions', () => {
     const legacy = structuredClone(initial) as unknown as Record<string, unknown>; legacy.schemaVersion = 11; legacy.date = '2034-05-06'; delete legacy.governance;
     const politics = legacy.politics, fiscal = legacy.fiscal, socioeconomy = legacy.socioeconomy, crisis = legacy.crisis;
     const migrated = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
-    expect(migrated.governance.initializedOn).toBe('2034-05-06'); expect(migrated.governance.proposalOrder).toEqual([]); expect(migrated.schemaVersion).toBe(16);
+    expect(migrated.governance.initializedOn).toBe('2034-05-06'); expect(migrated.governance.proposalOrder).toEqual([]); expect(migrated.schemaVersion).toBe(17);
     expect(migrated.information).toMatchObject({ initializedOn: '2034-05-06', briefings: [], latestGovernmentReports: {} });
     expect(migrated.politics).toEqual(JSON.parse(JSON.stringify(politics))); expect(migrated.fiscal).toEqual(JSON.parse(JSON.stringify(fiscal))); expect(migrated.socioeconomy).toEqual(JSON.parse(JSON.stringify(socioeconomy))); expect(migrated.crisis).toEqual(JSON.parse(JSON.stringify(crisis)));
   }, 30_000);
@@ -2037,7 +2038,7 @@ describe('governance 0.14 situational corrective contracts', () => {
 
   it('reloads an actual d2f3ce aggregate-only enacted schema-12 proposal', () => {
     const legacy = d2LegacyResolved('enacted'), restored = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), proposal = restored.governance.proposals[legacy.proposalId];
-    expect(restored).toMatchObject({ schemaVersion: 16, governance: { version: 'governance-0.14-v1' } }); expect(proposal).toMatchObject({ status: 'enacted', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'adopted', coverage: 'complete' } });
+    expect(restored).toMatchObject({ schemaVersion: 17, governance: { version: 'governance-0.14-v1' } }); expect(proposal).toMatchObject({ status: 'enacted', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'adopted', coverage: 'complete' } });
     expect(proposal.parliamentaryEstimate!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true); expect(proposal.voteResult!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true);
     const evidence = [...restored.fiscal.reforms, ...restored.fiscal.reformReceipts].filter(item => item.sequence === legacy.sequence); expect(evidence).toHaveLength(1); expect(evidence[0].origin?.proposalId).toBe(legacy.proposalId); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
   });
