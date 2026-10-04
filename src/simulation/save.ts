@@ -118,6 +118,8 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     if (version < 17) {
       if (version === 16) restored = upgradeOperationsAuthority(restored);
       restored = initializeOperations(restored);
+    } else if (version === 17) {
+      restored = upgradeOperationsDeployments(restored);
     }
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
@@ -156,6 +158,23 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
   const finalContext = diplomacyContext ?? { countryIds: countryIdsFor(migrated, regions), regionIds: new Set(regions.map(region => region.id)) };
   assertSimulationInvariants(migrated, validationContext(regions, finalContext), 'reload');
   return migrated;
+}
+
+function upgradeOperationsDeployments(state: SimulationState): SimulationState {
+  const deployments = { ...state.operations.deployments };
+  for (const [id, deployment] of Object.entries(deployments)) {
+    if (deployment.allocated) continue;
+    const allocatedEquipment: Partial<Record<string, number>> = {};
+    for (const [item, quantity] of Object.entries(deployment.equipment)) allocatedEquipment[item] = (quantity as number) + (deployment.losses.equipment[item as keyof typeof deployment.losses.equipment] ?? 0);
+    deployments[id] = {
+      ...deployment,
+      allocated: {
+        personnel: deployment.personnel + deployment.losses.personnel,
+        equipment: allocatedEquipment,
+      },
+    };
+  }
+  return { ...state, operations: { ...state.operations, deployments } };
 }
 
 function upgradeOperationsAuthority(state: SimulationState): SimulationState {

@@ -4,6 +4,7 @@ import { assertSimulationInvariants } from '../invariants';
 import { createPoliticalPerson, setControlledPerson } from '../governance/runtime';
 import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, supplyDeployment, withdrawDeployment } from '../operations/runtime';
 import { advanceSimulationDays } from '../engine';
+import { restoreSimulationState, serializeSimulationState } from '../save';
 
 const fixture = () => initializeOperations(militaryFixture());
 
@@ -84,5 +85,16 @@ describe('0.19 operational foundation', () => {
     state.operations.adjacency = { [militaryRegions[0].id]: [militaryRegions[1].id], [militaryRegions[1].id]: [militaryRegions[0].id] };
     state = orderMovement(state, id, person, militaryRegions[1].id);
     expect(() => advanceSimulationDays(state, 1)).toThrow(/Movement access is denied/);
+  });
+  it('upgrades schema-17 deployments missing allocated basis deterministically', () => {
+    let state = fixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = deploy(state, { countryId: militaryCountry, personId: person, sourceRegionId: militaryRegions[0].id, currentRegionId: militaryRegions[0].id, personnel: 1 });
+    const saved = JSON.parse(serializeSimulationState(state, militaryContext)) as any;
+    delete saved.operations.deployments[saved.operations.deploymentOrder[0]].allocated;
+    const restored = restoreSimulationState(JSON.stringify(saved), militaryRegions, {}, {}, militaryContext);
+    const deployment = restored.operations.deployments[restored.operations.deploymentOrder[0]];
+    expect(deployment.allocated.personnel).toBe(deployment.personnel + deployment.losses.personnel);
+    expect(assertSimulationInvariants(restored, militaryContext, 'reload')).toBe(true);
   });
 });

@@ -208,8 +208,8 @@ function resolveEngagements(state: SimulationState, context: SchedulerTaskContex
 
 export function resolveOneEngagement(state: SimulationState, context: SchedulerTaskContext, war: { id: string; attackerCountryId: string; defenderCountryId: string }, component: StrategicComponent, attackers: Deployment[], defenders: Deployment[], existingId?: string): SimulationState {
   let next = state;
-  const attackerPower = attackers.reduce((sum, deployment) => sum + combatPower(deployment), 0);
-  const defenderPower = defenders.reduce((sum, deployment) => sum + combatPower(deployment), 0);
+  const attackerPower = attackers.reduce((sum, deployment) => sum + combatPower(deployment, state), 0);
+  const defenderPower = defenders.reduce((sum, deployment) => sum + combatPower(deployment, state), 0);
   const ratio = defenderPower > 0 ? attackerPower / defenderPower : 1e6;
   const roll = context.random.integer(0, 10000, { entityId: `${war.id}:${component.id}` });
   const attackerWins = ratio >= 1 ? roll < 9000 : roll < 2000;
@@ -217,6 +217,9 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
   const lossFraction = attackerWins ? 0.15 : 0.08;
   let ammoConsumed = 0;
   let fuelConsumed = 0;
+  let attackerDailyPersonnel = 0, defenderDailyPersonnel = 0;
+  const attackerDailyEquipment: Partial<Record<MilitaryItem, number>> = {};
+  const defenderDailyEquipment: Partial<Record<MilitaryItem, number>> = {};
   for (const deployment of [...attackers, ...defenders]) {
     const isLoser = loser.includes(deployment);
     const losses = isLoser ? Math.min(deployment.personnel, Math.max(1, Math.floor(deployment.personnel * lossFraction))) : 0;
@@ -231,6 +234,9 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
     }
     ammoConsumed += ammo;
     fuelConsumed += fuel;
+    const sideEquipment = deployment.countryId === war.attackerCountryId ? attackerDailyEquipment : defenderDailyEquipment;
+    if (deployment.countryId === war.attackerCountryId) attackerDailyPersonnel += losses; else defenderDailyPersonnel += losses;
+    for (const [item, lost] of Object.entries(equipmentLosses)) sideEquipment[item as MilitaryItem] = (sideEquipment[item as MilitaryItem] ?? 0) + (lost as number);
     next = applyMilitaryLosses(next, deployment, losses, equipmentLosses);
     const nextPersonnel = deployment.personnel - losses;
     const nextLossEquipment: Partial<Record<MilitaryItem, number>> = { ...deployment.losses.equipment };
@@ -264,10 +270,16 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
     componentId: component.id,
     attackerCountryId: war.attackerCountryId,
     defenderCountryId: war.defenderCountryId,
-    startDate: next.date,
+    startDate: previousEngagement?.startDate ?? next.date,
     status: 'active',
-    attackerLosses: { personnel: attackers.reduce((sum, d) => sum + (next.operations.deployments[d.id]?.losses.personnel ?? d.losses.personnel), 0), equipment: {} },
-    defenderLosses: { personnel: defenders.reduce((sum, d) => sum + (next.operations.deployments[d.id]?.losses.personnel ?? d.losses.personnel), 0), equipment: {} },
+    attackerLosses: {
+      personnel: (previousEngagement?.attackerLosses.personnel ?? 0) + attackerDailyPersonnel,
+      equipment: mergeEquipment(previousEngagement?.attackerLosses.equipment, attackerDailyEquipment),
+    },
+    defenderLosses: {
+      personnel: (previousEngagement?.defenderLosses.personnel ?? 0) + defenderDailyPersonnel,
+      equipment: mergeEquipment(previousEngagement?.defenderLosses.equipment, defenderDailyEquipment),
+    },
     consumed: { ammunition: (previousEngagement?.consumed.ammunition ?? 0) + ammoConsumed, fuel: (previousEngagement?.consumed.fuel ?? 0) + fuelConsumed },
   };
   next = {
@@ -280,6 +292,12 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
     },
   };
   return next;
+}
+
+function mergeEquipment(base: Partial<Record<MilitaryItem, number>> | undefined, delta: Partial<Record<MilitaryItem, number>>): Partial<Record<MilitaryItem, number>> {
+  const result: Partial<Record<MilitaryItem, number>> = { ...(base ?? {}) };
+  for (const [item, quantity] of Object.entries(delta)) result[item as MilitaryItem] = (result[item as MilitaryItem] ?? 0) + (quantity as number);
+  return result;
 }
 
 function applyMilitaryLosses(state: SimulationState, deployment: Deployment, personnelLosses: number, equipmentLosses: Partial<Record<MilitaryItem, number>>): SimulationState {
@@ -350,7 +368,7 @@ function reservedPersonnelForRegion(state: SimulationState, regionId: string): n
   return total;
 }
 
-function combatPower(deployment: Deployment): number {
+function combatPower(deployment: Deployment, state: SimulationState): number {
   let equipment = 0;
   const fuel = deployment.supply.fuel;
   const ammo = deployment.supply.ammunition;
@@ -360,8 +378,10 @@ function combatPower(deployment: Deployment): number {
     const weight = item === 'armour' ? 40 : item === 'artillery' ? 30 : item === 'communications' ? 10 : item === 'truck' ? 5 : 1;
     equipment += usable * weight;
   }
+  const exercise = state.military.countries[deployment.countryId]?.capability?.exercisePersonMonths ?? 0;
+  const trainingFactor = 1 + Math.min(0.25, exercise / 100000);
   const offensivePersonnel = Math.min(deployment.personnel, ammo);
-  return offensivePersonnel + equipment;
+  return Math.floor(offensivePersonnel * trainingFactor) + equipment;
 }
 
 function movementAccess(state: SimulationState, deployment: Deployment, targetRegionId: string): boolean {
