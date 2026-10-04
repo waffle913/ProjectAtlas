@@ -192,7 +192,11 @@ Unknown tariff (`null`) blocks execution and executable alternatives, not a
 zero-rate invoice. Known zero is a non-null real zero. No actual tariff schedule
 or customs-union boundary is fabricated.
 
-Compatible priced routes sort by landed unit cost then stable route ID.
+Compatible priced routes sort by the exact whole-USD landed unit cost returned by
+the same integer `quoteFlow` invoice used during execution, then stable permanent
+route ID. The sort never uses an unrounded `price * (10000 + logistics + tariff)`
+approximation, so invoice rounding of FOB/logistics/customs cannot reverse the
+economic ordering and make the importer pay a dearer route first.
 Each delivery is bounded by shared seller supply, buyer need, category/route
 capacity and an affordable whole-integer quote. Multiple buyers never receive
 the same unit. Budgets are existing resource envelopes, not GDP-percent imports.
@@ -205,16 +209,24 @@ original unavailable statutory coverage, not observed 0% law. Tariffs can increa
 costs, switch suppliers or decrease volume/revenue; there is no revenue bonus or
 new player tariff-reform/sanction API.
 
-Indicative price moves at most **5% monthly**: own shortage or financially backed
-foreign shortage facing fully used exportable capacity causes upward pressure;
-otherwise price returns toward baseline. Saved invoices retain executed price;
-the new price is next month's. No instant tripling or high-frequency market.
+Indicative price moves at most **5% monthly** in either direction: own shortage
+or financially backed foreign shortage facing fully used exportable capacity
+causes upward pressure; otherwise the price moves toward baseline by the same
+bounded step, never jumping straight from below baseline to baseline. Saved
+invoices retain the executed price; the new price is next month's. No instant
+tripling, unbounded recovery, or high-frequency market.
 
 After prior shortage, routes expand by admitted rates toward their cap; configured
 domestic replacement rises gradually within its physical/resource ceiling.
 A dearer supplier may become the available choice. Routine AI has no diplomatic
 preference, adversary, retaliation or coercion. No cross-category substitute is
 configured in V1; no giant supply-chain graph or invented substitute supply.
+Missing imports never instantaneously reappear as generic domestic output: the
+single socioeconomic/output engine only realizes the existing demand envelope,
+and replacement is explicitly limited by `domesticReplacementCapacity` and
+`domesticReplacementPerMonth`. A bounded regression test confirms the shortage
+persists across the configured gradual-replacement window rather than being
+absorbed by an unbounded second production path.
 
 ## Stocks and military inputs
 
@@ -338,32 +350,42 @@ are excluded. The existing genuine800-day schema13 golden fixture is unchanged.
 
 ## Measured performance and validation
 
-Final `npm run trade:benchmark -- --silent=false`: **1/1**, test79.568s,
-runner84.52s, Windows/Node24.21.0 without competing agent-owned audits.
+Final local `npm run verify -- -- --maxWorkers=1`: **832/832 tests in 34 files**,
+**531.35s**, Windows/Node24.21.0, including all data audits, the TypeScript/Vite
+build and the full single-worker Vitest suite. This is a local measurement, not
+GitHub Actions, and does not by itself make 0.17 accepted.
+
+Final `npm run trade:audit`: **62/62** source records, 864 monthly points, eight
+rejected source corruptions; the 67-test trade unit suite passed. The full verify
+data audit also reproduced country, Region, population, economic, military and
+trade artifacts from pinned inputs.
+
+Final `npm run trade:benchmark -- --silent=false`: **1/1**, test73.12s,
+runner78.23s, Windows/Node24.21.0 without competing agent-owned audits.
 Real permanent world:
 **252 Countries/4,574 Regions**, eight synthetic trade participants, five categories,
 40 markets,80 routes/active/peak flows,20 dependencies;365days/12months/51weekly/
 302ordinary boundaries,340 retained reports, exact roundtrip/35-day twin continuation.
 
-| Measurement | Final local trade workload | Original corrected-parent year, no trade |
+| Measurement | Final local trade workload | Previous corrected-parent year, no trade |
 | --- | ---: | ---: |
-| Initialization | 1,042.34 ms | 1,007.53 ms |
-| Scenario configuration | 39.71 ms | Not applicable |
-| Annual ticking | 57,320.81 ms | 58,819.54 ms |
-| Ordinary day mean | 1.47 ms | 1.71 ms |
-| Monthly day mean | 608.72 ms | 486.30 ms |
-| Weekly day mean | 971.96 ms | 1,028.74 ms |
-| Warm snapshot | 0.0026 ms | 0.0026 ms |
-| Cold snapshot | 529.34 ms | 514.86 ms |
-| Serialization | 817.95 ms | 487.32 ms |
-| Reload | 1,077.61 ms | 663.67 ms |
+| Initialization | 983.95 ms | 1,007.53 ms |
+| Scenario configuration | 37.72 ms | Not applicable |
+| Annual ticking | 59,502.09 ms | 58,819.54 ms |
+| Ordinary day mean | 1.60 ms | 1.71 ms |
+| Monthly day mean | 1,334.36 ms | 486.30 ms |
+| Weekly day mean | 843.23 ms | 1,028.74 ms |
+| Warm snapshot | 0.0036 ms | 0.0026 ms |
+| Cold snapshot | 510.14 ms | 514.86 ms |
+| Serialization | 796.60 ms | 487.32 ms |
+| Reload | 1,029.84 ms | 663.67 ms |
 | Save bytes | 40,190,533 | 33,011,474 |
 
-**Material increase:** monthly about25.2%, serialize67.8%, reload62.4%, size21.7%.
-Annual time is about2.5% lower, not proof of an optimization.
-Workloads differ and concurrent host load affects timings;
-this is not controlled identical calibration. Extra dated independent proof/history
-explains larger saves; disclose rather than hide it behind ordinary-day/annual time.
+The previous corrected-parent column is retained only as a historical reference;
+it was not rerun in this pass and the two workloads are not a controlled
+identical calibration. Concurrent host load materially affects timings. Extra
+dated independent proof/history explains larger saves; this is disclosed rather
+than hidden behind ordinary-day/annual time.
 No old threshold is raised. Original military31-day30s bound remains unchanged;
 final `npm run military:benchmark -- --silent=false`:1/1,11.121s test,
 runner15.77s; initialization1,020.80ms, ordinary17.56ms/monthly733.83ms,
@@ -371,20 +393,19 @@ warm0.0029ms/cold489.35ms, serialize473.69ms/reload677.56ms,
 32,445,005bytes. Unrelated full-world military calibration/
 365-day optimization remains deferred, not folded into this milestone.
 
-Final `npm run verify -- -- --maxWorkers=1`: **827/827 in34files**,546.80s,
-including all inherited world benchmarks with unchanged thresholds, offline
-registry/Region/population/economic reproducibility and TypeScript/Vite build.
-Final `npm run trade:audit`: **62/62**,3.51s,62source records/864monthly points/
-eight rejected source corruptions. `npm run economy:audit`:5/5,5.99s;
-`npm run fiscal:audit`:26/26,5.52s, unchanged legal-input SHA256;
-`npm run military:audit`:82/82,3.47s; `npm run information:audit`:green,
-948fictional leaders/342reconciled executive records.
-Dedicated `npm test -- src\simulation\__tests__\information.test.ts src\simulation\__tests__\governance.test.ts --maxWorkers=1`:
-335/335,228.37s; these tests also pass in the final full suite.
-The first full pass exposed a clone optional-key regression (823passed/1failed);
-it was fixed, not bypassed, before the827/827 final rerun.
-`git diff --check` and introduced TODO/FIXME/stub/Math.random runtime scans are
-clean; permanent registries and existing golden fixtures remain unchanged.
+GitHub Actions timing on the reviewed commit ran the full
+`verify -- -- --maxWorkers=1` job and only `tradeWorld.test.ts` failed, at the
+old 120000ms per-test timeout, after its benchmark workload and metrics had
+already completed. The reported host time for that benchmark was roughly 263s on
+Ubuntu and 337s on Windows, versus about 73s test / 78s runner locally. The
+annual workload is dominated by the inherited weekly politics/opinion cadence and
+the baseline full-world simulation, not a trade-specific all-pairs or
+world-wide-reconstruction loop; the trade path adds a bounded monthly
+settlement/report/save cost. The benchmark test timeout is therefore set to
+**600000ms (10 minutes)** to accommodate hosted CI hardware. No causal law,
+invariant, report integrity, determinism or benchmark coverage was weakened to
+achieve this.
+
 Vite retains its nonblocking large-chunk warning; no dependency upgrade or
 unrelated vulnerability remediation is included.
 Independent review, not tests, decides acceptance.

@@ -193,8 +193,8 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
   const routeUsed = new Map<string, number>();
   const ordered = routes.filter(r => r.tariffBps !== null).sort((a, b) => {
     const am = countries[a.exporterId].markets[a.category]!, bm = countries[b.exporterId].markets[b.category]!;
-    const ac = BigInt(am.priceMicroUsd) * BigInt(10000 + a.logisticsBps + a.tariffBps!);
-    const bc = BigInt(bm.priceMicroUsd) * BigInt(10000 + b.logisticsBps + b.tariffBps!);
+    const ac = quoteFlow(a, am.priceMicroUsd, 1, am.unit, state.date).landedUsd;
+    const bc = quoteFlow(b, bm.priceMicroUsd, 1, bm.unit, state.date).landedUsd;
     return ac === bc ? a.id.localeCompare(b.id) : ac < bc ? -1 : 1;
   });
   for (const route of ordered) {
@@ -322,8 +322,10 @@ export function settleTradeMonth(state: SimulationState): SimulationState {
   const countries = Object.fromEntries(Object.entries(state.trade.countries).map(([id, country]) => [id,
     country.ledger?.date === state.date ? { ...country, markets: Object.fromEntries(Object.entries(country.markets).map(([category, m]) => {
       const ledger = country.ledger!.categories.find(l => l.category === category)!;
-      const target = ledger.shortage || ledger.exportDemandShortage ? integer(m!.priceMicroUsd + Math.max(1, ratio(m!.priceMicroUsd, TRADE_MODEL.priceAdjustmentBps, 10000)))
-        : Math.max(m!.baselinePriceMicroUsd, m!.priceMicroUsd - Math.max(1, ratio(m!.priceMicroUsd, TRADE_MODEL.priceAdjustmentBps, 10000)));
+      const step = Math.max(1, ratio(m!.priceMicroUsd, TRADE_MODEL.priceAdjustmentBps, 10000));
+      const target = ledger.shortage || ledger.exportDemandShortage ? integer(m!.priceMicroUsd + step)
+        : m!.priceMicroUsd < m!.baselinePriceMicroUsd ? Math.min(m!.baselinePriceMicroUsd, integer(m!.priceMicroUsd + step))
+        : Math.max(m!.baselinePriceMicroUsd, integer(m!.priceMicroUsd - step));
       return [category, { ...m!, priceMicroUsd: target }];
     })) } : country]));
   return { ...state, socioeconomy: { ...state.socioeconomy, regions },

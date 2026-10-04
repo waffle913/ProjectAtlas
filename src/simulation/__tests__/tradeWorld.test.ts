@@ -87,5 +87,5 @@ describe('trade0.17 actual252-Country4574-Region sparse multicategory workload',
       retainedTradeReports: Object.keys(reports.byId).length, deterministicContinuationDays: 35,
       limitation: 'Explicit synthetic resource/capacity assumptions on the real permanent world registry. Not factual world-trade calibration. CPU timing is local and sensitive to concurrent host load.',
     })}`);
-  }, 120000);
+  }, 600000);
 });

@@ -508,4 +508,92 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     market.source.publishedOn = '2026-02-01';
     expect(() => admitTradeMarket(state, tradeCountries[0], market)).toThrow(/available evidence/);
   });
+  it('bounds monthly price movement in both directions toward baseline without a one-month jump', () => {
+    let state = tradeFixture(false);
+    state = admitTradeMarket(state, tradeCountries[0], syntheticTradeMarket('food', {
+      productionPerMonth: 20, domesticNeedPerMonth: 20, priceMicroUsd: 1000000, baselinePriceMicroUsd: 10000000,
+    }));
+    const below = tradeMonth(state);
+    expect(below.trade.countries[tradeCountries[0]].markets.food!.priceMicroUsd).toBe(1050000);
+    expect(below.trade.countries[tradeCountries[0]].markets.food!.priceMicroUsd).toBeLessThan(10000000);
+    state = tradeFixture(false);
+    state = admitTradeMarket(state, tradeCountries[0], syntheticTradeMarket('food', {
+      productionPerMonth: 20, domesticNeedPerMonth: 20, priceMicroUsd: 20000000, baselinePriceMicroUsd: 10000000,
+    }));
+    const above = tradeMonth(state);
+    expect(above.trade.countries[tradeCountries[0]].markets.food!.priceMicroUsd).toBe(19000000);
+    expect(above.trade.countries[tradeCountries[0]].markets.food!.priceMicroUsd).toBeGreaterThan(10000000);
+  });
+  it('keeps shortage-driven price increases and baseline recovery causally bounded', () => {
+    let state = tradeFixture(false);
+    state = admitTradeMarket(state, tradeCountries[0], syntheticTradeMarket('food', {
+      productionPerMonth: 10, domesticNeedPerMonth: 20, priceMicroUsd: 10000000000, baselinePriceMicroUsd: 10000000000,
+    }));
+    const increased = tradeMonth(state);
+    expect(increased.trade.countries[tradeCountries[0]].markets.food!.priceMicroUsd).toBe(10500000000);
+    let recovering = tradeFixture(false);
+    recovering = admitTradeMarket(recovering, tradeCountries[0], syntheticTradeMarket('food', {
+      productionPerMonth: 20, domesticNeedPerMonth: 20, priceMicroUsd: 10500000000, baselinePriceMicroUsd: 10000000000,
+    }));
+    const recovered = tradeMonth(recovering);
+    expect(recovered.trade.countries[tradeCountries[0]].markets.food!.priceMicroUsd).toBe(10000000000);
+  });
+  it('orders suppliers by exact integer landed invoice cost, not unrounded percentage approximation', () => {
+    let state = tradeFixture(false);
+    const sellerA = tradeCountries[0], sellerB = tradeCountries[1], buyer = tradeCountries[2];
+    state = admitTradeMarket(state, sellerA, syntheticTradeMarket('food', { productionPerMonth: 1, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 1 }));
+    state = admitTradeMarket(state, sellerB, syntheticTradeMarket('food', { productionPerMonth: 1, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 1 }));
+    state = admitTradeMarket(state, buyer, syntheticTradeMarket('food', { importNeedPerMonth: 1, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, importCapacityPerMonth: 1 }));
+    state = admitTradeRoute(state, { id: 'route.rounding:a', exporterId: sellerA, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 1, establishedCapacity: 1, expansionPerMonth: 0, logisticsBps: 0, tariffBps: 5000 });
+    state = admitTradeRoute(state, { id: 'route.rounding:b', exporterId: sellerB, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 1, establishedCapacity: 1, expansionPerMonth: 0, logisticsBps: 500, tariffBps: 4750 });
+    const approximateA = BigInt(1000000) * BigInt(10000 + 0 + 5000);
+    const approximateB = BigInt(1000000) * BigInt(10000 + 500 + 4750);
+    expect(approximateA).toBeLessThan(approximateB);
+    expect(quoteFlow(state.trade.routes.find(r => r.id === 'route.rounding:a')!, 1000000, 1, 'synthetic_aggregate_unit', state.date).landedUsd).toBe(2);
+    expect(quoteFlow(state.trade.routes.find(r => r.id === 'route.rounding:b')!, 1000000, 1, 'synthetic_aggregate_unit', state.date).landedUsd).toBe(1);
+    const out = tradeMonth(state);
+    expect(out.trade.flows).toHaveLength(1);
+    expect(out.trade.flows[0].routeId).toBe('route.rounding:b');
+    expect(out.trade.flows[0].landedUsd).toBe(1);
+    expect(assertSimulationInvariants(out, tradeContext, 'save')).toBe(true);
+  });
+  it('keeps equal landed-cost suppliers stable by permanent route id', () => {
+    let state = tradeFixture(false);
+    const sellerA = tradeCountries[0], sellerB = tradeCountries[1], buyer = tradeCountries[2];
+    state = admitTradeMarket(state, sellerA, syntheticTradeMarket('food', { productionPerMonth: 1, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 1 }));
+    state = admitTradeMarket(state, sellerB, syntheticTradeMarket('food', { productionPerMonth: 1, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, exportCapacityPerMonth: 1 }));
+    state = admitTradeMarket(state, buyer, syntheticTradeMarket('food', { importNeedPerMonth: 1, priceMicroUsd: 1000000, baselinePriceMicroUsd: 1000000, importCapacityPerMonth: 1 }));
+    state = admitTradeRoute(state, { id: 'route.tie:b', exporterId: sellerB, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 1, establishedCapacity: 1, expansionPerMonth: 0, logisticsBps: 0, tariffBps: 0 });
+    state = admitTradeRoute(state, { id: 'route.tie:a', exporterId: sellerA, importerId: buyer, category: 'food',
+      source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 1, establishedCapacity: 1, expansionPerMonth: 0, logisticsBps: 0, tariffBps: 0 });
+    const out = tradeMonth(state);
+    expect(out.trade.flows).toHaveLength(1);
+    expect(out.trade.flows[0].routeId).toBe('route.tie:a');
+    expect(out.trade.flows[0].landedUsd).toBe(1);
+    expect(assertSimulationInvariants(out, tradeContext, 'save')).toBe(true);
+  });
+  it('does not let generic domestic output instantly absorb missing imports beyond configured gradual replacement', () => {
+    let state = tradeFixture(false);
+    state = admitTradeMarket(state, tradeCountries[2], syntheticTradeMarket('food', {
+      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 80,
+      domesticReplacementCapacity: 30, domesticReplacementPerMonth: 2, importCapacityPerMonth: 80,
+      priceMicroUsd: 10000000000, baselinePriceMicroUsd: 10000000000,
+    }));
+    const first = tradeMonth(state);
+    expect(first.trade.flows).toEqual([]);
+    expect(first.trade.countries[tradeCountries[2]].markets.food!.replacementQuantity).toBe(0);
+    expect(first.trade.countries[tradeCountries[2]].ledger!.categories[0].shortage).toBe(80);
+    const second = tradeMonth(first);
+    const market = second.trade.countries[tradeCountries[2]].markets.food!;
+    const ledger = second.trade.countries[tradeCountries[2]].ledger!.categories[0];
+    expect(second.trade.flows).toEqual([]);
+    expect(market.replacementQuantity).toBe(2);
+    expect(ledger.production).toBeLessThanOrEqual(2);
+    expect(ledger.domesticConsumed).toBe(2);
+    expect(ledger.shortage).toBe(78);
+    expect(assertSimulationInvariants(second, tradeContext, 'save')).toBe(true);
+  });
 });
