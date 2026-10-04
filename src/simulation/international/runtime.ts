@@ -52,14 +52,16 @@ function retainActions(state: SimulationState, actions: Record<string, Internati
     if (action.kind === 'condemnation') return action.declaredOn >= cutoff;
     return Boolean(action.ceasesOn && action.ceasesOn >= cutoff);
   });
+  const historicalCapacity = Math.max(0, INTERNATIONAL_MODEL.actionRetentionGlobal - protectedIds.size);
   const perPair = new Map<string, number>();
   const retainedPruneable = pruneable.filter(id => {
+    if (!historicalCapacity) return false;
     const action = actions[id], key = internationalPairKey(action.actorCountryId, action.targetCountryId);
     const count = perPair.get(key) ?? 0;
     if (count >= INTERNATIONAL_MODEL.actionRetentionPerPair) return false;
     perPair.set(key, count + 1);
     return true;
-  }).slice(-Math.max(0, INTERNATIONAL_MODEL.actionRetentionGlobal - protectedIds.size));
+  }).slice(-historicalCapacity);
   const retained = [...protectedIds, ...retainedPruneable].sort((a, b) => a.localeCompare(b));
   return { actions: Object.fromEntries(retained.map(id => [id, actions[id]])), order: retained };
 }

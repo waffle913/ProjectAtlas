@@ -20,7 +20,9 @@ export const internationalInvariant: SimulationInvariant = {
     if (!['unavailable', 'partial', 'sourced'].includes(international.factualCoverage.status) || !validDate(international.factualCoverage.referenceDate) || !international.factualCoverage.limitation?.trim()) errors.push('Malformed international factual coverage.');
     if (!bounded(international.nextActionSequence, Number.MAX_SAFE_INTEGER)) errors.push('Invalid international action sequence.');
     if (new Set(international.actionOrder).size !== international.actionOrder.length || international.actionOrder.some(id => !international.actions[id]) || Object.keys(international.actions).some(id => !international.actionOrder.includes(id))) errors.push('International action order does not reconcile.');
-    if (international.actionOrder.length > INTERNATIONAL_MODEL.actionRetentionGlobal) errors.push('International action history exceeds its global bound.');
+    const protectedActive = (action: (typeof international.actions)[string]) => action.kind !== 'condemnation' && action.status === 'active';
+    const pruneableActions = Object.values(international.actions).filter(action => !protectedActive(action));
+    if (pruneableActions.length > INTERNATIONAL_MODEL.actionRetentionGlobal) errors.push('International historical action history exceeds its global bound.');
     const seen = new Set<string>();
     const activeRestrictions = new Map<string, string>();
     const activePerPair = new Map<string, number>();
@@ -46,7 +48,7 @@ export const internationalInvariant: SimulationInvariant = {
       } else if (action.categories.length) errors.push(`Condemnation ${action.id} carries trade categories.`);
     }
     const pairCounts = new Map<string, number>();
-    for (const action of Object.values(international.actions)) {
+    for (const action of pruneableActions) {
       const key = internationalPairKey(action.actorCountryId, action.targetCountryId);
       pairCounts.set(key, (pairCounts.get(key) ?? 0) + 1);
     }
