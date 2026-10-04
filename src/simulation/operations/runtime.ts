@@ -145,4 +145,13 @@ export function deployedEquipmentByCountry(state: SimulationState, countryId: st
   return equipment;
 }
 
+export function deployedPersonnelTotal(state: SimulationState, countryId: string): number {
+  let total = 0;
+  for (const deployment of Object.values(state.operations.deployments)) {
+    if (deployment.countryId !== countryId || deployment.status === 'withdrawn') continue;
+    total += deployment.personnel;
+  }
+  return total;
+}
+
 export const registerOperationsTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'operations.daily', cadence: 'daily', priority: OPERATIONS_MODEL.schedulerPriority, run: state => state });

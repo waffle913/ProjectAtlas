@@ -12,7 +12,7 @@ import { validateCapability } from './validation';
 import militaryObservations from '../../data/military-observations.json';
 import { militaryDeliveryDate } from './dates';
 import { consumeTradeFactoryInput, tradeFactoryCapacity } from '../trade/runtime';
-import { deployedEquipmentByCountry, deployedPersonnelByRegion } from '../operations/runtime';
+import { deployedEquipmentByCountry, deployedPersonnelByRegion, deployedPersonnelTotal } from '../operations/runtime';
 
 export function initializeMilitary(state: SimulationState): SimulationState {
   if (state.military.initializedOn) return state;
@@ -241,17 +241,18 @@ export function militaryRequests(state: SimulationState, countryId: string): Def
   const p = c.parameters, requests = zeroDefenseCosts();
   const grossDue = integer(presentPersonnel(c) * p.monthlySalaryUsd + c.payrollArrears);
   requests.payroll = integer(grossDue + quoteMilitaryPayroll(state, countryId, grossDue).employerCost);
-  const support = militarySupportStaff(c);
+  const deployedPersonnel = deployedPersonnelTotal(state, countryId);
+  const support = militarySupportStaff(c, presentPersonnel(c) - trainingPersonnel(c) - deployedPersonnel);
   let tech = support.technicians;
   for (const item of MILITARY_ITEMS) {
     const e = c.equipment[item]; if (!e) continue;
     const repair = Math.min(e.unavailable + e.maintenance, tech); tech -= repair;
     requests.maintenance = integer(requests.maintenance + repair * EQUIPMENT_REGISTRY[item].maintenanceCostUsd);
   }
-  const students = Math.min(support.instructors, presentPersonnel(c));
+  const students = Math.min(support.instructors, presentPersonnel(c) - trainingPersonnel(c) - deployedPersonnel);
   const supplies = Math.min(p.exerciseAmmunitionPerPerson ? Math.floor((c.consumables.ammunition?.quantity ?? 0) / p.exerciseAmmunitionPerPerson) : students,
     p.exerciseFuelPerPerson ? Math.floor((c.consumables.fuel?.quantity ?? 0) / p.exerciseFuelPerPerson) : students);
-  const equipment = c.equipment.personal?.operational ?? 0;
+  const equipment = Math.max(0, (c.equipment.personal?.operational ?? 0) - (deployedEquipmentByCountry(state, countryId).personal ?? 0));
   requests.training = integer(Math.min(students, supplies, equipment) * p.trainingCostPerPersonUsd);
   let capacity = Math.min(p.factoryUnitsPerMonth, p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth,
     tradeFactoryCapacity(state, countryId) ?? p.factoryUnitsPerMonth);
@@ -277,7 +278,8 @@ export function executeMilitaryFunding(state: SimulationState, countryId: string
   c.payrollArrears = payrollDue + openingPayrollArrears - payroll.gross;
   c.unpaidMonths = payroll.gross < payrollDue ? Math.min(120, c.unpaidMonths + 1) : 0;
   const deliveredUnits = deliver(c, state.date, publicFulfillment(state, countryId));
-  const support = militarySupportStaff(c);
+  const deployedPersonnel = deployedPersonnelTotal(state, countryId);
+  const support = militarySupportStaff(c, presentPersonnel(c) - trainingPersonnel(c) - deployedPersonnel);
   let technicians = support.technicians, maintenanceUnits = 0;
   for (const item of MILITARY_ITEMS) {
     const e = c.equipment[item]; if (!e) continue;
@@ -298,7 +300,7 @@ export function executeMilitaryFunding(state: SimulationState, countryId: string
     e.maintenance -= expired; e.unavailable += expired;
     e.backlogUnitMonths = integer(e.backlogUnitMonths + e.maintenance + e.unavailable);
   }
-  let students = Math.min(support.instructors, presentPersonnel(c), c.equipment.personal?.operational ?? 0,
+  let students = Math.min(support.instructors, presentPersonnel(c) - trainingPersonnel(c) - deployedPersonnel, Math.max(0, (c.equipment.personal?.operational ?? 0) - (deployedEquipmentByCountry(state, countryId).personal ?? 0)),
     Math.floor(allocation[2] / p.trainingCostPerPersonUsd),
     p.exerciseAmmunitionPerPerson ? Math.floor((c.consumables.ammunition?.quantity ?? 0) / p.exerciseAmmunitionPerPerson) : p.instructors,
     p.exerciseFuelPerPerson ? Math.floor((c.consumables.fuel?.quantity ?? 0) / p.exerciseFuelPerPerson) : p.instructors);

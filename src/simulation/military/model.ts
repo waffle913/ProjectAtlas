@@ -86,9 +86,9 @@ export const emptyMilitary = (initializedOn?: string): MilitaryState => ({ versi
 export const presentPersonnel = (c: MilitaryCapability) => sum(Object.values(c.assignments));
 export const trainingPersonnel = (c: MilitaryCapability) => sum(c.trainees.map(t => t.persons));
 export const equipmentTotal = (e: EquipmentStock) => sum([e.operational, e.unavailable, e.maintenance, e.reserve]);
-export function militarySupportStaff(c: MilitaryCapability) {
+export function militarySupportStaff(c: MilitaryCapability, availablePersonnel = presentPersonnel(c) - trainingPersonnel(c)) {
   const requested = [c.parameters.instructors, c.parameters.technicians, c.parameters.logisticsStaff];
-  const [instructors, technicians, logistics] = allocate(Math.min(integer(sum(requested)), presentPersonnel(c) - trainingPersonnel(c)), requested);
+  const [instructors, technicians, logistics] = allocate(Math.min(integer(sum(requested)), integer(Math.max(0, availablePersonnel))), requested);
   return { instructors, technicians, logistics };
 }
 export function militaryReadiness(c: MilitaryCapability) {
