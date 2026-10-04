@@ -1,3 +1,4 @@
+import { emptyInternational } from '../international/model';
 import { emptyTrade } from '../trade/model';
 import { describe, expect, it, vi } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
@@ -46,7 +47,7 @@ export const militaryParameters: MilitaryParameters = {
 };
 export function militaryFixture(admit = true): SimulationState {
   let state: SimulationState = {
-    schemaVersion: 15, trade: emptyTrade(), military: emptyMilitary(), socioeconomy: emptySocioeconomy(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
+    schemaVersion: 16, international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), socioeconomy: emptySocioeconomy(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
     politics: emptyPolitics(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'),
     date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
     regionOwnership: Object.fromEntries(militaryRegions.map(r => [r.id, r.initialOwnerCountryId])),
@@ -458,8 +459,8 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     expect(schema13Fixture.referenceCommit).toBe('ceddc8e04fc470f41155fdc8b6250142fb970705');
     expect(schema13Fixture.state.schemaVersion).toBe(13);
     const restored = restoreSimulationState(JSON.stringify(schema13Fixture.state), militaryRegions, {}, {}, militaryContext);
-    const { schemaVersion, military, trade, ...preserved } = restored;
-    expect(schemaVersion).toBe(15); expect(military.initializedOn).toBe('2028-03-11');
+    const { schemaVersion, military, trade, international, ...preserved } = restored;
+    expect(schemaVersion).toBe(16); expect(military.initializedOn).toBe('2028-03-11');
     expect(trade.initializedOn).toBe('2028-03-11'); expect(trade.flows).toEqual([]);
     expect(preserved).toEqual({ ...schema13Fixture.state, schemaVersion: undefined });
     expect(Object.values(military.countries).every(c => c.status === 'unavailable' && !c.capability)).toBe(true);

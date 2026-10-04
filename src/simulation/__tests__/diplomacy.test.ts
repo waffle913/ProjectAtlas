@@ -1,3 +1,4 @@
+import { emptyInternational } from '../international/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
 import { emptyFiscal } from '../fiscal/model';
@@ -14,7 +15,7 @@ import { restoreSimulationState, serializeSimulationState } from '../save';
 import { createEngineState } from '../state';
 
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.x']) };
-const initial = (): SimulationState => ({ schemaVersion: 15, trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.x': 'country.b' }, populationByRegion: { 'region.x': 5_000_000 }, economicOutputByRegion: { 'region.x': 200_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
+const initial = (): SimulationState => ({ schemaVersion: 16, international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.x': 'country.b' }, populationByRegion: { 'region.x': 5_000_000 }, economicOutputByRegion: { 'region.x': 200_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
 const claim = { id: 'claim.001', claimantCountryId: 'country.a', regionId: 'region.x', type: 'territorial' as const, creationDate: '2026-01-01', reason: 'Reviewed test claim' };
 const region: RegionEntity = { id: 'region.x', parentCountryId: 'country.b', initialOwnerCountryId: 'country.b', commonName: 'X', administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: ['x'] } };
 

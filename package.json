@@ -48,6 +48,7 @@
     "military:benchmark": "vitest run src/simulation/__tests__/militaryWorld.test.ts --maxWorkers=1 --reporter=verbose",
     "trade:audit": "node scripts/trade-audit.mjs && vitest run src/simulation/__tests__/trade.test.ts --maxWorkers=1",
     "trade:benchmark": "vitest run src/simulation/__tests__/tradeWorld.test.ts --maxWorkers=1 --reporter=verbose",
+    "international:audit": "vitest run src/simulation/__tests__/international.test.ts --maxWorkers=1",
     "trade:data:generate": "node scripts/trade-audit.mjs --write",
     "trade:sources:update": "node scripts/update-trade-source.mjs"
   },

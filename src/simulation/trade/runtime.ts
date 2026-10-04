@@ -5,6 +5,7 @@ import { baseFiscalDemand } from '../fiscal/runtime';
 import { consumptionCollected, netGoodsBudget } from '../fiscal/math';
 import { reservedPersonnel, hasMilitaryManagementAuthority } from '../military/runtime';
 import { tradeObservations } from './data';
+import { sanctionBlocksRoute } from '../international/runtime';
 import { affordableQuantity, CATEGORY_REGISTRY, emptyTrade, money, quoteFlow, TRADE_CATEGORIES, TRADE_MODEL,
   validateTradeSource, tradeSum as sum, type TradeCategory, type TradeCategoryLedger, type TradeMarket, type TradeFlow,
   type TradePreparedRegion, type TradeRoute } from './model';
@@ -133,7 +134,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
     const wants = categoryMarkets.map(m => {
       const expectedNeed = integer(m.importNeedPerMonth + Math.max(0, m.domesticNeedPerMonth
         - m.productionPerMonth - m.replacementQuantity - (m.stock?.quantity ?? 0)));
-      const quotes = state.trade.routes.filter(r => r.importerId === countryId && r.category === m.category && r.tariffBps !== null)
+      const quotes = state.trade.routes.filter(r => r.importerId === countryId && r.category === m.category && r.tariffBps !== null && !sanctionBlocksRoute(state, r))
         .map(r => quoteFlow(r, state.trade.countries[r.exporterId].markets[m.category]!.priceMicroUsd,
           expectedNeed, m.unit, state.date).landedUsd);
       return Math.max(money(expectedNeed, m.priceMicroUsd), ...quotes);
@@ -191,7 +192,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
   }).sort((a, b) => a.id.localeCompare(b.id));
   const flows: TradeFlow[] = [];
   const routeUsed = new Map<string, number>();
-  const executableRoutes = routes.filter(r => r.tariffBps !== null);
+  const executableRoutes = routes.filter(r => r.tariffBps !== null && !sanctionBlocksRoute(state, r));
   const version = new Map<string, number>();
   const currentVersion = (k: string) => version.get(k) ?? 0;
   const bumpVersion = (k: string) => version.set(k, currentVersion(k) + 1);
@@ -280,7 +281,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
       ledger.shortage = ledger.need - ledger.domesticConsumed - ledger.imports;
       ledger.importReferenceUsd = money(ledger.imports, m.baselinePriceMicroUsd);
       ledger.unspentUsd = ledger.purchasingBudgetUsd - ledger.importPaymentUsd;
-      const alternatives = routes.filter(r => r.importerId === id && r.category === ledger.category && r.tariffBps !== null
+      const alternatives = routes.filter(r => r.importerId === id && r.category === ledger.category && r.tariffBps !== null && !sanctionBlocksRoute(state, r)
         && !flows.some(f => f.routeId === r.id)).map(r => {
           const supply = ledgers.get(key(r.exporterId, r.category))!;
           const remainingBackingUsd = exportBackingRemaining.get(key(r.exporterId, r.category)) ?? 0;
@@ -344,7 +345,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
   }
   for (const id of active) for (const ledger of countries[id].ledger!.categories) {
     if (!ledger.exportableCapacity || ledger.exports !== ledger.exportableCapacity) continue;
-    ledger.exportDemandShortage = sum(routes.filter(r => r.exporterId === id && r.category === ledger.category && r.tariffBps !== null).map(r => {
+    ledger.exportDemandShortage = sum(routes.filter(r => r.exporterId === id && r.category === ledger.category && r.tariffBps !== null && !sanctionBlocksRoute(state, r)).map(r => {
       const buyer = ledgers.get(key(r.importerId, r.category))!;
       return affordableQuantity(buyer.unspentUsd, Math.min(buyer.shortage, r.capacityPerMonth - (routeUsed.get(r.id) ?? 0)),
         n => quoteFlow(r, ledger.priceMicroUsd, n, ledger.unit, state.date).landedUsd);
