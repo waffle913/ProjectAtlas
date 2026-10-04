@@ -1,6 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
-import { integer } from '../socioeconomy/model';
+import { cohortsFor, integer, MODEL, ratio } from '../socioeconomy/model';
 import type { SchedulerTaskContext } from '../scheduler';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import { EQUIPMENT_REGISTRY, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
@@ -190,13 +190,14 @@ function resolveEngagements(state: SimulationState, context: SchedulerTaskContex
       const attackers = regionDeployments.filter(d => d.warId === war.id && d.countryId === war.attackerCountryId);
       const defenders = regionDeployments.filter(d => d.warId === war.id && d.countryId === war.defenderCountryId);
       if (!attackers.length || !defenders.length) continue;
-      next = resolveOneEngagement(next, context, war, component, attackers, defenders);
+      const existing = Object.values(next.operations.engagements).find(e => e.warId === war.id && e.componentId === component.id && e.status === 'active');
+      next = resolveOneEngagement(next, context, war, component, attackers, defenders, existing?.id);
     }
   }
   return next;
 }
 
-export function resolveOneEngagement(state: SimulationState, context: SchedulerTaskContext, war: { id: string; attackerCountryId: string; defenderCountryId: string }, component: StrategicComponent, attackers: Deployment[], defenders: Deployment[]): SimulationState {
+export function resolveOneEngagement(state: SimulationState, context: SchedulerTaskContext, war: { id: string; attackerCountryId: string; defenderCountryId: string }, component: StrategicComponent, attackers: Deployment[], defenders: Deployment[], existingId?: string): SimulationState {
   let next = state;
   const attackerPower = attackers.reduce((sum, deployment) => sum + combatPower(deployment), 0);
   const defenderPower = defenders.reduce((sum, deployment) => sum + combatPower(deployment), 0);
@@ -207,18 +208,22 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
   const lossFraction = attackerWins ? 0.15 : 0.08;
   let ammoConsumed = 0;
   let fuelConsumed = 0;
-  for (const deployment of loser) {
-    const losses = Math.min(deployment.personnel, Math.max(1, Math.floor(deployment.personnel * lossFraction)));
-    const ammo = Math.min(deployment.supply.ammunition, losses);
-    const fuel = Math.min(deployment.supply.fuel, Math.floor(losses / 2));
+  for (const deployment of [...attackers, ...defenders]) {
+    const isLoser = loser.includes(deployment);
+    const losses = isLoser ? Math.min(deployment.personnel, Math.max(1, Math.floor(deployment.personnel * lossFraction))) : 0;
+    const ammo = Math.min(deployment.supply.ammunition, Math.max(1, Math.floor(deployment.personnel * (isLoser ? 0.05 : 0.03))));
+    const fuel = Math.min(deployment.supply.fuel, Math.max(0, Math.floor(deployment.personnel / 20)));
     const equipmentLosses: Partial<Record<MilitaryItem, number>> = {};
-    for (const [item, quantity] of Object.entries(deployment.equipment)) {
-      const lost = Math.min(quantity as number, Math.floor((quantity as number) * lossFraction));
-      if (lost > 0) equipmentLosses[item as MilitaryItem] = lost;
+    if (isLoser) {
+      for (const [item, quantity] of Object.entries(deployment.equipment)) {
+        const lost = Math.min(quantity as number, Math.floor((quantity as number) * lossFraction));
+        if (lost > 0) equipmentLosses[item as MilitaryItem] = lost;
+      }
     }
     ammoConsumed += ammo;
     fuelConsumed += fuel;
     next = applyMilitaryLosses(next, deployment, losses, equipmentLosses);
+    const nextPersonnel = deployment.personnel - losses;
     next = {
       ...next,
       operations: {
@@ -227,12 +232,13 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
           ...next.operations.deployments,
           [deployment.id]: {
             ...deployment,
-            personnel: deployment.personnel - losses,
+            personnel: nextPersonnel,
+            status: nextPersonnel <= 0 ? 'withdrawn' : deployment.status,
             supply: { ammunition: deployment.supply.ammunition - ammo, fuel: deployment.supply.fuel - fuel },
             equipment: Object.fromEntries(Object.entries(deployment.equipment).map(([item, quantity]) => [item, (quantity as number) - (equipmentLosses[item as MilitaryItem] ?? 0)])),
             losses: {
               personnel: deployment.losses.personnel + losses,
-              equipment: Object.fromEntries(Object.entries(deployment.losses.equipment).concat(Object.entries(equipmentLosses)).map(([item, quantity]) => [item, quantity])),
+              equipment: Object.fromEntries(Object.entries({ ...deployment.losses.equipment }).map(([item, quantity]) => [item, (quantity as number) + (equipmentLosses[item as MilitaryItem] ?? 0)])),
             },
           },
         },
@@ -240,7 +246,7 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
     };
   }
   const engagement: Engagement = {
-    id: operationsEngagementId(next.operations.nextEngagementSequence),
+    id: existingId ?? operationsEngagementId(next.operations.nextEngagementSequence),
     warId: war.id,
     regionId: component.regionId,
     componentId: component.id,
@@ -257,8 +263,8 @@ export function resolveOneEngagement(state: SimulationState, context: SchedulerT
     operations: {
       ...next.operations,
       engagements: { ...next.operations.engagements, [engagement.id]: engagement },
-      engagementOrder: [...next.operations.engagementOrder, engagement.id],
-      nextEngagementSequence: next.operations.nextEngagementSequence + 1,
+      engagementOrder: existingId ? next.operations.engagementOrder : [...next.operations.engagementOrder, engagement.id],
+      nextEngagementSequence: existingId ? next.operations.nextEngagementSequence : next.operations.nextEngagementSequence + 1,
     },
   };
   return next;
@@ -291,16 +297,55 @@ function applyMilitaryLosses(state: SimulationState, deployment: Deployment, per
       },
     },
   };
+  const region = next.socioeconomy.regions[deployment.sourceRegionId];
+  const oldPopulation = next.populationByRegion[deployment.sourceRegionId] ?? 0;
+  const newPopulation = Math.max(0, oldPopulation - personnelLosses);
+  next = { ...next, populationByRegion: { ...next.populationByRegion, [deployment.sourceRegionId]: newPopulation } };
+  if (region && newPopulation > 0) {
+    const economy = region.economy;
+    if (economy) {
+      const labourForce = Math.max(1, ratio(newPopulation, MODEL.labourBps, 10000));
+      const baseEmployed = Math.max(1, ratio(labourForce, MODEL.initialEmploymentBps, 10000));
+      const reserved = reservedPersonnelForRegion(next, deployment.sourceRegionId);
+      const employed = Math.min(baseEmployed, Math.max(0, labourForce - reserved));
+      const unemployed = labourForce - employed - reserved;
+      next = {
+        ...next,
+        socioeconomy: {
+          ...next.socioeconomy,
+          regions: {
+            ...next.socioeconomy.regions,
+            [deployment.sourceRegionId]: {
+              ...region,
+              cohorts: cohortsFor(newPopulation),
+              economy: { ...economy, labourForce, baseEmployed, employed, unemployed },
+            },
+          },
+        },
+      };
+    }
+  }
   return next;
+}
+
+function reservedPersonnelForRegion(state: SimulationState, regionId: string): number {
+  let total = 0;
+  for (const country of Object.values(state.military.countries)) {
+    total += country.capability?.assignments[regionId] ?? 0;
+  }
+  return total;
 }
 
 function combatPower(deployment: Deployment): number {
   let equipment = 0;
   for (const [item, quantity] of Object.entries(deployment.equipment)) {
+    const mechanized = item === 'armour' || item === 'artillery' || item === 'truck';
+    if (mechanized && deployment.supply.fuel <= 0) continue;
     const weight = item === 'armour' ? 40 : item === 'artillery' ? 30 : item === 'communications' ? 10 : item === 'truck' ? 5 : 1;
     equipment += (quantity as number) * weight;
   }
-  return deployment.personnel + equipment;
+  const offensivePersonnel = deployment.supply.ammunition > 0 ? deployment.personnel : Math.floor(deployment.personnel * 0.2);
+  return offensivePersonnel + equipment;
 }
 
 function movementAccess(state: SimulationState, deployment: Deployment, targetRegionId: string): boolean {

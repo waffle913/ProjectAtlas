@@ -17,7 +17,7 @@ export const operationsInvariant: SimulationInvariant = {
       if (!match || Number(match[1]) >= operations.nextDeploymentSequence) errors.push(`Invalid or reused deployment sequence ${id}.`);
     }
     for (const [id, deployment] of Object.entries(operations.deployments)) {
-      if (id !== deployment.id || !/^deployment\.\d{8}$/.test(deployment.id) || !context.countryIds.has(deployment.countryId) || !context.regionIds.has(deployment.sourceRegionId) || !context.regionIds.has(deployment.currentRegionId) || !Number.isSafeInteger(deployment.personnel) || deployment.personnel <= 0 || !['deploying', 'deployed', 'moving', 'withdrawing', 'withdrawn'].includes(deployment.status) || !['modelled', 'synthetic'].includes(deployment.provenance) || !deployment.limitation?.trim()) errors.push(`Malformed deployment ${id}.`);
+      if (id !== deployment.id || !/^deployment\.\d{8}$/.test(deployment.id) || !context.countryIds.has(deployment.countryId) || !context.regionIds.has(deployment.sourceRegionId) || !context.regionIds.has(deployment.currentRegionId) || !Number.isSafeInteger(deployment.personnel) || deployment.personnel < 0 || (deployment.status !== 'withdrawn' && deployment.personnel <= 0) || !['deploying', 'deployed', 'moving', 'withdrawing', 'withdrawn'].includes(deployment.status) || !['modelled', 'synthetic'].includes(deployment.provenance) || !deployment.limitation?.trim()) errors.push(`Malformed deployment ${id}.`);
       if (deployment.warId) {
         const war = state.wars.find(w => w.id === deployment.warId);
         if (!war || (war.attackerCountryId !== deployment.countryId && war.defenderCountryId !== deployment.countryId)) errors.push(`Deployment ${id} references an invalid or non-belligerent war.`);
