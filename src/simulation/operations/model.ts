@@ -47,6 +47,7 @@ export interface Deployment {
   supply: { ammunition: number; fuel: number };
   status: DeploymentStatus;
   losses: DeploymentLosses;
+  allocated: { personnel: number; equipment: Partial<Record<MilitaryItem, number>> };
   order?: { targetRegionId: string; effectiveOn: string; kind: 'move' };
   withdrawalEffectiveOn?: string;
   provenance: 'modelled' | 'synthetic';

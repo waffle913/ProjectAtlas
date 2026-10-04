@@ -28,8 +28,15 @@ export const operationsInvariant: SimulationInvariant = {
       if (deployment.order && (!context.regionIds.has(deployment.order.targetRegionId) || !validDate(deployment.order.effectiveOn))) errors.push(`Invalid deployment movement order on ${id}.`);
       if (deployment.withdrawalEffectiveOn !== undefined && (!validDate(deployment.withdrawalEffectiveOn) || deployment.status !== 'withdrawing')) errors.push(`Invalid deployment withdrawal chronology on ${id}.`);
       if (!Number.isSafeInteger(deployment.supply.ammunition) || deployment.supply.ammunition < 0 || !Number.isSafeInteger(deployment.supply.fuel) || deployment.supply.fuel < 0) errors.push(`Invalid deployment supply on ${id}.`);
-      if (!Number.isSafeInteger(deployment.losses.personnel) || deployment.losses.personnel < 0 || deployment.losses.personnel > deployment.personnel) errors.push(`Invalid deployment personnel losses on ${id}.`);
-      for (const [item, quantity] of Object.entries(deployment.losses.equipment)) if (!validMilitaryItem(item) || !Number.isSafeInteger(quantity) || quantity < 0 || quantity > (deployment.equipment[item as MilitaryItem] ?? 0)) errors.push(`Invalid deployment equipment losses on ${id}.`);
+      if (!Number.isSafeInteger(deployment.losses.personnel) || deployment.losses.personnel < 0 || deployment.losses.personnel > (deployment.allocated.personnel ?? deployment.personnel)) errors.push(`Invalid deployment personnel losses on ${id}.`);
+      for (const [item, quantity] of Object.entries(deployment.losses.equipment)) if (!validMilitaryItem(item) || !Number.isSafeInteger(quantity) || quantity < 0 || quantity > (deployment.allocated.equipment[item as MilitaryItem] ?? 0)) errors.push(`Invalid deployment equipment losses on ${id}.`);
+    }
+    if (new Set(operations.engagementOrder).size !== operations.engagementOrder.length || operations.engagementOrder.some(id => !operations.engagements[id]) || Object.keys(operations.engagements).some(id => !operations.engagementOrder.includes(id))) errors.push('Operations engagement order does not reconcile.');
+    for (const [id, engagement] of Object.entries(operations.engagements)) {
+      if (id !== engagement.id || !/^engagement\.\d{8}$/.test(engagement.id) || !context.regionIds.has(engagement.regionId) || !operations.components[engagement.componentId] || !validDate(engagement.startDate) || engagement.startDate > state.date || !['active', 'resolved'].includes(engagement.status)) errors.push(`Malformed engagement ${id}.`);
+      const war = state.wars.find(w => w.id === engagement.warId);
+      if (!war || (war.attackerCountryId !== engagement.attackerCountryId || war.defenderCountryId !== engagement.defenderCountryId)) errors.push(`Engagement ${id} has invalid belligerents.`);
+      if (!Number.isSafeInteger(engagement.attackerLosses.personnel) || engagement.attackerLosses.personnel < 0 || !Number.isSafeInteger(engagement.defenderLosses.personnel) || engagement.defenderLosses.personnel < 0 || !Number.isSafeInteger(engagement.consumed.ammunition) || engagement.consumed.ammunition < 0 || !Number.isSafeInteger(engagement.consumed.fuel) || engagement.consumed.fuel < 0) errors.push(`Engagement ${id} has invalid losses/consumption.`);
     }
     const byCountry = new Map<string, { personnel: number; equipment: Partial<Record<MilitaryItem, number>> }>();
     for (const deployment of Object.values(operations.deployments)) {
