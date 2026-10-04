@@ -37,7 +37,7 @@ export function validateCapability(c: MilitaryCapability, date: string, initiali
   for (const [key, e] of Object.entries(c.equipment)) {
     if (!MILITARY_ITEMS.includes(key as typeof MILITARY_ITEMS[number]) || EQUIPMENT_REGISTRY[key as typeof MILITARY_ITEMS[number]].consumable) throw new Error('Unknown/non-equipment stock.');
     for (const field of ['opening', 'delivered', 'operational', 'unavailable', 'maintenance', 'reserve', 'maintenanceClock', 'backlogUnitMonths'] as const) integer(e![field]);
-    if (equipmentTotal(e!) !== integer(e!.opening + e!.delivered)) throw new Error('Equipment substate conservation failed.');
+    if (equipmentTotal(e!) + (e!.destroyed ?? 0) !== integer(e!.opening + e!.delivered)) throw new Error('Equipment substate conservation failed.');
     if (e!.maintenanceClock >= EQUIPMENT_REGISTRY[key as typeof MILITARY_ITEMS[number]].maintenanceIntervalMonths) throw new Error('Invalid equipment maintenance clock.');
   }
   for (const [key, stock] of Object.entries(c.consumables)) {

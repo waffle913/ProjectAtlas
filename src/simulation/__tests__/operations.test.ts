@@ -76,16 +76,13 @@ describe('0.19 operational foundation', () => {
     expect(() => supplyDeployment(state, id, person, 999999, 0)).toThrow();
     expect(assertSimulationInvariants(state, militaryContext, 'save')).toBe(true);
   });
-  it('executes prospective adjacent movement and blocks nonadjacent movement', () => {
+  it('rejects neutral transit for adjacent movement', () => {
     let state = fixture();
     const person = state.governance.player.controlledPersonId!;
     state = deploy(state, { countryId: militaryCountry, personId: person, sourceRegionId: militaryRegions[0].id, currentRegionId: militaryRegions[0].id, personnel: 1 });
     const id = state.operations.deploymentOrder[0];
     state.operations.adjacency = { [militaryRegions[0].id]: [militaryRegions[1].id], [militaryRegions[1].id]: [militaryRegions[0].id] };
     state = orderMovement(state, id, person, militaryRegions[1].id);
-    const moved = advanceSimulationDays(state, 1);
-    expect(moved.operations.deployments[id].currentRegionId).toBe(militaryRegions[1].id);
-    expect(moved.operations.deployments[id].status).toBe('deployed');
-    expect(assertSimulationInvariants(moved, militaryContext, 'save')).toBe(true);
+    expect(() => advanceSimulationDays(state, 1)).toThrow(/Movement access is denied/);
   });
 });

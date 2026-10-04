@@ -13,7 +13,22 @@ export interface StrategicComponent {
   coverage: ComponentCoverage;
   controllingCountryId?: string;
   contested: boolean;
+  captureProgress?: number;
   provenance: string;
+}
+
+export interface Engagement {
+  id: string;
+  warId: string;
+  regionId: string;
+  componentId: string;
+  attackerCountryId: string;
+  defenderCountryId: string;
+  startDate: string;
+  status: 'active' | 'resolved';
+  attackerLosses: { personnel: number; equipment: Partial<Record<MilitaryItem, number>> };
+  defenderLosses: { personnel: number; equipment: Partial<Record<MilitaryItem, number>> };
+  consumed: { ammunition: number; fuel: number };
 }
 
 export interface DeploymentLosses {
@@ -49,6 +64,9 @@ export interface OperationsState {
   nextComponentSequence: number;
   regionControl: Record<string, RegionControl>;
   adjacency: Record<string, string[]>;
+  engagements: Record<string, Engagement>;
+  engagementOrder: string[];
+  nextEngagementSequence: number;
 }
 
 export const OPERATIONS_MODEL = Object.freeze({
@@ -68,8 +86,12 @@ export const emptyOperations = (initializedOn?: string): OperationsState => ({
   nextComponentSequence: 0,
   regionControl: {},
   adjacency: {},
+  engagements: {},
+  engagementOrder: [],
+  nextEngagementSequence: 0,
 });
 
 export const operationsDeploymentId = (sequence: number) => `deployment.${sequence.toString().padStart(8, '0')}`;
 export const operationsComponentId = (sequence: number) => `component.${sequence.toString().padStart(8, '0')}`;
+export const operationsEngagementId = (sequence: number) => `engagement.${sequence.toString().padStart(8, '0')}`;
 export const validMilitaryItem = (item: unknown): item is MilitaryItem => typeof item === 'string' && (MILITARY_ITEMS as readonly string[]).includes(item);

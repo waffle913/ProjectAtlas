@@ -31,6 +31,7 @@ export interface MilitarySource {
 export interface EquipmentStock {
   opening: number; delivered: number; operational: number; unavailable: number; maintenance: number; reserve: number;
   maintenanceClock: number; backlogUnitMonths: number;
+  destroyed?: number;
 }
 export interface ConsumableStock { opening: number; delivered: number; consumed: number; quantity: number; capacity: number }
 export interface MilitaryParameters {
