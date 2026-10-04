@@ -22,7 +22,8 @@ export interface InternationalAction {
   categories: TradeCategory[];
   declaredOn: string;
   effectiveOn: string;
-  liftedOn?: string;
+  liftDeclaredOn?: string;
+  ceasesOn?: string;
   status: InternationalActionStatus;
   declaredByPersonId: string;
   provenance: 'modelled' | 'synthetic';
@@ -86,6 +87,8 @@ export const INTERNATIONAL_MODEL = Object.freeze({
   historyLimitPerPair: 24,
   actionRetentionGlobal: 1_024,
   actionRetentionPerPair: 64,
+  activeRestrictionGlobalLimit: 4_096,
+  activeRestrictionPerPairLimit: 256,
   pressureRecoveryEvaluations: 2,
   activeRecoveryEvaluations: 2,
   recoveringResolutionEvaluations: 3,

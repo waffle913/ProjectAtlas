@@ -23,16 +23,25 @@ export const internationalInvariant: SimulationInvariant = {
     if (international.actionOrder.length > INTERNATIONAL_MODEL.actionRetentionGlobal) errors.push('International action history exceeds its global bound.');
     const seen = new Set<string>();
     const activeRestrictions = new Map<string, string>();
-    for (const action of Object.values(international.actions)) {
+    const activePerPair = new Map<string, number>();
+    for (const [key, action] of Object.entries(international.actions)) {
+      if (key !== action.id) errors.push(`International action map key does not match ${key}.`);
       if (seen.has(action.id)) errors.push(`Duplicate international action ID ${action.id}.`);
       seen.add(action.id);
-      if (action.id !== internationalActionIdForCheck(action.id) || !/^international-action\.\d{8}$/.test(action.id) || !context.countryIds.has(action.actorCountryId) || !context.countryIds.has(action.targetCountryId) || action.actorCountryId === action.targetCountryId || !kindValues.has(action.kind) || !validDate(action.declaredOn) || action.declaredOn > state.date || !validDate(action.effectiveOn) || action.effectiveOn <= action.declaredOn || action.status !== 'active' && action.status !== 'lifted' || action.status === 'lifted' && (!validDate(action.liftedOn) || action.liftedOn! < action.declaredOn || action.liftedOn! > state.date) || action.status === 'active' && action.liftedOn !== undefined || !state.governance.persons[action.declaredByPersonId] || !['modelled', 'synthetic'].includes(action.provenance) || !action.limitation?.trim()) errors.push(`Malformed international action ${action.id}.`);
+      const match = /^international-action\.(\d{8})$/.exec(action.id);
+      const sequence = match ? Number(match[1]) : -1;
+      if (!match || !Number.isSafeInteger(sequence) || sequence < 0 || sequence >= international.nextActionSequence) errors.push(`Invalid or reused international action sequence ${action.id}.`);
+      if (!context.countryIds.has(action.actorCountryId) || !context.countryIds.has(action.targetCountryId) || action.actorCountryId === action.targetCountryId || !kindValues.has(action.kind) || !validDate(action.declaredOn) || action.declaredOn > state.date || !validDate(action.effectiveOn) || action.effectiveOn <= action.declaredOn || action.status !== 'active' && action.status !== 'lifted' || action.status === 'lifted' && (!validDate(action.liftDeclaredOn) || !validDate(action.ceasesOn) || action.liftDeclaredOn! > state.date || action.ceasesOn! <= action.liftDeclaredOn!) || action.status === 'active' && (action.liftDeclaredOn !== undefined || action.ceasesOn !== undefined) || !state.governance.persons[action.declaredByPersonId] || !['modelled', 'synthetic'].includes(action.provenance) || !action.limitation?.trim()) errors.push(`Malformed international action ${action.id}.`);
       if (action.kind !== 'condemnation') {
         if (!Array.isArray(action.categories) || !action.categories.length || new Set(action.categories).size !== action.categories.length || action.categories.some(c => !validInternationalCategory(c)) || action.categories.some((c, i) => i && c <= action.categories[i - 1])) errors.push(`Invalid international restriction categories on ${action.id}.`);
         if (action.status === 'active') {
-          const key = `${action.kind}|${action.actorCountryId}|${action.targetCountryId}|${action.categories.join(',')}`;
-          if (activeRestrictions.has(key)) errors.push(`Duplicate active legal restriction ${key}.`);
-          activeRestrictions.set(key, action.id);
+          const pair = internationalPairKey(action.actorCountryId, action.targetCountryId);
+          activePerPair.set(pair, (activePerPair.get(pair) ?? 0) + 1);
+          for (const category of action.categories) {
+            const legalKey = `${action.kind}|${action.actorCountryId}|${action.targetCountryId}|${category}`;
+            if (activeRestrictions.has(legalKey)) errors.push(`Overlapping active legal restriction ${legalKey}.`);
+            activeRestrictions.set(legalKey, action.id);
+          }
         }
       } else if (action.categories.length) errors.push(`Condemnation ${action.id} carries trade categories.`);
     }
@@ -41,7 +50,9 @@ export const internationalInvariant: SimulationInvariant = {
       const key = internationalPairKey(action.actorCountryId, action.targetCountryId);
       pairCounts.set(key, (pairCounts.get(key) ?? 0) + 1);
     }
-    if ([...pairCounts.values()].some(count => count > INTERNATIONAL_MODEL.actionRetentionPerPair + 1)) errors.push('International per-pair action history exceeds its bound.');
+    if ([...pairCounts.values()].some(count => count > INTERNATIONAL_MODEL.actionRetentionPerPair)) errors.push('International per-pair action history exceeds its bound.');
+    if ([...activePerPair.values()].some(count => count > INTERNATIONAL_MODEL.activeRestrictionPerPairLimit)) errors.push('International active restriction per-pair limit exceeded.');
+    if (Object.values(international.actions).filter(a => a.kind !== 'condemnation' && a.status === 'active').length > INTERNATIONAL_MODEL.activeRestrictionGlobalLimit) errors.push('International active restriction global limit exceeded.');
     for (const [pairKey, episode] of Object.entries(international.episodes)) {
       if (!context.countryIds.has(episode.countryAId) || !context.countryIds.has(episode.countryBId) || episode.countryAId === episode.countryBId || episode.pairKey !== pairKey || pairKey !== internationalPairKey(episode.countryAId, episode.countryBId)) errors.push(`Malformed international episode pair ${pairKey}.`);
       if (!phaseValues.has(episode.phase) || !severityValues.has(episode.severity) || !bounded(episode.pressure, INTERNATIONAL_MODEL.maximumPressure) || !bounded(episode.maximumPressure, INTERNATIONAL_MODEL.maximumPressure) || !severityValues.has(episode.maximumSeverity) || severityRank[episode.maximumSeverity] < severityRank[episode.severity] || episode.maximumPressure < episode.pressure || !bounded(episode.dangerousEvaluations, Number.MAX_SAFE_INTEGER) || !bounded(episode.recoveryEvaluations, Number.MAX_SAFE_INTEGER) || !Array.isArray(episode.drivers) || !Array.isArray(episode.history) || episode.history.length > INTERNATIONAL_MODEL.historyLimitPerPair || episode.lastEvaluatedOn !== undefined && (!validDate(episode.lastEvaluatedOn) || episode.lastEvaluatedOn > state.date)) errors.push(`Malformed international episode ${pairKey}.`);
@@ -58,5 +69,3 @@ export const internationalInvariant: SimulationInvariant = {
     return errors;
   },
 };
-
-function internationalActionIdForCheck(id: string) { return id; }

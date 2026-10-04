@@ -192,7 +192,7 @@ export interface GovernmentInternationalReport {
   limitation: string;
   uncertainty: string;
   assessments: GovernmentInternationalAssessment[];
-  restrictions: { actorCountryId: string; targetCountryId: string; kind: InternationalActionKind; categories: string[]; effectiveOn: string; liftedOn?: string }[];
+  restrictions: { actorCountryId: string; targetCountryId: string; kind: InternationalActionKind; categories: string[]; effectiveOn: string; liftDeclaredOn?: string; ceasesOn?: string }[];
   fingerprint: string;
 }
 

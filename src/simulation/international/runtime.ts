@@ -13,6 +13,12 @@ const nextDate = (iso: string, days: number) => {
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 };
+const monthsAgo = (iso: string, months: number) => {
+  const date = new Date(`${iso}T00:00:00.000Z`);
+  date.setUTCDate(1);
+  date.setUTCMonth(date.getUTCMonth() - months);
+  return date.toISOString().slice(0, 10);
+};
 
 export function initializeInternational(state: SimulationState): SimulationState {
   if (state.international.initializedOn) return state;
@@ -35,18 +41,23 @@ function requireCountry(state: SimulationState, countryId: string) {
 }
 
 function retainActions(state: SimulationState, actions: Record<string, InternationalAction>, order: string[]): { actions: Record<string, InternationalAction>; order: string[] } {
-  const active = order.filter(id => actions[id].status === 'active');
-  const inactive = order.filter(id => actions[id].status !== 'active').slice(-INTERNATIONAL_MODEL.actionRetentionGlobal + active.length);
+  const cutoff = monthsAgo(state.date, INTERNATIONAL_MODEL.condemnationDecayMonths);
+  const kept = order.filter(id => {
+    const action = actions[id];
+    if (action.kind !== 'condemnation' && action.status === 'active') return true;
+    if (action.kind === 'condemnation') return action.declaredOn >= cutoff;
+    if (action.ceasesOn && action.ceasesOn >= cutoff) return true;
+    return false;
+  });
   const perPair = new Map<string, number>();
-  const keptInactive = inactive.filter(id => {
+  const retained = kept.filter(id => {
     const action = actions[id], key = internationalPairKey(action.actorCountryId, action.targetCountryId);
     const count = perPair.get(key) ?? 0;
     if (count >= INTERNATIONAL_MODEL.actionRetentionPerPair) return false;
     perPair.set(key, count + 1);
     return true;
-  });
-  const keptOrder = [...active, ...keptInactive].sort((a, b) => a.localeCompare(b));
-  return { actions: Object.fromEntries(keptOrder.map(id => [id, actions[id]])), order: keptOrder };
+  }).slice(-INTERNATIONAL_MODEL.actionRetentionGlobal).sort((a, b) => a.localeCompare(b));
+  return { actions: Object.fromEntries(retained.map(id => [id, actions[id]])), order: retained };
 }
 
 function addAction(state: SimulationState, action: Omit<InternationalAction, 'id' | 'status' | 'declaredOn' | 'effectiveOn'>): SimulationState {
@@ -78,6 +89,12 @@ function imposeRestriction(state: SimulationState, actorCountryId: string, targe
   if (actorCountryId === targetCountryId) throw new Error('A Country cannot restrict trade with itself.');
   const normalized = [...new Set(categories.map(category => { if (!validInternationalCategory(category)) throw new Error(`Unknown trade category in international restriction: ${String(category)}`); return category; }))].sort();
   if (!normalized.length) throw new Error('A trade restriction requires at least one represented category.');
+  const active = Object.values(state.international.actions).filter(a => a.kind === kind && a.actorCountryId === actorCountryId && a.targetCountryId === targetCountryId && a.status === 'active');
+  if (active.some(a => a.categories.some(category => normalized.includes(category)))) throw new Error('An overlapping active legal restriction already exists for this direction/category.');
+  const globalActive = Object.values(state.international.actions).filter(a => a.kind !== 'condemnation' && a.status === 'active').length;
+  if (globalActive >= INTERNATIONAL_MODEL.activeRestrictionGlobalLimit) throw new Error('Active international restriction global limit reached.');
+  const pairActive = Object.values(state.international.actions).filter(a => a.kind !== 'condemnation' && a.status === 'active' && internationalPairKey(a.actorCountryId, a.targetCountryId) === internationalPairKey(actorCountryId, targetCountryId)).length;
+  if (pairActive >= INTERNATIONAL_MODEL.activeRestrictionPerPairLimit) throw new Error('Active international restriction per-pair limit reached.');
   return addAction(state, { actorCountryId, targetCountryId, kind, categories: normalized, declaredByPersonId: personId, provenance: 'modelled', limitation: 'Legal economic restriction modelled as an explicit executive gameplay abstraction, not an observed constitutional sanction procedure.' });
 }
 
@@ -86,7 +103,8 @@ export function liftSanction(state: SimulationState, actionId: string, personId:
   if (!action || action.kind === 'condemnation') throw new Error('Unknown or non-liftable international restriction.');
   requireAuthority(state, action.actorCountryId, personId);
   if (action.status === 'lifted') return state;
-  return { ...state, international: { ...state.international, actions: { ...state.international.actions, [actionId]: { ...action, status: 'lifted', liftedOn: state.date } } } };
+  const ceasesOn = nextDate(state.date, 1);
+  return { ...state, international: { ...state.international, actions: { ...state.international.actions, [actionId]: { ...action, status: 'lifted', liftDeclaredOn: state.date, ceasesOn } } } };
 }
 
 export function routeRestrictionKey(route: Pick<TradeRoute, 'exporterId' | 'importerId' | 'category'>) {
@@ -94,7 +112,7 @@ export function routeRestrictionKey(route: Pick<TradeRoute, 'exporterId' | 'impo
 }
 
 function restrictionActiveOn(action: InternationalAction, date: string): boolean {
-  return action.kind !== 'condemnation' && action.effectiveOn <= date && (action.liftedOn === undefined || date < action.liftedOn);
+  return action.kind !== 'condemnation' && action.effectiveOn <= date && (action.ceasesOn === undefined || date < action.ceasesOn);
 }
 
 export function blockedRouteKeysForDate(state: SimulationState, date: string): Set<string> {
@@ -115,41 +133,22 @@ export function sanctionBlocksRoute(state: SimulationState, route: Pick<TradeRou
 
 export interface InternationalPublicAction {
   id: string; actorCountryId: string; targetCountryId: string; kind: InternationalActionKind; categories: InternationalAction['categories'];
-  declaredOn: string; effectiveOn: string; liftedOn?: string; status: InternationalAction['status'];
+  declaredOn: string; effectiveOn: string; liftDeclaredOn?: string; ceasesOn?: string; status: InternationalAction['status'];
 }
 
 export function publicInternationalActions(state: SimulationState, countryId: string): InternationalPublicAction[] {
   return Object.values(state.international.actions)
     .filter(action => action.actorCountryId === countryId || action.targetCountryId === countryId)
     .sort((a, b) => a.declaredOn.localeCompare(b.declaredOn) || a.id.localeCompare(b.id))
-    .map(action => structuredClone({ id: action.id, actorCountryId: action.actorCountryId, targetCountryId: action.targetCountryId, kind: action.kind, categories: action.categories, declaredOn: action.declaredOn, effectiveOn: action.effectiveOn, liftedOn: action.liftedOn, status: action.status }));
+    .map(action => structuredClone({ id: action.id, actorCountryId: action.actorCountryId, targetCountryId: action.targetCountryId, kind: action.kind, categories: action.categories, declaredOn: action.declaredOn, effectiveOn: action.effectiveOn, liftDeclaredOn: action.liftDeclaredOn, ceasesOn: action.ceasesOn, status: action.status }));
 }
 
-function monthsAgo(date: string, months: number): string { return nextDate(`${date.slice(0, 8)}01`, -months); }
-
-function pressureFor(state: SimulationState, countryAId: string, countryBId: string, claims: readonly string[], activePairs: ReadonlySet<string>): InternationalDriver[] {
+function pressureFor(countryAId: string, countryBId: string, claims: readonly string[], condemnationDirs: ReadonlySet<string>, aToB: ReadonlySet<string>, bToA: ReadonlySet<string>): InternationalDriver[] {
   const drivers: InternationalDriver[] = [];
   for (const claimId of claims) {
     drivers.push({ kind: 'territorial_claim', weightBps: INTERNATIONAL_MODEL.weights.territorialClaim, detail: `claim:${claimId}` });
   }
-  const aToB = new Set<string>(), bToA = new Set<string>();
-  const recent = new Set<string>();
-  for (const action of Object.values(state.international.actions)) {
-    if (action.declaredOn > state.date) continue;
-    if (action.kind === 'condemnation') {
-      const dir = `${action.actorCountryId}->${action.targetCountryId}`;
-      if (action.declaredOn >= monthsAgo(state.date, INTERNATIONAL_MODEL.condemnationDecayMonths) && !recent.has(dir)) {
-        if ((action.actorCountryId === countryAId && action.targetCountryId === countryBId) || (action.actorCountryId === countryBId && action.targetCountryId === countryAId)) {
-          drivers.push({ kind: 'condemnation', weightBps: INTERNATIONAL_MODEL.condemnationPressurePerDirection, detail: `condemnation:${dir}` });
-          recent.add(dir);
-        }
-      }
-      continue;
-    }
-    if (action.status !== 'active' || action.effectiveOn > state.date) continue;
-    if (action.actorCountryId === countryAId && action.targetCountryId === countryBId) aToB.add(`${action.kind}:${action.categories.join(',')}`);
-    if (action.actorCountryId === countryBId && action.targetCountryId === countryAId) bToA.add(`${action.kind}:${action.categories.join(',')}`);
-  }
+  for (const dir of condemnationDirs) drivers.push({ kind: 'condemnation', weightBps: INTERNATIONAL_MODEL.condemnationPressurePerDirection, detail: `condemnation:${dir}` });
   if (aToB.size) drivers.push({ kind: 'sanction', weightBps: INTERNATIONAL_MODEL.weights.activeSanction, detail: `${countryAId}->${countryBId}` });
   if (bToA.size) drivers.push({ kind: 'sanction', weightBps: INTERNATIONAL_MODEL.weights.activeSanction, detail: `${countryBId}->${countryAId}` });
   if (aToB.size && bToA.size) drivers.push({ kind: 'reciprocal_coercion', weightBps: INTERNATIONAL_MODEL.weights.reciprocalCoercion, detail: countryPairKey(countryAId, countryBId) });
@@ -216,16 +215,30 @@ export function runInternationalMonth(state: SimulationState, _context: Schedule
   if (international.lastMonthlyDate === state.date) return international === state.international ? state : { ...state, international };
   const claims = claimsByPair(state);
   const pairs = new Set<string>([...claims.keys()]);
+  const evidence = new Map<string, { condemnationDirs: Set<string>; aToB: Set<string>; bToA: Set<string> }>();
+  const cutoff = monthsAgo(state.date, INTERNATIONAL_MODEL.condemnationDecayMonths);
   for (const action of Object.values(international.actions)) {
-    if (action.declaredOn <= state.date) pairs.add(internationalPairKey(action.actorCountryId, action.targetCountryId));
+    if (action.declaredOn > state.date) continue;
+    const pair = internationalPairKey(action.actorCountryId, action.targetCountryId);
+    pairs.add(pair);
+    let e = evidence.get(pair);
+    if (!e) { e = { condemnationDirs: new Set(), aToB: new Set(), bToA: new Set() }; evidence.set(pair, e); }
+    const [a, b] = pair.split('::');
+    if (action.kind === 'condemnation') {
+      if (action.declaredOn >= cutoff) e.condemnationDirs.add(`${action.actorCountryId}->${action.targetCountryId}`);
+    } else if (action.status === 'active' && action.effectiveOn <= state.date) {
+      if (action.actorCountryId === a && action.targetCountryId === b) e.aToB.add(`${action.kind}:${action.categories.join(',')}`);
+      else e.bToA.add(`${action.kind}:${action.categories.join(',')}`);
+    }
   }
   for (const [pairKey, episode] of Object.entries(international.episodes)) {
-    if (episode.phase !== 'NORMAL' || episode.history.length) pairs.add(pairKey);
+    if (episode.phase !== 'NORMAL') pairs.add(pairKey);
   }
   const episodes = { ...international.episodes };
   for (const pairKey of [...pairs].sort()) {
     const [a, b] = pairKey.split('::');
-    const drivers = pressureFor(state, a, b, claims.get(pairKey) ?? [], pairs);
+    const e = evidence.get(pairKey) ?? { condemnationDirs: new Set<string>(), aToB: new Set<string>(), bToA: new Set<string>() };
+    const drivers = pressureFor(a, b, claims.get(pairKey) ?? [], e.condemnationDirs, e.aToB, e.bToA);
     const episode = episodes[pairKey] ?? normalInternationalEpisode(a, b);
     const evaluated = evaluateEpisode(episode, drivers, state.date);
     if (evaluated.ended) episodes[pairKey] = { ...normalInternationalEpisode(a, b), history: [...episode.history, archive(evaluated.episode, state.date)].slice(-INTERNATIONAL_MODEL.historyLimitPerPair) };
@@ -276,7 +289,7 @@ export function runInternationalReports(state: SimulationState): SimulationState
       limitation: 'Modelled international assessment; not observed diplomatic intelligence.',
       uncertainty: 'Pressure, drivers and severity are derived from represented claims/actions, not sourced crisis reports.',
       assessments,
-      restrictions: activeRestrictions(state).filter(a => a.actorCountryId === countryId || a.targetCountryId === countryId).map(a => ({ actorCountryId: a.actorCountryId, targetCountryId: a.targetCountryId, kind: a.kind, categories: a.categories, effectiveOn: a.effectiveOn, liftedOn: a.liftedOn })),
+      restrictions: activeRestrictions(state).filter(a => a.actorCountryId === countryId || a.targetCountryId === countryId).map(a => ({ actorCountryId: a.actorCountryId, targetCountryId: a.targetCountryId, kind: a.kind, categories: a.categories, effectiveOn: a.effectiveOn, liftDeclaredOn: a.liftDeclaredOn, ceasesOn: a.ceasesOn })),
       fingerprint: '',
     };
     report.fingerprint = deterministicFingerprint({ ...report, fingerprint: undefined });

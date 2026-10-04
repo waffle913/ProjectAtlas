@@ -19,11 +19,12 @@ describe('international 0.18 synthetic full-world benchmark', () => {
       state = imposeExportRestriction(state, participants[0], participants[i], person, ['food', 'energy', 'industrial_goods']);
     }
     const started = performance.now();
-    const next = advanceSimulationDays(state, 30);
+    const next = advanceSimulationDays(state, 31);
     const elapsed = performance.now() - started;
     expect(Object.keys(next.international.actions).length).toBeLessThanOrEqual(1000);
+    expect(Object.keys(next.international.episodes).length).toBeGreaterThan(0);
     expect(assertSimulationInvariants(next, worldContext, 'save')).toBe(true);
-    console.info(`INTERNATIONAL_WORLD_BENCHMARK ${JSON.stringify({ countries: 252, regions: 4574, activeActions: Object.keys(next.international.actions).length, episodes: Object.keys(next.international.episodes).length, days: 30, elapsedMs: elapsed })}`);
+    console.info(`INTERNATIONAL_WORLD_BENCHMARK ${JSON.stringify({ countries: 252, regions: 4574, activeActions: Object.keys(next.international.actions).length, evaluatedPairs: Object.keys(next.international.episodes).length, episodes: Object.keys(next.international.episodes).length, monthlyEvaluations: 1, days: 31, elapsedMs: elapsed })}`);
   }, 120000);
 });
 

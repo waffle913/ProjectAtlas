@@ -114,10 +114,11 @@ describe('0.18 international tensions, crises and sanctions', () => {
     let state = intlFixture();
     const person = state.governance.player.controlledPersonId!;
     state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food']);
-    state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food']);
+    expect(() => imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food'])).toThrow();
     state = condemn(state, tradeCountries[0], tradeCountries[2], person, 'One');
     state = condemn(state, tradeCountries[0], tradeCountries[2], person, 'Two');
     state = tradeMonth(state);
+    expect(assertSimulationInvariants(state, tradeContext, 'save')).toBe(true);
     const episode = Object.values(state.international.episodes).find(e => e.countryAId === tradeCountries[0] && e.countryBId === tradeCountries[2]);
     const sanctionDrivers = episode?.drivers.filter(d => d.kind === 'sanction') ?? [];
     expect(sanctionDrivers.length).toBeLessThanOrEqual(1);
@@ -139,5 +140,21 @@ describe('0.18 international tensions, crises and sanctions', () => {
     const after = condemn(before, tradeCountries[0], tradeCountries[2], before.governance.player.controlledPersonId!, 'Delta condemnation');
     expect(simulationDelta(before, after).changedDomains).toContain('international');
     expect(simulationDelta(before, before).changedDomains).not.toContain('international');
+  });
+  it('uses prospective cessation so same-day lifts preserve historical flows', () => {
+    let state = intlFixture();
+    const person = state.governance.player.controlledPersonId!;
+    state = imposeExportRestriction(state, tradeCountries[0], tradeCountries[2], person, ['food']);
+    const active = tradeMonth(state);
+    const action = active.international.actions[active.international.actionOrder.at(-1)!];
+    expect(action.ceasesOn).toBeUndefined();
+    const lifted = liftSanction(active, action.id, person);
+    const liftedAction = lifted.international.actions[action.id];
+    expect(liftedAction.liftDeclaredOn).toBe(lifted.date);
+    expect(liftedAction.ceasesOn!.localeCompare(liftedAction.liftDeclaredOn!)).toBeGreaterThan(0);
+    const route = lifted.trade.routes.find(r => r.exporterId === tradeCountries[0] && r.importerId === tradeCountries[2] && r.category === 'food')!;
+    expect(sanctionBlocksRoute(lifted, route, lifted.date)).toBe(true);
+    expect(sanctionBlocksRoute(lifted, route, liftedAction.ceasesOn!)).toBe(false);
+    expect(assertSimulationInvariants(lifted, tradeContext, 'save')).toBe(true);
   });
 });
