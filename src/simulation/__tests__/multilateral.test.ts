@@ -4,7 +4,7 @@ import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { MULTILATERAL_VERSION, type Treaty } from '../multilateral/model';
-import { activateTreaty, applyTreatyTradeCommitments, hasTreatyAuthority, proposeTreaty, ratifyTreaty, resolveObligation, runMultilateralMonth, signTreaty, terminateTreaty, withdrawTreaty } from '../multilateral/runtime';
+import { activateTreaty, applyTreatyTradeCommitments, establishOrganization, hasTreatyAuthority, joinOrganization, proposeTreaty, ratifyTreaty, resolveObligation, runMultilateralMonth, signTreaty, terminateTreaty, withdrawFromOrganization, withdrawTreaty } from '../multilateral/runtime';
 import { assignPoliticalOffice, createPoliticalPerson, setControlledPerson } from '../governance/runtime';
 import { createClaim } from '../diplomacy';
 import { declareLimitedWar } from '../war';
@@ -280,5 +280,46 @@ describe('0.20 treaty obligations, triggers and violations', () => {
     expect(route.tariffBps).toBe(800);
     expect(state.trade.routes.length).toBe(before + 1);
     expect(state.trade.flows).toEqual(armed.trade.flows);
+  });
+});
+
+describe('0.20 multilateral organizations', () => {
+  const executive = (state: ReturnType<typeof baseState>, countryId: string) => {
+    let next = createPoliticalPerson(state, { countryId, displayName: `Synthetic org executive ${countryId}` });
+    const personId = Object.keys(next.governance.persons).find(id => next.governance.persons[id].countryId === countryId && !next.governance.persons[id].office)!;
+    next = setControlledPerson(assignPoliticalOffice(next, personId, { countryId, role: 'head_of_government' }), personId);
+    return { state: next, personId };
+  };
+
+  it('establishes, joins and withdraws an organization without fabricating memberships', () => {
+    const a = executive(baseState(), countryA);
+    let state = establishOrganization(a.state, a.personId, { title: 'Synthetic Test Organization', votingRule: { kind: 'majority' } });
+    const orgId = state.multilateral.organizationOrder[0];
+    expect(state.multilateral.organizations[orgId].members[countryA]).toMatchObject({ role: 'member' });
+    const b = executive(state, countryB);
+    state = b.state;
+    state = joinOrganization(state, orgId, b.personId);
+    expect(state.multilateral.organizations[orgId].members[countryB]).toMatchObject({ role: 'member' });
+    const c = executive(state, worldCountryIds[2]);
+    state = c.state;
+    state = joinOrganization(state, orgId, c.personId, 'observer');
+    expect(state.multilateral.organizations[orgId].members[worldCountryIds[2]]).toMatchObject({ role: 'observer' });
+    expect(() => joinOrganization(state, orgId, c.personId)).toThrow(/already a member or observer/);
+    expect(assertSimulationInvariants(state, worldContext, 'save')).toBe(true);
+    state = withdrawFromOrganization(state, orgId, c.personId);
+    expect(state.multilateral.organizations[orgId].members[worldCountryIds[2]]).toBeUndefined();
+    expect(assertSimulationInvariants(state, worldContext, 'save')).toBe(true);
+    const restored = restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored).toEqual(state);
+  });
+
+  it('requires authority and rejects invalid membership transitions', () => {
+    const a = executive(baseState(), countryA);
+    const state = establishOrganization(a.state, a.personId, { title: 'Synthetic Organization', votingRule: { kind: 'unanimity' } });
+    const orgId = state.multilateral.organizationOrder[0];
+    const noOffice = createPoliticalPerson(state, { countryId: countryB, displayName: 'No office' });
+    const noOfficeId = Object.keys(noOffice.governance.persons).find(id => !noOffice.governance.persons[id].office)!;
+    expect(() => joinOrganization(noOffice, orgId, noOfficeId)).toThrow(/resolved executive office/);
+    expect(() => establishOrganization(noOffice, noOfficeId, { title: 'X', votingRule: { kind: 'majority' } })).toThrow(/resolved executive office/);
   });
 });

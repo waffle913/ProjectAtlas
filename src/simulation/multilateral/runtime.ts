@@ -3,7 +3,7 @@ import type { SimulationScheduler } from '../scheduler';
 import { isSimulationDate as validDate } from '../date';
 import { hasInternationalAuthority } from '../international/runtime';
 import { createExplicitCasusBelli } from '../diplomacy';
-import { MULTILATERAL_MODEL, emptyMultilateral, multilateralObligationId, multilateralTreatyId, multilateralViolationId, type Treaty, type TreatyClause, type TreatyObligation, type TreatyViolation } from './model';
+import { MULTILATERAL_MODEL, emptyMultilateral, multilateralObligationId, multilateralOrganizationId, multilateralTreatyId, multilateralViolationId, type MembershipRole, type Organization, type Treaty, type TreatyClause, type TreatyObligation, type TreatyViolation } from './model';
 
 /** Initializes the empty multilateral domain; migration never fabricates treaties, organizations or memberships. */
 export function initializeMultilateral(state: SimulationState): SimulationState {
@@ -206,6 +206,50 @@ export function resolveObligation(state: SimulationState, obligationId: string, 
     next = createExplicitCasusBelli(next, { id: `cb.guarantee:${obligation.id}`, issuerCountryId: obligation.obligatedCountryId, targetCountryId: war.attackerCountryId, type: 'retaliation', creationDate: state.date, reason: `Defensive guarantee honored for ${obligation.protectedCountryId}.` }, { countryIds: new Set(Object.keys(state.engine.fidelityByCountry)), regionIds: new Set(Object.keys(state.regionOwnership)) });
   }
   return next;
+}
+
+export function establishOrganization(state: SimulationState, personId: string, input: { title: string; votingRule: Organization['votingRule'] }): SimulationState {
+  const countryId = state.governance.persons[personId]?.countryId;
+  if (!countryId) throw new Error('Establishing an organization requires a controlled active person.');
+  requireAuthority(state, countryId, personId);
+  if (!input.title.trim()) throw new Error('Organization title is required.');
+  if (!['majority', 'supermajority', 'unanimity'].includes(input.votingRule.kind)) throw new Error('Organization voting rule is invalid.');
+  const id = multilateralOrganizationId(state.multilateral.nextOrganizationSequence);
+  const organization: Organization = {
+    id, title: input.title, establishedOn: state.date,
+    members: { [countryId]: { role: 'member', joinedOn: state.date } },
+    votingRule: input.votingRule,
+    provenance: { status: 'synthetic', limitation: 'Gameplay organization; not an observed real-world organization.' },
+    history: [{ date: state.date, kind: 'established', countryId, detail: `Established by ${countryId}.` }],
+  };
+  return { ...state, multilateral: { ...state.multilateral, organizations: { ...state.multilateral.organizations, [id]: organization }, organizationOrder: [...state.multilateral.organizationOrder, id], nextOrganizationSequence: state.multilateral.nextOrganizationSequence + 1 } };
+}
+
+export function joinOrganization(state: SimulationState, organizationId: string, personId: string, role: MembershipRole = 'member'): SimulationState {
+  const organization = state.multilateral.organizations[organizationId];
+  if (!organization) throw new Error(`Unknown organization: ${organizationId}`);
+  const countryId = state.governance.persons[personId]?.countryId;
+  if (!countryId) throw new Error('Accession requires a controlled active person.');
+  requireAuthority(state, countryId, personId);
+  if (organization.members[countryId]) throw new Error('This Country is already a member or observer.');
+  const next: Organization = {
+    ...organization,
+    members: { ...organization.members, [countryId]: { role, joinedOn: state.date } },
+    history: [...organization.history, { date: state.date, kind: 'accession', countryId, detail: `${countryId} acceded as ${role}.` }],
+  };
+  return { ...state, multilateral: { ...state.multilateral, organizations: { ...state.multilateral.organizations, [organizationId]: next } } };
+}
+
+export function withdrawFromOrganization(state: SimulationState, organizationId: string, personId: string): SimulationState {
+  const organization = state.multilateral.organizations[organizationId];
+  if (!organization) throw new Error(`Unknown organization: ${organizationId}`);
+  const countryId = state.governance.persons[personId]?.countryId;
+  if (!countryId) throw new Error('Withdrawal requires a controlled active person.');
+  requireAuthority(state, countryId, personId);
+  if (!organization.members[countryId]) throw new Error('This Country is not a member or observer.');
+  const members = { ...organization.members }; delete members[countryId];
+  const next: Organization = { ...organization, members, history: [...organization.history, { date: state.date, kind: 'withdrawal', countryId, detail: `${countryId} withdrew.` }] };
+  return { ...state, multilateral: { ...state.multilateral, organizations: { ...state.multilateral.organizations, [organizationId]: next } } };
 }
 
 export const registerMultilateralTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'multilateral.monthly', cadence: 'monthly', priority: MULTILATERAL_MODEL.schedulerPriority, run: runMultilateralMonth });

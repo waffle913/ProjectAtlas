@@ -66,6 +66,7 @@ export const multilateralInvariant: SimulationInvariant = {
       if (organization.votingRule.quorumBps !== undefined && (!Number.isSafeInteger(organization.votingRule.quorumBps) || organization.votingRule.quorumBps < 0 || organization.votingRule.quorumBps > 10000)) errors.push(`Organization ${id} has an invalid quorum.`);
       for (const [countryId, membership] of Object.entries(organization.members)) {
         if (!context.countryIds.has(countryId) || !['member', 'observer'].includes(membership.role) || !validDate(membership.joinedOn) || membership.joinedOn < organization.establishedOn || membership.joinedOn > state.date) errors.push(`Organization ${id} has invalid membership for ${countryId}.`);
+        if (organization.history.some(event => event.kind === 'withdrawal' && event.countryId === countryId && event.date >= membership.joinedOn)) errors.push(`Organization ${id} member ${countryId} is current after a withdrawal without a later accession.`);
       }
       if (!['synthetic', 'modelled', 'sourced', 'unavailable'].includes(organization.provenance.status) || !organization.provenance.limitation?.trim()) errors.push(`Organization ${id} has invalid provenance.`);
       for (const event of organization.history) if (!validDate(event.date) || event.date > state.date || !event.detail?.trim()) errors.push(`Organization ${id} has an invalid history event.`);
