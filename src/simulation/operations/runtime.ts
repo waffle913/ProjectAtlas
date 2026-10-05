@@ -1,11 +1,11 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
-import { cohortsFor, integer, MODEL, ratio } from '../socioeconomy/model';
+import { allocate, cohortsFor, integer, MODEL, ratio } from '../socioeconomy/model';
 import type { SchedulerTaskContext } from '../scheduler';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import { staticLandNeighbours } from '../../data/landAdjacency';
 import { EQUIPMENT_REGISTRY, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
-import { emptyOperations, OPERATIONS_MODEL, operationsComponentId, operationsDeploymentId, operationsEngagementId, validMilitaryItem,
+import { emptyOperations, OPERATIONS_MODEL, SUPPLY_MODEL, operationsComponentId, operationsDeploymentId, operationsEngagementId, validMilitaryItem,
   type Deployment, type Engagement, type OperationsState, type RegionControl, type StrategicComponent } from './model';
 
 export function initializeOperations(state: SimulationState): SimulationState {
@@ -111,19 +111,31 @@ export function supplyDeployment(state: SimulationState, deploymentId: string, p
   if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   requireAuthority(state, deployment.countryId, personId);
   integer(ammunition); integer(fuel);
+  if (!ammunition && !fuel) return state;
   const capability = state.military.countries[deployment.countryId]?.capability;
   if (!capability) throw new Error('Supply requires an admitted military capability.');
-  if (!supplyPathExists(state, deployment)) throw new Error('Supply path does not exist from a friendly source to this deployment.');
+  const path = supplyPath(state, deployment);
+  if (!path) throw new Error('Supply path does not exist from a friendly source to this deployment.');
+  const throughput = supplyThroughput(state, deployment, path.hops);
   const ammo = capability.consumables.ammunition?.quantity ?? 0;
   const fuelStock = capability.consumables.fuel?.quantity ?? 0;
-  if (ammunition > ammo || fuel > fuelStock) throw new Error('Supply transfer exceeds canonical national stock.');
-  const nextAmmo = deployment.supply.ammunition + ammunition, nextFuel = deployment.supply.fuel + fuel;
+  const fuelAvail = Math.max(0, fuelStock - throughput.transportFuel);
+  if (ammunition > ammo || fuel > fuelAvail) throw new Error('Supply transfer exceeds canonical national stock or available transport fuel.');
+  let effectiveAmmo = ammunition;
+  let effectiveFuel = fuel;
+  if (path.hops > 0 && effectiveAmmo + effectiveFuel > throughput.cargo) {
+    const split = allocate(throughput.cargo, [effectiveAmmo, effectiveFuel]);
+    effectiveAmmo = split[0];
+    effectiveFuel = split[1];
+    if (!effectiveAmmo && !effectiveFuel) throw new Error('Supply convoy has no transport capacity to deliver the requested cargo.');
+  }
+  const nextAmmo = deployment.supply.ammunition + effectiveAmmo, nextFuel = deployment.supply.fuel + effectiveFuel;
   const capabilityNext = {
     ...capability,
     consumables: {
       ...capability.consumables,
-      ammunition: capability.consumables.ammunition ? { ...capability.consumables.ammunition, quantity: ammo - ammunition, consumed: (capability.consumables.ammunition.consumed ?? 0) + ammunition } : capability.consumables.ammunition,
-      fuel: capability.consumables.fuel ? { ...capability.consumables.fuel, quantity: fuelStock - fuel, consumed: (capability.consumables.fuel.consumed ?? 0) + fuel } : capability.consumables.fuel,
+      ammunition: capability.consumables.ammunition ? { ...capability.consumables.ammunition, quantity: ammo - effectiveAmmo, consumed: (capability.consumables.ammunition.consumed ?? 0) + effectiveAmmo } : capability.consumables.ammunition,
+      fuel: capability.consumables.fuel ? { ...capability.consumables.fuel, quantity: fuelStock - effectiveFuel - throughput.transportFuel, consumed: (capability.consumables.fuel.consumed ?? 0) + effectiveFuel + throughput.transportFuel } : capability.consumables.fuel,
     },
   };
   return {
@@ -140,22 +152,37 @@ function neighboursOf(state: SimulationState, regionId: string): readonly string
   return [...new Set([...staticLandNeighbours(regionId), ...injected])].sort();
 }
 
-function supplyPathExists(state: SimulationState, deployment: Deployment): boolean {
-  if (deployment.currentRegionId === deployment.sourceRegionId) return true;
-  const queue = [deployment.sourceRegionId], seen = new Set<string>([deployment.sourceRegionId]);
+interface SupplyPath { hops: number }
+
+/** Shortest accessible resupply path from the deployment's source Region, or null when cut off by neutral/hostile territory. */
+function supplyPath(state: SimulationState, deployment: Deployment): SupplyPath | null {
+  if (deployment.currentRegionId === deployment.sourceRegionId) return { hops: 0 };
+  const queue: Array<[string, number]> = [[deployment.sourceRegionId, 0]];
+  const seen = new Set<string>([deployment.sourceRegionId]);
   while (queue.length) {
-    const current = queue.shift()!;
-    if (current === deployment.currentRegionId) return true;
+    const [current, hops] = queue.shift()!;
     for (const neighbour of neighboursOf(state, current)) {
       if (seen.has(neighbour)) continue;
       const owner = state.regionOwnership[neighbour];
       const control = state.operations.regionControl[neighbour];
       if (owner === deployment.countryId || (control === 'foreign_controlled' && state.occupationByRegion[neighbour]?.occupierCountryId === deployment.countryId)) {
-        seen.add(neighbour); queue.push(neighbour);
+        if (neighbour === deployment.currentRegionId) return { hops: hops + 1 };
+        seen.add(neighbour); queue.push([neighbour, hops + 1]);
       }
     }
   }
-  return false;
+  return null;
+}
+
+/** Finite convoy throughput: trucks and crews carry cargo; longer paths cut trips and burn fuel. Local (same-Region) resupply is stock-bounded. */
+function supplyThroughput(state: SimulationState, deployment: Deployment, hops: number): { cargo: number; transportFuel: number } {
+  if (hops === 0) return { cargo: Number.POSITIVE_INFINITY, transportFuel: 0 };
+  const trucks = deployment.equipment.truck ?? 0;
+  const drivable = Math.min(trucks, Math.floor(deployment.personnel / SUPPLY_MODEL.crewPerTruck));
+  if (drivable <= 0) return { cargo: 0, transportFuel: 0 };
+  const cargo = Math.floor((drivable * SUPPLY_MODEL.loadPerTruck) / hops);
+  const transportFuel = drivable * SUPPLY_MODEL.fuelPerTruckPerHop * hops;
+  return { cargo, transportFuel };
 }
 
 export function runOperationsDay(state: SimulationState, context: SchedulerTaskContext): SimulationState {

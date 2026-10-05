@@ -380,3 +380,53 @@ describe('0.19 checkpoint D deterministic combat contracts', () => {
     expect(rebuilt.operations.deployments['deployment.00000000'].allocated).toEqual({ personnel: 10, equipment: { personal: 8 } });
   });
 });
+
+describe('0.19 logistics throughput', () => {
+  const distantSupplyFixture = (trucks: number, personnel: number) => {
+    const state = combatFixture();
+    const occupied = {
+      ...state,
+      occupationByRegion: { ...state.occupationByRegion, [targetRegionId]: { regionId: targetRegionId, warId: combatWarId, occupierCountryId: militaryCountry, startDate: state.date } },
+      operations: { ...state.operations, regionControl: { ...state.operations.regionControl, [targetRegionId]: 'foreign_controlled' as const }, adjacency: { [sourceRegionId]: [targetRegionId], [targetRegionId]: [sourceRegionId] } },
+    };
+    const deployment = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel, equipment: { truck: trucks } });
+    return withDeployments(occupied, [deployment]);
+  };
+
+  it('refuses to resupply a cut-off force without an accessible path', () => {
+    const state = combatFixture();
+    const deployment = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 10, equipment: { truck: 5 } });
+    const armed = withDeployments({ ...state, operations: { ...state.operations, adjacency: { [sourceRegionId]: [targetRegionId], [targetRegionId]: [sourceRegionId] } } }, [deployment]);
+    expect(() => supplyDeployment(armed, 'deployment.00000000', armed.governance.player.controlledPersonId!, 10, 0)).toThrow(/does not exist/);
+  });
+
+  it('refuses distant resupply without transport equipment or crew', () => {
+    const state = distantSupplyFixture(0, 10);
+    expect(() => supplyDeployment(state, 'deployment.00000000', state.governance.player.controlledPersonId!, 10, 0)).toThrow(/no transport capacity/);
+    const undercrewed = distantSupplyFixture(5, 1);
+    expect(() => supplyDeployment(undercrewed, 'deployment.00000000', undercrewed.governance.player.controlledPersonId!, 10, 0)).toThrow(/no transport capacity/);
+  });
+
+  it('caps distant resupply by finite convoy throughput and burns transport fuel', () => {
+    const state = distantSupplyFixture(5, 10);
+    const result = supplyDeployment(state, 'deployment.00000000', state.governance.player.controlledPersonId!, 200, 0);
+    const capability = result.military.countries[militaryCountry].capability!;
+    expect(result.operations.deployments['deployment.00000000'].supply.ammunition).toBe(100);
+    expect(capability.consumables.ammunition!.quantity).toBe(1000 - 100);
+    expect(capability.consumables.fuel!.quantity).toBe(1000 - 5);
+    expect(capability.consumables.fuel!.consumed).toBe(5);
+  });
+
+  it('conserves national stock, transfer and transport fuel exactly', () => {
+    const state = distantSupplyFixture(5, 10);
+    const beforeAmmo = state.military.countries[militaryCountry].capability!.consumables.ammunition!.quantity;
+    const beforeFuel = state.military.countries[militaryCountry].capability!.consumables.fuel!.quantity;
+    const result = supplyDeployment(state, 'deployment.00000000', state.governance.player.controlledPersonId!, 40, 30);
+    const after = result.military.countries[militaryCountry].capability!;
+    const deployment = result.operations.deployments['deployment.00000000'];
+    expect(after.consumables.ammunition!.quantity).toBe(beforeAmmo - deployment.supply.ammunition);
+    expect(after.consumables.fuel!.quantity).toBe(beforeFuel - deployment.supply.fuel - 5);
+    expect(deployment.supply.ammunition).toBe(40);
+    expect(deployment.supply.fuel).toBe(30);
+  });
+});

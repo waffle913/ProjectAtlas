@@ -76,6 +76,13 @@ export const OPERATIONS_MODEL = Object.freeze({
   componentFallbackDecisive: 1,
 });
 
+/** Finite logistics throughput: distant resupply is convoy-limited by trucks, crews, hops and fuel; local (same-Region) resupply is stock-bounded only. */
+export const SUPPLY_MODEL = Object.freeze({
+  loadPerTruck: 20,       // cargo units (ammunition or fuel) carried per truck per supply action
+  crewPerTruck: 2,        // personnel required to operate one truck
+  fuelPerTruckPerHop: 1,  // fuel consumed per truck per traversed hop per supply action
+});
+
 export const emptyOperations = (initializedOn?: string): OperationsState => ({
   version: OPERATIONS_VERSION,
   initializedOn,
