@@ -15,6 +15,24 @@ const ideologyBySourcePartyId = new Map(ideologySource.parties.map(party => [par
 const interestsByCountry = new Map();
 for (const item of interests.organizations) interestsByCountry.set(item.countryId, [...(interestsByCountry.get(item.countryId) ?? []), item]);
 const families = ['Civic Alliance', 'Social Forum', 'National League', 'Reform Movement', 'Democratic Union', 'Popular Assembly', 'Liberal Coalition', 'Community Congress', 'Green Initiative', 'Labour Front', 'Republican Group', 'Progressive List'];
+// Recognizable fictional analogues: keep the party's identifiable family/stem and swap a
+// generic structural word (Party/Parti/etc.) for a deterministic fictional structural term,
+// so the gameplay party is a recognizable analogue of its sourced party without copying the
+// real name verbatim. Ideology is NOT inferred from the name.
+const STRUCTURAL_WORDS = new Set(['party', 'parti', 'partido', 'partei', 'partid', 'partie', 'partia', 'movement', 'mouvement', 'movimiento', 'union', 'unie', 'unionen', 'alliance', 'allianz', 'alianza', 'bloc', 'bloque', 'coalition', 'coalicion', 'coalitie', 'front', 'frente', 'league', 'liga', 'list', 'lista', 'liste', 'forum', 'foro', 'congress', 'congreso', 'assembly', 'asamblea', 'group', 'groupe', 'grupo', 'vereinigung', 'volkspartei', 'bund', 'allianssi', 'liitto']);
+const STRUCTURAL_ANALOGUES = ['Bloc', 'Alliance', 'Union', 'Movement', 'Group', 'Coalition'];
+const strip = value => (value ?? '').replace(/[.,;'"()]/g, '');
+const partyDisplayName = (sourceName) => {
+  const words = strip(sourceName).trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return 'National Movement';
+  const lower = words.map(word => word.toLowerCase());
+  const structuralIndex = lower.findIndex(word => STRUCTURAL_WORDS.has(word));
+  const analogue = STRUCTURAL_ANALOGUES[parseInt(sha(sourceName).slice(0, 8), 16) % STRUCTURAL_ANALOGUES.length];
+  if (structuralIndex === -1) return `${sourceName} ${analogue}`;
+  const stem = words.slice(0, structuralIndex).join(' ');
+  const suffix = words.slice(structuralIndex + 1).join(' ');
+  return `${stem} ${analogue}${suffix ? ` ${suffix}` : ''}`.trim();
+};
 const sha = value => createHash('sha256').update(value).digest('hex');
 const shaSnapshot = path => sha(readFileSync(path, 'utf8').replace(/\r\n/g, '\n'));
 const provenance = (status, limitation, basis = source.source) => ({ status, referenceDate: source.referenceDate, retrievedAt: source.retrievedAt, source: basis.publisher, sourceUrl: basis.url, limitation });
@@ -54,7 +72,7 @@ for (const entity of [...entities.countries].sort((a, b) => a.id.localeCompare(b
   const government = matchGovernment((evidence?.chambers ?? []).map(chamber => chamber.election?.governmentPartyText), sortedParties.map(([id, name]) => [partyId(entity.id, id), name]));
   sortedParties.forEach(([sourceId, sourceName], index) => {
     const id = partyId(entity.id, sourceId);
-    registry.parties[id] = { id, countryId: entity.id, displayName: `${entity.commonName} ${families[index % families.length]}${index >= families.length ? ` ${Math.floor(index / families.length) + 1}` : ''}`, fictional: true,
+    registry.parties[id] = { id, countryId: entity.id, displayName: partyDisplayName(sourceName), fictional: true,
       provenance: provenance('modelled_fallback', 'Fictional gameplay identity mapped one-to-one to a sourced electoral seat entry. Ideological evidence, when present, is separately qualified.'), sourceBasis: { sourcePartyId: sourceId, sourcePartyName: sourceName }, ...buildPartyProfile({ sourcePartyId: sourceId, sourcePartyName: sourceName }, ideologyBySourcePartyId.get(sourceId)),
       currentSeats: allocations.reduce((sum, chamber) => sum + (chamber.election.seats.find(seat => seat.sourcePartyId === sourceId)?.seats ?? 0), 0), governmentStatus: government.ids.length ? (government.ids.includes(id) ? 'government' : 'opposition') : 'unavailable' };
   });

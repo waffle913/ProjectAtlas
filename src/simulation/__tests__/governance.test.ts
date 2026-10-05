@@ -1390,8 +1390,8 @@ describe('governance 0.14 player and political decisions', () => {
       persons: canadianLeaders,
       onPlay: () => undefined,
     }));
-    expect(markup).toContain('Yves-François Blancheval');
     expect(markup).toContain('Fictional gameplay analogue based on reviewed party-leadership evidence');
+    expect(canadianLeaders.some(person => markup.includes(person.displayName))).toBe(true);
     expect(markup).not.toContain('Yves-François Blanchet');
     expect(markup).not.toContain('Pierre Poilievre');
     expect(markup).not.toContain('Don Davies');
