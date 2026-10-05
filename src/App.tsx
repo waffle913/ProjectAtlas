@@ -6,6 +6,7 @@ import { emptyMilitary } from './simulation/military/model';
 import { StartGame } from './components/StartGame';
 import { MilitaryCapabilities } from './components/MilitaryCapabilities';
 import { OperationsPanel } from './components/OperationsPanel';
+import { MultilateralPanel } from './components/MultilateralPanel';
 import { TradeInspection } from './components/TradeInspection';
 import { configureSyntheticTradeScenario } from './simulation/trade/scenario';
 import { configureSyntheticMilitaryScenario } from './simulation/military/scenario';
@@ -270,7 +271,7 @@ export default function App() {
   const navItems = [
     ['overview', 'Overview', '⌂'], ['fiscal', 'Fiscality', '¤'], ['economy', 'Economy', '▥'],
     ['politics', 'Politics', '⚑'], ['services', 'Health / services', '＋'],
-    ['security', 'Security', '◇'], ['operations', 'Operations', '◎'], ['diplomacy', 'Diplomacy', '⇄'], ['military', 'Military', '⚔'],
+    ['security', 'Security', '◇'], ['operations', 'Operations', '◎'], ['treaties', 'Treaties', '§'], ['diplomacy', 'Diplomacy', '⇄'], ['military', 'Military', '⚔'],
     ['trade', 'Trade', '⇆'],
   ];
   return (
@@ -412,6 +413,8 @@ export default function App() {
           <aside className="panel"><MilitaryCapabilities state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} onBudget={() => setActivePage('fiscal')} /></aside>
         ) : activePage === 'operations' && controlledPerson && playerCountryId ? (
           <aside className="panel"><OperationsPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} /></aside>
+        ) : activePage === 'treaties' && controlledPerson && playerCountryId ? (
+          <aside className="panel"><MultilateralPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} /></aside>
         ) : activePage === 'trade' && controlledPerson && playerCountryId ? (
           <aside className="panel"><TradeInspection state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} /></aside>
         ) : activePage === 'economy' ? (
