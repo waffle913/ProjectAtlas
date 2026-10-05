@@ -1,7 +1,9 @@
 import type { SimulationState } from '../../types';
+import type { SimulationScheduler } from '../scheduler';
 import { isSimulationDate as validDate } from '../date';
 import { hasInternationalAuthority } from '../international/runtime';
-import { emptyMultilateral, multilateralTreatyId, type Treaty, type TreatyClause } from './model';
+import { createExplicitCasusBelli } from '../diplomacy';
+import { MULTILATERAL_MODEL, emptyMultilateral, multilateralObligationId, multilateralTreatyId, multilateralViolationId, type Treaty, type TreatyClause, type TreatyObligation, type TreatyViolation } from './model';
 
 /** Initializes the empty multilateral domain; migration never fabricates treaties, organizations or memberships. */
 export function initializeMultilateral(state: SimulationState): SimulationState {
@@ -138,3 +140,72 @@ export function terminateTreaty(state: SimulationState, treatyId: string, person
 export function validateTreatyDate(value: string): boolean {
   return validDate(value);
 }
+
+/** Applies active trade-commitment tariffs to represented 0.17 routes; never creates routes, goods, money or demand. */
+export function applyTreatyTradeCommitments(state: SimulationState): SimulationState {
+  const commitments: Extract<TreatyClause, { kind: 'trade_commitment' }>[] = [];
+  for (const treaty of Object.values(state.multilateral.treaties)) {
+    if (treaty.status !== 'active') continue;
+    for (const clause of treaty.clauses) if (clause.kind === 'trade_commitment') commitments.push(clause);
+  }
+  if (!commitments.length) return state;
+  const routes = state.trade.routes.map(route => {
+    const commitment = commitments.find(c => c.exporterId === route.exporterId && c.importerId === route.importerId && c.categories.includes(route.category));
+    return commitment ? { ...route, tariffBps: commitment.tariffBps } : route;
+  });
+  return { ...state, trade: { ...state.trade, routes } };
+}
+
+/** Monthly deterministic trigger evaluation: records defensive-guarantee obligations and non-aggression violations exactly once per war. */
+export function runMultilateralMonth(state: SimulationState): SimulationState {
+  if (!state.multilateral?.initializedOn) return state;
+  let next = applyTreatyTradeCommitments(state);
+  const activeWars = next.wars.filter(war => war.status === 'active');
+  for (const treaty of Object.values(next.multilateral.treaties)) {
+    if (treaty.status !== 'active') continue;
+    const sinceOn = treaty.activeOn ?? treaty.proposalDate;
+    for (const clause of treaty.clauses) {
+      if (clause.kind === 'defensive_guarantee') {
+        for (const war of activeWars) {
+          if (war.defenderCountryId !== clause.protectedCountryId || war.attackerCountryId === clause.obligatedCountryId || war.startDate < sinceOn) continue;
+          const exists = Object.values(next.multilateral.obligations).some(o => o.treatyId === treaty.id && o.warId === war.id);
+          if (exists) continue;
+          const id = multilateralObligationId(next.multilateral.nextObligationSequence);
+          const obligation: TreatyObligation = { id, treatyId: treaty.id, kind: 'defensive_guarantee', protectedCountryId: clause.protectedCountryId, obligatedCountryId: clause.obligatedCountryId, warId: war.id, triggeredOn: next.date, status: 'pending' };
+          next = { ...next, multilateral: { ...next.multilateral, obligations: { ...next.multilateral.obligations, [id]: obligation }, obligationOrder: [...next.multilateral.obligationOrder, id], nextObligationSequence: next.multilateral.nextObligationSequence + 1 } };
+        }
+      } else if (clause.kind === 'non_aggression') {
+        for (const war of activeWars) {
+          const isViolation = (war.attackerCountryId === clause.partyAId && war.defenderCountryId === clause.partyBId) || (war.attackerCountryId === clause.partyBId && war.defenderCountryId === clause.partyAId);
+          if (!isViolation || war.startDate < sinceOn) continue;
+          const exists = Object.values(next.multilateral.violations).some(v => v.treatyId === treaty.id && v.warId === war.id);
+          if (exists) continue;
+          const id = multilateralViolationId(next.multilateral.nextViolationSequence);
+          const violation: TreatyViolation = { id, treatyId: treaty.id, kind: 'non_aggression', violatingCountryId: war.attackerCountryId, violatedAgainstCountryId: war.defenderCountryId, warId: war.id, violatedOn: next.date, detail: `${war.attackerCountryId} declared war on ${war.defenderCountryId}, violating the non-aggression obligation.` };
+          next = { ...next, multilateral: { ...next.multilateral, violations: { ...next.multilateral.violations, [id]: violation }, violationOrder: [...next.multilateral.violationOrder, id], nextViolationSequence: next.multilateral.nextViolationSequence + 1 } };
+        }
+      }
+    }
+  }
+  return next;
+}
+
+/** The obligated guarantor honors (gains a retaliation casus belli) or violates (records the refusal) a triggered guarantee. */
+export function resolveObligation(state: SimulationState, obligationId: string, personId: string, honor: boolean): SimulationState {
+  const obligation = state.multilateral.obligations[obligationId];
+  if (!obligation) throw new Error(`Unknown obligation: ${obligationId}`);
+  const countryId = state.governance.persons[personId]?.countryId;
+  if (!countryId) throw new Error('Obligation resolution requires a controlled active person.');
+  requireAuthority(state, countryId, personId);
+  if (countryId !== obligation.obligatedCountryId) throw new Error('Only the obligated Country may resolve this guarantee.');
+  if (obligation.status !== 'pending') throw new Error('This obligation has already been resolved.');
+  const war = state.wars.find(item => item.id === obligation.warId);
+  if (!war || war.status !== 'active') throw new Error('The qualifying war is no longer active.');
+  let next: SimulationState = { ...state, multilateral: { ...state.multilateral, obligations: { ...state.multilateral.obligations, [obligationId]: { ...obligation, status: honor ? 'honored' : 'violated', resolvedOn: state.date } } } };
+  if (honor) {
+    next = createExplicitCasusBelli(next, { id: `cb.guarantee:${obligation.id}`, issuerCountryId: obligation.obligatedCountryId, targetCountryId: war.attackerCountryId, type: 'retaliation', creationDate: state.date, reason: `Defensive guarantee honored for ${obligation.protectedCountryId}.` }, { countryIds: new Set(Object.keys(state.engine.fidelityByCountry)), regionIds: new Set(Object.keys(state.regionOwnership)) });
+  }
+  return next;
+}
+
+export const registerMultilateralTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'multilateral.monthly', cadence: 'monthly', priority: MULTILATERAL_MODEL.schedulerPriority, run: runMultilateralMonth });

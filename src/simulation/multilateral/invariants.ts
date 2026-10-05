@@ -80,6 +80,14 @@ export const multilateralInvariant: SimulationInvariant = {
       if ((decision.status === 'adopted' || decision.status === 'rejected') && (!decision.result || !decision.adoptedOn)) errors.push(`Resolved decision ${id} lacks a result date.`);
       if (decision.appliedEffectIds && new Set(decision.appliedEffectIds).size !== decision.appliedEffectIds.length) errors.push(`Decision ${id} has duplicate applied effects.`);
     }
+    if (new Set(m.obligationOrder).size !== m.obligationOrder.length || m.obligationOrder.some(id => !m.obligations[id]) || Object.keys(m.obligations).some(id => !m.obligationOrder.includes(id))) errors.push('Obligation order does not reconcile.');
+    for (const [id, obligation] of Object.entries(m.obligations)) {
+      if (id !== obligation.id || !/^obligation\.\d{8}$/.test(obligation.id) || obligation.kind !== 'defensive_guarantee' || !m.treaties[obligation.treatyId] || !context.countryIds.has(obligation.protectedCountryId) || !context.countryIds.has(obligation.obligatedCountryId) || !validDate(obligation.triggeredOn) || obligation.triggeredOn > state.date || !['pending', 'honored', 'violated'].includes(obligation.status) || (obligation.resolvedOn !== undefined && (!validDate(obligation.resolvedOn) || obligation.resolvedOn < obligation.triggeredOn || obligation.resolvedOn > state.date))) errors.push(`Malformed obligation ${id}.`);
+    }
+    if (new Set(m.violationOrder).size !== m.violationOrder.length || m.violationOrder.some(id => !m.violations[id]) || Object.keys(m.violations).some(id => !m.violationOrder.includes(id))) errors.push('Violation order does not reconcile.');
+    for (const [id, violation] of Object.entries(m.violations)) {
+      if (id !== violation.id || !/^violation\.\d{8}$/.test(violation.id) || violation.kind !== 'non_aggression' || !m.treaties[violation.treatyId] || !context.countryIds.has(violation.violatingCountryId) || !context.countryIds.has(violation.violatedAgainstCountryId) || !validDate(violation.violatedOn) || violation.violatedOn > state.date || !violation.detail?.trim()) errors.push(`Malformed violation ${id}.`);
+    }
     return errors;
   },
 };

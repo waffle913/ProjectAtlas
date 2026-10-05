@@ -4,8 +4,10 @@ import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { MULTILATERAL_VERSION, type Treaty } from '../multilateral/model';
-import { activateTreaty, hasTreatyAuthority, proposeTreaty, ratifyTreaty, signTreaty, terminateTreaty, withdrawTreaty } from '../multilateral/runtime';
+import { activateTreaty, applyTreatyTradeCommitments, hasTreatyAuthority, proposeTreaty, ratifyTreaty, resolveObligation, runMultilateralMonth, signTreaty, terminateTreaty, withdrawTreaty } from '../multilateral/runtime';
 import { assignPoliticalOffice, createPoliticalPerson, setControlledPerson } from '../governance/runtime';
+import { createClaim } from '../diplomacy';
+import { declareLimitedWar } from '../war';
 
 const baseState = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
 const countryA = worldCountryIds[0], countryB = worldCountryIds[1];
@@ -200,4 +202,83 @@ describe('0.20 treaty authority and lifecycle', () => {
     state = withdrawTreaty(state, treatyId, b.personId);
     expect(roundTrip(state)).toEqual(state);
   }, 120000);
+});
+
+describe('0.20 treaty obligations, triggers and violations', () => {
+  const countryC = worldCountryIds[2];
+  const executive = (state: ReturnType<typeof baseState>, countryId: string) => {
+    let next = createPoliticalPerson(state, { countryId, displayName: `Synthetic treaty executive ${countryId}` });
+    const personId = Object.keys(next.governance.persons).find(id => next.governance.persons[id].countryId === countryId && !next.governance.persons[id].office)!;
+    next = setControlledPerson(assignPoliticalOffice(next, personId, { countryId, role: 'head_of_government' }), personId);
+    return { state: next, personId };
+  };
+  const activeTreaty = (clauses: Parameters<typeof proposeTreaty>[2]['clauses']) => {
+    const a = executive(baseState(), countryA);
+    let state = proposeTreaty(a.state, a.personId, { title: 'Synthetic obligations treaty', parties: [countryA, countryB], clauses, entryIntoForce: { kind: 'signature', requiredRatifications: 2 }, withdrawal: { noticeDays: 30 } });
+    const treatyId = state.multilateral.treatyOrder[0];
+    state = signTreaty(state, treatyId, a.personId);
+    const b = executive(state, countryB);
+    state = b.state;
+    state = signTreaty(state, treatyId, b.personId);
+    expect(state.multilateral.treaties[treatyId].status).toBe('active');
+    return { state, treatyId, aPersonId: a.personId };
+  };
+  const declareWar = (state: ReturnType<typeof baseState>, warId: string, attacker: string, defender: string) => {
+    const targetRegion = worldRegions.find(region => region.initialOwnerCountryId === defender)!.id;
+    let next = createClaim(state, { id: `claim.${warId}`, claimantCountryId: attacker, regionId: targetRegion, type: 'territorial', creationDate: state.date, reason: 'Synthetic obligation trigger.' }, worldContext);
+    return declareLimitedWar(next, { warId, attackerCountryId: attacker, defenderCountryId: defender, targetRegionId: targetRegion, casusBelliId: `claim-derived:claim.${warId}:${defender}` }, worldContext);
+  };
+
+  it('triggers a defensive-guarantee obligation exactly once for a qualifying war', () => {
+    const { state: armed, aPersonId } = activeTreaty([{ kind: 'defensive_guarantee', protectedCountryId: countryB, obligatedCountryId: countryA }]);
+    let state = declareWar(armed, 'war.guarantee', countryC, countryB);
+    state = runMultilateralMonth(state);
+    expect(Object.values(state.multilateral.obligations)).toHaveLength(1);
+    const obligation = Object.values(state.multilateral.obligations)[0];
+    expect(obligation).toMatchObject({ kind: 'defensive_guarantee', protectedCountryId: countryB, obligatedCountryId: countryA, warId: 'war.guarantee', status: 'pending' });
+    state = runMultilateralMonth(state);
+    expect(Object.values(state.multilateral.obligations)).toHaveLength(1);
+    state = setControlledPerson(state, aPersonId);
+    state = resolveObligation(state, obligation.id, aPersonId, true);
+    expect(state.multilateral.obligations[obligation.id].status).toBe('honored');
+    expect(state.explicitCasusBelli.some(cb => cb.issuerCountryId === countryA && cb.targetCountryId === countryC && cb.type === 'retaliation')).toBe(true);
+  });
+
+  it('does not trigger an unrelated war and inactive treaties have no effect', () => {
+    const { state: armed, treatyId } = activeTreaty([{ kind: 'defensive_guarantee', protectedCountryId: countryB, obligatedCountryId: countryA }]);
+    // unrelated war (protected country is not the defender)
+    let state = declareWar(armed, 'war.unrelated', countryA, countryC);
+    state = runMultilateralMonth(state);
+    expect(Object.values(state.multilateral.obligations)).toHaveLength(0);
+    // terminate the treaty, then a qualifying war still does not trigger
+    const a = executive(state, countryA);
+    state = setControlledPerson(a.state, a.personId);
+    state = terminateTreaty(state, treatyId, a.personId);
+    state = declareWar(state, 'war.late', countryC, countryB);
+    state = runMultilateralMonth(state);
+    expect(Object.values(state.multilateral.obligations)).toHaveLength(0);
+  });
+
+  it('records a non-aggression violation exactly once and survives save/reload', () => {
+    const { state: armed } = activeTreaty([{ kind: 'non_aggression', partyAId: countryA, partyBId: countryB }]);
+    let state = declareWar(armed, 'war.aggression', countryA, countryB);
+    state = runMultilateralMonth(state);
+    expect(Object.values(state.multilateral.violations)).toHaveLength(1);
+    expect(Object.values(state.multilateral.violations)[0]).toMatchObject({ kind: 'non_aggression', violatingCountryId: countryA, violatedAgainstCountryId: countryB, warId: 'war.aggression' });
+    state = runMultilateralMonth(state);
+    expect(Object.values(state.multilateral.violations)).toHaveLength(1);
+    const restored = restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored.multilateral.violations).toEqual(state.multilateral.violations);
+  });
+
+  it('applies a trade commitment tariff through the existing route model without duplicating trade state', () => {
+    const { state: armed } = activeTreaty([{ kind: 'trade_commitment', importerId: countryA, exporterId: countryB, categories: ['food'], tariffBps: 800 }]);
+    const before = armed.trade.routes.length;
+    let state: ReturnType<typeof baseState> = { ...armed, trade: { ...armed.trade, routes: [...armed.trade.routes, { id: 'route.synthetic', exporterId: countryB, importerId: countryA, category: 'food', source: armed.trade.routes[0]?.source ?? { status: 'modelled', publisher: 'synthetic', dataset: 'synthetic', url: 'synthetic', referenceDate: '2026-01-01', publishedOn: null, retrievedAt: '2026-01-01', licence: 'synthetic', attribution: 'synthetic', transformation: 'synthetic', limitation: 'synthetic', synthetic: true }, capacityPerMonth: 1, establishedCapacity: 1, expansionPerMonth: 0, logisticsBps: 0, tariffBps: null }] } };
+    state = applyTreatyTradeCommitments(state);
+    const route = state.trade.routes.find(r => r.id === 'route.synthetic')!;
+    expect(route.tariffBps).toBe(800);
+    expect(state.trade.routes.length).toBe(before + 1);
+    expect(state.trade.flows).toEqual(armed.trade.flows);
+  });
 });

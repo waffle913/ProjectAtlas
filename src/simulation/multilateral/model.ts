@@ -80,6 +80,29 @@ export interface OrganizationDecision {
   appliedEffectIds: string[];
 }
 
+export interface TreatyObligation {
+  id: string;
+  treatyId: string;
+  kind: 'defensive_guarantee';
+  protectedCountryId: string;
+  obligatedCountryId: string;
+  warId: string;
+  triggeredOn: string;
+  status: 'pending' | 'honored' | 'violated';
+  resolvedOn?: string;
+}
+
+export interface TreatyViolation {
+  id: string;
+  treatyId: string;
+  kind: 'non_aggression';
+  violatingCountryId: string;
+  violatedAgainstCountryId: string;
+  warId: string;
+  violatedOn: string;
+  detail: string;
+}
+
 export interface MultilateralState {
   version: typeof MULTILATERAL_VERSION;
   initializedOn?: string;
@@ -92,6 +115,12 @@ export interface MultilateralState {
   decisions: Record<string, OrganizationDecision>;
   decisionOrder: string[];
   nextDecisionSequence: number;
+  obligations: Record<string, TreatyObligation>;
+  obligationOrder: string[];
+  nextObligationSequence: number;
+  violations: Record<string, TreatyViolation>;
+  violationOrder: string[];
+  nextViolationSequence: number;
 }
 
 export const MULTILATERAL_MODEL = Object.freeze({
@@ -116,9 +145,17 @@ export const emptyMultilateral = (initializedOn?: string): MultilateralState => 
   decisions: {},
   decisionOrder: [],
   nextDecisionSequence: 0,
+  obligations: {},
+  obligationOrder: [],
+  nextObligationSequence: 0,
+  violations: {},
+  violationOrder: [],
+  nextViolationSequence: 0,
 });
 
 export const multilateralTreatyId = (sequence: number) => `treaty.${sequence.toString().padStart(8, '0')}`;
 export const multilateralOrganizationId = (sequence: number) => `organization.${sequence.toString().padStart(8, '0')}`;
 export const multilateralDecisionId = (sequence: number) => `decision.${sequence.toString().padStart(8, '0')}`;
+export const multilateralObligationId = (sequence: number) => `obligation.${sequence.toString().padStart(8, '0')}`;
+export const multilateralViolationId = (sequence: number) => `violation.${sequence.toString().padStart(8, '0')}`;
 export const validTradeCategory = (value: unknown): value is TradeCategory => typeof value === 'string' && (TRADE_CATEGORIES as readonly string[]).includes(value);
