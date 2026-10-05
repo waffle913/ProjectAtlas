@@ -3,7 +3,8 @@ import type { SimulationScheduler } from '../scheduler';
 import { isSimulationDate as validDate } from '../date';
 import { hasInternationalAuthority } from '../international/runtime';
 import { createExplicitCasusBelli } from '../diplomacy';
-import { MULTILATERAL_MODEL, emptyMultilateral, multilateralObligationId, multilateralOrganizationId, multilateralTreatyId, multilateralViolationId, type MembershipRole, type Organization, type Treaty, type TreatyClause, type TreatyObligation, type TreatyViolation } from './model';
+import { applyInternationalAction } from '../international/runtime';
+import { MULTILATERAL_MODEL, emptyMultilateral, multilateralDecisionId, multilateralObligationId, multilateralOrganizationId, multilateralTreatyId, multilateralViolationId, validTradeCategory, type MembershipRole, type Organization, type OrganizationDecision, type OrganizationDecisionPayload, type Treaty, type TreatyClause, type TreatyObligation, type TreatyViolation, type VoteChoice } from './model';
 
 /** Initializes the empty multilateral domain; migration never fabricates treaties, organizations or memberships. */
 export function initializeMultilateral(state: SimulationState): SimulationState {
@@ -187,6 +188,12 @@ export function runMultilateralMonth(state: SimulationState): SimulationState {
       }
     }
   }
+  for (const decisionId of [...next.multilateral.decisionOrder]) {
+    const decision = next.multilateral.decisions[decisionId];
+    if (decision?.status === 'open' && decision.votingClosesOn <= next.date) {
+      next = closeDecision(next, decisionId);
+    }
+  }
   return next;
 }
 
@@ -250,6 +257,106 @@ export function withdrawFromOrganization(state: SimulationState, organizationId:
   const members = { ...organization.members }; delete members[countryId];
   const next: Organization = { ...organization, members, history: [...organization.history, { date: state.date, kind: 'withdrawal', countryId, detail: `${countryId} withdrew.` }] };
   return { ...state, multilateral: { ...state.multilateral, organizations: { ...state.multilateral.organizations, [organizationId]: next } } };
+}
+
+function nextDate(iso: string, days: number): string {
+  const date = new Date(`${iso}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function validateDecisionPayload(payload: OrganizationDecisionPayload, state: SimulationState): void {
+  const country = (id: string) => { if (!state.engine.fidelityByCountry[id]) throw new Error(`Unknown Country: ${id}`); };
+  if (payload.kind === 'condemnation') { country(payload.targetCountryId); if (!payload.reason.trim()) throw new Error('Condemnation requires a reason.'); }
+  else if (payload.kind === 'coordinated_sanctions') { country(payload.targetCountryId); if (!payload.categories.length || payload.categories.some(c => !validTradeCategory(c))) throw new Error('Coordinated sanctions require valid trade categories.'); }
+  else if (payload.kind === 'membership') { country(payload.applicantCountryId); if (!['member', 'observer'].includes(payload.role)) throw new Error('Membership role is invalid.'); }
+  else if (payload.kind === 'trade_commitment') { country(payload.importerId); country(payload.exporterId); if (payload.importerId === payload.exporterId || !payload.categories.length || payload.categories.some(c => !validTradeCategory(c)) || (payload.tariffBps !== null && (!Number.isSafeInteger(payload.tariffBps) || payload.tariffBps < 0 || payload.tariffBps > 10000))) throw new Error('Trade commitment payload is invalid.'); }
+}
+
+export function proposeDecision(state: SimulationState, organizationId: string, personId: string, payload: OrganizationDecisionPayload, votingDurationDays = 30): SimulationState {
+  const organization = state.multilateral.organizations[organizationId];
+  if (!organization) throw new Error(`Unknown organization: ${organizationId}`);
+  const countryId = state.governance.persons[personId]?.countryId;
+  if (!countryId) throw new Error('Proposing requires a controlled active person.');
+  requireAuthority(state, countryId, personId);
+  if (organization.members[countryId]?.role !== 'member') throw new Error('Only a voting member may propose a decision.');
+  validateDecisionPayload(payload, state);
+  const id = multilateralDecisionId(state.multilateral.nextDecisionSequence);
+  const decision: OrganizationDecision = { id, organizationId, proposerCountryId: countryId, proposerPersonId: personId, payload, proposalDate: state.date, votingClosesOn: nextDate(state.date, votingDurationDays), status: 'open', votes: {}, appliedEffectIds: [] };
+  return { ...state, multilateral: { ...state.multilateral, decisions: { ...state.multilateral.decisions, [id]: decision }, decisionOrder: [...state.multilateral.decisionOrder, id], nextDecisionSequence: state.multilateral.nextDecisionSequence + 1 } };
+}
+
+export function voteOnDecision(state: SimulationState, decisionId: string, personId: string, choice: VoteChoice): SimulationState {
+  const decision = state.multilateral.decisions[decisionId];
+  if (!decision) throw new Error(`Unknown decision: ${decisionId}`);
+  if (decision.status !== 'open') throw new Error('Voting has closed.');
+  const organization = state.multilateral.organizations[decision.organizationId];
+  const countryId = state.governance.persons[personId]?.countryId;
+  if (!countryId) throw new Error('Voting requires a controlled active person.');
+  requireAuthority(state, countryId, personId);
+  if (organization.members[countryId]?.role !== 'member') throw new Error('Only voting members may vote.');
+  if (!['yes', 'no', 'abstain', 'unknown'].includes(choice)) throw new Error('Invalid vote choice.');
+  return { ...state, multilateral: { ...state.multilateral, decisions: { ...state.multilateral.decisions, [decisionId]: { ...decision, votes: { ...decision.votes, [countryId]: choice } } } } };
+}
+
+function evaluateDecision(decision: OrganizationDecision, organization: Organization): 'adopted' | 'rejected' {
+  const eligible = Object.keys(organization.members).filter(id => organization.members[id].role === 'member');
+  if (!eligible.length) return 'rejected';
+  let yes = 0, no = 0, abstain = 0;
+  for (const id of eligible) {
+    const vote = decision.votes[id] ?? 'unknown';
+    if (vote === 'yes') yes += 1; else if (vote === 'no') no += 1; else if (vote === 'abstain') abstain += 1;
+  }
+  const cast = yes + no + abstain;
+  if (!cast) return 'rejected';
+  const rule = organization.votingRule;
+  if (rule.quorumBps !== undefined && cast * 10000 < rule.quorumBps * eligible.length) return 'rejected';
+  if (rule.kind === 'majority') return yes > no ? 'adopted' : 'rejected';
+  if (rule.kind === 'supermajority') return yes * 10000 >= (rule.thresholdBps ?? 6667) * (yes + no) ? 'adopted' : 'rejected';
+  return no === 0 && yes > 0 ? 'adopted' : 'rejected';
+}
+
+export function closeDecision(state: SimulationState, decisionId: string): SimulationState {
+  const decision = state.multilateral.decisions[decisionId];
+  if (!decision) throw new Error(`Unknown decision: ${decisionId}`);
+  if (decision.status !== 'open') return state;
+  const organization = state.multilateral.organizations[decision.organizationId];
+  const result = evaluateDecision(decision, organization);
+  let next: SimulationState = { ...state, multilateral: { ...state.multilateral, decisions: { ...state.multilateral.decisions, [decisionId]: { ...decision, status: result === 'adopted' ? 'adopted' as const : 'rejected' as const, result, adoptedOn: result === 'adopted' ? state.date : undefined } } } };
+  if (result === 'adopted') next = applyDecisionEffects(next, decisionId);
+  return next;
+}
+
+function applyDecisionEffects(state: SimulationState, decisionId: string): SimulationState {
+  const decision = state.multilateral.decisions[decisionId];
+  if (!decision || decision.result !== 'adopted' || decision.appliedEffectIds.length) return state;
+  const organization = state.multilateral.organizations[decision.organizationId];
+  const members = Object.keys(organization.members).filter(id => organization.members[id].role === 'member');
+  const payload = decision.payload;
+  const applied: string[] = [];
+  let next = state;
+  if (payload.kind === 'condemnation') {
+    for (const member of members) {
+      next = applyInternationalAction(next, { actorCountryId: member, targetCountryId: payload.targetCountryId, kind: 'condemnation', categories: [], declaredByPersonId: decision.proposerPersonId, provenance: 'modelled', limitation: payload.reason });
+      applied.push(`condemnation:${member}:${decisionId}`);
+    }
+  } else if (payload.kind === 'coordinated_sanctions') {
+    for (const member of members) {
+      next = applyInternationalAction(next, { actorCountryId: member, targetCountryId: payload.targetCountryId, kind: payload.restriction, categories: payload.categories, declaredByPersonId: decision.proposerPersonId, provenance: 'modelled', limitation: `Coordinated multilateral decision ${decisionId}.` });
+      applied.push(`sanction:${member}:${decisionId}`);
+    }
+  } else if (payload.kind === 'membership') {
+    const org = next.multilateral.organizations[decision.organizationId];
+    if (!org.members[payload.applicantCountryId]) {
+      const updated: Organization = { ...org, members: { ...org.members, [payload.applicantCountryId]: { role: payload.role, joinedOn: next.date } }, history: [...org.history, { date: next.date, kind: 'accession', countryId: payload.applicantCountryId, detail: `Admitted by decision ${decisionId}.` }] };
+      next = { ...next, multilateral: { ...next.multilateral, organizations: { ...next.multilateral.organizations, [decision.organizationId]: updated } } };
+    }
+    applied.push(`membership:${payload.applicantCountryId}`);
+  } else if (payload.kind === 'trade_commitment') {
+    next = { ...next, trade: { ...next.trade, routes: next.trade.routes.map(route => route.exporterId === payload.exporterId && route.importerId === payload.importerId && payload.categories.includes(route.category) ? { ...route, tariffBps: payload.tariffBps } : route) } };
+    applied.push(`trade:${payload.exporterId}:${payload.importerId}`);
+  }
+  return { ...next, multilateral: { ...next.multilateral, decisions: { ...next.multilateral.decisions, [decisionId]: { ...next.multilateral.decisions[decisionId], appliedEffectIds: [...next.multilateral.decisions[decisionId].appliedEffectIds, ...applied] } } } };
 }
 
 export const registerMultilateralTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'multilateral.monthly', cadence: 'monthly', priority: MULTILATERAL_MODEL.schedulerPriority, run: runMultilateralMonth });

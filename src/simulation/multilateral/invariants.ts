@@ -74,6 +74,7 @@ export const multilateralInvariant: SimulationInvariant = {
     if (new Set(m.decisionOrder).size !== m.decisionOrder.length || m.decisionOrder.some(id => !m.decisions[id]) || Object.keys(m.decisions).some(id => !m.decisionOrder.includes(id))) errors.push('Decision order does not reconcile.');
     for (const [id, decision] of Object.entries(m.decisions)) {
       if (id !== decision.id || !/^decision\.\d{8}$/.test(decision.id) || !m.organizations[decision.organizationId] || !context.countryIds.has(decision.proposerCountryId) || !validDate(decision.proposalDate) || decision.proposalDate > state.date || !validDate(decision.votingClosesOn) || decision.votingClosesOn < decision.proposalDate || !['open', 'adopted', 'rejected', 'expired'].includes(decision.status)) errors.push(`Malformed decision ${id}.`);
+      if (!state.governance.persons[decision.proposerPersonId] || state.governance.persons[decision.proposerPersonId].countryId !== decision.proposerCountryId) errors.push(`Decision ${id} has an invalid proposer.`);
       for (const [countryId, choice] of Object.entries(decision.votes)) {
         if (!m.organizations[decision.organizationId].members[countryId] || m.organizations[decision.organizationId].members[countryId].role !== 'member' || !['yes', 'no', 'abstain', 'unknown'].includes(choice)) errors.push(`Decision ${id} has an invalid vote from ${countryId}.`);
       }

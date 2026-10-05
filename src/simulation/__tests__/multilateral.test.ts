@@ -4,7 +4,7 @@ import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { MULTILATERAL_VERSION, type Treaty } from '../multilateral/model';
-import { activateTreaty, applyTreatyTradeCommitments, establishOrganization, hasTreatyAuthority, joinOrganization, proposeTreaty, ratifyTreaty, resolveObligation, runMultilateralMonth, signTreaty, terminateTreaty, withdrawFromOrganization, withdrawTreaty } from '../multilateral/runtime';
+import { activateTreaty, applyTreatyTradeCommitments, closeDecision, establishOrganization, hasTreatyAuthority, joinOrganization, proposeDecision, proposeTreaty, ratifyTreaty, resolveObligation, runMultilateralMonth, signTreaty, terminateTreaty, voteOnDecision, withdrawFromOrganization, withdrawTreaty } from '../multilateral/runtime';
 import { assignPoliticalOffice, createPoliticalPerson, setControlledPerson } from '../governance/runtime';
 import { createClaim } from '../diplomacy';
 import { declareLimitedWar } from '../war';
@@ -322,4 +322,97 @@ describe('0.20 multilateral organizations', () => {
     expect(() => joinOrganization(noOffice, orgId, noOfficeId)).toThrow(/resolved executive office/);
     expect(() => establishOrganization(noOffice, noOfficeId, { title: 'X', votingRule: { kind: 'majority' } })).toThrow(/resolved executive office/);
   });
+});
+
+describe('0.20 multilateral proposals, voting and decisions', () => {
+  const executive = (state: ReturnType<typeof baseState>, countryId: string) => {
+    let next = createPoliticalPerson(state, { countryId, displayName: `Synthetic voting executive ${countryId}` });
+    const personId = Object.keys(next.governance.persons).find(id => next.governance.persons[id].countryId === countryId && !next.governance.persons[id].office)!;
+    next = setControlledPerson(assignPoliticalOffice(next, personId, { countryId, role: 'head_of_government' }), personId);
+    return { state: next, personId };
+  };
+  const orgWithMembers = (votingRule: { kind: 'majority' | 'supermajority' | 'unanimity'; thresholdBps?: number; quorumBps?: number }, members: string[]) => {
+    const founder = executive(baseState(), members[0]);
+    let state = establishOrganization(founder.state, founder.personId, { title: 'Synthetic voting organization', votingRule });
+    const orgId = state.multilateral.organizationOrder[0];
+    const persons: Record<string, string> = { [members[0]]: founder.personId };
+    for (const member of members.slice(1)) {
+      const e = executive(state, member);
+      state = e.state;
+      state = joinOrganization(state, orgId, e.personId);
+      persons[member] = e.personId;
+    }
+    return { state, orgId, persons };
+  };
+  const cast = (state: ReturnType<typeof baseState>, decisionId: string, persons: Record<string, string>, votes: Record<string, 'yes' | 'no' | 'abstain'>) => {
+    let next = state;
+    for (const [country, choice] of Object.entries(votes)) {
+      next = setControlledPerson(next, persons[country]);
+      next = voteOnDecision(next, decisionId, persons[country], choice);
+    }
+    return next;
+  };
+
+  it('adopts by simple majority with a quorum and applies condemnation exactly once', () => {
+    const { state: orgState, orgId, persons } = orgWithMembers({ kind: 'majority', quorumBps: 5000 }, [countryA, countryB, worldCountryIds[2]]);
+    let state = setControlledPerson(orgState, persons[countryA]);
+    state = proposeDecision(state, orgId, persons[countryA], { kind: 'condemnation', targetCountryId: worldCountryIds[3], reason: 'Synthetic condemnation.' }, 30);
+    const decisionId = state.multilateral.decisionOrder[0];
+    state = cast(state, decisionId, persons, { [countryA]: 'yes', [countryB]: 'yes' });
+    state = closeDecision(state, decisionId);
+    expect(state.multilateral.decisions[decisionId].status).toBe('adopted');
+    expect(state.multilateral.decisions[decisionId].appliedEffectIds).toHaveLength(3);
+    expect(Object.values(state.international.actions).filter(a => a.kind === 'condemnation' && a.targetCountryId === worldCountryIds[3])).toHaveLength(3);
+    state = closeDecision(state, decisionId);
+    expect(state.multilateral.decisions[decisionId].appliedEffectIds).toHaveLength(3);
+  });
+
+  it('distinguishes unknown from abstain and rejects on quorum failure', () => {
+    const { state: orgState, orgId, persons } = orgWithMembers({ kind: 'majority', quorumBps: 10000 }, [countryA, countryB, worldCountryIds[2]]);
+    let state = setControlledPerson(orgState, persons[countryA]);
+    state = proposeDecision(state, orgId, persons[countryA], { kind: 'membership', applicantCountryId: worldCountryIds[3], role: 'observer' }, 30);
+    const decisionId = state.multilateral.decisionOrder[0];
+    state = voteOnDecision(state, decisionId, persons[countryA], 'yes');
+    state = setControlledPerson(state, persons[countryB]);
+    state = voteOnDecision(state, decisionId, persons[countryB], 'abstain');
+    // countryC stays unknown (not cast); quorum 10000 requires all three to cast -> rejected
+    state = closeDecision(state, decisionId);
+    expect(state.multilateral.decisions[decisionId].status).toBe('rejected');
+    expect(state.multilateral.organizations[orgId].members[worldCountryIds[3]]).toBeUndefined();
+  });
+
+  it('requires a supermajority threshold and rejects ineligible voters', () => {
+    const { state: orgState, orgId, persons } = orgWithMembers({ kind: 'supermajority', thresholdBps: 6600 }, [countryA, countryB, worldCountryIds[2]]);
+    let state = setControlledPerson(orgState, persons[countryA]);
+    state = proposeDecision(state, orgId, persons[countryA], { kind: 'membership', applicantCountryId: worldCountryIds[3], role: 'member' }, 30);
+    const decisionId = state.multilateral.decisionOrder[0];
+    // two yes, one no -> 2/3 exactly meets 6667 bps
+    state = cast(state, decisionId, persons, { [countryA]: 'yes', [countryB]: 'yes', [worldCountryIds[2]]: 'no' });
+    state = closeDecision(state, decisionId);
+    expect(state.multilateral.decisions[decisionId].status).toBe('adopted');
+    expect(state.multilateral.organizations[orgId].members[worldCountryIds[3]]).toMatchObject({ role: 'member' });
+    // observer cannot vote
+    const observer = executive(state, worldCountryIds[4]);
+    let observerState = joinOrganization(observer.state, orgId, observer.personId, 'observer');
+    observerState = setControlledPerson(observerState, persons[countryA]);
+    observerState = proposeDecision(observerState, orgId, persons[countryA], { kind: 'membership', applicantCountryId: worldCountryIds[5], role: 'member' }, 30);
+    const secondId = observerState.multilateral.decisionOrder[observerState.multilateral.decisionOrder.length - 1];
+    observerState = setControlledPerson(observerState, observer.personId);
+    expect(() => voteOnDecision(observerState, secondId, observer.personId, 'yes')).toThrow(/voting members/);
+  });
+
+  it('round-trips an open vote and an adopted decision deterministically', () => {
+    const { state: orgState, orgId, persons } = orgWithMembers({ kind: 'unanimity' }, [countryA, countryB]);
+    let state = setControlledPerson(orgState, persons[countryA]);
+    state = proposeDecision(state, orgId, persons[countryA], { kind: 'condemnation', targetCountryId: worldCountryIds[3], reason: 'Synthetic.' }, 30);
+    const decisionId = state.multilateral.decisionOrder[0];
+    const openRoundTrip = restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext);
+    expect(openRoundTrip).toEqual(state);
+    state = cast(state, decisionId, persons, { [countryA]: 'yes', [countryB]: 'yes' });
+    state = closeDecision(state, decisionId);
+    expect(state.multilateral.decisions[decisionId].status).toBe('adopted');
+    const adoptedRoundTrip = restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext);
+    expect(adoptedRoundTrip).toEqual(state);
+    expect(adoptedRoundTrip.international.actions).toEqual(state.international.actions);
+  }, 120000);
 });

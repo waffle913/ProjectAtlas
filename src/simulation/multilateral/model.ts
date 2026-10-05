@@ -70,6 +70,7 @@ export interface OrganizationDecision {
   id: string;
   organizationId: string;
   proposerCountryId: string;
+  proposerPersonId: string;
   payload: OrganizationDecisionPayload;
   proposalDate: string;
   votingClosesOn: string;

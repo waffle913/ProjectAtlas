@@ -77,6 +77,11 @@ function addAction(state: SimulationState, action: Omit<InternationalAction, 'id
   return { ...state, international: { ...state.international, actions: retained.actions, actionOrder: retained.order, nextActionSequence: state.international.nextActionSequence + 1 } };
 }
 
+/** Collective/treaty integration point: creates a retained international action without an individual-person authority gate (the treaty/decision itself is the authority). */
+export function applyInternationalAction(state: SimulationState, action: Omit<InternationalAction, 'id' | 'status' | 'declaredOn' | 'effectiveOn'>): SimulationState {
+  return addAction(state, action);
+}
+
 export function condemn(state: SimulationState, actorCountryId: string, targetCountryId: string, personId: string, reason: string): SimulationState {
   requireAuthority(state, actorCountryId, personId);
   requireCountry(state, actorCountryId); requireCountry(state, targetCountryId);
