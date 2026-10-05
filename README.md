@@ -1,4 +1,4 @@
-# ProjectAtlas — Milestone 0.18 (implemented for independent review)
+# ProjectAtlas — Milestone 0.19 (implemented for independent review)
 
 An original geopolitical, economic, social, political and military simulation, with the scenario start date fixed at **2026-01-01**.
 
@@ -6,9 +6,11 @@ An original geopolitical, economic, social, political and military simulation, w
 
 The validated 0.17 candidate parent is `a4e27364fdcffc2a165c71f5a67fffbad869c2ba`
 (save schema 15). **0.18 international tensions/crises/sanctions is implemented
-for independent review, not accepted**; its current save schema is 16. Current
-contracts, rationale, known limits and the locked roadmap are consolidated in
-the [canonical agent handoff](docs/agent-handoff.md).
+for independent review, not accepted**; its save schema is 16. **0.19 military
+operations/war/territorial control is implemented for independent review, not
+accepted**; save schema remains 17. Current contracts, rationale, known limits
+and the locked roadmap are consolidated in the
+[canonical agent handoff](docs/agent-handoff.md).
 
 Milestone **0.15 is accepted/validated**. Its Government Information, briefing, fictional leadership, succession, playable interface and explicit-power-transfer institutional evaluation contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with historical measured validation retained in [the development validation report](docs/milestone-0.15-candidate-validation.md). Current fiscal proposals have no institutional transfer and retain their material scores.
 
@@ -26,6 +28,14 @@ directional condemnations and legal import/export restrictions that operate
 through actual 0.17 trade flows. See [the international contract](docs/international-0.18.md).
 No factual 2026 sanctions baseline is fabricated; synthetic tests exercise the
 engine. Run `npm run international:audit`.
+
+The explicitly authorized **0.19 military operations/war/territorial control**
+adds physical deployments, movement/access, finite convoy logistics, deterministic
+combat with permanent casualties/destruction, strategic capture, effective Region
+control, occupation and `take_region` war settlement, plus a bounded operational
+AI, government fog-of-war reports and a minimal operations UI. Sovereignty,
+occupation and effective control stay distinct. See [the operations contract](docs/operations-0.19.md).
+Run `npm run operations:audit` and `npm run operations:benchmark`.
 
 `npm install` then `npm run dev`. Run `npm run verify` for country, Region, demographic and economic reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate`, `npm run data:regions:generate`, `npm run data:population:generate` and `npm run data:economy:generate` regenerate derived data offline from checked-in inputs.
 
