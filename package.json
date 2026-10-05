@@ -15,6 +15,7 @@
     "data:regions:reconcile": "node scripts/reconcile-region-source.mjs",
     "data:regions:confirm-new": "node scripts/confirm-new-region-identity.mjs",
     "data:regions:generate": "node scripts/generate-region-data.mjs",
+    "data:adjacency:generate": "node scripts/build-adjacency.mjs",
     "data:regions:verify": "node scripts/verify-region-data.mjs",
     "data:population:sources:extract": "node scripts/extract-wpp-population.mjs",
     "data:population:generate": "node scripts/generate-population-data.mjs",

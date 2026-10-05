@@ -3,6 +3,7 @@ import type { SimulationScheduler } from '../scheduler';
 import { cohortsFor, integer, MODEL, ratio } from '../socioeconomy/model';
 import type { SchedulerTaskContext } from '../scheduler';
 import { hasGovernmentInformationAccess } from '../information/runtime';
+import { staticLandNeighbours } from '../../data/landAdjacency';
 import { EQUIPMENT_REGISTRY, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
 import { emptyOperations, OPERATIONS_MODEL, operationsComponentId, operationsDeploymentId, operationsEngagementId, validMilitaryItem,
   type Deployment, type Engagement, type OperationsState, type RegionControl, type StrategicComponent } from './model';
@@ -132,13 +133,20 @@ export function supplyDeployment(state: SimulationState, deploymentId: string, p
   };
 }
 
+/** Deterministic land neighbours: pinned static registry plus any synthetic/override edges injected into the save. */
+function neighboursOf(state: SimulationState, regionId: string): readonly string[] {
+  const injected = state.operations.adjacency[regionId] ?? [];
+  if (!injected.length) return staticLandNeighbours(regionId);
+  return [...new Set([...staticLandNeighbours(regionId), ...injected])].sort();
+}
+
 function supplyPathExists(state: SimulationState, deployment: Deployment): boolean {
   if (deployment.currentRegionId === deployment.sourceRegionId) return true;
   const queue = [deployment.sourceRegionId], seen = new Set<string>([deployment.sourceRegionId]);
   while (queue.length) {
     const current = queue.shift()!;
     if (current === deployment.currentRegionId) return true;
-    for (const neighbour of state.operations.adjacency[current] ?? []) {
+    for (const neighbour of neighboursOf(state, current)) {
       if (seen.has(neighbour)) continue;
       const owner = state.regionOwnership[neighbour];
       const control = state.operations.regionControl[neighbour];
@@ -160,7 +168,7 @@ export function runOperationsDay(state: SimulationState, context: SchedulerTaskC
     } else if (deployment.status === 'moving') {
       const order = deployment.order;
       if (order && order.effectiveOn <= next.date) {
-        const adjacency = next.operations.adjacency[deployment.currentRegionId] ?? [];
+        const adjacency = neighboursOf(next, deployment.currentRegionId);
         if (!adjacency.includes(order.targetRegionId)) throw new Error('Movement order is not along represented land adjacency.');
         if (!movementAccess(next, deployment, order.targetRegionId)) throw new Error('Movement access is denied through neutral or inaccessible territory.');
         next = { ...next, operations: { ...next.operations, deployments: { ...next.operations.deployments, [id]: { ...deployment, currentRegionId: order.targetRegionId, status: 'deployed', order: undefined } } } };
