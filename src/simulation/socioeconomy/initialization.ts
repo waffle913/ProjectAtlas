@@ -70,5 +70,7 @@ export function initializeSocioeconomy(state: SimulationState, regions: readonly
       economy: population === undefined || annual === undefined ? undefined : calibrate(population, annual, cohorts),
     };
   }
-  return { ...state, socioeconomy: { ...emptySocioeconomy(), initializedOn: state.date, regions: initialized } };
+  return { ...state, socioeconomy: { ...emptySocioeconomy(), initializedOn: state.date, regions: initialized },
+    populationByRegion: Object.fromEntries(sorted.map(region => [region.id, initialized[region.id].population])),
+    economicOutputByRegion: Object.fromEntries(sorted.map(region => [region.id, initialized[region.id].annualOutputReference])) };
 }

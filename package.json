@@ -54,6 +54,7 @@
     "operations:audit": "node scripts/operations-audit.mjs && vitest run src/simulation/__tests__/operations.test.ts --maxWorkers=1",
     "multilateral:audit": "node scripts/multilateral-audit.mjs && vitest run src/simulation/__tests__/multilateral.test.ts --maxWorkers=1",
     "multilateral:benchmark": "vitest run src/simulation/__tests__/multilateralBenchmark.test.ts --maxWorkers=1 --reporter=verbose",
+    "v1:endurance": "vitest run src/simulation/__tests__/v1Endurance.test.ts --maxWorkers=1",
     "trade:data:generate": "node scripts/trade-audit.mjs --write",
     "trade:sources:update": "node scripts/update-trade-source.mjs"
   },

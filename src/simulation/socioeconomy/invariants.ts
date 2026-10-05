@@ -43,6 +43,7 @@ export const socioeconomicInvariant: SimulationInvariant = {
         seen.add(key);
       }
       if (r.cohorts.reduce((s, c) => s + c.persons, 0) !== r.population) fail('Cohort population is not conserved.');
+      if (r.population !== state.populationByRegion[id]) fail('Region population diverges from canonical populationByRegion.');
       let expectedCohorts = populations.get(r.population);
       if (!expectedCohorts) {
         expectedCohorts = new Map(cohortsFor(r.population).map(c => [`${c.income}:${c.orientation}`, c.persons]));
