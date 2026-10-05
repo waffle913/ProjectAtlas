@@ -1,5 +1,6 @@
 import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
+import { emptyMultilateral } from '../multilateral/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
 import { emptyFiscal } from '../fiscal/model';
@@ -19,7 +20,7 @@ import { createEngineState } from '../state';
 
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.target', 'region.other', 'region.attacker']) };
 const regions: RegionEntity[] = [...context.regionIds].map((id): RegionEntity => ({ id, parentCountryId: id === 'region.attacker' ? 'country.a' : 'country.b', initialOwnerCountryId: id === 'region.attacker' ? 'country.a' : 'country.b', commonName: id, administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: [id] } }));
-const initialBase = (): SimulationState => ({ schemaVersion: 17, operations: emptyOperations(), international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.target': 'country.b', 'region.other': 'country.b', 'region.attacker': 'country.a' }, populationByRegion: { 'region.target': 5_000_000, 'region.other': 2_000_000, 'region.attacker': 3_000_000 }, economicOutputByRegion: { 'region.target': 200_000_000_000, 'region.other': 80_000_000_000, 'region.attacker': 100_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
+const initialBase = (): SimulationState => ({ schemaVersion: 18, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.target': 'country.b', 'region.other': 'country.b', 'region.attacker': 'country.a' }, populationByRegion: { 'region.target': 5_000_000, 'region.other': 2_000_000, 'region.attacker': 3_000_000 }, economicOutputByRegion: { 'region.target': 200_000_000_000, 'region.other': 80_000_000_000, 'region.attacker': 100_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
 const initial = () => initializeOperations(initialBase());
 const controlFor = (state: SimulationState, regionId: string, controllerCountryId: string): SimulationState => {
   const components = { ...state.operations.components };

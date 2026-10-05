@@ -1,5 +1,6 @@
 import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
+import { emptyMultilateral } from '../multilateral/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
 import { emptyFiscal } from '../fiscal/model';
@@ -21,7 +22,7 @@ const region: RegionEntity = {
   externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'source', sourceFeatureIds: ['feature-a'] },
 };
 const state: SimulationState = {
-  schemaVersion: 17, operations: emptyOperations(), international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+  schemaVersion: 18, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
   territoryOwnership: { 'territory.alpha': 'country.alpha' },
   regionOwnership: { 'region.permanent': 'country.alpha' },
   populationByRegion: { 'region.permanent': 12345 },
@@ -121,20 +122,20 @@ describe('Region ownership and saves', () => {
   it('migrates v3 saves deterministically without altering population or ownership', () => {
     const v3 = { schemaVersion: 3, date: '2026-02-03', paused: false, speed: 5, territoryOwnership: { 'territory.alpha': 'country.beta' }, regionOwnership: { [region.id]: 'country.beta' }, populationByRegion: { [region.id]: 456 } };
     const migrated = migrateSimulationState(v3, [region], {}, { [region.id]: 789 });
-    expect(migrated).toMatchObject({ schemaVersion: 17, date: '2026-02-03', paused: false, speed: 5 });
+    expect(migrated).toMatchObject({ schemaVersion: 18, date: '2026-02-03', paused: false, speed: 5 });
     expect(migrated.regionOwnership[region.id]).toBe('country.beta'); expect(migrated.populationByRegion[region.id]).toBe(456); expect(migrated.economicOutputByRegion[region.id]).toBe(789);
   });
   it('migrates v4 saves to an empty diplomacy baseline and preserves all prior state', () => {
     const v4 = { schemaVersion: 4, date: '2026-04-05', paused: false, speed: 2, territoryOwnership: { 'territory.alpha': 'country.beta' }, regionOwnership: { [region.id]: 'country.beta' }, populationByRegion: { [region.id]: 654 }, economicOutputByRegion: { [region.id]: 987 } };
     const migrated = migrateSimulationState(v4, [region]);
-    expect(migrated).toMatchObject({ schemaVersion: 17, date: '2026-04-05', paused: false, speed: 2, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {} });
+    expect(migrated).toMatchObject({ schemaVersion: 18, date: '2026-04-05', paused: false, speed: 2, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {} });
     expect(migrated.territoryOwnership).toEqual(v4.territoryOwnership); expect(migrated.regionOwnership).toEqual(v4.regionOwnership); expect(migrated.populationByRegion).toEqual(v4.populationByRegion); expect(migrated.economicOutputByRegion).toEqual(v4.economicOutputByRegion);
   });
   it('migrates v5 saves to an empty war baseline while preserving diplomacy', () => {
     const v5 = { schemaVersion: 5, date: '2026-05-06', paused: false, speed: 5, territoryOwnership: { 'territory.alpha': 'country.alpha' }, regionOwnership: { [region.id]: 'country.alpha' }, populationByRegion: { [region.id]: 321 }, economicOutputByRegion: { [region.id]: 654 }, bilateralRelations: {}, claims: [{ id: 'claim.saved', claimantCountryId: 'country.beta', regionId: region.id, type: 'core', creationDate: '2026-01-01', status: 'active' }], explicitCasusBelli: [] };
     const context = { countryIds: new Set(['country.alpha', 'country.beta']), regionIds: new Set([region.id]) };
     const migrated = migrateSimulationState(v5, [region], {}, {}, context);
-    expect(migrated).toMatchObject({ schemaVersion: 17, date: v5.date, paused: v5.paused, speed: v5.speed, wars: [], occupationByRegion: {} });
+    expect(migrated).toMatchObject({ schemaVersion: 18, date: v5.date, paused: v5.paused, speed: v5.speed, wars: [], occupationByRegion: {} });
     expect(migrated.territoryOwnership).toEqual(v5.territoryOwnership); expect(migrated.regionOwnership).toEqual(v5.regionOwnership); expect(migrated.populationByRegion).toEqual(v5.populationByRegion); expect(migrated.economicOutputByRegion).toEqual(v5.economicOutputByRegion); expect(migrated.claims).toEqual(v5.claims);
   });
   it('migrates v6 saves by adding deterministic engine state without changing the world', () => {

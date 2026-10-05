@@ -1,5 +1,6 @@
 import { emptyOperations } from '../../simulation/operations/model';
 import { emptyInternational } from '../../simulation/international/model';
+import { emptyMultilateral } from '../../simulation/multilateral/model';
 import { emptyTrade } from '../../simulation/trade/model';
 import { emptyMilitary } from '../../simulation/military/model';
 import { emptyFiscal } from '../../simulation/fiscal/model';
@@ -65,7 +66,7 @@ describe('milestone 0.9 global data audit', () => {
     const populationByRegion = Object.fromEntries(demographicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselinePopulation]));
     const economicOutputByRegion = Object.fromEntries(economicsJson.records.map(record => [record.regionId, record.status === 'unavailable' ? undefined : record.baselineAnnualOutputUsd]));
     const state: SimulationState = {
-      schemaVersion: 17, operations: emptyOperations(), international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 18, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(registry.territories.map(territory => [territory.id, territory.initialOwnerCountryId])),
       regionOwnership: Object.fromEntries(regions.map(region => [region.id, region.initialOwnerCountryId])),
       populationByRegion, economicOutputByRegion, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},
