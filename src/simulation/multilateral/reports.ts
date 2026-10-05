@@ -48,6 +48,7 @@ export function runMultilateralReports(state: SimulationState): SimulationState 
   const participants = new Set<string>();
   for (const treaty of Object.values(state.multilateral.treaties)) for (const party of treaty.parties) participants.add(party);
   for (const organization of Object.values(state.multilateral.organizations)) for (const member of Object.keys(organization.members)) participants.add(member);
+  if (!participants.size) return state;
   const latest = { ...state.information.multilateralReports?.latest };
   for (const countryId of [...participants].sort()) {
     if (latest[countryId]?.producedOn === state.date) continue;
