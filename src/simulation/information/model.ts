@@ -3,6 +3,7 @@ import type { PoliticalIssue } from '../politics/model';
 import type { SimulationState } from '../../types';
 import type { GovernmentMilitaryReport } from '../military/reports';
 import type { GovernmentTradeReport } from '../trade/reports';
+import type { GovernmentOperationsReport } from '../operations/reports';
 import type { InternationalActionKind, InternationalDriver, InternationalPhase, InternationalSeverity } from '../international/model';
 
 export const INFORMATION_VERSION = 'information-0.15-v3' as const;
@@ -200,6 +201,7 @@ export interface InformationState {
   tradeReports?: { latest: Record<string, GovernmentTradeReport>; byId: Record<string, GovernmentTradeReport> };
   militaryReports?: { latest: Record<string, GovernmentMilitaryReport>; byId: Record<string, GovernmentMilitaryReport> };
   internationalReports?: { latest: Record<string, GovernmentInternationalReport>; byId: Record<string, GovernmentInternationalReport> };
+  operationsReports?: { latest: Record<string, GovernmentOperationsReport>; byId: Record<string, GovernmentOperationsReport> };
   version: typeof INFORMATION_VERSION;
   initializedOn?: string;
   latestGovernmentReports: Record<string, GovernmentReport>;

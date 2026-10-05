@@ -8,6 +8,7 @@ import { restoreSimulationState, serializeSimulationState } from '../save';
 import { admitMilitaryBaseline } from '../military/runtime';
 import { createClaim } from '../diplomacy';
 import { declareLimitedWar, endWar, isWarGoalSatisfied } from '../war';
+import { inspectOperationsReports, runOperationsReports } from '../operations/reports';
 import type { Deployment, StrategicComponent } from '../operations/model';
 import type { MilitaryItem } from '../military/model';
 import type { SchedulerTaskContext } from '../scheduler';
@@ -528,5 +529,38 @@ describe('0.19 checkpoint F operational AI', () => {
     const stale = deploymentRecord({ id: 'deployment.00000000', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 10 });
     const afterAI = runOperationalAI(withDeployments(ended, [stale]));
     expect(afterAI.operations.deployments['deployment.00000000'].status).toBe('withdrawing');
+  });
+});
+
+describe('0.19 checkpoint F fog of war', () => {
+  it('produces a government-gated fog-of-war report that never exposes enemy canonical strength', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    const afterCombat = resolveCombat(state, 5000, attacker, defender);
+    const reconciled = recomputeControl(afterCombat);
+    const reported = runOperationsReports(reconciled);
+    const report = reported.information.operationsReports!.latest[militaryCountry]!;
+    expect(report.access).toBe('government');
+    expect(report.status).toBe('modelled');
+    expect(report.wars).toHaveLength(1);
+    expect(report.wars[0].enemyCountryId).toBe(otherCountry);
+    expect(report.wars[0].enemyStrength).toBe('unavailable');
+    expect(report.wars[0].control).toBe('contested');
+    expect(report.wars[0].contact).toHaveLength(1);
+    expect(report.wars[0].contact[0].recordedEnemyPersonnelLosses).toBeGreaterThan(0);
+    expect(report.wars[0]).not.toHaveProperty('enemyPersonnel');
+    expect(report.wars[0]).not.toHaveProperty('enemyEquipment');
+    expect(report.wars[0]).not.toHaveProperty('enemySupply');
+    expect(report.fingerprint).toBeTruthy();
+  });
+
+  it('gates operations report inspection behind government information access', () => {
+    const state = combatFixture();
+    const reported = runOperationsReports(state);
+    const person = state.governance.player.controlledPersonId!;
+    expect(inspectOperationsReports(reported, militaryCountry, person)).toBeDefined();
+    expect(inspectOperationsReports(reported, otherCountry, person)).toBeUndefined();
+    expect(inspectOperationsReports(reported, militaryCountry, 'unknown-person')).toBeUndefined();
   });
 });

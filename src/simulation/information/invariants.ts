@@ -8,6 +8,7 @@ import type { SimulationState } from '../../types';
 import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalEstimate, GovernmentReport } from './model';
 import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, briefingId, compareBriefings, referencedGovernmentReportIds } from './model';
 import { isSimulationDate as validDate } from '../date';
+import { validateOperationsReport } from '../operations/reports';
 
 const statusValues = new Set(['sourced', 'observed', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable']);
 const severityValues = new Set(['info', 'advisory', 'important', 'urgent']);
@@ -251,6 +252,17 @@ export const informationInvariant: SimulationInvariant = {
       }
       for (const [countryId, report] of Object.entries(internationalReports.latest)) {
         if (report.countryId !== countryId || canonicalJson(internationalReports.byId[report.id]) !== canonicalJson(report)) errors.push(`Latest international report for ${countryId} is not retained.`);
+      }
+    }
+    const operationsReports = information.operationsReports;
+    if (operationsReports) {
+      const earliest = state.operations.initializedOn! > state.information.initializedOn! ? state.operations.initializedOn! : state.information.initializedOn!;
+      for (const [id, report] of Object.entries(operationsReports.byId)) {
+        try { validateOperationsReport(report, earliest, state.date); } catch (error) { errors.push(`${id}: ${String(error)}`); }
+        if (id !== report.id || report.countryId !== (operationsReports.latest[report.countryId]?.countryId)) errors.push(`Invalid operations report identity ${id}.`);
+      }
+      for (const [countryId, report] of Object.entries(operationsReports.latest)) {
+        if (report.countryId !== countryId || canonicalJson(operationsReports.byId[report.id]) !== canonicalJson(report)) errors.push(`Latest operations report for ${countryId} is not retained.`);
       }
     }
     const governance = state.governance;
