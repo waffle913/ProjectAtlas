@@ -43,6 +43,7 @@ import { SettingsMenu } from "./components/SettingsMenu";
 import { SaveManager } from "./components/SaveManager";
 import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
+import { initDesktopBackends, exitApplication, applyNativeDisplayMode } from "./app/desktop";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
@@ -107,6 +108,8 @@ export default function App() {
   const [pauseOpen, setPauseOpen] = useState(false);
   const [saves, setSaves] = useState(() => listSaves());
   useEffect(() => { applyUiScale(settings); }, [settings]);
+  useEffect(() => { void initDesktopBackends(); }, []);
+  useEffect(() => { void applyNativeDisplayMode(settings.graphics.displayMode); }, [settings.graphics.displayMode]);
   const persistSettings = (next: AppSettings) => { setSettings(next); saveSettings(next); };
   const clock = useRef(new SimulationClock(initialState));
   useEffect(() => {
@@ -284,7 +287,7 @@ export default function App() {
     });
     setSaves(listSaves());
   };
-  const exitApp = () => { try { window.close(); } catch { /* blocked in browser */ } };
+  const exitApp = () => { void exitApplication(); };
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
   if (screen === 'load') return <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
   if (screen === 'credits') return (

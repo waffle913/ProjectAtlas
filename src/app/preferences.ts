@@ -3,17 +3,12 @@
 // localStorage. Both implement the same narrow StorageBackend interface.
 
 export type DisplayMode = 'windowed' | 'borderless' | 'fullscreen';
-export type MapQuality = 'low' | 'medium' | 'high';
 
 export interface AppSettings {
   version: 1;
   graphics: {
     displayMode: DisplayMode;
-    resolution: { width: number; height: number } | null;
-    vsync: boolean;
     uiScale: number; // 0.75 .. 1.5
-    mapQuality: MapQuality;
-    frameRateLimit: number | null;
   };
   audio: {
     masterVolume: number; // 0..1
@@ -44,7 +39,7 @@ export interface AppSettings {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   version: 1,
-  graphics: { displayMode: 'windowed', resolution: null, vsync: true, uiScale: 1, mapQuality: 'high', frameRateLimit: null },
+  graphics: { displayMode: 'windowed', uiScale: 1 },
   audio: { masterVolume: 1, musicVolume: 0.7, interfaceVolume: 0.8, notificationVolume: 0.9, muteWhenUnfocused: false },
   interface: { tooltipDelayMs: 350, confirmHighImpact: true, showProvenance: false, mapLabelDensity: 'normal' },
   gameplay: { defaultSpeed: 1, pauseOnUrgent: true, autosave: true, autosaveIntervalMinutes: 15 },

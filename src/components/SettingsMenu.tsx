@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DEFAULT_SETTINGS, type AppSettings, type DisplayMode, type MapQuality } from '../app/preferences';
+import { DEFAULT_SETTINGS, type AppSettings, type DisplayMode } from '../app/preferences';
 
 type Category = 'graphics' | 'audio' | 'interface' | 'gameplay' | 'accessibility';
 
@@ -54,15 +54,7 @@ export function SettingsMenu({ settings, onChange, onBack }: {
                   {[0.75, 0.9, 1, 1.15, 1.3, 1.5].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}
                 </select>
               </label>
-              <label>Map quality
-                <select value={settings.graphics.mapQuality} onChange={e => update({ graphics: { mapQuality: e.target.value as MapQuality } })}>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </label>
-              <label className="toggle">VSync <input type="checkbox" checked={settings.graphics.vsync} onChange={e => update({ graphics: { vsync: e.target.checked } })} /></label>
-              <p className="settings-note">Resolution and frame-rate controls are applied by the native desktop window when running the packaged application.</p>
+              <p className="settings-note">Display mode applies through the native desktop window; UI scale applies to the interface text and controls.</p>
             </>}
             {category === 'audio' && <>
               <h2>Audio</h2>
