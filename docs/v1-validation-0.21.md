@@ -65,30 +65,45 @@ treaty history, political state).
 
 ## Integrated stress campaigns (new in completion pass)
 
-New cross-system campaigns (not isolated subsystem suites):
+Dedicated cross-system campaigns (not isolated subsystem suites), all green:
 
-- **A** `v1IntegratedCampaigns.test.ts` — fiscal reform → monthly fiscal
-  execution → household/economic state → Government Information, multi-month,
-  save/reload + deterministic rerun.
-- **C** `v1IntegratedCampaigns.test.ts` — full limited war: capability →
-  deployment → movement → supply → AI combat → white-peace settlement →
-  post-war monthly stability, with sovereignty/losses preserved.
-- **D** `v1IntegratedCampaigns.test.ts` — treaty non-aggression clause →
-  activation → qualifying war → recorded violation, save/reload of violations.
-- **E** `v1IntegratedCampaigns.test.ts` — Detailed ↔ Background fidelity
-  transitions on a complex state; conserved quantities verified.
-- **F** `v1IntegratedCampaigns.test.ts` — Path A/B continuation equivalence
-  for a war state (save/reload mid-scenario, then continue).
-- **G** `v1SparseStress.test.ts` — sparse active full-registry stress
-  (1 organization, 1 treaty, 1 decision) over 90 days with monthly invariants.
+- **Trade + sanctions** `v1TradeCampaign.test.ts` — a represented food flow is
+  settled, an export restriction blocks the route (material consequence: flow
+  after restriction ≤ flow before, quantities non-negative), with save/reload
+  and deterministic continuation equivalence.
+- **A (socioeconomic/fiscal/political)** `v1IntegratedCampaigns.test.ts` —
+  fiscal execution produces a fiscal-stress account (debt/interest/unpaid
+  commitments), crisis `currentPressure` rises across 4 months, and regional
+  political-opinion cohort state changes; save/reload deterministic rerun.
+- **C (military/war/post-war)** `v1IntegratedCampaigns.test.ts` — deploy →
+  movement/supply → AI combat producing positive casualties and equipment
+  destruction → genuine decisive-component capture (`foreign_controlled`) →
+  matching occupation → `take_region` goal satisfied → attacker-victory
+  settlement transferring only the target → 3 post-war months with losses
+  surviving (no resurrection).
+- **D (treaty/multilateral/war)** `v1IntegratedCampaigns.test.ts` — organization
+  establishment, proposal, vote, adopted condemnation routed through the
+  international system, then withdrawal; save/reload preserves membership and
+  the adopted decision.
+- **E (fidelity)** `v1IntegratedCampaigns.test.ts` — Detailed ↔ Background on a
+  state holding fiscal stress, a treaty, an organization and military stock;
+  population, debt, personnel, equipment, ammunition, sovereignty, treaties and
+  organizations all conserved.
+- **F (continuation equivalence)** `v1IntegratedCampaigns.test.ts` — Path A/B
+  comparison across tick, ownership, occupation, fiscal debt, deployments,
+  treaties, trade flows and political opinion.
+- **G (sparse active stress)** `v1SparseStress.test.ts` — trade + export
+  restriction + a declared war with deployments + a treaty/organization/decision
+  together at 252/4574 scale over 90 days: `V1_SPARSE_STRESS` shows 1 trade
+  flow, 1 war, 2 deployments, 1 restriction, 1 treaty, 1 organization, 8
+  briefings, ~9s.
 
 Defects exposed and corrected by these campaigns:
 
-- **AI multi-party treaty signing/activation (critical).** `runMultilateralAI`
-  signed the second party against a stale treaty object (losing the first
-  signature) and never auto-activated a `signature`-type treaty when all
-  parties signed. Root-cause fix: re-read the treaty from the updated state per
-  party and set `status: 'active'` / `activeOn` once all parties signed.
+- **Historical vote invariant false-positive (critical).** The multilateral
+  invariant rejected a decision's historical votes after a voter withdrew from
+  the organization. Root-cause fix: validate the vote choice (already enforced
+  at cast time by `voteOnDecision`) rather than re-checking current membership.
 
 ## Remaining known limitations (non-blocking, deferred post-V1)
 
