@@ -4,6 +4,8 @@ import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { MULTILATERAL_VERSION, type Treaty } from '../multilateral/model';
+import { activateTreaty, hasTreatyAuthority, proposeTreaty, ratifyTreaty, signTreaty, terminateTreaty, withdrawTreaty } from '../multilateral/runtime';
+import { assignPoliticalOffice, createPoliticalPerson, setControlledPerson } from '../governance/runtime';
 
 const baseState = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
 const countryA = worldCountryIds[0], countryB = worldCountryIds[1];
@@ -22,6 +24,7 @@ function validTreaty(overrides: Partial<Treaty> = {}): Treaty {
     ratifications: {},
     entryIntoForce: { kind: 'ratification', requiredRatifications: 2 },
     withdrawal: { noticeDays: 30 },
+    withdrawals: {},
     status: 'proposed',
     clauses: [{ kind: 'non_aggression', partyAId: countryA, partyBId: countryB }],
     provenance: { status: 'synthetic', limitation: 'Synthetic fixture; not an observed real-world agreement.' },
@@ -81,4 +84,120 @@ describe('0.20 multilateral canonical model and schema-18 migration', () => {
     const uninitialized = { ...state, multilateral: { ...state.multilateral, initializedOn: undefined, treaties: { [treaty.id]: treaty }, treatyOrder: [treaty.id] } };
     expect(() => assertSimulationInvariants(uninitialized, worldContext, 'save')).toThrow(/Uninitialized multilateral/);
   });
+});
+
+describe('0.20 treaty authority and lifecycle', () => {
+  const executive = (state: ReturnType<typeof baseState>, countryId: string) => {
+    let next = createPoliticalPerson(state, { countryId, displayName: `Synthetic treaty executive ${countryId}` });
+    const personId = Object.keys(next.governance.persons).find(id => next.governance.persons[id].countryId === countryId && !next.governance.persons[id].office)!;
+    next = setControlledPerson(assignPoliticalOffice(next, personId, { countryId, role: 'head_of_government' }), personId);
+    return { state: next, personId };
+  };
+  const input = (overrides: Partial<Parameters<typeof proposeTreaty>[2]> = {}) => ({
+    title: 'Synthetic mutual assistance treaty',
+    parties: [countryA, countryB],
+    clauses: [{ kind: 'non_aggression' as const, partyAId: countryA, partyBId: countryB }],
+    entryIntoForce: { kind: 'ratification' as const, requiredRatifications: 2 },
+    withdrawal: { noticeDays: 30 },
+    ...overrides,
+  });
+
+  it('requires a resolved executive office, not Country selection alone', () => {
+    const { state } = executive(baseState(), countryA);
+    const noOffice = createPoliticalPerson(state, { countryId: countryA, displayName: 'No office' });
+    const noOfficeId = Object.keys(noOffice.governance.persons).find(id => !noOffice.governance.persons[id].office)!;
+    const uncontrolled = setControlledPerson(noOffice, noOfficeId);
+    expect(hasTreatyAuthority(uncontrolled, countryA, noOfficeId)).toBe(false);
+    expect(() => proposeTreaty(uncontrolled, noOfficeId, input())).toThrow(/resolved executive office/);
+  });
+
+  it('proposes and signs, keeping signature separate from ratification-based entry into force', () => {
+    const a = executive(baseState(), countryA);
+    let state = a.state;
+    state = proposeTreaty(state, a.personId, input());
+    const treatyId = state.multilateral.treatyOrder[0];
+    expect(state.multilateral.treaties[treatyId].status).toBe('proposed');
+    state = signTreaty(state, treatyId, a.personId);
+    expect(state.multilateral.treaties[treatyId].status).toBe('signed');
+    expect(state.multilateral.treaties[treatyId].activeOn).toBeUndefined();
+    state = ratifyTreaty(state, treatyId, a.personId);
+    expect(state.multilateral.treaties[treatyId].status).toBe('signed');
+    expect(() => activateTreaty(state, treatyId, a.personId)).toThrow(/threshold/);
+  });
+
+  it('enters into force only after the required ratification threshold is met', () => {
+    const a = executive(baseState(), countryA);
+    let state = a.state;
+    state = proposeTreaty(state, a.personId, input());
+    const treatyId = state.multilateral.treatyOrder[0];
+    state = signTreaty(state, treatyId, a.personId);
+    const b = executive(state, countryB);
+    state = b.state;
+    state = signTreaty(state, treatyId, b.personId);
+    state = ratifyTreaty(state, treatyId, b.personId);
+    state = setControlledPerson(state, a.personId);
+    state = ratifyTreaty(state, treatyId, a.personId);
+    state = activateTreaty(state, treatyId, a.personId);
+    expect(state.multilateral.treaties[treatyId].status).toBe('active');
+    expect(state.multilateral.treaties[treatyId].activeOn).toBe(state.date);
+    expect(assertSimulationInvariants(state, worldContext, 'save')).toBe(true);
+  });
+
+  it('supports on-signature entry into force without a separate ratification step', () => {
+    const a = executive(baseState(), countryA);
+    let state = a.state;
+    state = proposeTreaty(state, a.personId, input({ entryIntoForce: { kind: 'signature', requiredRatifications: 2 } }));
+    const treatyId = state.multilateral.treatyOrder[0];
+    state = signTreaty(state, treatyId, a.personId);
+    expect(state.multilateral.treaties[treatyId].status).toBe('signed');
+    const b = executive(state, countryB);
+    state = b.state;
+    state = signTreaty(state, treatyId, b.personId);
+    expect(state.multilateral.treaties[treatyId].status).toBe('active');
+  });
+
+  it('rejects, withdraws and terminates coherently', () => {
+    const a = executive(baseState(), countryA);
+    let state = proposeTreaty(a.state, a.personId, input());
+    const treatyId = state.multilateral.treatyOrder[0];
+    state = withdrawTreaty(state, treatyId, a.personId);
+    expect(state.multilateral.treaties[treatyId].status).toBe('terminated');
+    expect(state.multilateral.treaties[treatyId].withdrawals).toHaveProperty(countryA);
+    // Re-propose, activate on signature, then terminate
+    const a2 = executive(baseState(), countryA);
+    let active = proposeTreaty(a2.state, a2.personId, input({ entryIntoForce: { kind: 'signature', requiredRatifications: 2 } }));
+    const activeId = active.multilateral.treatyOrder[0];
+    active = signTreaty(active, activeId, a2.personId);
+    const b = executive(active, countryB);
+    active = b.state;
+    active = signTreaty(active, activeId, b.personId);
+    expect(active.multilateral.treaties[activeId].status).toBe('active');
+    active = setControlledPerson(active, a2.personId);
+    active = terminateTreaty(active, activeId, a2.personId);
+    expect(active.multilateral.treaties[activeId].status).toBe('terminated');
+    expect(active.multilateral.treaties[activeId].terminatedOn).toBe(active.date);
+  });
+
+  it('round-trips every lifecycle phase through save/reload', () => {
+    const a = executive(baseState(), countryA);
+    let state = a.state;
+    const roundTrip = (current: ReturnType<typeof baseState>) => restoreSimulationState(serializeSimulationState(current, worldContext), worldRegions, {}, {}, worldContext);
+    state = proposeTreaty(state, a.personId, input());
+    expect(roundTrip(state)).toEqual(state);
+    const treatyId = state.multilateral.treatyOrder[0];
+    state = signTreaty(state, treatyId, a.personId);
+    const b = executive(state, countryB);
+    state = b.state;
+    state = signTreaty(state, treatyId, b.personId);
+    expect(roundTrip(state)).toEqual(state);
+    state = ratifyTreaty(state, treatyId, b.personId);
+    state = setControlledPerson(state, a.personId);
+    state = ratifyTreaty(state, treatyId, a.personId);
+    expect(roundTrip(state)).toEqual(state);
+    state = activateTreaty(state, treatyId, a.personId);
+    expect(roundTrip(state)).toEqual(state);
+    state = setControlledPerson(state, b.personId);
+    state = withdrawTreaty(state, treatyId, b.personId);
+    expect(roundTrip(state)).toEqual(state);
+  }, 120000);
 });

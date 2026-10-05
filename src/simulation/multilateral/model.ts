@@ -34,6 +34,7 @@ export interface Treaty {
   ratifications: Record<string, string>;
   entryIntoForce: { kind: 'signature' | 'ratification'; requiredRatifications: number };
   withdrawal: { noticeDays: number };
+  withdrawals: Record<string, string>;
   status: TreatyStatus;
   activeOn?: string;
   terminatedOn?: string;

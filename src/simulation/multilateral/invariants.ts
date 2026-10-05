@@ -26,6 +26,9 @@ export const multilateralInvariant: SimulationInvariant = {
       }
       if (!['signature', 'ratification'].includes(treaty.entryIntoForce.kind) || !Number.isSafeInteger(treaty.entryIntoForce.requiredRatifications) || treaty.entryIntoForce.requiredRatifications < 1 || treaty.entryIntoForce.requiredRatifications > treaty.parties.length) errors.push(`Treaty ${id} has an invalid entry-into-force rule.`);
       if (!Number.isSafeInteger(treaty.withdrawal.noticeDays) || treaty.withdrawal.noticeDays < 0) errors.push(`Treaty ${id} has invalid withdrawal rules.`);
+      for (const [countryId, date] of Object.entries(treaty.withdrawals)) {
+        if (!treaty.parties.includes(countryId) || !validDate(date) || date < treaty.proposalDate || date > state.date) errors.push(`Treaty ${id} has an invalid withdrawal for ${countryId}.`);
+      }
       if (treaty.activeOn !== undefined && (!validDate(treaty.activeOn) || treaty.activeOn > state.date || treaty.activeOn < treaty.proposalDate)) errors.push(`Treaty ${id} has an invalid active date.`);
       if (treaty.terminatedOn !== undefined && (!validDate(treaty.terminatedOn) || treaty.terminatedOn > state.date || treaty.terminatedOn < treaty.proposalDate || (treaty.activeOn && treaty.terminatedOn < treaty.activeOn))) errors.push(`Treaty ${id} has an invalid termination date.`);
       if (treaty.status === 'proposed' && (treaty.activeOn !== undefined || treaty.terminatedOn !== undefined)) errors.push(`Proposed treaty ${id} carries an activation/termination date.`);
