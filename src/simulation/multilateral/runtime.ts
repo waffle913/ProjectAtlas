@@ -407,9 +407,12 @@ export function runMultilateralAI(state: SimulationState): SimulationState {
   const playerCountry = aiControlledCountry(state);
   for (const treaty of Object.values(next.multilateral.treaties)) {
     for (const countryId of treaty.parties) {
+      const current = next.multilateral.treaties[treaty.id];
       if (countryId === playerCountry) continue;
-      if (treaty.status === 'proposed' && !treaty.signatories[countryId] && aiShouldSign(next, countryId, treaty)) {
-        next = { ...next, multilateral: { ...next.multilateral, treaties: { ...next.multilateral.treaties, [treaty.id]: { ...treaty, signatories: { ...treaty.signatories, [countryId]: next.date }, status: 'signed', history: [...treaty.history, { date: next.date, kind: 'signed', countryId, detail: `${countryId} signed.` }] } } } };
+      if (['proposed', 'signed'].includes(current.status) && !current.signatories[countryId] && aiShouldSign(next, countryId, current)) {
+        const signatories = { ...current.signatories, [countryId]: next.date };
+        const active = current.parties.every(p => signatories[p]) && current.entryIntoForce.kind === 'signature';
+        next = { ...next, multilateral: { ...next.multilateral, treaties: { ...next.multilateral.treaties, [current.id]: { ...current, signatories, status: active ? 'active' : 'signed', activeOn: active ? next.date : current.activeOn, history: [...current.history, { date: next.date, kind: 'signed', countryId, detail: `${countryId} signed.` }, ...(active ? [{ date: next.date, kind: 'entered_into_force', detail: 'Entered into force by signature.' }] : [])] } } } };
       }
     }
     const signed = next.multilateral.treaties[treaty.id];
