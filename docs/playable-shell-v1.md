@@ -22,7 +22,10 @@ disabled when none), New Game, Load Game, Settings, Credits / Data Sources, Exit
 ## Settings
 
 `src/components/SettingsMenu.tsx` exposes five categories — Graphics/Video,
-Audio, Interface, Gameplay, Accessibility — with restore-defaults. Values persist
+Audio, Interface, Gameplay, Accessibility — with restore-defaults. Only
+genuinely functional options remain: display mode (native window), UI scale and
+high-contrast/reduced-motion (CSS). Non-functional VSync, frame-rate and
+map-quality controls were removed rather than left as placebo. Values persist
 independently of `SimulationState` and survive restart.
 
 ## Save / Load / Delete
@@ -51,15 +54,28 @@ been removed from the player-facing surface.
 - Initial fallback leaders use deterministic, culturally plausible regional
   given/family name pools keyed by the Country's continent/subregion, replacing
   the synthetic syllable generator. Provenance marks them `modelled_fallback`.
+- The leader-evidence pipeline enumerates all 948 parties: 35 have a reviewed
+  Party-Facts/Wikidata bridge, 7 have dated 2026-01-01 leadership evidence with a
+  reviewed analogue, 1 is ambiguous, and 941 remain explicit modelled fallbacks
+  (no dated evidence exists, so none is fabricated).
 - Reviewed real-leader analogues and post-start succession behaviour are
   unchanged.
 
 ## Tauri integration
 
-`src-tauri/` holds the Tauri v2 desktop configuration. The desktop build wraps
-the Vite frontend in a native resizable window (minimum size configured), bundles
-all local map/data assets, provides desktop save/settings persistence, and closes
-cleanly — no `npm run dev`, no localhost, no Node/Rust needed at runtime.
+`src-tauri/` holds the Tauri v2 desktop configuration and a native command layer
+(save list/read/write/delete, settings read/write, display-mode, exit) that
+stores saves under `<app-data>/saves/*.json` and settings at
+`<app-data>/settings.json`. `src/app/desktop.ts` detects the Tauri runtime at
+startup and swaps the browser localStorage backends for the native ones
+(memory-cached with async persistence). The desktop build wraps the Vite
+frontend in a native resizable window, bundles all local map/data assets, and
+closes cleanly — no `npm run dev`, no localhost, no Node/Rust needed at runtime.
+
+Windows native packaging is validated by the dedicated
+`.github/workflows/desktop-windows.yml` job, which installs stable Rust, builds
+the frontend and Tauri release, and uploads the `.exe` and NSIS installer as a
+GitHub Actions artifact.
 
 ## Developer commands
 

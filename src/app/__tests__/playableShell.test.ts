@@ -3,6 +3,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings, setSettingsBackend, type StorageBackend } from '../preferences';
 import { deleteSave, listSaves, loadSave, renameSave, saveGame, setSaveBackend, type SaveBackend } from '../saveStorage';
+import { initDesktopBackends, isTauri } from '../desktop';
 import { politicalRegistry } from '../../simulation/politics/registry';
 import { MainMenu } from '../../components/MainMenu';
 import { StartGame } from '../../components/StartGame';
@@ -67,5 +68,25 @@ describe('0.21 playable shell', () => {
     const start = renderToStaticMarkup(createElement(StartGame, { countries: [], persons: [], onPlay: () => {} }));
     expect(start).not.toContain('synthetic');
     expect(start).not.toContain('0.17 candidate');
+  });
+
+  it('selects browser backends in dev and exposes no placebo graphics settings', async () => {
+    expect(isTauri()).toBe(false);
+    expect(await initDesktopBackends()).toBe(false);
+    expect(Object.keys(DEFAULT_SETTINGS.graphics).sort()).toEqual(['displayMode', 'uiScale']);
+    expect(DEFAULT_SETTINGS).not.toHaveProperty('graphics.vsync');
+    expect(DEFAULT_SETTINGS).not.toHaveProperty('graphics.mapQuality');
+    expect(DEFAULT_SETTINGS).not.toHaveProperty('graphics.frameRateLimit');
+  });
+
+  it('keeps source and gameplay political identities distinct with dated provenance', () => {
+    const source = politicalRegistry.sourceSnapshotSha256;
+    expect(typeof source).toBe('string');
+    for (const party of Object.values(politicalRegistry.parties).slice(0, 60)) {
+      expect(party.sourceBasis.sourcePartyId).toBeTruthy();
+      expect(party.sourceBasis.sourcePartyName).toBeTruthy();
+      expect(party.fictional).toBe(true);
+      expect(party.displayName).not.toBe(party.sourceBasis.sourcePartyName);
+    }
   });
 });
