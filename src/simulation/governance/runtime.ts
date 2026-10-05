@@ -8,6 +8,8 @@ import { addProposalResultBriefing } from '../information/runtime';
 import partyLeadershipSources from '../../data/source-snapshots/party-leadership-2026-01-01.json';
 import politicalOffices from '../../data/political-offices.json';
 import { assertInitialOfficeReconciliation } from './initialOfficeEvidence';
+import { namePoolForCountry } from './namePools';
+import entityRegistry from '../../data/entity-registry.json';
 import { capabilitiesForReconciledAuthority, executiveAuthorityBasis } from './officeEvidence';
 export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal } from './analysis';
@@ -26,8 +28,6 @@ const capabilitiesFor = (role: PoliticalOfficeRole): AuthorityCapability[] => ro
   ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations']
   : role === 'legislator' ? ['sponsor_legislation', 'vote_legislation'] : [];
 const authorityLimitation = 'Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule.';
-const leaderNameSyllables = ['Ari', 'Bel', 'Cor', 'Davi', 'Eli', 'Fari', 'Galen', 'Havi', 'Ira', 'Jori', 'Kavi', 'Lena', 'Mira', 'Navi', 'Oren', 'Pavi', 'Quin', 'Ravi', 'Sela', 'Tavi', 'Uma', 'Veli', 'Wren', 'Xavi', 'Yara', 'Zori'];
-const leaderFamilySyllables = ['Aven', 'Borin', 'Ceren', 'Dalen', 'Evar', 'Feron', 'Galen', 'Halen', 'Iven', 'Jorin', 'Kalen', 'Lorin', 'Maren', 'Nerin', 'Ovan', 'Peren', 'Qorin', 'Ralen', 'Soren', 'Talen', 'Uren', 'Varen', 'Walen', 'Xeren', 'Yorin', 'Zalen'];
 const LEADER_PROFILE_VARIATION_BPS = 250;
 const SOURCE_LEADER_LIMITATION = 'No pinned, licensing-cleared party-leadership source applicable on 2026-01-01 is available in the ProjectAtlas political registry. The gameplay identity is fictional and is not a sourced real-person analogue.';
 type ReviewedLeaderMapping = {
@@ -58,12 +58,13 @@ const ambiguousSourceLeaderPartyIds = new Set(partyLeadershipSources.partyCandid
 const sourceOfficeById = new Map(politicalOffices.offices.map(office => [office.id, office]));
 type SourceOfficeholder = typeof politicalOffices.officeholders[number];
 
-function fictionalLeaderName(state: SimulationState, partyId: string, eventKey: string, usedNames: Set<string>) {
-  for (let attempt = 0; attempt < 10_000; attempt += 1) {
+function fictionalLeaderName(state: SimulationState, partyId: string, eventKey: string, usedNames: Set<string>, countryId: string) {
+  const pool = namePoolForCountry(entityRegistry.countries.find(country => country.id === countryId) ?? {});
+  for (let attempt = 0; attempt < 100_000; attempt += 1) {
     const pick = (system: string, length: number) => deterministicInteger(state.engine.seed, { system, entityId: partyId, date: state.date, eventKey: `${eventKey}:${attempt}` }, 0, length);
-    const given = `${leaderNameSyllables[pick('party-leadership.given-a', leaderNameSyllables.length)]}${leaderNameSyllables[pick('party-leadership.given-b', leaderNameSyllables.length)].toLowerCase()}`;
-    const family = `${leaderFamilySyllables[pick('party-leadership.family-a', leaderFamilySyllables.length)]}${leaderFamilySyllables[pick('party-leadership.family-b', leaderFamilySyllables.length)].toLowerCase()}`;
-    const name = `${given} ${family}`;
+    const given = pool.given[pick('party-leadership.given', pool.given.length)];
+    const family = pool.family[pick('party-leadership.family', pool.family.length)];
+    const name = attempt === 0 ? `${given} ${family}` : `${given} ${family} ${attempt + 1}`;
     if (!usedNames.has(name)) return name;
   }
   throw new Error(`Unable to produce a unique fictional leader identity for party ${partyId}.`);
@@ -215,7 +216,7 @@ function initializeSourceOfficeholders(state: SimulationState, registry: Politic
       if (selected.record.person?.name) usedNames.add(selected.record.person.name);
       person = {
         id,
-        displayName: fictionalLeaderName(next, `officeholder:${sourcePersonId}`, `initial-officeholder:${countryId}`, usedNames),
+        displayName: fictionalLeaderName(next, `officeholder:${sourcePersonId}`, `initial-officeholder:${countryId}`, usedNames, countryId),
         countryId,
         createdOn: state.date,
         isPartyLeader: false,
@@ -301,7 +302,7 @@ export function replacePartyLeader(state: SimulationState, partyId: string, succ
     contextEvidence = buildLeadershipSuccessionEvidence(state, partyId, successionRecordId, politicalRegistry);
     successor = {
       id,
-      displayName: fictionalLeaderName(state, partyId, `succession:${state.governance.nextSuccessionSequence}`, usedNames),
+      displayName: fictionalLeaderName(state, partyId, `succession:${state.governance.nextSuccessionSequence}`, usedNames, party.countryId),
       countryId: party.countryId,
       createdOn: state.date,
       partyId,
@@ -391,7 +392,7 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
     const provenance = leaderProvenance(party.id, 'party_platform_initial_v2', registry, mapping ?? null);
     const displayName = mapping && provenance.basis !== 'modelled_fallback'
       ? mapping.fictionalAnalogueName
-      : fictionalLeaderName(next, party.id, 'initial', usedNames);
+      : fictionalLeaderName(next, party.id, 'initial', usedNames, party.countryId);
     if (usedNames.has(displayName)) throw new Error(`Initial party leader analogue name is not unique: ${displayName}.`);
     const leader = {
       id,
