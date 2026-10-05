@@ -64,6 +64,11 @@ function deriveRegionControlFor(sovereign: string | undefined, components: reado
 
 export function deploy(state: SimulationState, input: { countryId: string; personId: string; warId?: string; sourceRegionId: string; currentRegionId: string; personnel: number; equipment?: Partial<Record<MilitaryItem, number>>; supply?: { ammunition: number; fuel: number } }): SimulationState {
   requireAuthority(state, input.countryId, input.personId);
+  return deployForces(state, input);
+}
+
+/** Physical deployment creation: validates availability against the one canonical military capability, never a Country-control shortcut. */
+function deployForces(state: SimulationState, input: { countryId: string; warId?: string; sourceRegionId: string; currentRegionId: string; personnel: number; equipment?: Partial<Record<MilitaryItem, number>>; supply?: { ammunition: number; fuel: number } }): SimulationState {
   integer(input.personnel);
   if (input.personnel <= 0) throw new Error('A deployment requires positive personnel.');
   const capability = state.military.countries[input.countryId]?.capability;
@@ -99,6 +104,12 @@ export function withdrawDeployment(state: SimulationState, deploymentId: string,
   const deployment = state.operations.deployments[deploymentId];
   if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   requireAuthority(state, deployment.countryId, personId);
+  return withdrawForces(state, deploymentId);
+}
+
+function withdrawForces(state: SimulationState, deploymentId: string): SimulationState {
+  const deployment = state.operations.deployments[deploymentId];
+  if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   if (deployment.status === 'withdrawn') return state;
   return { ...state, operations: { ...state.operations, deployments: { ...state.operations.deployments, [deploymentId]: { ...deployment, status: 'withdrawing', withdrawalEffectiveOn: nextDay(state.date) } } } };
 }
@@ -107,6 +118,12 @@ export function orderMovement(state: SimulationState, deploymentId: string, pers
   const deployment = state.operations.deployments[deploymentId];
   if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   requireAuthority(state, deployment.countryId, personId);
+  return orderMovementForces(state, deploymentId, targetRegionId);
+}
+
+function orderMovementForces(state: SimulationState, deploymentId: string, targetRegionId: string): SimulationState {
+  const deployment = state.operations.deployments[deploymentId];
+  if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   if (deployment.status === 'withdrawn') throw new Error('A withdrawn deployment cannot move.');
   if (!state.regionOwnership[targetRegionId]) throw new Error(`Unknown Region: ${targetRegionId}`);
   const effectiveOn = nextDay(state.date);
@@ -117,6 +134,12 @@ export function supplyDeployment(state: SimulationState, deploymentId: string, p
   const deployment = state.operations.deployments[deploymentId];
   if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   requireAuthority(state, deployment.countryId, personId);
+  return supplyForces(state, deploymentId, ammunition, fuel);
+}
+
+function supplyForces(state: SimulationState, deploymentId: string, ammunition: number, fuel: number): SimulationState {
+  const deployment = state.operations.deployments[deploymentId];
+  if (!deployment) throw new Error(`Unknown deployment: ${deploymentId}`);
   integer(ammunition); integer(fuel);
   if (!ammunition && !fuel) return state;
   const capability = state.military.countries[deployment.countryId]?.capability;
@@ -567,4 +590,81 @@ export function deployedPersonnelTotal(state: SimulationState, countryId: string
   return total;
 }
 
-export const registerOperationsTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'operations.daily', cadence: 'daily', priority: OPERATIONS_MODEL.schedulerPriority, run: runOperationsDay });
+function aiControlledCountry(state: SimulationState): string | undefined {
+  const personId = state.governance.player.controlledPersonId;
+  return personId ? state.governance.persons[personId]?.countryId : undefined;
+}
+
+function firstAssignmentRegion(state: SimulationState, countryId: string): string | undefined {
+  const capability = state.military.countries[countryId]?.capability;
+  if (!capability) return undefined;
+  return Object.keys(capability.assignments).sort().find(region => (capability.assignments[region] ?? 0) > 0 && state.regionOwnership[region] === countryId);
+}
+
+/** Bounded, deterministic V1 operational AI: acts only for non-player belligerents inside active wars, from represented forces only. */
+export function runOperationalAI(state: SimulationState): SimulationState {
+  if (!state.operations.initializedOn) return state;
+  let next = state;
+  const playerCountry = aiControlledCountry(state);
+  for (const war of next.wars.filter(item => item.status === 'active').sort((a, b) => a.id.localeCompare(b.id))) {
+    for (const countryId of [war.attackerCountryId, war.defenderCountryId].sort()) {
+      if (countryId === playerCountry) continue;
+      if (!next.military.countries[countryId]?.capability) continue;
+      const deployments = Object.values(next.operations.deployments).filter(deployment => deployment.countryId === countryId && deployment.warId === war.id && deployment.status !== 'withdrawn');
+      if (!deployments.length) {
+        next = aiDeployForWar(next, countryId, war.id, war.targetRegionId);
+        continue;
+      }
+      for (const deployment of deployments) next = aiResupply(next, deployment);
+    }
+  }
+  for (const deployment of Object.values(next.operations.deployments)) {
+    if (deployment.status === 'withdrawn' || !deployment.warId || deployment.countryId === playerCountry) continue;
+    const war = next.wars.find(item => item.id === deployment.warId);
+    if (!war || war.status !== 'active') next = withdrawForces(next, deployment.id);
+  }
+  return next;
+}
+
+function aiDeployForWar(state: SimulationState, countryId: string, warId: string, targetRegionId: string): SimulationState {
+  const capability = state.military.countries[countryId]?.capability;
+  if (!capability) return state;
+  const sourceRegionId = state.regionOwnership[targetRegionId] === countryId ? targetRegionId : firstAssignmentRegion(state, countryId);
+  if (!sourceRegionId) return state;
+  const available = Math.max(0, presentPersonnel(capability) - trainingPersonnel(capability)) - deployedTotals(state, countryId).personnel;
+  const assignment = capability.assignments[sourceRegionId] ?? 0;
+  const regionDeployed = deployedPersonnelByRegion(state, countryId).get(sourceRegionId) ?? 0;
+  const personnel = Math.min(OPERATIONS_MODEL.aiDeployPersonnel, available, assignment - regionDeployed);
+  if (personnel <= 0) return state;
+  const equipment: Partial<Record<MilitaryItem, number>> = {};
+  for (const item of ['personal', 'truck'] as MilitaryItem[]) {
+    const stock = capability.equipment[item]?.operational ?? 0;
+    const already = deployedTotals(state, countryId).equipment[item] ?? 0;
+    const want = item === 'truck' ? Math.min(OPERATIONS_MODEL.aiDeployTrucks, stock - already) : Math.min(personnel, stock - already);
+    if (want > 0) equipment[item] = want;
+  }
+  let next = state;
+  try {
+    next = deployForces(next, { countryId, warId, sourceRegionId, currentRegionId: sourceRegionId, personnel, equipment });
+  } catch {
+    return state;
+  }
+  const id = next.operations.deploymentOrder[next.operations.deploymentOrder.length - 1];
+  const deployment = next.operations.deployments[id];
+  if (sourceRegionId !== targetRegionId && neighboursOf(next, sourceRegionId).includes(targetRegionId) && movementAccess(next, deployment, targetRegionId)) {
+    try { next = orderMovementForces(next, id, targetRegionId); } catch { /* deployment remains at source */ }
+  }
+  return next;
+}
+
+function aiResupply(state: SimulationState, deployment: Deployment): SimulationState {
+  try {
+    return supplyForces(state, deployment.id, OPERATIONS_MODEL.aiResupplyAmmunition, OPERATIONS_MODEL.aiResupplyFuel);
+  } catch {
+    return state;
+  }
+}
+
+export const registerOperationsTasks = (scheduler: SimulationScheduler) => scheduler
+  .register({ id: 'operations.ai', cadence: 'daily', priority: OPERATIONS_MODEL.aiSchedulerPriority, run: runOperationalAI })
+  .register({ id: 'operations.daily', cadence: 'daily', priority: OPERATIONS_MODEL.schedulerPriority, run: runOperationsDay });

@@ -73,10 +73,15 @@ export interface OperationsState {
 export const OPERATIONS_MODEL = Object.freeze({
   version: OPERATIONS_VERSION,
   schedulerPriority: 270,
+  aiSchedulerPriority: 265,
   componentFallbackDecisive: 1,
   captureThresholdBps: 5000,  // challenger progress (bps) required to flip a decisive component's controller
   captureStepBps: 2500,       // progress gained per decisive combat win
   defendStepBps: 2500,        // challenger progress repelled per decisive win by the current controller
+  aiDeployPersonnel: 20,      // personnel the V1 AI mobilizes per deployment
+  aiDeployTrucks: 5,          // trucks the V1 AI attaches for logistics
+  aiResupplyAmmunition: 40,   // ammunition the V1 AI requests per resupply
+  aiResupplyFuel: 20,         // fuel the V1 AI requests per resupply
 });
 
 /** Finite logistics throughput: distant resupply is convoy-limited by trucks, crews, hops and fuel; local (same-Region) resupply is stock-bounded only. */

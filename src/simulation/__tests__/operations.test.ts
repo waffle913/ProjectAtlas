@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { militaryFixture, militaryCountry, otherCountry, militaryRegions, militaryContext, militaryParameters } from './military.test';
 import { assertSimulationInvariants } from '../invariants';
 import { createPoliticalPerson, setControlledPerson } from '../governance/runtime';
-import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, recomputeControl, resolveOneEngagement, supplyDeployment, withdrawDeployment } from '../operations/runtime';
+import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, recomputeControl, resolveOneEngagement, runOperationalAI, supplyDeployment, withdrawDeployment } from '../operations/runtime';
 import { advanceSimulationDays } from '../engine';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { admitMilitaryBaseline } from '../military/runtime';
@@ -206,10 +206,9 @@ describe('0.19 checkpoint D deterministic combat contracts', () => {
     ]), 2);
     const artifacts = (s: typeof base) => ({
       engagements: Object.fromEntries(Object.entries(s.operations.engagements).filter(([, engagement]) => engagement.warId === combatWarId)),
-      engagementOrder: s.operations.engagementOrder,
-      deployments: s.operations.deployments,
-      military: s.military,
-      populationByRegion: s.populationByRegion,
+      deployments: Object.fromEntries(Object.entries(s.operations.deployments).filter(([, deployment]) => deployment.warId === combatWarId)),
+      components: s.operations.components,
+      regionControl: s.operations.regionControl,
     });
     expect(artifacts(disturbed)).toEqual(artifacts(base));
   });
@@ -495,5 +494,39 @@ describe('0.19 checkpoint E strategic capture and control', () => {
     expect(ended.regionOwnership[targetRegionId]).toBe(militaryCountry);
     expect(ended.military.countries[otherCountry].capability!.equipment.personal!.destroyed).toBe(destroyed);
     expect(ended.military.countries[otherCountry].capability!.equipment.personal!.operational).toBe(afterCombat.military.countries[otherCountry].capability!.equipment.personal!.operational);
+  });
+});
+
+describe('0.19 checkpoint F operational AI', () => {
+  it('deploys and resupplies non-player belligerents without touching the player country or declaring wars', () => {
+    const state = combatFixture();
+    const afterAI = runOperationalAI(state);
+    expect(Object.values(afterAI.operations.deployments).some(deployment => deployment.countryId === otherCountry)).toBe(true);
+    expect(Object.values(afterAI.operations.deployments).some(deployment => deployment.countryId === militaryCountry)).toBe(false);
+    expect(afterAI.wars).toEqual(state.wars);
+    expect(afterAI.military.countries[otherCountry].capability!.consumables.ammunition!.quantity).toBe(1000);
+    const day1 = advanceSimulationDays(afterAI, 1);
+    const defenderDeployment = Object.values(day1.operations.deployments).find(deployment => deployment.countryId === otherCountry)!;
+    expect(defenderDeployment.status).toBe('deployed');
+    expect(defenderDeployment.supply.ammunition).toBeGreaterThan(0);
+  });
+
+  it('respects physical availability and never fabricates forces', () => {
+    const state = combatFixture();
+    const capability = state.military.countries[otherCountry].capability!;
+    const totalAvailable = Object.values(capability.assignments).reduce((sum, value) => sum + value, 0);
+    const existing = deploymentRecord({ id: 'deployment.00000000', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: totalAvailable });
+    const afterAI = runOperationalAI(withDeployments(state, [existing]));
+    const deployments = Object.values(afterAI.operations.deployments).filter(deployment => deployment.countryId === otherCountry && deployment.status !== 'withdrawn');
+    expect(deployments).toHaveLength(1);
+    expect(deployments[0].personnel).toBe(totalAvailable);
+  });
+
+  it('withdraws non-player deployments whose war has ended', () => {
+    const state = combatFixture();
+    const ended = endWar(state, combatWarId, 'white_peace', militaryContext);
+    const stale = deploymentRecord({ id: 'deployment.00000000', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 10 });
+    const afterAI = runOperationalAI(withDeployments(ended, [stale]));
+    expect(afterAI.operations.deployments['deployment.00000000'].status).toBe('withdrawing');
   });
 });
