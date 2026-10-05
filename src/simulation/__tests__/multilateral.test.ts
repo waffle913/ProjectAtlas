@@ -4,9 +4,10 @@ import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { MULTILATERAL_VERSION, type Treaty } from '../multilateral/model';
-import { activateTreaty, applyTreatyTradeCommitments, closeDecision, establishOrganization, hasTreatyAuthority, joinOrganization, proposeDecision, proposeTreaty, ratifyTreaty, resolveObligation, runMultilateralMonth, signTreaty, terminateTreaty, voteOnDecision, withdrawFromOrganization, withdrawTreaty } from '../multilateral/runtime';
+import { activateTreaty, applyTreatyTradeCommitments, closeDecision, establishOrganization, hasTreatyAuthority, joinOrganization, proposeDecision, proposeTreaty, ratifyTreaty, resolveObligation, runMultilateralAI, runMultilateralMonth, signTreaty, terminateTreaty, voteOnDecision, withdrawFromOrganization, withdrawTreaty } from '../multilateral/runtime';
+import { inspectMultilateralReports, runMultilateralReports } from '../multilateral/reports';
 import { assignPoliticalOffice, createPoliticalPerson, setControlledPerson } from '../governance/runtime';
-import { createClaim } from '../diplomacy';
+import { createClaim, setRelation } from '../diplomacy';
 import { declareLimitedWar } from '../war';
 
 const baseState = () => initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs);
@@ -415,4 +416,58 @@ describe('0.20 multilateral proposals, voting and decisions', () => {
     expect(adoptedRoundTrip).toEqual(state);
     expect(adoptedRoundTrip.international.actions).toEqual(state.international.actions);
   }, 120000);
+});
+
+describe('0.20 diplomatic AI and government information', () => {
+  const executive = (state: ReturnType<typeof baseState>, countryId: string) => {
+    let next = createPoliticalPerson(state, { countryId, displayName: `Synthetic AI executive ${countryId}` });
+    const personId = Object.keys(next.governance.persons).find(id => next.governance.persons[id].countryId === countryId && !next.governance.persons[id].office)!;
+    next = setControlledPerson(assignPoliticalOffice(next, personId, { countryId, role: 'head_of_government' }), personId);
+    return { state: next, personId };
+  };
+
+  it('AI signs and votes deterministically without fabricating knowledge', () => {
+    const a = executive(baseState(), countryA);
+    let state = proposeTreaty(a.state, a.personId, { title: 'Synthetic AI treaty', parties: [countryA, countryB], clauses: [{ kind: 'non_aggression', partyAId: countryA, partyBId: countryB }], entryIntoForce: { kind: 'signature', requiredRatifications: 2 }, withdrawal: { noticeDays: 30 } });
+    const treatyId = state.multilateral.treatyOrder[0];
+    state = runMultilateralAI(state);
+    expect(state.multilateral.treaties[treatyId].signatories[countryB]).toBeDefined();
+    const second = runMultilateralAI(state);
+    expect(second).toEqual(state);
+    // organization vote
+    let orgState = establishOrganization(state, a.personId, { title: 'Synthetic AI org', votingRule: { kind: 'majority' } });
+    const orgId = orgState.multilateral.organizationOrder[0];
+    const b = executive(orgState, countryB);
+    orgState = b.state;
+    orgState = joinOrganization(orgState, orgId, b.personId);
+    orgState = setRelation(orgState, countryB, worldCountryIds[3], -50, 'hostile', worldContext);
+    orgState = setControlledPerson(orgState, a.personId);
+    orgState = proposeDecision(orgState, orgId, a.personId, { kind: 'condemnation', targetCountryId: worldCountryIds[3], reason: 'Synthetic.' }, 30);
+    const decisionId = orgState.multilateral.decisionOrder[0];
+    orgState = runMultilateralAI(orgState);
+    expect(orgState.multilateral.decisions[decisionId].votes[countryB]).toBe('yes');
+    expect(runMultilateralAI(orgState)).toEqual(orgState);
+  });
+
+  it('reports exact public treaty texts and adopted resolutions but never foreign votes or intentions', () => {
+    const a = executive(baseState(), countryA);
+    let state = proposeTreaty(a.state, a.personId, { title: 'Synthetic public treaty', parties: [countryA, countryB], clauses: [{ kind: 'non_aggression', partyAId: countryA, partyBId: countryB }], entryIntoForce: { kind: 'signature', requiredRatifications: 2 }, withdrawal: { noticeDays: 30 } });
+    const treatyId = state.multilateral.treatyOrder[0];
+    state = establishOrganization(state, a.personId, { title: 'Synthetic public org', votingRule: { kind: 'majority' } });
+    const orgId = state.multilateral.organizationOrder[0];
+    const b = executive(state, countryB);
+    state = b.state;
+    state = joinOrganization(state, orgId, b.personId);
+    state = setControlledPerson(state, a.personId);
+    state = proposeDecision(state, orgId, a.personId, { kind: 'condemnation', targetCountryId: worldCountryIds[3], reason: 'Synthetic.' }, 30);
+    const decisionId = state.multilateral.decisionOrder[0];
+    state = setControlledPerson(state, b.personId);
+    state = voteOnDecision(state, decisionId, b.personId, 'yes');
+    state = runMultilateralReports(state);
+    const report = inspectMultilateralReports(state, countryA, a.personId)!;
+    expect(report.treaties.some(t => t.id === treatyId && t.clauses.length === 1)).toBe(true);
+    expect(report.openProposals.some(p => p.id === decisionId)).toBe(true);
+    expect(report.openProposals.find(p => p.id === decisionId)).not.toHaveProperty('votes');
+    expect(JSON.stringify(report.openProposals)).not.toContain('country.b');
+  });
 });

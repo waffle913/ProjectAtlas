@@ -2,7 +2,7 @@ import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import { isSimulationDate as validDate } from '../date';
 import { hasInternationalAuthority } from '../international/runtime';
-import { createExplicitCasusBelli } from '../diplomacy';
+import { createExplicitCasusBelli, getRelation } from '../diplomacy';
 import { applyInternationalAction } from '../international/runtime';
 import { MULTILATERAL_MODEL, emptyMultilateral, multilateralDecisionId, multilateralObligationId, multilateralOrganizationId, multilateralTreatyId, multilateralViolationId, validTradeCategory, type MembershipRole, type Organization, type OrganizationDecision, type OrganizationDecisionPayload, type Treaty, type TreatyClause, type TreatyObligation, type TreatyViolation, type VoteChoice } from './model';
 
@@ -359,4 +359,72 @@ function applyDecisionEffects(state: SimulationState, decisionId: string): Simul
   return { ...next, multilateral: { ...next.multilateral, decisions: { ...next.multilateral.decisions, [decisionId]: { ...next.multilateral.decisions[decisionId], appliedEffectIds: [...next.multilateral.decisions[decisionId].appliedEffectIds, ...applied] } } } };
 }
 
-export const registerMultilateralTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'multilateral.monthly', cadence: 'monthly', priority: MULTILATERAL_MODEL.schedulerPriority, run: runMultilateralMonth });
+export const registerMultilateralTasks = (scheduler: SimulationScheduler) => scheduler
+  .register({ id: 'multilateral.ai', cadence: 'monthly', priority: MULTILATERAL_MODEL.schedulerPriority - 1, run: runMultilateralAI })
+  .register({ id: 'multilateral.monthly', cadence: 'monthly', priority: MULTILATERAL_MODEL.schedulerPriority, run: runMultilateralMonth });
+
+function aiControlledCountry(state: SimulationState): string | undefined {
+  const personId = state.governance.player.controlledPersonId;
+  return personId ? state.governance.persons[personId]?.countryId : undefined;
+}
+
+function aiShouldSign(state: SimulationState, countryId: string, treaty: Treaty): boolean {
+  const others = treaty.parties.filter(party => party !== countryId);
+  const protectsSelf = treaty.clauses.some(clause => clause.kind === 'defensive_guarantee' && clause.protectedCountryId === countryId);
+  return protectsSelf || others.every(other => getRelation(state, countryId, other).score >= 0);
+}
+
+function aiVote(state: SimulationState, countryId: string, decision: OrganizationDecision): VoteChoice {
+  const payload = decision.payload;
+  if (payload.kind === 'condemnation' || payload.kind === 'coordinated_sanctions') {
+    const relation = getRelation(state, countryId, payload.targetCountryId);
+    return relation.status === 'hostile' ? 'yes' : relation.status === 'friendly' ? 'no' : 'abstain';
+  }
+  if (payload.kind === 'membership') {
+    const relation = getRelation(state, countryId, payload.applicantCountryId);
+    return relation.status === 'friendly' ? 'yes' : relation.status === 'hostile' ? 'no' : 'abstain';
+  }
+  if (payload.kind === 'trade_commitment') {
+    return getRelation(state, countryId, payload.exporterId).status === 'hostile' ? 'no' : 'yes';
+  }
+  return 'abstain';
+}
+
+/** Bounded deterministic V1 diplomatic AI: acts only for non-player Countries, from represented relations and clause/payload context, never fabricated knowledge. */
+export function runMultilateralAI(state: SimulationState): SimulationState {
+  if (!state.multilateral?.initializedOn) return state;
+  let next = state;
+  const playerCountry = aiControlledCountry(state);
+  for (const treaty of Object.values(next.multilateral.treaties)) {
+    for (const countryId of treaty.parties) {
+      if (countryId === playerCountry) continue;
+      if (treaty.status === 'proposed' && !treaty.signatories[countryId] && aiShouldSign(next, countryId, treaty)) {
+        next = { ...next, multilateral: { ...next.multilateral, treaties: { ...next.multilateral.treaties, [treaty.id]: { ...treaty, signatories: { ...treaty.signatories, [countryId]: next.date }, status: 'signed', history: [...treaty.history, { date: next.date, kind: 'signed', countryId, detail: `${countryId} signed.` }] } } } };
+      }
+    }
+    const signed = next.multilateral.treaties[treaty.id];
+    if (signed.status === 'signed' && signed.entryIntoForce.kind === 'ratification') {
+      for (const countryId of signed.parties) {
+        if (countryId === playerCountry || !signed.signatories[countryId] || signed.ratifications[countryId]) continue;
+        if (aiShouldSign(next, countryId, signed)) {
+          next = { ...next, multilateral: { ...next.multilateral, treaties: { ...next.multilateral.treaties, [signed.id]: { ...signed, ratifications: { ...signed.ratifications, [countryId]: next.date }, history: [...signed.history, { date: next.date, kind: 'ratified', countryId, detail: `${countryId} ratified.` }] } } } };
+        }
+      }
+    }
+  }
+  for (const decision of Object.values(next.multilateral.decisions)) {
+    if (decision.status !== 'open') continue;
+    const organization = next.multilateral.organizations[decision.organizationId];
+    for (const countryId of Object.keys(organization.members)) {
+      if (countryId === playerCountry || organization.members[countryId].role !== 'member' || decision.votes[countryId]) continue;
+      const choice = aiVote(next, countryId, decision);
+      next = { ...next, multilateral: { ...next.multilateral, decisions: { ...next.multilateral.decisions, [decision.id]: { ...decision, votes: { ...decision.votes, [countryId]: choice } } } } };
+    }
+  }
+  for (const obligation of Object.values(next.multilateral.obligations)) {
+    if (obligation.status !== 'pending' || obligation.obligatedCountryId === playerCountry) continue;
+    const honor = getRelation(next, obligation.obligatedCountryId, obligation.protectedCountryId).status === 'friendly';
+    next = { ...next, multilateral: { ...next.multilateral, obligations: { ...next.multilateral.obligations, [obligation.id]: { ...obligation, status: honor ? 'honored' : 'violated', resolvedOn: next.date } } } };
+  }
+  return next;
+}

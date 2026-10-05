@@ -9,6 +9,7 @@ import type { BriefingInterpretation, ChamberBriefingResult, GovernmentProposalE
 import { INFORMATION_MODEL, INFORMATION_VERSION, PORTFOLIOS, briefingId, compareBriefings, referencedGovernmentReportIds } from './model';
 import { isSimulationDate as validDate } from '../date';
 import { validateOperationsReport } from '../operations/reports';
+import { validateMultilateralReport } from '../multilateral/reports';
 
 const statusValues = new Set(['sourced', 'observed', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable']);
 const severityValues = new Set(['info', 'advisory', 'important', 'urgent']);
@@ -263,6 +264,17 @@ export const informationInvariant: SimulationInvariant = {
       }
       for (const [countryId, report] of Object.entries(operationsReports.latest)) {
         if (report.countryId !== countryId || canonicalJson(operationsReports.byId[report.id]) !== canonicalJson(report)) errors.push(`Latest operations report for ${countryId} is not retained.`);
+      }
+    }
+    const multilateralReports = information.multilateralReports;
+    if (multilateralReports) {
+      const earliest = state.multilateral.initializedOn! > state.information.initializedOn! ? state.multilateral.initializedOn! : state.information.initializedOn!;
+      for (const [id, report] of Object.entries(multilateralReports.byId)) {
+        try { validateMultilateralReport(report, earliest, state.date); } catch (error) { errors.push(`${id}: ${String(error)}`); }
+        if (id !== report.id || report.countryId !== (multilateralReports.latest[report.countryId]?.countryId)) errors.push(`Invalid multilateral report identity ${id}.`);
+      }
+      for (const [countryId, report] of Object.entries(multilateralReports.latest)) {
+        if (report.countryId !== countryId || canonicalJson(multilateralReports.byId[report.id]) !== canonicalJson(report)) errors.push(`Latest multilateral report for ${countryId} is not retained.`);
       }
     }
     const governance = state.governance;
