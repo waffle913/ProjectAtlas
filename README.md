@@ -1,4 +1,4 @@
-# ProjectAtlas — Milestone 0.20 (implemented for independent review)
+# ProjectAtlas — V1 core validated
 
 An original geopolitical, economic, social, political and military simulation, with the scenario start date fixed at **2026-01-01**.
 
@@ -9,9 +9,12 @@ The validated 0.17 candidate parent is `a4e27364fdcffc2a165c71f5a67fffbad869c2ba
 for independent review, not accepted**; its save schema is 16. **0.19 military
 operations/war/territorial control is implemented for independent review, not
 accepted**; save schema remains 17. **0.20 treaties/multilateral framework V1 is
-implemented for independent review, not accepted**; save schema 18. Current
-contracts, rationale, known limits and the locked roadmap are consolidated in
-the [canonical agent handoff](docs/agent-handoff.md).
+implemented for independent review, not accepted**; save schema 18. **0.21 full coherence /
+long-duration validation V1 is implemented for independent review, not
+accepted**; save schema remains 18. The V1 core now runs as one coherent
+simulation. Current contracts, rationale, known limits and the locked roadmap
+are consolidated in the [canonical agent handoff](docs/agent-handoff.md) and the
+[V1 validation record](docs/v1-validation-0.21.md).
 
 Milestone **0.15 is accepted/validated**. Its Government Information, briefing, fictional leadership, succession, playable interface and explicit-power-transfer institutional evaluation contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with historical measured validation retained in [the development validation report](docs/milestone-0.15-candidate-validation.md). Current fiscal proposals have no institutional transfer and retain their material scores.
 
