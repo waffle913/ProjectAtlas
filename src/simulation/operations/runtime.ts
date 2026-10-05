@@ -1,6 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
-import { allocate, integer, MODEL, ratio } from '../socioeconomy/model';
+import { cohortsFor, integer, MODEL, ratio } from '../socioeconomy/model';
 import type { SchedulerTaskContext } from '../scheduler';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import { EQUIPMENT_REGISTRY, presentPersonnel, trainingPersonnel, type MilitaryItem } from '../military/model';
@@ -338,8 +338,7 @@ function applyMilitaryLosses(state: SimulationState, deployment: Deployment, per
       const reserved = reservedPersonnelForRegion(next, deployment.sourceRegionId);
       const employed = Math.min(economy.employed, Math.max(0, labourForce - reserved));
       const unemployed = labourForce - employed - reserved;
-      const cohortLosses = allocate(personnelLosses, region.cohorts.map(c => c.persons));
-      const cohorts = region.cohorts.map((c, i) => ({ ...c, persons: Math.max(0, c.persons - cohortLosses[i]) })).filter(c => c.persons > 0);
+      const cohorts = cohortsFor(newPopulation);
       next = {
         ...next,
         socioeconomy: {

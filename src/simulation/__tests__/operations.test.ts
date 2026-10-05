@@ -1,12 +1,99 @@
 import { describe, expect, it } from 'vitest';
-import { militaryFixture, militaryCountry, otherCountry, militaryRegions, militaryContext } from './military.test';
+import { militaryFixture, militaryCountry, otherCountry, militaryRegions, militaryContext, militaryParameters } from './military.test';
 import { assertSimulationInvariants } from '../invariants';
 import { createPoliticalPerson, setControlledPerson } from '../governance/runtime';
-import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, supplyDeployment, withdrawDeployment } from '../operations/runtime';
+import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, resolveOneEngagement, supplyDeployment, withdrawDeployment } from '../operations/runtime';
 import { advanceSimulationDays } from '../engine';
 import { restoreSimulationState, serializeSimulationState } from '../save';
+import { admitMilitaryBaseline } from '../military/runtime';
+import { createClaim } from '../diplomacy';
+import { declareLimitedWar } from '../war';
+import type { Deployment, StrategicComponent } from '../operations/model';
+import type { MilitaryItem } from '../military/model';
+import type { SchedulerTaskContext } from '../scheduler';
 
 const fixture = () => initializeOperations(militaryFixture());
+
+const targetRegionId = militaryRegions[1].id;
+const sourceRegionId = militaryRegions[0].id;
+const combatWarId = 'war.combat';
+
+const combatSource = {
+  status: 'modelled' as const,
+  publisher: 'ProjectAtlas deterministic combat regression fixture',
+  url: 'scenario:synthetic-combat-test',
+  referenceDate: '2026-01-01', retrievedAt: '2026-10-03',
+  licence: 'ProjectAtlas test fixture (ISC)', attribution: 'ProjectAtlas',
+  limitation: 'Entirely synthetic; not a real national army observation.', scenarioFixture: true,
+};
+
+function combatFixture(): ReturnType<typeof militaryFixture> {
+  let state = initializeOperations(militaryFixture());
+  state = admitMilitaryBaseline(state, {
+    countryId: otherCountry,
+    source: combatSource,
+    parameters: militaryParameters,
+    authorized: 50, present: 50, trainees: 0,
+    equipment: { personal: { operational: 100, unavailable: 0, maintenance: 0, reserve: 0 }, truck: { operational: 10, unavailable: 0, maintenance: 0, reserve: 0 } },
+    consumables: { ammunition: { quantity: 1000, capacity: 10000 }, fuel: { quantity: 1000, capacity: 10000 } },
+    industrialMaterials: 1000,
+  });
+  state = createClaim(state, { id: 'claim.combat', claimantCountryId: militaryCountry, regionId: targetRegionId, type: 'territorial', creationDate: state.date, reason: 'Deterministic combat regression claim.' }, militaryContext);
+  state = declareLimitedWar(state, { warId: combatWarId, attackerCountryId: militaryCountry, defenderCountryId: otherCountry, targetRegionId, casusBelliId: `claim-derived:claim.combat:${otherCountry}` }, militaryContext);
+  return state;
+}
+
+function deploymentRecord(input: { id: string; countryId: string; warId?: string; sourceRegionId: string; currentRegionId: string; personnel: number; equipment?: Partial<Record<MilitaryItem, number>>; supply?: { ammunition: number; fuel: number }; status?: Deployment['status'] }): Deployment {
+  const equipment = input.equipment ?? {};
+  return {
+    id: input.id, countryId: input.countryId, warId: input.warId,
+    sourceRegionId: input.sourceRegionId, currentRegionId: input.currentRegionId,
+    personnel: input.personnel, equipment,
+    supply: input.supply ?? { ammunition: 0, fuel: 0 },
+    status: input.status ?? 'deployed',
+    losses: { personnel: 0, equipment: {} },
+    allocated: { personnel: input.personnel, equipment: { ...equipment } },
+    provenance: 'modelled',
+    limitation: 'Deterministic combat regression fixture deployment.',
+  };
+}
+
+function withDeployments(state: ReturnType<typeof militaryFixture>, deployments: Deployment[]) {
+  const nextDeployments = { ...state.operations.deployments };
+  const order = [...state.operations.deploymentOrder];
+  for (const deployment of deployments) {
+    nextDeployments[deployment.id] = deployment;
+    if (!order.includes(deployment.id)) order.push(deployment.id);
+  }
+  return { ...state, operations: { ...state.operations, deployments: nextDeployments, deploymentOrder: order, nextDeploymentSequence: Math.max(state.operations.nextDeploymentSequence, ...deployments.map(deployment => Number(deployment.id.split('.')[1]) + 1)) } };
+}
+
+function decisiveComponent(state: ReturnType<typeof militaryFixture>, regionId: string): StrategicComponent {
+  const component = Object.values(state.operations.components).find(candidate => candidate.regionId === regionId && candidate.kind === 'decisive');
+  if (!component) throw new Error(`Missing decisive component for ${regionId}`);
+  return component;
+}
+
+const combatWar = { id: combatWarId, attackerCountryId: militaryCountry, defenderCountryId: otherCountry };
+
+function forcingRoll(value: number): SchedulerTaskContext {
+  return {
+    date: '2026-01-02', tick: 1, cadence: 'daily', execution: 'scheduled', eventKey: 'cadence:daily',
+    random: { uint32: () => value, float: () => value / 10000, integer: () => value },
+  };
+}
+
+function resolveCombat(state: ReturnType<typeof militaryFixture>, roll: number, attacker: Deployment, defender: Deployment) {
+  const component = decisiveComponent(state, targetRegionId);
+  return resolveOneEngagement(withDeployments(state, [attacker, defender]), forcingRoll(roll), combatWar, component, [attacker], [defender]);
+}
+
+function armedFixture() {
+  return withDeployments(combatFixture(), [
+    deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 40 } }),
+    deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 40 } }),
+  ]);
+}
 
 describe('0.19 operational foundation', () => {
   it('initializes strategic components and control without changing sovereignty', () => {
@@ -96,5 +183,200 @@ describe('0.19 operational foundation', () => {
     const deployment = restored.operations.deployments[restored.operations.deploymentOrder[0]];
     expect(deployment.allocated.personnel).toBe(deployment.personnel + deployment.losses.personnel);
     expect(assertSimulationInvariants(restored, militaryContext, 'reload')).toBe(true);
+  });
+});
+
+describe('0.19 checkpoint D deterministic combat contracts', () => {
+  it('produces identical deterministic combat results for identical inputs', () => {
+    const first = advanceSimulationDays(armedFixture(), 2);
+    const second = advanceSimulationDays(armedFixture(), 2);
+    expect(first).toEqual(second);
+    expect(Object.keys(first.operations.engagements)).toHaveLength(1);
+    expect(Object.values(first.operations.deployments).some(deployment => deployment.losses.personnel > 0)).toBe(true);
+  });
+
+  it('keeps combat accounting independent of unrelated-war insertion order', () => {
+    const base = advanceSimulationDays(armedFixture(), 2);
+    const state = combatFixture();
+    const primary = state.wars[0];
+    const unrelated = { ...primary, id: 'war.unrelated', targetRegionId: sourceRegionId, attackerCountryId: otherCountry, defenderCountryId: militaryCountry, declarationCasusBelli: { ...primary.declarationCasusBelli, targetRegionIds: [sourceRegionId] } };
+    const disturbed = advanceSimulationDays(withDeployments({ ...state, wars: [unrelated, primary] }, [
+      deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 40 } }),
+      deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 40 } }),
+    ]), 2);
+    const artifacts = (s: typeof base) => ({
+      engagements: Object.fromEntries(Object.entries(s.operations.engagements).filter(([, engagement]) => engagement.warId === combatWarId)),
+      engagementOrder: s.operations.engagementOrder,
+      deployments: s.operations.deployments,
+      military: s.military,
+      populationByRegion: s.populationByRegion,
+    });
+    expect(artifacts(disturbed)).toEqual(artifacts(base));
+  });
+
+  it('limits effective combat personnel to available ammunition', () => {
+    const state = combatFixture();
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 50, supply: { ammunition: 50, fuel: 0 } });
+    const supplied = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 100, supply: { ammunition: 100, fuel: 0 } });
+    const starved = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 100, supply: { ammunition: 0, fuel: 0 } });
+    const withAmmo = resolveCombat(state, 5000, supplied, defender);
+    const withoutAmmo = resolveCombat(state, 5000, starved, defender);
+    expect(withAmmo.operations.deployments['deployment.00000000'].losses.personnel).toBe(0);
+    expect(withAmmo.operations.deployments['deployment.00000001'].losses.personnel).toBeGreaterThan(0);
+    expect(withoutAmmo.operations.deployments['deployment.00000000'].losses.personnel).toBeGreaterThan(0);
+    expect(withoutAmmo.operations.deployments['deployment.00000001'].losses.personnel).toBe(0);
+  });
+
+  it('limits mechanized equipment participation to available fuel', () => {
+    const state = combatFixture();
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 20, supply: { ammunition: 20, fuel: 0 } });
+    const fueled = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 1, supply: { ammunition: 0, fuel: 5 }, equipment: { truck: 5 } });
+    const dry = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 1, supply: { ammunition: 0, fuel: 0 }, equipment: { truck: 5 } });
+    const withFuel = resolveCombat(state, 5000, fueled, defender);
+    const withoutFuel = resolveCombat(state, 5000, dry, defender);
+    expect(withFuel.operations.deployments['deployment.00000000'].losses.personnel).toBe(0);
+    expect(withFuel.operations.deployments['deployment.00000001'].losses.personnel).toBeGreaterThan(0);
+    expect(withoutFuel.operations.deployments['deployment.00000000'].losses.personnel).toBeGreaterThan(0);
+    expect(withoutFuel.operations.deployments['deployment.00000001'].losses.personnel).toBe(0);
+  });
+
+  it('consumes ammunition and fuel from both sides of an engagement', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 50, fuel: 50 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 50, fuel: 50 } });
+    const result = resolveCombat(state, 5000, attacker, defender);
+    const afterAttacker = result.operations.deployments['deployment.00000000'];
+    const afterDefender = result.operations.deployments['deployment.00000001'];
+    const engagement = result.operations.engagements[result.operations.engagementOrder[0]];
+    expect(afterAttacker.supply.ammunition).toBeLessThan(50);
+    expect(afterDefender.supply.ammunition).toBeLessThan(50);
+    expect(afterAttacker.supply.fuel).toBeLessThan(50);
+    expect(afterDefender.supply.fuel).toBeLessThan(50);
+    expect(engagement.consumed.ammunition).toBe(50 - afterAttacker.supply.ammunition + 50 - afterDefender.supply.ammunition);
+    expect(engagement.consumed.fuel).toBe(50 - afterAttacker.supply.fuel + 50 - afterDefender.supply.fuel);
+  });
+
+  it('reconciles each casualty exactly once across assignments, population, cohorts and labour', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 0, fuel: 0 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 } });
+    const beforeAssignments = state.military.countries[militaryCountry].capability!.assignments[sourceRegionId];
+    const beforePopulation = state.populationByRegion[sourceRegionId]!;
+    const beforeCohortSum = state.socioeconomy.regions[sourceRegionId].cohorts.reduce((sum, cohort) => sum + cohort.persons, 0);
+    const result = resolveCombat(state, 5000, attacker, defender);
+    const losses = result.operations.deployments['deployment.00000000'].losses.personnel;
+    expect(losses).toBeGreaterThan(0);
+    const capability = result.military.countries[militaryCountry].capability!;
+    const region = result.socioeconomy.regions[sourceRegionId];
+    const economy = region.economy!;
+    const reserved = Object.values(result.military.countries).reduce((sum, country) => sum + (country.capability?.assignments[sourceRegionId] ?? 0), 0);
+    expect(capability.assignments[sourceRegionId]).toBe(beforeAssignments - losses);
+    expect(result.populationByRegion[sourceRegionId]).toBe(beforePopulation - losses);
+    expect(region.population).toBe(beforePopulation - losses);
+    expect(region.cohorts.reduce((sum, cohort) => sum + cohort.persons, 0)).toBe(beforeCohortSum - losses);
+    expect(economy.employed + economy.unemployed + reserved).toBe(economy.labourForce);
+    expect(assertSimulationInvariants(result, militaryContext, 'save')).toBe(true);
+  });
+
+  it('moves a fully depleted deployment into a valid withdrawn terminal state', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 1, supply: { ammunition: 0, fuel: 0 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 } });
+    const result = resolveCombat(state, 5000, attacker, defender);
+    const depleted = result.operations.deployments['deployment.00000000'];
+    expect(depleted.personnel).toBe(0);
+    expect(depleted.status).toBe('withdrawn');
+    expect(depleted.losses.personnel).toBe(1);
+    expect(assertSimulationInvariants(result, militaryContext, 'save')).toBe(true);
+  });
+
+  it('persists destroyed equipment through military processing and save/reload', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    const result = resolveCombat(state, 5000, attacker, defender);
+    const destroyed = result.military.countries[otherCountry].capability!.equipment.personal!.destroyed!;
+    expect(destroyed).toBeGreaterThan(0);
+    const personal = result.military.countries[otherCountry].capability!.equipment.personal!;
+    expect(personal.operational + personal.unavailable + personal.maintenance + personal.reserve + destroyed).toBe(personal.opening + personal.delivered);
+    const restored = restoreSimulationState(serializeSimulationState(result, militaryContext), militaryRegions, {}, {}, militaryContext);
+    expect(restored.military.countries[otherCountry].capability!.equipment.personal!.destroyed).toBe(destroyed);
+    expect(restored.military.countries[otherCountry].capability!.equipment.personal!.operational).toBe(personal.operational);
+  });
+
+  it('reuses one engagement across repeated combat days and preserves its original start date', () => {
+    const result = advanceSimulationDays(armedFixture(), 2);
+    expect(result.operations.engagementOrder).toHaveLength(1);
+    expect(result.operations.nextEngagementSequence).toBe(1);
+    const engagement = result.operations.engagements[result.operations.engagementOrder[0]];
+    expect(engagement.startDate).toBe('2026-01-02');
+    expect(engagement.status).toBe('active');
+  });
+
+  it('accumulates engagement personnel and equipment evidence across repeated resolutions', () => {
+    const state = combatFixture();
+    const component = decisiveComponent(state, targetRegionId);
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    const afterFirst = resolveOneEngagement(withDeployments(state, [attacker, defender]), forcingRoll(5000), combatWar, component, [attacker], [defender]);
+    const engagementId = afterFirst.operations.engagementOrder[0];
+    const afterSecond = resolveOneEngagement(afterFirst, forcingRoll(9500), combatWar, component, [afterFirst.operations.deployments['deployment.00000000']], [afterFirst.operations.deployments['deployment.00000001']], engagementId);
+    const engagement = afterSecond.operations.engagements[engagementId];
+    expect(afterSecond.operations.engagementOrder).toEqual([engagementId]);
+    expect(engagement.attackerLosses.personnel).toBeGreaterThan(0);
+    expect(engagement.defenderLosses.personnel).toBeGreaterThan(0);
+    expect(engagement.attackerLosses.personnel).toBe(afterSecond.operations.deployments['deployment.00000000'].losses.personnel);
+    expect(engagement.defenderLosses.personnel).toBe(afterSecond.operations.deployments['deployment.00000001'].losses.personnel);
+    expect(engagement.attackerLosses.equipment).toEqual(afterSecond.operations.deployments['deployment.00000000'].losses.equipment);
+    expect(engagement.defenderLosses.equipment).toEqual(afterSecond.operations.deployments['deployment.00000001'].losses.equipment);
+    expect(engagement.consumed.ammunition).toBeGreaterThan(0);
+  });
+
+  it('accumulates deployment equipment losses across first and repeated losses', () => {
+    const state = combatFixture();
+    const component = decisiveComponent(state, targetRegionId);
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    const afterFirst = resolveOneEngagement(withDeployments(state, [attacker, defender]), forcingRoll(5000), combatWar, component, [attacker], [defender]);
+    const engagementId = afterFirst.operations.engagementOrder[0];
+    const firstLoss = afterFirst.operations.deployments['deployment.00000001'].losses.equipment.personal!;
+    expect(firstLoss).toBeGreaterThan(0);
+    expect(afterFirst.operations.deployments['deployment.00000001'].equipment.personal).toBe(20 - firstLoss);
+    const afterSecond = resolveOneEngagement(afterFirst, forcingRoll(5000), combatWar, component, [afterFirst.operations.deployments['deployment.00000000']], [afterFirst.operations.deployments['deployment.00000001']], engagementId);
+    const secondLoss = afterSecond.operations.deployments['deployment.00000001'].losses.equipment.personal!;
+    expect(secondLoss).toBeGreaterThan(firstLoss);
+    expect(afterSecond.operations.deployments['deployment.00000001'].equipment.personal).toBe(20 - secondLoss);
+    expect(afterSecond.operations.engagements[engagementId].defenderLosses.equipment.personal).toBe(secondLoss);
+  });
+
+  it('resolves an engagement once one side disappears', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 1, supply: { ammunition: 0, fuel: 0 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 } });
+    const afterWipe = resolveCombat(state, 5000, attacker, defender);
+    const engagementId = afterWipe.operations.engagementOrder[0];
+    expect(afterWipe.operations.deployments['deployment.00000000'].status).toBe('withdrawn');
+    expect(afterWipe.operations.engagements[engagementId].status).toBe('active');
+    const resolved = advanceSimulationDays(afterWipe, 1);
+    expect(resolved.operations.engagements[engagementId].status).toBe('resolved');
+    expect(assertSimulationInvariants(resolved, militaryContext, 'save')).toBe(true);
+  });
+
+  it('reloads pre-allocated schema-17 deployment bases deterministically', () => {
+    const state = initializeOperations(militaryFixture());
+    const deployment = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, sourceRegionId, currentRegionId: sourceRegionId, personnel: 7, equipment: { personal: 5 } });
+    deployment.allocated = { personnel: 10, equipment: { personal: 8 } };
+    deployment.losses = { personnel: 3, equipment: { personal: 3 } };
+    const armed = withDeployments(state, [deployment]);
+    const serialized = serializeSimulationState(armed, militaryContext);
+    const restored = restoreSimulationState(serialized, militaryRegions, {}, {}, militaryContext);
+    expect(restored.operations.deployments['deployment.00000000'].allocated).toEqual({ personnel: 10, equipment: { personal: 8 } });
+    expect(restored).toEqual(armed);
+    const reloaded = restoreSimulationState(serializeSimulationState(restored, militaryContext), militaryRegions, {}, {}, militaryContext);
+    expect(reloaded).toEqual(restored);
+    const missing = JSON.parse(serializeSimulationState(armed, militaryContext)) as any;
+    delete missing.operations.deployments['deployment.00000000'].allocated;
+    const rebuilt = restoreSimulationState(JSON.stringify(missing), militaryRegions, {}, {}, militaryContext);
+    expect(rebuilt.operations.deployments['deployment.00000000'].allocated).toEqual({ personnel: 10, equipment: { personal: 8 } });
   });
 });
