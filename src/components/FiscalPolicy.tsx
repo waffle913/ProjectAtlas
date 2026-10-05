@@ -75,7 +75,7 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
         rateBps: Math.round(Number(rate) * 100),
         status: 'modelled',
         source: 'player-authored governance proposal',
-        document: 'ProjectAtlas 0.15 fiscal proposal',
+        document: 'ProjectAtlas fiscal proposal',
         effectiveDate: nextDate(state.date),
         referenceDate: state.date,
         retrievedAt: state.date,
