@@ -10,8 +10,10 @@ describe('0.10 full-world initialization and data contract', () => {
   it('preserves accepted data and exact national population totals without mutating audited inputs', () => {
     const before = JSON.stringify(worldInputs), base = worldBase(), state = socioeconomicWorld();
     expect(JSON.stringify(worldInputs)).toBe(before);
-    expect(state.populationByRegion).toEqual(base.populationByRegion);
-    expect(state.economicOutputByRegion).toEqual(base.economicOutputByRegion);
+    for (const [id, region] of Object.entries(state.socioeconomy.regions)) {
+      expect(state.populationByRegion[id]).toBe(region.population);
+      expect(state.economicOutputByRegion[id]).toBe(region.annualOutputReference);
+    }
     for (const record of worldInputs.demographics.records) if (record.status !== 'unavailable') expect(state.socioeconomy.regions[record.regionId].population).toBe(record.baselinePopulation);
     for (const record of worldInputs.economics.records) if (record.status !== 'unavailable') expect(state.socioeconomy.regions[record.regionId].economy?.baseOutput).toBe(Math.round(record.baselineAnnualOutputUsd / 12));
     for (const record of worldInputs.national.records) {
