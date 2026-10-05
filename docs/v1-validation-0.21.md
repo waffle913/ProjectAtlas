@@ -63,6 +63,33 @@ Detailed/Standard/Background transitions conserve all mutable canonical state
 (population, debt, money, personnel, equipment, stocks, sovereignty, occupation,
 treaty history, political state).
 
+## Integrated stress campaigns (new in completion pass)
+
+New cross-system campaigns (not isolated subsystem suites):
+
+- **A** `v1IntegratedCampaigns.test.ts` — fiscal reform → monthly fiscal
+  execution → household/economic state → Government Information, multi-month,
+  save/reload + deterministic rerun.
+- **C** `v1IntegratedCampaigns.test.ts` — full limited war: capability →
+  deployment → movement → supply → AI combat → white-peace settlement →
+  post-war monthly stability, with sovereignty/losses preserved.
+- **D** `v1IntegratedCampaigns.test.ts` — treaty non-aggression clause →
+  activation → qualifying war → recorded violation, save/reload of violations.
+- **E** `v1IntegratedCampaigns.test.ts` — Detailed ↔ Background fidelity
+  transitions on a complex state; conserved quantities verified.
+- **F** `v1IntegratedCampaigns.test.ts` — Path A/B continuation equivalence
+  for a war state (save/reload mid-scenario, then continue).
+- **G** `v1SparseStress.test.ts` — sparse active full-registry stress
+  (1 organization, 1 treaty, 1 decision) over 90 days with monthly invariants.
+
+Defects exposed and corrected by these campaigns:
+
+- **AI multi-party treaty signing/activation (critical).** `runMultilateralAI`
+  signed the second party against a stale treaty object (losing the first
+  signature) and never auto-activated a `signature`-type treaty when all
+  parties signed. Root-cause fix: re-read the treaty from the updated state per
+  party and set `status: 'active'` / `activeOn` once all parties signed.
+
 ## Remaining known limitations (non-blocking, deferred post-V1)
 
 - Naval/air/missile warfare and deep strategic AI.
