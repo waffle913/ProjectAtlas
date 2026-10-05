@@ -96,6 +96,17 @@ function armedFixture() {
   ]);
 }
 
+function distantSupplyFixture(trucks: number, personnel: number) {
+  const state = combatFixture();
+  const occupied = {
+    ...state,
+    occupationByRegion: { ...state.occupationByRegion, [targetRegionId]: { regionId: targetRegionId, warId: combatWarId, occupierCountryId: militaryCountry, startDate: state.date } },
+    operations: { ...state.operations, regionControl: { ...state.operations.regionControl, [targetRegionId]: 'foreign_controlled' as const }, adjacency: { [sourceRegionId]: [targetRegionId], [targetRegionId]: [sourceRegionId] } },
+  };
+  const deployment = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel, equipment: { truck: trucks } });
+  return withDeployments(occupied, [deployment]);
+}
+
 describe('0.19 operational foundation', () => {
   it('initializes strategic components and control without changing sovereignty', () => {
     const state = fixture();
@@ -382,17 +393,6 @@ describe('0.19 checkpoint D deterministic combat contracts', () => {
 });
 
 describe('0.19 logistics throughput', () => {
-  const distantSupplyFixture = (trucks: number, personnel: number) => {
-    const state = combatFixture();
-    const occupied = {
-      ...state,
-      occupationByRegion: { ...state.occupationByRegion, [targetRegionId]: { regionId: targetRegionId, warId: combatWarId, occupierCountryId: militaryCountry, startDate: state.date } },
-      operations: { ...state.operations, regionControl: { ...state.operations.regionControl, [targetRegionId]: 'foreign_controlled' as const }, adjacency: { [sourceRegionId]: [targetRegionId], [targetRegionId]: [sourceRegionId] } },
-    };
-    const deployment = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel, equipment: { truck: trucks } });
-    return withDeployments(occupied, [deployment]);
-  };
-
   it('refuses to resupply a cut-off force without an accessible path', () => {
     const state = combatFixture();
     const deployment = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 10, equipment: { truck: 5 } });
@@ -562,5 +562,35 @@ describe('0.19 checkpoint F fog of war', () => {
     expect(inspectOperationsReports(reported, militaryCountry, person)).toBeDefined();
     expect(inspectOperationsReports(reported, otherCountry, person)).toBeUndefined();
     expect(inspectOperationsReports(reported, militaryCountry, 'unknown-person')).toBeUndefined();
+  });
+});
+
+describe('0.19 checkpoint G save/reload determinism', () => {
+  it('round-trips an occupied, actively-engaged state and continues deterministically', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    let after = resolveCombat(state, 5000, attacker, defender);
+    const decisive = Object.values(after.operations.components).find(component => component.regionId === targetRegionId && component.kind === 'decisive')!;
+    after = resolveOneEngagement(after, forcingRoll(5000), combatWar, decisive, [after.operations.deployments['deployment.00000000']], [after.operations.deployments['deployment.00000001']], after.operations.engagementOrder[0]);
+    const occupied = recomputeControl(after);
+    expect(occupied.occupationByRegion[targetRegionId]).toBeDefined();
+    expect(occupied.operations.engagements[occupied.operations.engagementOrder[0]].status).toBe('active');
+    const restored = restoreSimulationState(serializeSimulationState(occupied, militaryContext), militaryRegions, {}, {}, militaryContext);
+    expect(restored).toEqual(occupied);
+    expect(advanceSimulationDays(restored, 2)).toEqual(advanceSimulationDays(occupied, 2));
+  });
+
+  it('round-trips mid-movement and mid-supply deployment states and continues deterministically', () => {
+    let state = distantSupplyFixture(5, 10);
+    const person = state.governance.player.controlledPersonId!;
+    state = supplyDeployment(state, 'deployment.00000000', person, 40, 30);
+    state = deploy(state, { countryId: militaryCountry, personId: person, warId: combatWarId, sourceRegionId, currentRegionId: sourceRegionId, personnel: 10 });
+    const secondId = state.operations.deploymentOrder[state.operations.deploymentOrder.length - 1];
+    state = orderMovement(state, secondId, person, targetRegionId);
+    expect(state.operations.deployments[secondId].status).toBe('moving');
+    const restored = restoreSimulationState(serializeSimulationState(state, militaryContext), militaryRegions, {}, {}, militaryContext);
+    expect(restored).toEqual(state);
+    expect(advanceSimulationDays(restored, 2)).toEqual(advanceSimulationDays(state, 2));
   });
 });
