@@ -11,10 +11,10 @@ import { emptyOperations, OPERATIONS_MODEL, SUPPLY_MODEL, operationsComponentId,
 export function initializeOperations(state: SimulationState): SimulationState {
   if (state.operations.initializedOn) return state;
   const components = deterministicComponents(state);
-  const allComponents = Object.values(components.byId);
+  const decisiveByRegionId = decisiveByRegion(Object.values(components.byId));
   const regionControl: Record<string, RegionControl> = {};
   for (const regionId of Object.keys(state.regionOwnership).sort()) {
-    regionControl[regionId] = deriveRegionControlFor(state.regionOwnership[regionId], allComponents, regionId);
+    regionControl[regionId] = deriveRegionControlFor(state.regionOwnership[regionId], decisiveByRegionId.get(regionId) ?? []);
   }
   return { ...state, operations: { ...emptyOperations(state.date), components: components.byId, componentOrder: components.order, nextComponentSequence: components.order.length, regionControl } };
 }
@@ -47,13 +47,23 @@ function deterministicComponents(state: SimulationState): { byId: Record<string,
   return { byId, order };
 }
 
+function decisiveByRegion(components: readonly StrategicComponent[]): Map<string, StrategicComponent[]> {
+  const byRegion = new Map<string, StrategicComponent[]>();
+  for (const component of components) {
+    if (component.kind !== 'decisive') continue;
+    const list = byRegion.get(component.regionId) ?? [];
+    list.push(component);
+    byRegion.set(component.regionId, list);
+  }
+  return byRegion;
+}
+
 /**
  * Single authoritative effective-Region-control derivation: all decisive components are the only input.
  * Sovereignty (regionOwnership) is never rewritten here; legacy occupations only shape the components'
  * initial controllers at the migration boundary.
  */
-function deriveRegionControlFor(sovereign: string | undefined, components: readonly StrategicComponent[], regionId: string): RegionControl {
-  const decisive = components.filter(component => component.regionId === regionId && component.kind === 'decisive');
+function deriveRegionControlFor(sovereign: string | undefined, decisive: readonly StrategicComponent[]): RegionControl {
   if (!decisive.length) return 'sovereign_controlled';
   if (decisive.some(component => (component.captureProgress ?? 0) > 0)) return 'contested';
   const controllers = [...new Set(decisive.map(component => component.controllingCountryId).filter((value): value is string => Boolean(value)))];
@@ -236,8 +246,19 @@ export function runOperationsDay(state: SimulationState, context: SchedulerTaskC
     }
   }
   next = resolveEngagements(next, context);
-  next = recomputeControl(next);
+  next = recomputeControl(next, affectedRegionsOf(next));
   return next;
+}
+
+function affectedRegionsOf(state: SimulationState): Set<string> {
+  const affected = new Set<string>();
+  for (const deployment of Object.values(state.operations.deployments)) {
+    if (deployment.status !== 'withdrawn' && deployment.warId) affected.add(deployment.currentRegionId);
+  }
+  for (const engagement of Object.values(state.operations.engagements)) {
+    if (engagement.status === 'active') affected.add(engagement.regionId);
+  }
+  return affected;
 }
 
 function resolveEngagements(state: SimulationState, context: SchedulerTaskContext): SimulationState {
@@ -250,15 +271,16 @@ function resolveEngagements(state: SimulationState, context: SchedulerTaskContex
     list.push(deployment);
     byRegion.set(deployment.currentRegionId, list);
   }
+  const decisiveByRegionId = decisiveByRegion(Object.values(next.operations.components));
   for (const war of activeWars) {
-    for (const component of Object.values(next.operations.components)) {
-      if (component.kind !== 'decisive') continue;
-      const regionDeployments = byRegion.get(component.regionId) ?? [];
+    for (const [regionId, regionDeployments] of byRegion) {
       const attackers = regionDeployments.filter(d => d.warId === war.id && d.countryId === war.attackerCountryId);
       const defenders = regionDeployments.filter(d => d.warId === war.id && d.countryId === war.defenderCountryId);
       if (!attackers.length || !defenders.length) continue;
-      const existing = Object.values(next.operations.engagements).find(e => e.warId === war.id && e.componentId === component.id && e.status === 'active');
-      next = resolveOneEngagement(next, context, war, component, attackers, defenders, existing?.id);
+      for (const component of decisiveByRegionId.get(regionId) ?? []) {
+        const existing = Object.values(next.operations.engagements).find(e => e.warId === war.id && e.componentId === component.id && e.status === 'active');
+        next = resolveOneEngagement(next, context, war, component, attackers, defenders, existing?.id);
+      }
     }
   }
   for (const [id, engagement] of Object.entries(next.operations.engagements)) {
@@ -270,7 +292,17 @@ function resolveEngagements(state: SimulationState, context: SchedulerTaskContex
       next = { ...next, operations: { ...next.operations, engagements: { ...next.operations.engagements, [id]: { ...engagement, status: 'resolved' } } } };
     }
   }
+  next = pruneResolvedEngagements(next);
   return next;
+}
+
+function pruneResolvedEngagements(state: SimulationState): SimulationState {
+  const resolvedIds = Object.values(state.operations.engagements).filter(engagement => engagement.status === 'resolved').map(engagement => engagement.id);
+  if (resolvedIds.length <= OPERATIONS_MODEL.engagementHistoryLimit) return state;
+  const keep = new Set(resolvedIds.slice(resolvedIds.length - OPERATIONS_MODEL.engagementHistoryLimit));
+  const engagements = Object.fromEntries(Object.entries(state.operations.engagements).filter(([id, engagement]) => engagement.status === 'active' || keep.has(id)));
+  const engagementOrder = state.operations.engagementOrder.filter(id => engagements[id]);
+  return { ...state, operations: { ...state.operations, engagements, engagementOrder } };
 }
 
 export function resolveOneEngagement(state: SimulationState, context: SchedulerTaskContext, war: { id: string; attackerCountryId: string; defenderCountryId: string; targetRegionId: string }, component: StrategicComponent, attackers: Deployment[], defenders: Deployment[], existingId?: string): SimulationState {
@@ -385,11 +417,13 @@ function applyCapture(component: StrategicComponent, war: { attackerCountryId: s
   return { ...component, captureProgress: next, contested: true };
 }
 
-/** Re-derives Region control from decisive components and keeps occupations coherent with foreign full control. */
-export function recomputeControl(state: SimulationState): SimulationState {
+/** Re-derives Region control from decisive components and keeps occupations coherent with foreign full control. Sparse: only affected Regions are recomputed. */
+export function recomputeControl(state: SimulationState, affectedRegionIds?: Iterable<string>): SimulationState {
   let next = state;
-  for (const regionId of Object.keys(next.regionOwnership).sort()) {
-    const control = deriveRegionControlFor(next.regionOwnership[regionId], Object.values(next.operations.components), regionId);
+  const regionIds = affectedRegionIds ? [...new Set(affectedRegionIds)].sort() : Object.keys(next.regionOwnership).sort();
+  const decisiveByRegionId = decisiveByRegion(Object.values(next.operations.components));
+  for (const regionId of regionIds) {
+    const control = deriveRegionControlFor(next.regionOwnership[regionId], decisiveByRegionId.get(regionId) ?? []);
     if (next.operations.regionControl[regionId] !== control) {
       next = { ...next, operations: { ...next.operations, regionControl: { ...next.operations.regionControl, [regionId]: control } } };
     }

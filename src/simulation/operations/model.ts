@@ -82,6 +82,7 @@ export const OPERATIONS_MODEL = Object.freeze({
   aiDeployTrucks: 5,          // trucks the V1 AI attaches for logistics
   aiResupplyAmmunition: 40,   // ammunition the V1 AI requests per resupply
   aiResupplyFuel: 20,         // fuel the V1 AI requests per resupply
+  engagementHistoryLimit: 256, // resolved engagements retained as bounded historical evidence
 });
 
 /** Finite logistics throughput: distant resupply is convoy-limited by trucks, crews, hops and fuel; local (same-Region) resupply is stock-bounded only. */
