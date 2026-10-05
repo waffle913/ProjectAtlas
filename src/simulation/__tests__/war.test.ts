@@ -12,13 +12,23 @@ import { describe, expect, it } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { adjustRelation, createClaim, createExplicitCasusBelli, expireCasusBelli, getAvailableCasusBelli, renounceClaim, revokeCasusBelli, setRelation, validateDiplomacyState, type DiplomacyContext } from '../diplomacy';
 import { declareLimitedWar, endWar, getRegionOccupation, getWarOccupations, isWarGoalSatisfied, liberateRegion, occupyRegion, validateWarState } from '../war';
+import { initializeOperations } from '../operations/runtime';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { controlledBaselineAnnualOutput, controlledBaselinePopulation, transferRegion } from '../region';
 import { createEngineState } from '../state';
 
 const context: DiplomacyContext = { countryIds: new Set(['country.a', 'country.b', 'country.c']), regionIds: new Set(['region.target', 'region.other', 'region.attacker']) };
 const regions: RegionEntity[] = [...context.regionIds].map((id): RegionEntity => ({ id, parentCountryId: id === 'region.attacker' ? 'country.a' : 'country.b', initialOwnerCountryId: id === 'region.attacker' ? 'country.a' : 'country.b', commonName: id, administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: [id] } }));
-const initial = (): SimulationState => ({ schemaVersion: 17, operations: emptyOperations(), international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.target': 'country.b', 'region.other': 'country.b', 'region.attacker': 'country.a' }, populationByRegion: { 'region.target': 5_000_000, 'region.other': 2_000_000, 'region.attacker': 3_000_000 }, economicOutputByRegion: { 'region.target': 200_000_000_000, 'region.other': 80_000_000_000, 'region.attacker': 100_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
+const initialBase = (): SimulationState => ({ schemaVersion: 17, operations: emptyOperations(), international: emptyInternational(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1, territoryOwnership: { legacy: 'country.b' }, regionOwnership: { 'region.target': 'country.b', 'region.other': 'country.b', 'region.attacker': 'country.a' }, populationByRegion: { 'region.target': 5_000_000, 'region.other': 2_000_000, 'region.attacker': 3_000_000 }, economicOutputByRegion: { 'region.target': 200_000_000_000, 'region.other': 80_000_000_000, 'region.attacker': 100_000_000_000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(context.countryIds) });
+const initial = () => initializeOperations(initialBase());
+const controlFor = (state: SimulationState, regionId: string, controllerCountryId: string): SimulationState => {
+  const components = { ...state.operations.components };
+  for (const [id, component] of Object.entries(components)) {
+    if (component.regionId === regionId && component.kind === 'decisive') components[id] = { ...component, controllingCountryId: controllerCountryId, captureProgress: 0, contested: false };
+  }
+  return { ...state, operations: { ...state.operations, components, regionControl: { ...state.operations.regionControl, [regionId]: 'foreign_controlled' as const } } };
+};
+const occupyWithControl = (state: SimulationState, params: { regionId: string; warId: string; occupierCountryId: string; startDate?: string }) => occupyRegion(controlFor(state, params.regionId, params.occupierCountryId), params, context);
 const claimInput = { id: 'claim.target', claimantCountryId: 'country.a', regionId: 'region.target', type: 'territorial' as const, creationDate: '2026-01-01', reason: 'Reviewed claim' };
 const withClaim = () => createClaim(initial(), claimInput, context);
 const declareClaimWar = (state = withClaim(), warId = 'war.001') => declareLimitedWar(state, { warId, attackerCountryId: 'country.a', defenderCountryId: 'country.b', targetRegionId: 'region.target', casusBelliId: 'claim-derived:claim.target:country.b' }, context);
@@ -67,7 +77,7 @@ describe('limited bilateral war', () => {
     const active = createClaim(declareClaimWar(), { ...competingClaim, regionId: 'region.other' }, context);
     const concurrent = declareLimitedWar(active, { warId: 'war.other', attackerCountryId: 'country.c', defenderCountryId: 'country.b', targetRegionId: 'region.other', casusBelliId: 'claim-derived:claim.competing:country.b' }, context);
     expect(validateWarState(concurrent, context)).toBe(true);
-    const occupied = occupyRegion(concurrent, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context);
+    const occupied = occupyWithControl(concurrent, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' });
     const ended = endWar(occupied, 'war.001', 'attacker_victory', context);
     expect(ended.wars[1]).toEqual(concurrent.wars[1]);
     expect(ended.wars[1].status).toBe('active');
@@ -91,7 +101,7 @@ describe('limited bilateral war', () => {
     expect(declared.wars[0].declarationCasusBelli.targetRegionIds).not.toBe(authorized.explicitCasusBelli[0].targetRegionIds);
     expect(authorized.explicitCasusBelli[0].status).toBe('active');
     expect(validateWarState(declared, context)).toBe(true);
-    const ended = endWar(occupyRegion(declared, { regionId: 'region.target', warId: 'war.multi', occupierCountryId: 'country.a' }, context), 'war.multi', 'attacker_victory', context);
+    const ended = endWar(occupyWithControl(declared, { regionId: 'region.target', warId: 'war.multi', occupierCountryId: 'country.a' }), 'war.multi', 'attacker_victory', context);
     expect(ended.regionOwnership).toEqual({ ...authorized.regionOwnership, 'region.target': 'country.a' });
     expect(ended.wars[0].declarationCasusBelli).toEqual(declared.wars[0].declarationCasusBelli);
     expect(restoreSimulationState(serializeSimulationState(ended), regions, {}, {}, context)).toEqual(ended);
@@ -118,9 +128,9 @@ describe('limited bilateral war', () => {
     apply(current => declareClaimWar(current));
     const snapshot = structuredClone(state.wars[0].declarationCasusBelli);
     apply(current => renounceClaim(current, claimInput.id));
-    apply(current => occupyRegion(current, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context));
+    apply(current => occupyWithControl(current, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }));
     apply(current => liberateRegion(current, 'region.target', 'country.b', context));
-    apply(current => occupyRegion(current, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context));
+    apply(current => occupyWithControl(current, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }));
     apply(current => endWar(current, 'war.001', 'attacker_victory', context));
     expect(state.wars[0].declarationCasusBelli).toEqual(snapshot);
     apply(current => transferRegion(current, 'region.target', 'country.a', 'country.c'));
@@ -144,7 +154,7 @@ describe('limited bilateral war', () => {
     expect(liberated.occupationByRegion).toEqual({});
     expect(validateWarState(transferRegion(liberated, 'region.other', 'country.b', 'country.c'), context)).toBe(true);
     const ready = outcome === 'attacker_victory'
-      ? occupyRegion(occupied, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context) : occupied;
+      ? occupyWithControl(occupied, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }) : occupied;
     const ended = endWar(ready, 'war.001', outcome, context);
     expect(ended.occupationByRegion).toEqual({});
     expect(ended.regionOwnership['region.other']).toBe('country.b');
@@ -158,7 +168,7 @@ describe('limited bilateral war', () => {
     expect(() => transferRegion(active, 'region.target', 'country.b', 'country.c')).toThrow(/active war objective/);
     expect(() => transferRegion(active, 'region.target', 'country.b', 'country.a')).toThrow(/active war objective/);
     expect(transferRegion(active, 'region.other', 'country.b', 'country.c').regionOwnership['region.other']).toBe('country.c');
-    const occupied = occupyRegion(active, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context);
+    const occupied = occupyWithControl(active, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' });
     expect(occupied.regionOwnership['region.target']).toBe('country.b');
     const ended = endWar(occupied, 'war.001', 'attacker_victory', context);
     expect(validateWarState(ended, context)).toBe(true);
@@ -198,7 +208,7 @@ describe('limited bilateral war', () => {
   });
   it('requires target occupation for attacker victory and transfers exactly that Region', () => {
     const declared = declareClaimWar(); expect(isWarGoalSatisfied(declared, 'war.001')).toBe(false); expect(() => endWar(declared, 'war.001', 'attacker_victory', context)).toThrow(/objective/);
-    const targetOccupied = occupyRegion(declared, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context); expect(isWarGoalSatisfied(targetOccupied, 'war.001')).toBe(true);
+    const targetOccupied = occupyWithControl(declared, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }); expect(isWarGoalSatisfied(targetOccupied, 'war.001')).toBe(true);
     const bothOccupied = occupyRegion(targetOccupied, { regionId: 'region.other', warId: 'war.001', occupierCountryId: 'country.a' }, context);
     const ended = endWar(bothOccupied, 'war.001', 'attacker_victory', context);
     expect(ended.regionOwnership['region.target']).toBe('country.a'); expect(ended.regionOwnership['region.other']).toBe('country.b'); expect(ended.occupationByRegion).toEqual({});
@@ -209,6 +219,25 @@ describe('limited bilateral war', () => {
     expect(getAvailableCasusBelli(ended, 'country.a', 'country.b', context)).toEqual([]);
     const laterLost = { ...ended, regionOwnership: { ...ended.regionOwnership, 'region.target': 'country.c' } };
     expect(getAvailableCasusBelli(laterLost, 'country.a', 'country.c', context)[0]).toMatchObject({ claimId: 'claim.target', targetCountryId: 'country.c' });
+  });
+  it('does not let a forged occupation satisfy take_region without genuine control', () => {
+    const declared = declareClaimWar();
+    const forged = occupyRegion(declared, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }, context);
+    expect(getRegionOccupation(forged, 'region.target')).toBeDefined();
+    expect(isWarGoalSatisfied(forged, 'war.001')).toBe(false);
+    expect(() => endWar(forged, 'war.001', 'attacker_victory', context)).toThrow(/objective/);
+    expect(isWarGoalSatisfied(occupyWithControl(declared, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' }), 'war.001')).toBe(true);
+  });
+  it('reconciles operational Region/component control to the new sovereign on attacker victory', () => {
+    const declared = declareClaimWar();
+    const controlled = occupyWithControl(declared, { regionId: 'region.target', warId: 'war.001', occupierCountryId: 'country.a' });
+    expect(controlled.operations.regionControl['region.target']).toBe('foreign_controlled');
+    const ended = endWar(controlled, 'war.001', 'attacker_victory', context);
+    expect(ended.operations.regionControl['region.target']).toBe('sovereign_controlled');
+    const targetComponents = Object.values(ended.operations.components).filter(component => component.regionId === 'region.target');
+    expect(targetComponents.length).toBeGreaterThan(0);
+    expect(targetComponents.every(component => component.controllingCountryId === 'country.a' && component.captureProgress === 0 && !component.contested)).toBe(true);
+    expect(validateWarState(ended, context)).toBe(true);
   });
   it.each(['defender_victory', 'white_peace'] as const)('%s transfers nothing and clears war occupations', outcome => {
     const declared = declareClaimWar(), occupied = occupyRegion(declared, { regionId: 'region.other', warId: 'war.001', occupierCountryId: 'country.a' }, context), ended = endWar(occupied, 'war.001', outcome, context);

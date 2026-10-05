@@ -74,6 +74,9 @@ export const OPERATIONS_MODEL = Object.freeze({
   version: OPERATIONS_VERSION,
   schedulerPriority: 270,
   componentFallbackDecisive: 1,
+  captureThresholdBps: 5000,  // challenger progress (bps) required to flip a decisive component's controller
+  captureStepBps: 2500,       // progress gained per decisive combat win
+  defendStepBps: 2500,        // challenger progress repelled per decisive win by the current controller
 });
 
 /** Finite logistics throughput: distant resupply is convoy-limited by trucks, crews, hops and fuel; local (same-Region) resupply is stock-bounded only. */

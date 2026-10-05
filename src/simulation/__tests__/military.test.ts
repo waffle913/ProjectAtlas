@@ -1,4 +1,5 @@
 import { emptyOperations } from '../operations/model';
+import { initializeOperations } from '../operations/runtime';
 import { emptyInternational } from '../international/model';
 import { emptyTrade } from '../trade/model';
 import { describe, expect, it, vi } from 'vitest';
@@ -471,6 +472,12 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     let state = militaryFixture();
     state = createClaim(state, { id: 'claim.military-scope', claimantCountryId: militaryCountry, regionId: militaryRegions[1].id, type: 'territorial', creationDate: state.date, reason: 'Synthetic old structural-war fixture only.' }, militaryContext);
     state = declareLimitedWar(state, { warId: 'war.military-scope', attackerCountryId: militaryCountry, defenderCountryId: otherCountry, targetRegionId: militaryRegions[1].id, casusBelliId: `claim-derived:claim.military-scope:${otherCountry}` }, militaryContext);
+    state = initializeOperations(state);
+    const scopeComponents = { ...state.operations.components };
+    for (const [id, component] of Object.entries(scopeComponents)) {
+      if (component.regionId === militaryRegions[1].id && component.kind === 'decisive') scopeComponents[id] = { ...component, controllingCountryId: militaryCountry };
+    }
+    state = { ...state, operations: { ...state.operations, components: scopeComponents, regionControl: { ...state.operations.regionControl, [militaryRegions[1].id]: 'foreign_controlled' as const } } };
     state = occupyRegion(state, { regionId: militaryRegions[1].id, warId: 'war.military-scope', occupierCountryId: militaryCountry }, militaryContext);
     const before = structuredClone(territory(state));
     state = setMilitaryAuthorization(state, militaryCountry, person(state), 80);

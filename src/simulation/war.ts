@@ -1,6 +1,7 @@
 import type { LimitedWar, RegionOccupation, SimulationState, WarDeclarationCasusBelliSnapshot } from '../types';
 import { getAvailableCasusBelli, type DiplomacyContext } from './diplomacy';
 import { isSimulationDate as validDate } from './date';
+import { reconcileOperationsAfterWarEnd } from './operations/runtime';
 
 export type WarContext = DiplomacyContext;
 export type WarOutcome = 'attacker_victory' | 'defender_victory' | 'white_peace';
@@ -46,6 +47,9 @@ export function occupyRegion(state: SimulationState, params: { regionId: string;
   const war = state.wars.find(item => item.id === params.warId); if (!war) throw new Error(`Unknown war ID: ${params.warId}`);
   if (war.status !== 'active') throw new Error('Occupation requires an active war.');
   if (state.occupationByRegion[params.regionId]) throw new Error(`Region is already occupied: ${params.regionId}`);
+  // Legacy structural occupation record only. It does not grant effective control: `isWarGoalSatisfied`
+  // additionally requires `operations.regionControl === 'foreign_controlled'`, so a direct record cannot
+  // forge a modern operational war goal. Normal 0.19 occupations emerge from combat via recomputeControl.
   const opposingCountryId = params.occupierCountryId === war.attackerCountryId ? war.defenderCountryId : params.occupierCountryId === war.defenderCountryId ? war.attackerCountryId : undefined;
   if (!opposingCountryId) throw new Error('Only a belligerent may occupy a Region in this war.');
   if (state.regionOwnership[params.regionId] !== opposingCountryId) throw new Error('A belligerent may occupy only a Region sovereignly owned by its opponent.');
@@ -66,7 +70,11 @@ export const getRegionOccupation = (state: SimulationState, regionId: string) =>
 export const getWarOccupations = (state: SimulationState, warId: string) => Object.values(state.occupationByRegion).filter(occupation => occupation.warId === warId).map(cloneOccupation).sort((a, b) => a.regionId.localeCompare(b.regionId));
 export function isWarGoalSatisfied(state: SimulationState, warId: string) {
   const war = state.wars.find(item => item.id === warId); if (!war) throw new Error(`Unknown war ID: ${warId}`);
-  return war.status === 'active' && war.warGoal === 'take_region' && state.occupationByRegion[war.targetRegionId]?.warId === war.id && state.occupationByRegion[war.targetRegionId]?.occupierCountryId === war.attackerCountryId;
+  const occupation = state.occupationByRegion[war.targetRegionId];
+  const operationalControl = state.operations?.regionControl?.[war.targetRegionId] === 'foreign_controlled';
+  return war.status === 'active' && war.warGoal === 'take_region'
+    && occupation?.warId === war.id && occupation.occupierCountryId === war.attackerCountryId
+    && operationalControl;
 }
 
 export function endWar(state: SimulationState, warId: string, outcome: WarOutcome, context: WarContext): SimulationState {
@@ -80,7 +88,8 @@ export function endWar(state: SimulationState, warId: string, outcome: WarOutcom
   const wars = state.wars.map(item => item.id === warId ? { ...cloneWar(item), status: 'ended' as const, endDate: state.date, outcome } : cloneWar(item));
   const occupationByRegion = Object.fromEntries(Object.entries(state.occupationByRegion).filter(([, occupation]) => occupation.warId !== warId).map(([regionId, occupation]) => [regionId, cloneOccupation(occupation)]));
   const regionOwnership = outcome === 'attacker_victory' ? { ...state.regionOwnership, [war.targetRegionId]: war.attackerCountryId } : { ...state.regionOwnership };
-  return { ...state, wars, occupationByRegion, regionOwnership, territoryOwnership: { ...state.territoryOwnership }, populationByRegion: { ...state.populationByRegion }, economicOutputByRegion: { ...state.economicOutputByRegion }, claims: state.claims.map(claim => ({ ...claim })), explicitCasusBelli: state.explicitCasusBelli.map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined })) };
+  const settled = { ...state, wars, occupationByRegion, regionOwnership, territoryOwnership: { ...state.territoryOwnership }, populationByRegion: { ...state.populationByRegion }, economicOutputByRegion: { ...state.economicOutputByRegion }, claims: state.claims.map(claim => ({ ...claim })), explicitCasusBelli: state.explicitCasusBelli.map(cb => ({ ...cb, targetRegionIds: cb.targetRegionIds ? [...cb.targetRegionIds] : undefined })) };
+  return reconcileOperationsAfterWarEnd(settled, warId, war.targetRegionId);
 }
 
 export function validateWarState(state: SimulationState, context: WarContext) {

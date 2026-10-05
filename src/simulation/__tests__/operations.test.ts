@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { militaryFixture, militaryCountry, otherCountry, militaryRegions, militaryContext, militaryParameters } from './military.test';
 import { assertSimulationInvariants } from '../invariants';
 import { createPoliticalPerson, setControlledPerson } from '../governance/runtime';
-import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, resolveOneEngagement, supplyDeployment, withdrawDeployment } from '../operations/runtime';
+import { deploy, hasOperationsAuthority, initializeOperations, orderMovement, recomputeControl, resolveOneEngagement, supplyDeployment, withdrawDeployment } from '../operations/runtime';
 import { advanceSimulationDays } from '../engine';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { admitMilitaryBaseline } from '../military/runtime';
 import { createClaim } from '../diplomacy';
-import { declareLimitedWar } from '../war';
+import { declareLimitedWar, endWar, isWarGoalSatisfied } from '../war';
 import type { Deployment, StrategicComponent } from '../operations/model';
 import type { MilitaryItem } from '../military/model';
 import type { SchedulerTaskContext } from '../scheduler';
@@ -74,7 +74,7 @@ function decisiveComponent(state: ReturnType<typeof militaryFixture>, regionId: 
   return component;
 }
 
-const combatWar = { id: combatWarId, attackerCountryId: militaryCountry, defenderCountryId: otherCountry };
+const combatWar = { id: combatWarId, attackerCountryId: militaryCountry, defenderCountryId: otherCountry, targetRegionId };
 
 function forcingRoll(value: number): SchedulerTaskContext {
   return {
@@ -428,5 +428,72 @@ describe('0.19 logistics throughput', () => {
     expect(after.consumables.fuel!.quantity).toBe(beforeFuel - deployment.supply.fuel - 5);
     expect(deployment.supply.ammunition).toBe(40);
     expect(deployment.supply.fuel).toBe(30);
+  });
+});
+
+describe('0.19 checkpoint E strategic capture and control', () => {
+  const targetDecisive = (state: ReturnType<typeof militaryFixture>) => Object.values(state.operations.components).find(component => component.regionId === targetRegionId && component.kind === 'decisive')!;
+
+  it('derives Region control from all decisive components and ignores secondary components', () => {
+    const state = combatFixture();
+    const decisive = targetDecisive(state);
+    const extra = { id: 'component.test-extra', regionId: targetRegionId, kind: 'decisive' as const, coverage: 'modelled' as const, contested: false, controllingCountryId: otherCountry, provenance: 'Synthetic second decisive component.' };
+    const secondary = { id: 'component.test-secondary', regionId: targetRegionId, kind: 'secondary' as const, coverage: 'modelled' as const, contested: false, controllingCountryId: militaryCountry, provenance: 'Synthetic secondary component.' };
+    const armed = { ...state, operations: { ...state.operations, components: { ...state.operations.components, [extra.id]: extra, [secondary.id]: secondary }, componentOrder: [...state.operations.componentOrder, extra.id, secondary.id] } };
+    expect(recomputeControl(armed).operations.regionControl[targetRegionId]).toBe('sovereign_controlled');
+    const split = { ...armed, operations: { ...armed.operations, components: { ...armed.operations.components, [extra.id]: { ...extra, controllingCountryId: militaryCountry } } } };
+    expect(recomputeControl(split).operations.regionControl[targetRegionId]).toBe('contested');
+    const foreign = { ...armed, operations: { ...armed.operations, components: { ...armed.operations.components, [extra.id]: { ...extra, controllingCountryId: militaryCountry }, [decisive.id]: { ...decisive, controllingCountryId: militaryCountry } } } };
+    expect(recomputeControl(foreign).operations.regionControl[targetRegionId]).toBe('foreign_controlled');
+  });
+
+  it('accumulates capture progress across decisive wins, then full capture creates a matching occupation and war goal', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    const afterFirst = resolveCombat(state, 5000, attacker, defender);
+    const decisive1 = targetDecisive(afterFirst);
+    expect(decisive1.captureProgress).toBe(2500);
+    expect(decisive1.controllingCountryId).toBe(otherCountry);
+    expect(recomputeControl(afterFirst).operations.regionControl[targetRegionId]).toBe('contested');
+    const afterSecond = resolveOneEngagement(afterFirst, forcingRoll(5000), combatWar, decisive1, [afterFirst.operations.deployments['deployment.00000000']], [afterFirst.operations.deployments['deployment.00000001']], afterFirst.operations.engagementOrder[0]);
+    const decisive2 = targetDecisive(afterSecond);
+    expect(decisive2.controllingCountryId).toBe(militaryCountry);
+    expect(decisive2.captureProgress).toBe(0);
+    const captured = recomputeControl(afterSecond);
+    expect(captured.operations.regionControl[targetRegionId]).toBe('foreign_controlled');
+    expect(captured.occupationByRegion[targetRegionId]).toMatchObject({ occupierCountryId: militaryCountry, warId: combatWarId });
+    expect(isWarGoalSatisfied(captured, combatWarId)).toBe(true);
+  });
+
+  it('removes the occupation when the sovereign defender recaptures decisive control', () => {
+    const state = combatFixture();
+    const decisive = targetDecisive(state);
+    const captured = recomputeControl({ ...state, operations: { ...state.operations, components: { ...state.operations.components, [decisive.id]: { ...decisive, controllingCountryId: militaryCountry } } } });
+    expect(captured.operations.regionControl[targetRegionId]).toBe('foreign_controlled');
+    expect(captured.occupationByRegion[targetRegionId]).toBeDefined();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    let after = resolveCombat(captured, 5000, attacker, defender);
+    expect(targetDecisive(after).captureProgress).toBe(2500);
+    after = resolveOneEngagement(after, forcingRoll(5000), combatWar, targetDecisive(after), [after.operations.deployments['deployment.00000000']], [after.operations.deployments['deployment.00000001']], after.operations.engagementOrder[0]);
+    const recaptured = recomputeControl(after);
+    expect(recaptured.operations.regionControl[targetRegionId]).toBe('sovereign_controlled');
+    expect(recaptured.occupationByRegion[targetRegionId]).toBeUndefined();
+  });
+
+  it('preserves destroyed equipment and casualties through settlement', () => {
+    const state = combatFixture();
+    const attacker = deploymentRecord({ id: 'deployment.00000000', countryId: militaryCountry, warId: combatWarId, sourceRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 40 } });
+    const defender = deploymentRecord({ id: 'deployment.00000001', countryId: otherCountry, warId: combatWarId, sourceRegionId: targetRegionId, currentRegionId: targetRegionId, personnel: 40, supply: { ammunition: 40, fuel: 0 }, equipment: { personal: 20 } });
+    const afterCombat = resolveCombat(state, 5000, attacker, defender);
+    const destroyed = afterCombat.military.countries[otherCountry].capability!.equipment.personal!.destroyed!;
+    expect(destroyed).toBeGreaterThan(0);
+    const decisive = targetDecisive(afterCombat);
+    const captured = recomputeControl({ ...afterCombat, operations: { ...afterCombat.operations, components: { ...afterCombat.operations.components, [decisive.id]: { ...decisive, controllingCountryId: militaryCountry, captureProgress: 0, contested: false } } } });
+    const ended = endWar(captured, combatWarId, 'attacker_victory', militaryContext);
+    expect(ended.regionOwnership[targetRegionId]).toBe(militaryCountry);
+    expect(ended.military.countries[otherCountry].capability!.equipment.personal!.destroyed).toBe(destroyed);
+    expect(ended.military.countries[otherCountry].capability!.equipment.personal!.operational).toBe(afterCombat.military.countries[otherCountry].capability!.equipment.personal!.operational);
   });
 });
