@@ -1,4 +1,4 @@
-# ProjectAtlas — V1 core validated
+# ProjectAtlas — V1 core validated · desktop playable shell
 
 An original geopolitical, economic, social, political and military simulation, with the scenario start date fixed at **2026-01-01**.
 

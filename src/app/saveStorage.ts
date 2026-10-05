@@ -48,13 +48,13 @@ function browserSaveBackend(): SaveBackend {
 }
 
 let backend: SaveBackend = browserSaveBackend();
-const META_KEY = 'projectatlas.save.index';
+const INDEX_KEY = '__index__';
 
 function readIndex(): Record<string, SaveMetadata> {
-  try { return JSON.parse(localStorage.getItem(META_KEY) ?? '{}'); } catch { return {}; }
+  try { return JSON.parse(backend.read(INDEX_KEY) ?? '{}'); } catch { return {}; }
 }
 function writeIndex(index: Record<string, SaveMetadata>): void {
-  try { localStorage.setItem(META_KEY, JSON.stringify(index)); } catch { /* full */ }
+  backend.write(INDEX_KEY, JSON.stringify(index));
 }
 
 /** Desktop adapter swaps this in at startup. */
@@ -63,6 +63,7 @@ export function setSaveBackend(next: SaveBackend): void { backend = next; }
 export function listSaves(): SaveEntry[] {
   const index = readIndex();
   return backend.list()
+    .filter(id => id !== INDEX_KEY)
     .map(id => ({ id, metadata: index[id] }))
     .filter(entry => entry.metadata)
     .sort((a, b) => (b.metadata.modifiedAt ?? '').localeCompare(a.metadata.modifiedAt ?? ''));

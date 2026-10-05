@@ -27,7 +27,11 @@ const partyDisplayName = (sourceName) => {
   if (!words.length) return 'National Movement';
   const lower = words.map(word => word.toLowerCase());
   const structuralIndex = lower.findIndex(word => STRUCTURAL_WORDS.has(word));
-  const analogue = STRUCTURAL_ANALOGUES[parseInt(sha(sourceName).slice(0, 8), 16) % STRUCTURAL_ANALOGUES.length];
+  let analogueIndex = parseInt(sha(sourceName).slice(0, 8), 16) % STRUCTURAL_ANALOGUES.length;
+  let analogue = STRUCTURAL_ANALOGUES[analogueIndex];
+  if (structuralIndex !== -1 && analogue.toLowerCase() === words[structuralIndex].toLowerCase()) {
+    analogue = STRUCTURAL_ANALOGUES[(analogueIndex + 1) % STRUCTURAL_ANALOGUES.length];
+  }
   if (structuralIndex === -1) return `${sourceName} ${analogue}`;
   const stem = words.slice(0, structuralIndex).join(' ');
   const suffix = words.slice(structuralIndex + 1).join(' ');
