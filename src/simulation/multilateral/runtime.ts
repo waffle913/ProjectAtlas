@@ -412,7 +412,7 @@ export function runMultilateralAI(state: SimulationState): SimulationState {
       if (['proposed', 'signed'].includes(current.status) && !current.signatories[countryId] && aiShouldSign(next, countryId, current)) {
         const signatories = { ...current.signatories, [countryId]: next.date };
         const active = current.parties.every(p => signatories[p]) && current.entryIntoForce.kind === 'signature';
-        next = { ...next, multilateral: { ...next.multilateral, treaties: { ...next.multilateral.treaties, [current.id]: { ...current, signatories, status: active ? 'active' : 'signed', activeOn: active ? next.date : current.activeOn, history: [...current.history, { date: next.date, kind: 'signed', countryId, detail: `${countryId} signed.` }, ...(active ? [{ date: next.date, kind: 'entered_into_force', detail: 'Entered into force by signature.' }] : [])] } } } };
+        next = { ...next, multilateral: { ...next.multilateral, treaties: { ...next.multilateral.treaties, [current.id]: { ...current, signatories, status: active ? 'active' : 'signed', activeOn: active ? next.date : current.activeOn, history: [...current.history, { date: next.date, kind: 'signed' as const, countryId, detail: `${countryId} signed.` }, ...(active ? [{ date: next.date, kind: 'entered_into_force' as const, countryId, detail: 'Entered into force by signature.' }] : [])] } } } };
       }
     }
     const signed = next.multilateral.treaties[treaty.id];
