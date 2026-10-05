@@ -121,7 +121,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     if (version < 17) {
       if (version === 16) restored = upgradeOperationsAuthority(restored);
       restored = initializeOperations(restored);
-    } else if (version === 17) {
+    } else {
       restored = upgradeOperationsDeployments(restored);
     }
     if (version < 18) restored = initializeMultilateral(restored);
