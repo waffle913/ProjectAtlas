@@ -1,4 +1,4 @@
-# ProjectAtlas — Milestone 0.19 (implemented for independent review)
+# ProjectAtlas — Milestone 0.20 (implemented for independent review)
 
 An original geopolitical, economic, social, political and military simulation, with the scenario start date fixed at **2026-01-01**.
 
@@ -8,9 +8,10 @@ The validated 0.17 candidate parent is `a4e27364fdcffc2a165c71f5a67fffbad869c2ba
 (save schema 15). **0.18 international tensions/crises/sanctions is implemented
 for independent review, not accepted**; its save schema is 16. **0.19 military
 operations/war/territorial control is implemented for independent review, not
-accepted**; save schema remains 17. Current contracts, rationale, known limits
-and the locked roadmap are consolidated in the
-[canonical agent handoff](docs/agent-handoff.md).
+accepted**; save schema remains 17. **0.20 treaties/multilateral framework V1 is
+implemented for independent review, not accepted**; save schema 18. Current
+contracts, rationale, known limits and the locked roadmap are consolidated in
+the [canonical agent handoff](docs/agent-handoff.md).
 
 Milestone **0.15 is accepted/validated**. Its Government Information, briefing, fictional leadership, succession, playable interface and explicit-power-transfer institutional evaluation contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with historical measured validation retained in [the development validation report](docs/milestone-0.15-candidate-validation.md). Current fiscal proposals have no institutional transfer and retain their material scores.
 
@@ -36,6 +37,14 @@ control, occupation and `take_region` war settlement, plus a bounded operational
 AI, government fog-of-war reports and a minimal operations UI. Sovereignty,
 occupation and effective control stay distinct. See [the operations contract](docs/operations-0.19.md).
 Run `npm run operations:audit` and `npm run operations:benchmark`.
+
+The explicitly authorized **0.20 treaties/multilateral framework V1** adds a
+persistent typed treaty and international-organization framework: office-gated
+proposal/signature/ratification lifecycle, causal clauses (defensive guarantee,
+non-aggression, trade and sanctions commitments), exactly-once obligation/violation
+triggers, configurable organization voting, deterministic diplomatic AI and
+government-gated public reports. See [the multilateral contract](docs/multilateral-0.20.md).
+Run `npm run multilateral:audit` and `npm run multilateral:benchmark`.
 
 `npm install` then `npm run dev`. Run `npm run verify` for country, Region, demographic and economic reproducibility validation, type-checking, production compilation and automated tests. `npm run data:generate`, `npm run data:regions:generate`, `npm run data:population:generate` and `npm run data:economy:generate` regenerate derived data offline from checked-in inputs.
 

@@ -6,7 +6,7 @@ This document is the canonical cross-system continuity brief for humans and codi
 
 The accepted **0.15 foundation**, following the user's independent-review decision, introduced save schema 13 and information version `information-0.15-v3`. Its contracts include versioned plurality, institutional evaluation and succession while preserving historical 0.14 records. The earlier accepted base `c8bcb0841f6a75887b2ca520eca88496331aa1fd` remains the milestone 0.14 historical reference, not the current acceptance boundary. Validated milestones 0.8–0.15 are architectural history, not tasks to redo.
 
-The user explicitly directed 0.17 from the corrected **validated 0.16** HEAD `7580ed683a8164764fbccfbe94bb828da84c57ed`, schema 14. The validated 0.17 candidate parent is `a4e27364fdcffc2a165c71f5a67fffbad869c2ba`, schema 15, pending independent review and not accepted. **0.18 international tensions/crises/sanctions is implemented for independent review, not accepted**, schema 16. **0.19 military operations/war/territorial control is implemented for independent review, not accepted**, schema 17. No 0.20 work is authorized. This document and subsystem contracts are context, not permission to implement further roadmap items. Known modelled assumptions and unavailable coverage remain explicit.
+The user explicitly directed 0.17 from the corrected **validated 0.16** HEAD `7580ed683a8164764fbccfbe94bb828da84c57ed`, schema 14. The validated 0.17 candidate parent is `a4e27364fdcffc2a165c71f5a67fffbad869c2ba`, schema 15, pending independent review and not accepted. **0.18 international tensions/crises/sanctions is implemented for independent review, not accepted**, schema 16. **0.19 military operations/war/territorial control is implemented for independent review, not accepted**, schema 17. **0.20 treaties/multilateral framework V1 is implemented for independent review, not accepted**, schema 18. No 0.21 work is authorized. This document and subsystem contracts are context, not permission to implement further roadmap items. Known modelled assumptions and unavailable coverage remain explicit.
 
 Key subsystem references:
 
@@ -22,6 +22,7 @@ Key subsystem references:
 - [0.17 trade contract, independent review pending](trade-0.17.md)
 - [0.18 international contract, independent review pending](international-0.18.md)
 - [0.19 operations contract, independent review pending](operations-0.19.md)
+- [0.20 multilateral contract, independent review pending](multilateral-0.20.md)
 - Corresponding final validation records: `milestone-0.10-validation.md`, `milestone-0.10-corrective-validation.md`, `milestone-0.11-validation.md`, `milestone-0.12-validation.md`, `milestone-0.13-validation.md` and `milestone-0.14-validation.md`
 
 ## Project purpose and decision rule

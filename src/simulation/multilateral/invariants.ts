@@ -79,7 +79,8 @@ export const multilateralInvariant: SimulationInvariant = {
         if (!m.organizations[decision.organizationId].members[countryId] || m.organizations[decision.organizationId].members[countryId].role !== 'member' || !['yes', 'no', 'abstain', 'unknown'].includes(choice)) errors.push(`Decision ${id} has an invalid vote from ${countryId}.`);
       }
       if (decision.result !== undefined && !['adopted', 'rejected'].includes(decision.result)) errors.push(`Decision ${id} has an invalid result.`);
-      if ((decision.status === 'adopted' || decision.status === 'rejected') && (!decision.result || !decision.adoptedOn)) errors.push(`Resolved decision ${id} lacks a result date.`);
+      if (decision.status === 'adopted' && (decision.result !== 'adopted' || !decision.adoptedOn)) errors.push(`Adopted decision ${id} lacks a result date.`);
+      if (decision.status === 'rejected' && decision.result !== 'rejected') errors.push(`Rejected decision ${id} lacks a result.`);
       if (decision.appliedEffectIds && new Set(decision.appliedEffectIds).size !== decision.appliedEffectIds.length) errors.push(`Decision ${id} has duplicate applied effects.`);
     }
     if (new Set(m.obligationOrder).size !== m.obligationOrder.length || m.obligationOrder.some(id => !m.obligations[id]) || Object.keys(m.obligations).some(id => !m.obligationOrder.includes(id))) errors.push('Obligation order does not reconcile.');

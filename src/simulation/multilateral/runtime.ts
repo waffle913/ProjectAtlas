@@ -23,7 +23,7 @@ function partyOf(state: SimulationState, personId: string): string | undefined {
 }
 
 function addEvent(treaty: Treaty, date: string, kind: Treaty['history'][number]['kind'], countryId: string | undefined, detail: string): Treaty {
-  return { ...treaty, history: [...treaty.history, { date, kind, countryId, detail }] };
+  return { ...treaty, history: [...treaty.history, { date, kind, countryId, detail }].slice(-MULTILATERAL_MODEL.historyLimitPerTreaty) };
 }
 
 function replaceTreaty(state: SimulationState, treaty: Treaty): SimulationState {
@@ -194,7 +194,17 @@ export function runMultilateralMonth(state: SimulationState): SimulationState {
       next = closeDecision(next, decisionId);
     }
   }
+  next = pruneResolvedDecisions(next);
   return next;
+}
+
+function pruneResolvedDecisions(state: SimulationState): SimulationState {
+  const resolved = state.multilateral.decisionOrder.filter(id => state.multilateral.decisions[id]?.status !== 'open');
+  if (resolved.length <= MULTILATERAL_MODEL.decisionRetentionGlobal) return state;
+  const keep = new Set(resolved.slice(resolved.length - MULTILATERAL_MODEL.decisionRetentionGlobal));
+  const decisions = Object.fromEntries(Object.entries(state.multilateral.decisions).filter(([id, d]) => d.status === 'open' || keep.has(id)));
+  const decisionOrder = state.multilateral.decisionOrder.filter(id => decisions[id]);
+  return { ...state, multilateral: { ...state.multilateral, decisions, decisionOrder } };
 }
 
 /** The obligated guarantor honors (gains a retaliation casus belli) or violates (records the refusal) a triggered guarantee. */

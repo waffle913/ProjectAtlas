@@ -52,6 +52,8 @@
     "international:audit": "vitest run src/simulation/__tests__/international.test.ts --maxWorkers=1",
     "international:benchmark": "vitest run src/simulation/__tests__/internationalBenchmark.test.ts --maxWorkers=1 --reporter=verbose",
     "operations:audit": "node scripts/operations-audit.mjs && vitest run src/simulation/__tests__/operations.test.ts --maxWorkers=1",
+    "multilateral:audit": "node scripts/multilateral-audit.mjs && vitest run src/simulation/__tests__/multilateral.test.ts --maxWorkers=1",
+    "multilateral:benchmark": "vitest run src/simulation/__tests__/multilateralBenchmark.test.ts --maxWorkers=1 --reporter=verbose",
     "trade:data:generate": "node scripts/trade-audit.mjs --write",
     "trade:sources:update": "node scripts/update-trade-source.mjs"
   },
