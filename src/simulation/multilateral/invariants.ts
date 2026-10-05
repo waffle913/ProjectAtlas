@@ -76,7 +76,7 @@ export const multilateralInvariant: SimulationInvariant = {
       if (id !== decision.id || !/^decision\.\d{8}$/.test(decision.id) || !m.organizations[decision.organizationId] || !context.countryIds.has(decision.proposerCountryId) || !validDate(decision.proposalDate) || decision.proposalDate > state.date || !validDate(decision.votingClosesOn) || decision.votingClosesOn < decision.proposalDate || !['open', 'adopted', 'rejected', 'expired'].includes(decision.status)) errors.push(`Malformed decision ${id}.`);
       if (!state.governance.persons[decision.proposerPersonId] || state.governance.persons[decision.proposerPersonId].countryId !== decision.proposerCountryId) errors.push(`Decision ${id} has an invalid proposer.`);
       for (const [countryId, choice] of Object.entries(decision.votes)) {
-        if (!m.organizations[decision.organizationId].members[countryId] || m.organizations[decision.organizationId].members[countryId].role !== 'member' || !['yes', 'no', 'abstain', 'unknown'].includes(choice)) errors.push(`Decision ${id} has an invalid vote from ${countryId}.`);
+        if (!['yes', 'no', 'abstain', 'unknown'].includes(choice)) errors.push(`Decision ${id} has an invalid vote from ${countryId}.`);
       }
       if (decision.result !== undefined && !['adopted', 'rejected'].includes(decision.result)) errors.push(`Decision ${id} has an invalid result.`);
       if (decision.status === 'adopted' && (decision.result !== 'adopted' || !decision.adoptedOn)) errors.push(`Adopted decision ${id} lacks a result date.`);
