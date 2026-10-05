@@ -2,12 +2,12 @@
   "version": "party-leader-coverage-0.15-v4",
   "scenarioDate": "2026-01-01",
   "generatedFrom": {
-    "politicalRegistrySha256": "e3f3ca2a03c693af0f2292de8026c44f591e7ee0f98e5dd076e2e8b8ed78a437",
+    "politicalRegistrySha256": "ef51f9fde838cbbab01b54c8332a52df7b752707a671a07d9feb636af26d7ee5",
     "officeholderSnapshotSha256": "b300daa786975f1f761403e511eadce721383fc78a7974a7fb90edfef956c2e0",
-    "leaderSourceSnapshotSha256": "55af9362f472d1e791420f979536c55094d7c51830aaa1a41deb33e634477e3a",
+    "leaderSourceSnapshotSha256": "25893c5d07851ee7e3cd3a506e4eba1c6bd1624137623647286345d7390ba92a",
     "reviewedSourceSha256": {
       "political-offices-2026-01-01": "b300daa786975f1f761403e511eadce721383fc78a7974a7fb90edfef956c2e0",
-      "political-registry-2026-01-01": "e3f3ca2a03c693af0f2292de8026c44f591e7ee0f98e5dd076e2e8b8ed78a437",
+      "political-registry-2026-01-01": "ef51f9fde838cbbab01b54c8332a52df7b752707a671a07d9feb636af26d7ee5",
       "vparty-ideology-2022": "e958be638bab68d4ab1976e4332807da6fd72d1ba7ac199e98274094b452f267",
       "partyfacts-wikidata-2026-10-01": "948606226a5adf73fbac6cb27cb7ca729ddc51a4f5d6ec700477d4c91193c19d",
       "wikidata-party-chairs-2026-10-01": "4d77692324a3a59c26c3f36e0d5e786c0de7f1003e9e873785618c197ffaa950",
@@ -17,6 +17,7 @@
   "methodology": "Enumerate every gameplay party. Join only reviewed IPU-to-Party-Facts IDs and exact Wikidata party QIDs. Select a source person only from a P488 claim with explicit P580/P582 bounds containing 2026-01-01, or a reviewed dated primary-source override explicitly identifying the party role near that date. Missing P582 is not continued tenure; conflicting positive evidence is ambiguous. Every selected identity has a hand-reviewed fictional analogue. P488 chairperson is recorded as such and is not silently equated with every system’s constitutional/electoral party leader.",
   "totals": {
     "gameplayParties": 948,
+    "partiesInvestigated": 948,
     "gameplayLeadersRequired": 948,
     "partiesWithReviewedPartyFactsBridge": 35,
     "sourcedOrObservedLeaderBasis": 0,

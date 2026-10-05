@@ -383,6 +383,7 @@ const report = {
   methodology: 'Enumerate every gameplay party. Join only reviewed IPU-to-Party-Facts IDs and exact Wikidata party QIDs. Select a source person only from a P488 claim with explicit P580/P582 bounds containing 2026-01-01, or a reviewed dated primary-source override explicitly identifying the party role near that date. Missing P582 is not continued tenure; conflicting positive evidence is ambiguous. Every selected identity has a hand-reviewed fictional analogue. P488 chairperson is recorded as such and is not silently equated with every system’s constitutional/electoral party leader.',
   totals: {
     gameplayParties: parties.length,
+    partiesInvestigated: parties.length,
     gameplayLeadersRequired: parties.length,
     partiesWithReviewedPartyFactsBridge: candidates.length,
     sourcedOrObservedLeaderBasis: partyRecords.filter(item => item.sourceLeaderBasis === 'sourced' || item.sourceLeaderBasis === 'observed').length,
