@@ -84,7 +84,7 @@ describe('Region ownership and saves', () => {
     const transferred = transferRegion(state, region.id, 'country.alpha', 'country.beta');
     const restored = restoreSimulationState(serializeSimulationState(transferred), [region], {}, {}, { countryIds: new Set(['country.alpha', 'country.beta']), regionIds: new Set([region.id]) });
     expect(restored.regionOwnership[region.id]).toBe('country.beta');
-    expect(restored.schemaVersion).toBe(17);
+    expect(restored.schemaVersion).toBe(18);
     expect(restored.populationByRegion[region.id]).toBe(12345);
     expect(restored.economicOutputByRegion[region.id]).toBe(200_000_000_000);
   });
@@ -143,13 +143,13 @@ describe('Region ownership and saves', () => {
     const v6 = { ...v6Body, schemaVersion: 6 };
     const context = { countryIds: new Set(['country.alpha', 'country.beta']), regionIds: new Set([region.id]) };
     const migrated = migrateSimulationState(v6, [region], {}, {}, context);
-    expect(migrated.schemaVersion).toBe(17);
+    expect(migrated.schemaVersion).toBe(18);
     expect(migrated.engine).toMatchObject({ seed: 'project-atlas-2026', tick: 0, fidelityByCountry: { 'country.alpha': 'Standard', 'country.beta': 'Standard' } });
     expect(migrated.regionOwnership).toEqual(state.regionOwnership);
     expect(migrated.populationByRegion).toEqual(state.populationByRegion);
     expect(migrated.economicOutputByRegion).toEqual(state.economicOutputByRegion);
   });
   it('rejects unsupported future save schemas instead of treating them as v1', () => {
-    expect(() => migrateSimulationState({ schemaVersion: 18, date: '2030-01-01', paused: true, speed: 1, territoryOwnership: {} }, [region])).toThrow(/Unsupported simulation save schema version: 18/);
+    expect(() => migrateSimulationState({ schemaVersion: 19, date: '2030-01-01', paused: true, speed: 1, territoryOwnership: {} }, [region])).toThrow(/Unsupported simulation save schema version: 19/);
   });
 });

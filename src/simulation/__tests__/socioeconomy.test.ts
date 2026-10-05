@@ -144,7 +144,7 @@ describe('0.10 deterministic socioeconomic model', () => {
     const { socioeconomy: _s, ...body } = s;
     const legacy = { ...body, schemaVersion: 7, date: '2033-06-14', populationByRegion: { a: 9876, b: undefined }, economicOutputByRegion: { a: 9876543, b: undefined }, regionOwnership: { a: 'b', b: 'a' } };
     const migrated = migrateSimulationState(legacy, regions, { a: 1 }, { a: 1 }, context);
-    expect(migrated.schemaVersion).toBe(17);
+    expect(migrated.schemaVersion).toBe(18);
     expect(migrated.socioeconomy.regions.a.population).toBe(9876);
     expect(migrated.socioeconomy.initializedOn).toBe('2033-06-14');
     for (const field of ['populationByRegion', 'economicOutputByRegion', 'engine', 'regionOwnership', 'wars', 'claims'] as const) expect(migrated[field]).toEqual(legacy[field]);

@@ -462,8 +462,8 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     expect(schema13Fixture.referenceCommit).toBe('ceddc8e04fc470f41155fdc8b6250142fb970705');
     expect(schema13Fixture.state.schemaVersion).toBe(13);
     const restored = restoreSimulationState(JSON.stringify(schema13Fixture.state), militaryRegions, {}, {}, militaryContext);
-    const { schemaVersion, military, trade, international, operations, ...preserved } = restored;
-    expect(schemaVersion).toBe(17); expect(military.initializedOn).toBe('2028-03-11');
+    const { schemaVersion, military, trade, international, operations, multilateral, ...preserved } = restored;
+    expect(schemaVersion).toBe(18); expect(military.initializedOn).toBe('2028-03-11');
     expect(trade.initializedOn).toBe('2028-03-11'); expect(trade.flows).toEqual([]);
     expect(preserved).toEqual({ ...schema13Fixture.state, schemaVersion: undefined });
     expect(Object.values(military.countries).every(c => c.status === 'unavailable' && !c.capability)).toBe(true);
