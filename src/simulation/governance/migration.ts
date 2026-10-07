@@ -29,8 +29,7 @@ function upgradePublic(original: PublicSupportEstimate): PublicSupportEstimate {
 }
 
 /** Deterministic in-schema upgrade for saves written by the first schema-12 0.14 release. */
-export function upgradeGovernanceSchema12(state: SimulationState): SimulationState {
-  let changed = false; const proposals: Record<string, PoliticalProposal> = {}, reforms = state.fiscal.reforms.map(reform => ({ ...reform })), receipts = state.fiscal.reformReceipts.map(receipt => ({ ...receipt }));
+export function upgradeGovernanceSchema12(state: SimulationState): SimulationState {  let changed = false; const proposals: Record<string, PoliticalProposal> = {}, reforms = state.fiscal.reforms.map(reform => ({ ...reform })), receipts = state.fiscal.reformReceipts.map(receipt => ({ ...receipt }));
   for (const [id, original] of Object.entries(state.governance.proposals)) {
     let proposal = structuredClone(original), proposalChanged = false;
     if (proposal.submittedOn && !proposal.submittedPayloadFingerprint) { proposal.submittedPayloadFingerprint = governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload }); proposalChanged = true; }
@@ -60,4 +59,24 @@ export function upgradeGovernanceSchema12(state: SimulationState): SimulationSta
   const hasSuccessionState = Boolean(state.governance.successions && state.governance.successionOrder && Number.isSafeInteger(state.governance.nextSuccessionSequence));
   if (!changed && hasSuccessionState && state.fiscal.reforms.every((reform, index) => reform.origin === reforms[index].origin) && receipts.length === state.fiscal.reformReceipts.length) return state;
   return { ...state, governance: { ...state.governance, proposals, successions: state.governance.successions ?? {}, successionOrder: state.governance.successionOrder ?? [], nextSuccessionSequence: state.governance.nextSuccessionSequence ?? 0 }, fiscal: { ...state.fiscal, reforms, reformReceipts: receipts.sort((a, b) => a.sequence - b.sequence) } };
+}
+
+/** Idempotent, derived backfill for the 0.22 generalized proposal model. Existing fiscal
+ *  proposals gain their instrumentClass and a typed effect record derived from the already
+ *  recorded enactmentReference — never a replay of votes, opinion or reform scheduling. */
+export function upgradeGovernanceProposalModel(state: SimulationState): SimulationState {
+  let changed = false;
+  const proposals: Record<string, PoliticalProposal> = {};
+  for (const [id, original] of Object.entries(state.governance.proposals)) {
+    const proposal = structuredClone(original) as PoliticalProposal;
+    if (proposal.instrumentClass === undefined) { proposal.instrumentClass = 'law'; changed = true; }
+    if (proposal.effects === undefined) {
+      proposal.effects = proposal.enactmentReference
+        ? [{ category: 'fiscal_reform', fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
+        : [];
+      changed = true;
+    }
+    proposals[id] = changed ? proposal : original;
+  }
+  return changed ? { ...state, governance: { ...state.governance, proposals } } : state;
 }

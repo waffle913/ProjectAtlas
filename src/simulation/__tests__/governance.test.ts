@@ -42,10 +42,10 @@ import { allocate, ratio } from '../socioeconomy/model';
 import historicalFixture from './fixtures/governance-situational-0.14-v2.json';
 import historicalPluralityFixture from './fixtures/governance-plurality-0.15-v1.json';
 import historicalFallbackFixture from './fixtures/leadership-fallback-0.15-v2.json';
-const historicalSituational = historicalFixture as {
+const historicalSituational = historicalFixture as unknown as {
   referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal; reform: FiscalReform;
 };
-const historicalPlurality = historicalPluralityFixture as {
+const historicalPlurality = historicalPluralityFixture as unknown as {
   referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal;
 };
 

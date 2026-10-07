@@ -92,8 +92,10 @@ function parliamentaryProposal(state: SimulationState, outcome: 'adopted' | 'rej
     proposerPersonId: person.id,
     createdOn: state.date,
     kind: 'fiscal_reform',
+    instrumentClass: 'law',
     payload: { annualBudget: state.fiscal.countries[countryId].annualBudget },
     status: outcome === 'adopted' ? 'enacted' : 'rejected',
+    effects: [],
     effectiveDate: '2026-02-01',
     voteResult: {
       yesSeats: outcome === 'adopted' ? 161 : 152,

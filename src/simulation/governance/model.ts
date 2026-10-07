@@ -94,6 +94,54 @@ export interface LeadershipSuccession {
 }
 
 export interface FiscalProposalPayload { policy?: Policy; annualBudget?: Budget }
+
+// 0.22 generic decision/policy/law framework. `kind` is the machine category; `fiscal_reform`
+// is the first member. Future milestones add new categories with their own typed payloads and
+// effects — none are implemented here.
+export const PROPOSAL_KINDS = ['fiscal_reform'] as const;
+export type ProposalKind = typeof PROPOSAL_KINDS[number];
+
+// Distinguishes what sort of public decision a proposal is. A fiscal reform adopted through
+// the parliamentary proposal lifecycle is a law. Future 0.23 work will use these classes to
+// decide which authority/procedure applies (administrative action vs regulation vs law vs
+// constitutional amendment) without reworking the proposal model.
+export const PROPOSAL_INSTRUMENT_CLASSES = ['administrative_action', 'regulatory_policy', 'law', 'constitutional_amendment'] as const;
+export type ProposalInstrumentClass = typeof PROPOSAL_INSTRUMENT_CLASSES[number];
+
+// A typed, immutable record of the effect a proposal produced once it became effective. The
+// owning subsystem applies the effect through its own runtime; the proposal only records the
+// typed reference. Fiscal reform remains the sole category.
+export interface FiscalReformEnactment {
+  category: 'fiscal_reform';
+  fiscalReformSequence: number;
+  reformFingerprint: string;
+}
+export type ProposalEffect = FiscalReformEnactment;
+
+// Static, pedagogical description of a proposal category. This is documentation, not a
+// mechanic: it produces no effect and is never serialized into a save. It lives in a static
+// registry so future levers can explain themselves without bloating every save.
+export interface PolicyCategoryDescriptor {
+  kind: ProposalKind;
+  title: string;
+  instrumentClass: ProposalInstrumentClass;
+  summary: string;
+  usage: string;
+  context?: string;
+  tradeoffs?: string;
+}
+
+export const POLICY_CATEGORY_REGISTRY: Readonly<Record<ProposalKind, PolicyCategoryDescriptor>> = {
+  fiscal_reform: {
+    kind: 'fiscal_reform',
+    title: 'Fiscal reform',
+    instrumentClass: 'law',
+    summary: 'Changes the legal tax rules and/or the annual budget through the ordinary legislative process.',
+    usage: 'Raise or lower an explicit tax value or reallocate the annual budget; the change becomes effective on its effective date only after parliamentary adoption.',
+    context: 'Fiscal rules are the legal basis for tax liability, collection, revenue and public services. They do not grant new spending powers by themselves.',
+    tradeoffs: 'A tax change redistributes disposable income and public revenue; a budget reallocation shifts spending between public services and defence.',
+  },
+};
 export interface ProposalImpactDriver { issue: PoliticalIssue; directionBps: number; source: string; explanation: string }
 export interface ProposalImpact { issueDirectionsBps: Record<PoliticalIssue, number>; drivers: ProposalImpactDriver[]; method: 'fiscal_delta_v1'; limitation: string }
 export type EvaluationCoverage = 'complete' | 'partial' | 'unavailable';
@@ -169,7 +217,8 @@ export interface PoliticalProposal {
   countryId: string;
   proposerPersonId: string;
   createdOn: string;
-  kind: 'fiscal_reform';
+  kind: ProposalKind;
+  instrumentClass: ProposalInstrumentClass;
   payload: FiscalProposalPayload;
   status: PoliticalProposalStatus;
   effectiveDate: string;
@@ -181,6 +230,7 @@ export interface PoliticalProposal {
   voteResult?: LegislativeVoteResult;
   scheduledFiscalReformSequence?: number;
   enactmentReference?: { fiscalReformSequence: number; reformFingerprint: string };
+  effects: ProposalEffect[];
   analysis?: ProposalAnalysis;
   evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1' | 'situational-plurality-0.15-v2';
 }

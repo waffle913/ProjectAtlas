@@ -7,7 +7,7 @@ import { initializePolitics, rebasePoliticsRegistry } from './politics/initializ
 import { politicalRegistry } from './politics/registry';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
 import { emptyGovernance } from './governance/model';
-import { upgradeGovernanceSchema12 } from './governance/migration';
+import { upgradeGovernanceSchema12, upgradeGovernanceProposalModel } from './governance/migration';
 import { initializePartyLeaders } from './governance/runtime';
 import { emptyInformation, INFORMATION_VERSION } from './information/model';
 import { initializeInformationState } from './information/runtime';
@@ -108,6 +108,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     const needsPoliticalRebase = savedRegistryVersion === 'political-registry-0.13-v2' || savedRegistryVersion === 'political-registry-0.13-v3';
     const politicsRestored = hasNormalizedPolitics ? fiscalRestored : needsPoliticalRebase ? { ...fiscalRestored, politics: rebasePoliticsRegistry(fiscalRestored) } : { ...fiscalRestored, politics: initializePolitics({ ...fiscalRestored, politics: emptyPolitics() }, countryIds, regions) };
     let restored = version === 12 ? upgradeGovernanceSchema12(politicsRestored) : politicsRestored;
+    if (version >= 12) restored = upgradeGovernanceProposalModel(restored);
     if (version < 13) {
       restored = initializeInformationState(restored);
       restored = initializePartyLeaders(restored);
