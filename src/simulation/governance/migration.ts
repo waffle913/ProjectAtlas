@@ -70,12 +70,10 @@ export function upgradeGovernanceProposalModel(state: SimulationState): Simulati
   for (const [id, original] of Object.entries(state.governance.proposals)) {
     const proposal = structuredClone(original) as PoliticalProposal;
     if (proposal.instrumentClass === undefined) { proposal.instrumentClass = 'law'; changed = true; }
-    if (proposal.effects === undefined) {
-      proposal.effects = proposal.enactmentReference
-        ? [{ category: 'fiscal_reform', fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
-        : [];
-      changed = true;
-    }
+    const expectedEffects = proposal.enactmentReference
+      ? [{ category: 'fiscal_reform' as const, fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
+      : [];
+    if (proposal.effects === undefined || JSON.stringify(proposal.effects) !== JSON.stringify(expectedEffects)) { proposal.effects = expectedEffects; changed = true; }
     proposals[id] = changed ? proposal : original;
   }
   return changed ? { ...state, governance: { ...state.governance, proposals } } : state;
