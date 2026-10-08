@@ -10,7 +10,7 @@ function withOrganization(): { state: SimulationState; organizationId: string } 
   const organizationId = 'organization.synthetic-test';
   const entry: OrganizationPoliticalState = {
     organizationId, currentPositions: {} as Record<PoliticalIssue, number>, lastUpdatedOn: state.date, recentDrivers: [],
-    status: 'active', members: {}, fundsUsd: 0, internalCurrents: {},
+    status: 'active', members: {}, fundsUsd: 0, internalCurrents: {}, banEvents: [],
   };
   return { state: { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: entry } } }, organizationId };
 }
@@ -22,7 +22,7 @@ describe('0.23 organizations', () => {
     expect(next.politics.organizations[organizationId].members['person.synthetic-1']).toBeDefined();
     next = leaveOrganization(next, 'person.synthetic-1', organizationId);
     expect(next.politics.organizations[organizationId].members['person.synthetic-1']).toBeUndefined();
-    next = banOrganization(next, organizationId);
+    next = banOrganization(next, organizationId, 'person.synthetic-actor', 'Procedural test ban', 'Documented evidence for the test ban.');
     expect(next.politics.organizations[organizationId].status).toBe('banned');
     expect(() => runOrganizationAction(next, organizationId, 'strike')).toThrow(/cannot act/);
   });

@@ -87,16 +87,50 @@ export function dissolveOrganization(state: SimulationState, organizationId: str
   return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'dissolved' } } } };
 }
 
-/** Procedurally ban an organization. */
-export function banOrganization(state: SimulationState, organizationId: string): SimulationState {
+/** Procedurally ban an organization with an accountable actor, motive and evidence; the ban is appealable. */
+export function banOrganization(state: SimulationState, organizationId: string, actorPersonId: string, motive: string, evidence: string): SimulationState {
   const organization = activeOrganization(state, organizationId);
-  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'banned' } } } };
+  if (!motive?.trim() || !evidence?.trim()) throw new Error('A ban requires an explicit motive and evidence.');
+  const banEvents = [...organization.banEvents, { date: state.date, actorPersonId, motive, evidence }];
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'banned', banEvents } } } };
 }
 
-/** A public action (sit-in / demonstration / strike) adds a causal opinion driver, never a raw bonus. */
+/** Appeal a ban: a recorded appeal restores the organization to active. */
+export function appealBan(state: SimulationState, organizationId: string): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  if (organization.status !== 'banned') throw new Error('Only a banned organization may appeal.');
+  const banEvents = [...organization.banEvents]; const last = banEvents.at(-1);
+  if (last) banEvents[banEvents.length - 1] = { ...last, appealedOn: state.date };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'active', banEvents } } } };
+}
+
+/** Set the organization's funds from a deterministic donation; it never creates economic value. */
+export function setOrganizationFunds(state: SimulationState, organizationId: string, fundsUsd: number): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  if (!Number.isSafeInteger(fundsUsd) || fundsUsd < 0) throw new Error('Organization funds must be a non-negative integer.');
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, fundsUsd } } } };
+}
+
+/** Register an internal current (a modelled faction; not an observed faction share). */
+export function addInternalCurrent(state: SimulationState, organizationId: string, currentId: string, name: string, salienceBps: number): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, internalCurrents: { ...organization.internalCurrents, [currentId]: { id: currentId, name, salienceBps } } } } } };
+}
+
+/** A public action (sit-in / demonstration / strike) is gated by the organization type, the
+ *  constitution's rights and the state of emergency; it adds a causal opinion driver, never a bonus. */
 export function runOrganizationAction(state: SimulationState, organizationId: string, action: 'sit_in' | 'demonstration' | 'strike'): SimulationState {
   const organization = activeOrganization(state, organizationId);
   if (organization.status !== 'active') throw new Error('A dissolved or banned organization cannot act.');
+  const registryOrg = politicalRegistry.organizations[organizationId];
+  const type = registryOrg?.type ?? 'association';
+  if (action === 'strike' && type !== 'union') throw new Error('Only a union may strike.');
+  const countryId = registryOrg?.countryId;
+  const constitution = countryId ? state.constitution.countries[countryId] : undefined;
+  if (action === 'strike' && constitution?.emergency.restrictions.strikesBanned) throw new Error('Strikes are banned under the state of emergency.');
+  if (action !== 'strike' && constitution?.emergency.restrictions.assembliesBanned) throw new Error('Assemblies are banned under the state of emergency.');
+  if (action === 'strike' && constitution?.rights.strike === 'not_guaranteed') throw new Error('The right to strike is not constitutionally guaranteed.');
+  if (action !== 'strike' && ['strongly_restricted', 'not_guaranteed'].includes(constitution?.rights.assembly ?? '')) throw new Error('Assembly is not constitutionally guaranteed.');
   const issueIndex = action === 'strike' ? POLITICAL_ISSUES.indexOf('labour_protection') : POLITICAL_ISSUES.indexOf('public_order');
   const issues = issueIndex >= 0 ? [POLITICAL_ISSUES[issueIndex]] : [];
   const driver = { date: state.date, issues };
