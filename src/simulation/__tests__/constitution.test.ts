@@ -43,8 +43,8 @@ describe('0.23 constitution procedures', () => {
   it('registers protected material keys and rejects ordinary-law modification of them', () => {
     const countryId = worldCountryIds[0];
     let state = initializeConstitution(initial, [countryId]);
-    state = registerConstitutionalBinding(state, countryId, ['fiscal.corporate.rate']);
-    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate.rate']);
+    state = registerConstitutionalBinding(state, countryId, ['fiscal.corporate'], 'proposal.amendment');
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
     expect(rejectProtectedModification(state, countryId, 'law', { policy: { corporate: { rateBps: 2000 } as never }, annualBudget: undefined })).toMatch(/constitutionally protected material keys/);
     expect(rejectProtectedModification(state, countryId, 'constitutional_amendment', { policy: { corporate: { rateBps: 2000 } as never }, annualBudget: undefined })).toBeUndefined();
     expect(rejectProtectedModification(state, countryId, 'law', { policy: { personal: { rateBps: 2000 } as never }, annualBudget: undefined })).toBeUndefined();

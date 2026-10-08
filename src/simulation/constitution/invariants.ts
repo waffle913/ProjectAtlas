@@ -1,4 +1,5 @@
 import type { SimulationInvariant } from '../invariants';
+import { isSimulationDate as validDate } from '../date';
 import { CONSTITUTION_VERSION } from './model';
 
 const thresholds = ['parliamentaryThresholdBps', 'thresholdBps'] as const;
@@ -21,6 +22,7 @@ export const constitutionInvariant: SimulationInvariant = {
       if (entry.headOfState.termYears !== undefined && (!Number.isSafeInteger(entry.headOfState.termYears) || entry.headOfState.termYears <= 0)) errors.push(`Constitution ${countryId} has an invalid head-of-state term.`);
       if (entry.headOfState.maxTerms !== undefined && (!Number.isSafeInteger(entry.headOfState.maxTerms) || entry.headOfState.maxTerms <= 0)) errors.push(`Constitution ${countryId} has an invalid head-of-state max terms.`);
       if (!Array.isArray(entry.protectedMaterialKeys) || entry.protectedMaterialKeys.some(key => typeof key !== 'string' || !key.trim())) errors.push(`Constitution ${countryId} has invalid protected material keys.`);
+      if (entry.bindingEvents && entry.bindingEvents.some(e => e.provenance !== 'constitutional_amendment' || !validDate(e.date) || e.date > state.date || !['protected', 'unprotected'].includes(e.action))) errors.push(`Constitution ${countryId} has an invalid binding trace.`);
       const restrictions = entry.emergency.restrictions;
       for (const field of [restrictions.assembliesBanned, restrictions.strikesBanned, restrictions.policePowersEnhanced, restrictions.bordersClosed]) if (typeof field !== 'boolean') errors.push(`Constitution ${countryId} has an invalid emergency restriction.`);
       if (!['none', 'active', 'expired'].includes(entry.emergency.status)) errors.push(`Constitution ${countryId} has an invalid emergency status.`);

@@ -64,7 +64,7 @@ const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields 
   const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
   const withPolitics = { ...crisis, politics: initializePolitics(crisis, countryIds, regions), governance: emptyGovernance(crisis.date) };
-  return initializeOperations(initializeInternational(initializeMultilateral(initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics))))));
+  return initializeElections(initializeConstitution(initializeOperations(initializeInternational(initializeMultilateral(initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics)))))), [...countryIds]), [...countryIds]);
 };
 const validationContext = (regions: RegionEntity[], context: DiplomacyContext): InvariantContext => ({ ...context, regions });
 

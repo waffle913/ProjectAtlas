@@ -97,13 +97,16 @@ export function estimateParliamentarySupport(
     return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'internal_party_distribution_v1', seatApportionment: 'identity_hash_v1' };
   }
   const analysis = analysisOverride ?? analyzeProposal(state, proposal);
+  const dynamicSeats = state.elections?.countries[proposal.countryId]?.seatsByParty;
+  const dynamicAllocated = dynamicSeats && Object.values(dynamicSeats).some(seats => seats > 0) ? Object.values(dynamicSeats).reduce((a, b) => a + b, 0) : 0;
   const chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
     if (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined) {
       return { chamberId: chamber.id, yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: chamber.totalSeats ?? 0, totalSeats: chamber.totalSeats, coverage: 'unavailable', partyEvaluations: [] };
     }
     let yesSeats = 0, noSeats = 0, abstainSeats = 0, unknownSeats = 0;
     const partyEvaluations: NonNullable<ChamberSupportEstimate['partyEvaluations']> = [];
-    for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) {
+    const seatSource = dynamicSeats && dynamicAllocated > 0 ? dynamicSeats : chamber.seatsByParty;
+    for (const [partyId, seats] of Object.entries(seatSource).sort(([a], [b]) => a.localeCompare(b))) {
       const party = registry.parties[partyId], profile = profiles[partyId] ?? (party ? derivePartyGoalProfile(party) : undefined);
       const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profile, analysis);
       const internalDistribution = evaluatePartyInternalVoteDistribution(analysis, profile, evaluation);

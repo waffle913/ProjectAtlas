@@ -152,7 +152,7 @@ export function assertSimulationInvariants(state: SimulationState, context: Inva
   return registry.assert(state, context, phase);
 }
 
-const conservedFields = ['operations', 'international', 'trade', 'military', 'governance', 'information', 'politics', 'crisis', 'fiscal', 'socioeconomy', 'territoryOwnership', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'bilateralRelations', 'claims', 'explicitCasusBelli', 'wars', 'occupationByRegion'] as const;
+const conservedFields = ['operations', 'international', 'trade', 'military', 'governance', 'information', 'politics', 'crisis', 'fiscal', 'socioeconomy', 'multilateral', 'constitution', 'elections', 'territoryOwnership', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion', 'bilateralRelations', 'claims', 'explicitCasusBelli', 'wars', 'occupationByRegion'] as const;
 export function validateFidelityConservation(before: SimulationState, after: SimulationState): InvariantViolation[] {
   return conservedFields.flatMap(field => JSON.stringify(before[field]) === JSON.stringify(after[field]) ? [] : [{ invariantId: `fidelity-conserves-${field}`, phase: 'fidelity-transition' as const, message: `${field} changed during a fidelity-only transition.` }]);
 }

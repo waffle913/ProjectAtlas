@@ -102,6 +102,14 @@ export interface EmergencyConstitution {
   restrictions: { assembliesBanned: boolean; strikesBanned: boolean; policePowersEnhanced: boolean; bordersClosed: boolean };
 }
 
+export interface ConstitutionalBindingEvent {
+  date: string;
+  materialKey: string;
+  action: 'protected' | 'unprotected';
+  instrumentId?: string;
+  provenance: 'constitutional_amendment';
+}
+
 export interface ConstitutionStateEntry {
   countryId: string;
   coverage: ConstitutionCoverage;
@@ -117,6 +125,8 @@ export interface ConstitutionStateEntry {
   emergency: EmergencyConstitution;
   /** Canonical material keys (e.g. 'fiscal.corporate.rate') protected by constitutional secondary dispositions. */
   protectedMaterialKeys: string[];
+  /** Dated trace of every protection/removal, created only by a constitutional amendment. */
+  bindingEvents: ConstitutionalBindingEvent[];
 }
 
 export interface ConstitutionState {
@@ -199,6 +209,7 @@ export function initializeConstitution(state: SimulationState, countryIds?: read
       territory: { organization: 'unavailable', regionalAutonomy: 'unavailable', delegatedCompetences: [] },
       emergency: { status: 'none', justificationCrisisIds: [], restrictions: { assembliesBanned: false, strikesBanned: false, policePowersEnhanced: false, bordersClosed: false } },
       protectedMaterialKeys: [],
+      bindingEvents: [],
     };
   }
   return { ...state, constitution: { version: CONSTITUTION_VERSION, initializedOn: state.date, countries } };

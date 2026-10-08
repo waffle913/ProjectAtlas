@@ -47,33 +47,53 @@ export function runEmergencyMonth(state: SimulationState): SimulationState {
   return changed ? { ...state, constitution: { ...state.constitution, countries } } : state;
 }
 
-/** Canonical material keys a fiscal proposal would modify, used to reject ordinary modification
- *  of a constitutionally protected policy. */
-const fiscalMaterialKeys = (payload: { policy?: { corporate?: unknown; personal?: unknown; consumption?: unknown; payroll?: unknown }; annualBudget?: Record<string, number> }): string[] => {
+/** Canonical material keys a fiscal proposal would actually modify, determined by comparing the
+ *  proposed value against the current fiscal state — not by the mere presence of a payload field. */
+const fiscalMaterialKeys = (state: SimulationState, countryId: string, payload: { policy?: Record<string, unknown>; annualBudget?: Record<string, number> }): string[] => {
   const keys: string[] = [];
-  if (payload.policy?.corporate) keys.push('fiscal.corporate.rate');
-  if (payload.policy?.personal) keys.push('fiscal.personal');
-  if (payload.policy?.consumption) keys.push('fiscal.consumption');
-  if (payload.policy?.payroll) keys.push('fiscal.payroll');
-  for (const category of Object.keys(payload.annualBudget ?? {})) keys.push(`fiscal.annualBudget.${category}`);
+  const current = state.fiscal.countries[countryId];
+  const currentPolicy = (current?.policy ?? {}) as Record<string, unknown>;
+  for (const [category, proposed] of Object.entries(payload.policy ?? {})) {
+    if (proposed === undefined) continue;
+    const key = `fiscal.${category}`;
+    if (proposed === null) { keys.push(key); continue; }
+    const existing = currentPolicy[category];
+    if (JSON.stringify(proposed) !== JSON.stringify(existing)) keys.push(key);
+  }
+  const currentBudget = (current?.annualBudget ?? {}) as Record<string, number>;
+  for (const [category, value] of Object.entries(payload.annualBudget ?? {})) {
+    if (currentBudget[category] !== value) keys.push(`fiscal.annualBudget.${category}`);
+  }
   return keys;
 };
 
 /** Reject an ordinary-law proposal that would modify a constitutionally protected material key. */
-export function rejectProtectedModification(state: SimulationState, countryId: string, instrumentClass: string, fiscalPayload: { policy?: { corporate?: unknown; personal?: unknown; consumption?: unknown; payroll?: unknown }; annualBudget?: Record<string, number> }): string | undefined {
+export function rejectProtectedModification(state: SimulationState, countryId: string, instrumentClass: string, payload: { policy?: Record<string, unknown>; annualBudget?: Record<string, number> }): string | undefined {
   if (instrumentClass === 'constitutional_amendment') return undefined;
   const protectedKeys = state.constitution.countries[countryId]?.protectedMaterialKeys ?? [];
-  const modified = fiscalMaterialKeys(fiscalPayload).filter(key => protectedKeys.includes(key));
+  const modified = fiscalMaterialKeys(state, countryId, payload).filter(key => protectedKeys.includes(key));
   if (modified.length) return `Ordinary law cannot modify constitutionally protected material keys: ${modified.join(', ')}. A constitutional amendment is required.`;
   return undefined;
 }
 
-/** Record the material keys a secondary constitutional disposition protects. */
-export function registerConstitutionalBinding(state: SimulationState, countryId: string, materialKeys: string[]): SimulationState {
+/** Record the material keys a secondary constitutional disposition protects. Only a constitutional
+ *  amendment may call this; the `instrumentId` is required for the dated, traceable binding. */
+export function registerConstitutionalBinding(state: SimulationState, countryId: string, materialKeys: string[], instrumentId: string): SimulationState {
   const entry = state.constitution.countries[countryId];
   if (!entry) throw new Error('No constitutional state for this Country.');
   const merged = [...new Set([...entry.protectedMaterialKeys, ...materialKeys])].sort();
-  return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...entry, protectedMaterialKeys: merged } } } };
+  const events = [...entry.bindingEvents, ...materialKeys.map(materialKey => ({ date: state.date, materialKey, action: 'protected' as const, instrumentId, provenance: 'constitutional_amendment' as const }))];
+  return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...entry, protectedMaterialKeys: merged, bindingEvents: events } } } };
+}
+
+/** Remove constitutional protection of material keys, likewise only through a constitutional amendment. */
+export function removeConstitutionalBinding(state: SimulationState, countryId: string, materialKeys: string[], instrumentId: string): SimulationState {
+  const entry = state.constitution.countries[countryId];
+  if (!entry) throw new Error('No constitutional state for this Country.');
+  const removed = new Set(materialKeys);
+  const merged = entry.protectedMaterialKeys.filter(key => !removed.has(key)).sort();
+  const events = [...entry.bindingEvents, ...materialKeys.map(materialKey => ({ date: state.date, materialKey, action: 'unprotected' as const, instrumentId, provenance: 'constitutional_amendment' as const }))];
+  return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...entry, protectedMaterialKeys: merged, bindingEvents: events } } } };
 }
 
 export const constitutionVersion = () => CONSTITUTION_VERSION;
