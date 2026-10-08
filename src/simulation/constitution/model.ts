@@ -151,8 +151,12 @@ export interface PendingAmendment {
     electionChanges?: Partial<ElectionConstitution>;
     judicialChanges?: Partial<JudicialReviewConstitution>;
     territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] }>;
+    amendmentChanges?: Partial<AmendmentConstitution>;
   };
   judicialReview: { timing: JudicialTiming; effect: JudicialEffect };
+  /** Set when a constitutional court blocks the amendment; it is never silently dropped. */
+  blockedOn?: string;
+  decision?: { timing: JudicialTiming; effect: JudicialEffect; outcome: 'promulgated' | 'blocked' | 'annulled'; on: string };
 }
 
 export interface ConstitutionState {

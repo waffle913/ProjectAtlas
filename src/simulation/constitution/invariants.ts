@@ -1,6 +1,6 @@
 import type { SimulationInvariant } from '../invariants';
 import { isSimulationDate as validDate } from '../date';
-import { CONSTITUTION_VERSION } from './model';
+import { CONSTITUTION_VERSION, MATERIAL_KEYS } from './model';
 
 const thresholds = ['parliamentaryThresholdBps', 'thresholdBps'] as const;
 const validStatus = ['sourced', 'derived', 'modelled', 'unavailable'];
@@ -15,10 +15,12 @@ export const constitutionInvariant: SimulationInvariant = {
     for (const [countryId, entry] of Object.entries(constitution.countries)) {
       if (entry.countryId !== countryId || !context.countryIds.has(countryId)) errors.push(`Constitution ${countryId} has an invalid identity.`);
       if (!validStatus.includes(entry.coverage) || !validStatus.includes(entry.provenance.status)) errors.push(`Constitution ${countryId} has invalid coverage.`);
-      for (const key of thresholds) {
-        const value = (entry as unknown as Record<string, unknown>)[key];
-        if (value !== undefined && value !== null && (!Number.isSafeInteger(value) || (value as number) < 0 || (value as number) > 10000)) errors.push(`Constitution ${countryId} has an invalid threshold ${key}.`);
+      const nestedThresholds = [entry.amendment?.parliamentaryThresholdBps, entry.election?.thresholdBps];
+      for (const value of nestedThresholds) {
+        if (value !== undefined && value !== null && (!Number.isSafeInteger(value) || value < 0 || value > 10000)) errors.push(`Constitution ${countryId} has an invalid nested threshold.`);
       }
+      if (entry.amendment && !['never', 'always', 'principal_only', 'unavailable'].includes(entry.amendment.referendum)) errors.push(`Constitution ${countryId} has an invalid referendum rule.`);
+      for (const key of entry.protectedMaterialKeys) if (!(MATERIAL_KEYS as readonly string[]).includes(key)) errors.push(`Constitution ${countryId} protects an unknown material key ${key}.`);
       if (entry.headOfState.termYears !== undefined && (!Number.isSafeInteger(entry.headOfState.termYears) || entry.headOfState.termYears <= 0)) errors.push(`Constitution ${countryId} has an invalid head-of-state term.`);
       if (entry.headOfState.maxTerms !== undefined && (!Number.isSafeInteger(entry.headOfState.maxTerms) || entry.headOfState.maxTerms <= 0)) errors.push(`Constitution ${countryId} has an invalid head-of-state max terms.`);
       if (!Array.isArray(entry.protectedMaterialKeys) || entry.protectedMaterialKeys.some(key => typeof key !== 'string' || !key.trim())) errors.push(`Constitution ${countryId} has invalid protected material keys.`);

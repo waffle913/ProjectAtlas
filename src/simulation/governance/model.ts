@@ -1,6 +1,6 @@
 import type { Budget, Policy } from '../fiscal/model';
 import type { PoliticalIssue } from '../politics/model';
-import type { ConstitutionalRights, ParliamentConstitution, HeadOfStateConstitution, GovernmentConstitution, ElectionConstitution, JudicialReviewConstitution, TerritorialOrganization, RegionalAutonomy } from '../constitution/model';
+import type { ConstitutionalRights, ParliamentConstitution, HeadOfStateConstitution, GovernmentConstitution, ElectionConstitution, JudicialReviewConstitution, TerritorialOrganization, RegionalAutonomy, AmendmentConstitution } from '../constitution/model';
 import { deterministicFingerprint } from '../fingerprint';
 
 export const GOVERNANCE_VERSION = 'governance-0.14-v1' as const;
@@ -141,6 +141,7 @@ export interface ConstitutionalAmendmentPayload {
   electionChanges?: Partial<ElectionConstitution>;
   judicialChanges?: Partial<JudicialReviewConstitution>;
   territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] }>;
+  amendmentChanges?: Partial<AmendmentConstitution>;
 }
 
 export interface ConstitutionalAmendmentEnactment {

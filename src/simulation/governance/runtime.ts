@@ -478,7 +478,7 @@ export function createConstitutionalAmendmentProposal(state: SimulationState, in
   if (proposer.countryId !== input.countryId) throw new Error('Proposal Country does not match proposer scope.');
   // Automatic principal/secondary classification: a rights or structural change is principal; a
   // material-key protection/removal is secondary. The disposition is derived, never freely chosen.
-  const disposition: ConstitutionalDisposition = input.payload.rightsChanges || input.payload.parliamentChanges || input.payload.executiveChanges || input.payload.electionChanges || input.payload.judicialChanges || input.payload.territoryChanges ? 'principal' : 'secondary';
+  const disposition: ConstitutionalDisposition = input.payload.rightsChanges || input.payload.parliamentChanges || input.payload.executiveChanges || input.payload.electionChanges || input.payload.judicialChanges || input.payload.territoryChanges || input.payload.amendmentChanges ? 'principal' : 'secondary';
   const id = proposalId(state.governance.nextProposalSequence);
   const proposal: PoliticalProposal = { id, countryId: input.countryId, proposerPersonId: proposer.id, createdOn: state.date, kind: 'constitutional_amendment', instrumentClass: 'constitutional_amendment', constitutionalDisposition: disposition, payload: structuredClone(input.payload), status: 'draft', effectiveDate: input.effectiveDate, effects: [] };
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [id]: proposal }, proposalOrder: [...state.governance.proposalOrder, id], nextProposalSequence: state.governance.nextProposalSequence + 1 });

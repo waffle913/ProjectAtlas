@@ -44,19 +44,27 @@ export function scheduleConstitutionalAmendment(state: SimulationState, proposal
   return { ...state, constitution: { ...state.constitution, pendingAmendments: [...state.constitution.pendingAmendments, pending] } };
 }
 
-/** Apply amendments whose effective date has arrived, exactly once, and drop them from the queue. */
+/** Apply amendments whose effective date has arrived, exactly once. A blocked amendment is kept
+ *  in the queue with a traceable decision, never silently dropped. */
 export function applyDueAmendments(state: SimulationState): SimulationState {
   const due = state.constitution.pendingAmendments.filter(amendment => amendment.applyOn <= state.date);
   if (!due.length) return state;
   let next = state;
+  const remaining = next.constitution.pendingAmendments.map(amendment => ({ ...amendment }));
   for (const amendment of due) {
+    const index = remaining.findIndex(item => item.instrumentId === amendment.instrumentId);
+    // Procedural provenance: only an enacted constitutional amendment may apply.
+    const enacted = next.governance.proposals[amendment.instrumentId]?.status === 'enacted' && next.governance.proposals[amendment.instrumentId]?.kind === 'constitutional_amendment';
+    if (!enacted) { if (index >= 0) remaining[index] = { ...remaining[index], blockedOn: state.date, decision: { timing: amendment.judicialReview.timing, effect: amendment.judicialReview.effect, outcome: 'blocked', on: state.date } }; continue; }
     if (amendment.judicialReview.timing === 'before_promulgation' || amendment.judicialReview.timing === 'both') {
-      // A constitutional court must exist and may annul; without a court the amendment cannot be promulgated.
-      if (state.constitution.countries[amendment.countryId]?.judicialReview.courtExists !== 'exists') continue;
+      const courtExists = next.constitution.countries[amendment.countryId]?.judicialReview.courtExists === 'exists';
+      if (!courtExists) { if (index >= 0) remaining[index] = { ...remaining[index], blockedOn: state.date, decision: { timing: amendment.judicialReview.timing, effect: amendment.judicialReview.effect, outcome: 'blocked', on: state.date } }; continue; }
+      if (amendment.judicialReview.effect === 'annul') { if (index >= 0) remaining[index] = { ...remaining[index], decision: { timing: amendment.judicialReview.timing, effect: amendment.judicialReview.effect, outcome: 'annulled', on: state.date } }; continue; }
     }
     next = applyConstitutionalAmendment(next, { id: amendment.instrumentId, countryId: amendment.countryId, payload: amendment.payload }).next;
+    if (index >= 0) remaining[index] = { ...remaining[index], decision: { timing: amendment.judicialReview.timing, effect: amendment.judicialReview.effect, outcome: 'promulgated', on: state.date } };
   }
-  return { ...next, constitution: { ...next.constitution, pendingAmendments: next.constitution.pendingAmendments.filter(amendment => amendment.applyOn > state.date) } };
+  return { ...next, constitution: { ...next.constitution, pendingAmendments: remaining } };
 }
 
 /** Monthly pass: expire the emergency once its exact justification crises are no longer active;
@@ -149,6 +157,7 @@ export function applyConstitutionalAmendment(state: SimulationState, proposal: {
     if (p.electionChanges && Object.keys(p.electionChanges).length) updated.election = { ...entry.election, ...p.electionChanges };
     if (p.judicialChanges && Object.keys(p.judicialChanges).length) updated.judicialReview = { ...entry.judicialReview, ...p.judicialChanges };
     if (p.territoryChanges) updated.territory = { ...entry.territory, ...p.territoryChanges };
+    if (p.amendmentChanges && Object.keys(p.amendmentChanges).length) updated.amendment = { ...entry.amendment, ...p.amendmentChanges };
     next = { ...next, constitution: { ...next.constitution, countries: { ...next.constitution.countries, [proposal.countryId]: updated } } };
   }
   return { next, protectedMaterialKeys: protect, unprotectedMaterialKeys: unprotect };
