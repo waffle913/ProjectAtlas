@@ -165,9 +165,10 @@ export const emptyConstitution = (): ConstitutionState => ({ version: CONSTITUTI
 
 const headOfStateFromRegistry = (institution: NationalInstitutions | undefined): HeadOfStateConstitution => {
   switch (institution?.executiveSystem) {
-    case 'presidential': return { selectionMethod: 'popular_direct', suffrageMode: 'universal' };
-    case 'semi_presidential': return { selectionMethod: 'popular_direct', suffrageMode: 'universal' };
-    case 'parliamentary': return { selectionMethod: 'parliamentary', suffrageMode: 'universal' };
+    // The executive system alone never proves popular direct election or universal suffrage.
+    case 'presidential': return { selectionMethod: 'unavailable', suffrageMode: 'unavailable' };
+    case 'semi_presidential': return { selectionMethod: 'unavailable', suffrageMode: 'unavailable' };
+    case 'parliamentary': return { selectionMethod: 'parliamentary', suffrageMode: 'unavailable' };
     case 'monarchy_parliamentary': return { selectionMethod: 'hereditary', suffrageMode: 'unavailable' };
     case 'collective': return { selectionMethod: 'parliamentary', suffrageMode: 'unavailable' };
     case 'other': return { selectionMethod: 'other', suffrageMode: 'unavailable' };
@@ -189,7 +190,7 @@ const electionFromRegistry = (institution: NationalInstitutions | undefined): El
   const chamber = institution?.chambers[0];
   const kind = chamber?.electoralRule.kind;
   return {
-    suffrage: 'universal',
+    suffrage: 'unavailable',
     mandatoryVoting: 'unavailable',
     parliamentarySystem: kind === 'proportional' ? 'proportional' : kind === 'majoritarian' ? 'majoritarian' : kind === 'mixed' ? 'mixed' : 'unavailable',
     rounds: 'unavailable',
