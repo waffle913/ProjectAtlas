@@ -73,7 +73,8 @@ function seatsForSystem(state: SimulationState, countryId: string, votes: Record
   return proportionalSeats(effectiveVotes, seats, thresholdBps);
 }
 
-/** Minimal deterministic coalition from aggregate seats. */
+/** Minimal deterministic coalition from aggregate seats. A coalition that cannot reach a majority
+ *  is reported as minority, never falsely as government. */
 const formCoalition = (seats: Record<string, number>, totalSeats: number): { coalitionPartyIds: string[]; confidence: GovernmentConfidence } => {
   const sorted = Object.entries(seats).sort((a, b) => b[1] - a[1]);
   if (!sorted.length) return { coalitionPartyIds: [], confidence: 'unavailable' };
@@ -81,6 +82,7 @@ const formCoalition = (seats: Record<string, number>, totalSeats: number): { coa
   if (sorted[0][1] * 2 > totalSeats) return { coalitionPartyIds: [winner], confidence: 'majority' };
   const coalition = [winner]; let total = sorted[0][1];
   for (const [partyId, count] of sorted.slice(1)) { if (total * 2 > totalSeats) break; coalition.push(partyId); total += count; }
+  if (total * 2 <= totalSeats) return { coalitionPartyIds: coalition, confidence: 'minority' };
   return { coalitionPartyIds: coalition, confidence: 'coalition' };
 };
 

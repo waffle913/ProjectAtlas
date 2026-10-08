@@ -589,11 +589,6 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   }
   const resolved = { ...proposal, status: effectiveOutcome === 'adopted' ? 'enacted' as const : effectiveOutcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate: effectiveParliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: effectiveOutcome === 'adopted' ? proposalEffectsFor(proposal, { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: enactmentReference?.reformFingerprint, protectedMaterialKeys, unprotectedMaterialKeys }) : [] } as PoliticalProposal;
   next = { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
-  // legislative_and_censure: a parliamentary rejection is a censure event that pressures the government.
-  if (parliamentPower === 'legislative_and_censure' && effectiveOutcome === 'rejected') {
-    const country = next.politics.countries[proposal.countryId];
-    if (country) next = { ...next, politics: { ...next.politics, countries: { ...next.politics.countries, [proposal.countryId]: { ...country, recentOpinionDrivers: [...country.recentOpinionDrivers, { date: state.date, drivers: [POLITICAL_ISSUES.indexOf('public_order')] }].slice(-12) } } } };
-  }
   return addProposalResultBriefing(next, resolved);
 }
 
