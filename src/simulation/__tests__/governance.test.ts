@@ -11,6 +11,7 @@ import { advanceSimulationDays } from '../engine';
 import { requestFidelityTransition, applyPendingFidelityTransitions } from '../fidelity';
 import { assertSimulationInvariants, validateFidelityConservation } from '../invariants';
 import { governanceInvariant } from '../governance/invariants';
+import { upgradeGovernanceProposalModel } from '../governance/migration';
 import { politicalRegistry } from '../politics/registry';
 import type { PoliticalRegistry } from '../politics/model';
 import { restoreSimulationState, serializeSimulationState } from '../save';
@@ -42,10 +43,10 @@ import { allocate, ratio } from '../socioeconomy/model';
 import historicalFixture from './fixtures/governance-situational-0.14-v2.json';
 import historicalPluralityFixture from './fixtures/governance-plurality-0.15-v1.json';
 import historicalFallbackFixture from './fixtures/leadership-fallback-0.15-v2.json';
-const historicalSituational = historicalFixture as {
+const historicalSituational = historicalFixture as unknown as {
   referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal; reform: FiscalReform;
 };
-const historicalPlurality = historicalPluralityFixture as {
+const historicalPlurality = historicalPluralityFixture as unknown as {
   referenceCommit: string; person: PoliticalPersonState; proposal: PoliticalProposal;
 };
 
@@ -645,6 +646,9 @@ function d2LegacyResolved(mode: 'enacted' | 'rejected' | 'all_abstain') {
   const enacted = mode === 'enacted', outcome = enacted ? 'adopted' as const : 'rejected' as const, sequence = enacted ? state.fiscal.nextSequence : undefined;
   if (enacted) state = scheduleFiscalReform(state, { countryId, effectiveDate: proposal.effectiveDate, ...structuredClone(proposal.payload) });
   state.governance.proposals[proposalId] = { ...proposal, status: enacted ? 'enacted' : 'rejected', resolvedOn: state.date, publicEstimate, parliamentaryEstimate, voteResult: { ...parliamentaryEstimate, outcome, resolvedOn: state.date }, scheduledFiscalReformSequence: sequence } as unknown as typeof proposal;
+  // Simulate a genuine pre-0.22 save: the generalized fields did not exist yet and are backfilled by migration.
+  const legacyProposal = state.governance.proposals[proposalId] as unknown as Record<string, unknown>;
+  delete legacyProposal.instrumentClass; delete legacyProposal.effects;
   expect(state.governance.proposals[proposalId].analysis).toBeUndefined(); expect(state.governance.proposals[proposalId].evaluationVersion).toBeUndefined(); expect(state.governance.proposals[proposalId].enactmentReference).toBeUndefined();
   expect(state.fiscal.reforms.every(reform => reform.origin === undefined)).toBe(true); expect(state.fiscal.reformReceipts).toEqual([]); delete (state.fiscal as Partial<typeof state.fiscal>).reformReceipts;
   const legacy = structuredClone(state) as unknown as Record<string, unknown>;
@@ -678,7 +682,7 @@ function findResolvable(adopted: boolean) {
 
 function historicalSituationalState(): SimulationState {
   const { person, proposal, reform } = structuredClone(historicalSituational);
-  return {
+  return upgradeGovernanceProposalModel({
     ...initial,
     governance: {
       ...initial.governance, player: { controlledPersonId: person.id },
@@ -687,7 +691,7 @@ function historicalSituationalState(): SimulationState {
       proposals: { [proposal.id]: proposal }, proposalOrder: [proposal.id], nextProposalSequence: 1,
     },
     fiscal: { ...initial.fiscal, reforms: [reform], nextSequence: reform.sequence + 1 },
-  };
+  });
 }
 
 function distributionAnalysis(directions: Partial<Record<GovernanceGoal, number>>): ProposalAnalysis {
@@ -714,14 +718,14 @@ function distributionProfile(partyId = historicalSituational.proposal.parliament
 
 function historicalPluralityState(): SimulationState {
   const { person, proposal } = structuredClone(historicalPlurality);
-  return {
+  return upgradeGovernanceProposalModel({
     ...initial,
     governance: {
       ...initial.governance, player: { controlledPersonId: person.id },
       persons: { ...initial.governance.persons, [person.id]: person }, nextPersonSequence: Number(person.id.slice(7)) + 1,
       proposals: { [proposal.id]: proposal }, proposalOrder: [proposal.id], nextProposalSequence: 1,
     },
-  };
+  });
 }
 
 function parentPluralityProfiles(): Record<string, PartyGoalProfile> {
@@ -1310,7 +1314,7 @@ describe('final foundation stored governance evidence', () => {
   it('continues to admit genuine historical structured and aggregate-only records without rewriting them', () => {
     const historical = historicalSituationalState();
     const restored = restoreSimulationState(serializeSimulationState(historical, worldContext), worldRegions, {}, {}, worldContext);
-    expect(restored.governance.proposals[historicalSituational.proposal.id]).toEqual(historicalSituational.proposal);
+    expect(restored.governance.proposals[historicalSituational.proposal.id]).toEqual(historical.governance.proposals[historicalSituational.proposal.id]);
     const legacy = d2LegacyResolved('enacted');
     const migrated = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext);
     expect(migrated.governance.proposals[legacy.proposalId].evaluationVersion).toBe('legacy-0.14-v1');
@@ -2028,7 +2032,7 @@ describe('governance 0.14 situational corrective contracts', () => {
     const archived = historicalSituationalState(), restored = restoreSimulationState(serializeSimulationState(archived, worldContext), worldRegions, {}, {}, worldContext);
     expect(historicalSituational.referenceCommit).toBe('81109d98a685398c8938eb2b1931634f4c4bcabe');
     expect(restored).toEqual(archived);
-    expect(restored.governance.proposals[historicalSituational.proposal.id]).toEqual(historicalSituational.proposal);
+    expect(restored.governance.proposals[historicalSituational.proposal.id]).toEqual(archived.governance.proposals[historicalSituational.proposal.id]);
     for (const estimate of [restored.governance.proposals[historicalSituational.proposal.id].parliamentaryEstimate!, restored.governance.proposals[historicalSituational.proposal.id].voteResult!]) {
       expect(estimate.procedure).toBe('modelled_procedure_v1');
       for (const evaluation of estimate.chambers.flatMap(chamber => chamber.partyEvaluations ?? [])) {
