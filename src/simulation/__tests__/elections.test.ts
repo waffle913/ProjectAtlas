@@ -33,7 +33,7 @@ describe('0.23 elections engine', () => {
     let state = executive();
     const personId = state.governance.player.controlledPersonId!;
     expect(() => dissolveParliament(initial, countryId, 'unknown')).toThrow(/executive head/);
-    state = dissolveParliament(state, countryId, personId);
+    state = dissolveParliament({ ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], parliament: { ...state.constitution.countries[countryId].parliament, dissolutionHolder: 'executive' } } } } }, countryId, personId);
     const a = runElection(state, countryId);
     const b = runElection(state, countryId);
     expect(a).toEqual(b);
