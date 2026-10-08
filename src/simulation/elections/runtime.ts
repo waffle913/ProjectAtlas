@@ -49,11 +49,12 @@ const runoffShares = (votes: Record<string, number>): Record<string, number> => 
   return { [leader[0]]: leaderVotes, [runnerUp[0]]: runnerUpVotes };
 };
 
-/** Seat conversion dispatched by the constitution's parliamentary system and rounds. */
-function seatsForSystem(state: SimulationState, countryId: string, votes: Record<string, number>, seats: number, thresholdBps?: number): Record<string, number> {
+/** Seat conversion dispatched by the constitution's parliamentary system and rounds. Returns null
+ *  when the rules are unavailable, so the caller preserves the current parliament instead of zeroing it. */
+function seatsForSystem(state: SimulationState, countryId: string, votes: Record<string, number>, seats: number, thresholdBps?: number): Record<string, number> | null {
   const system = state.constitution.countries[countryId]?.election.parliamentarySystem ?? 'unavailable';
   const rounds = state.constitution.countries[countryId]?.election.rounds ?? 'unavailable';
-  if (system === 'unavailable' || rounds === 'unavailable') return {}; // unavailable must never be reinterpreted as proportional or one-round.
+  if (system === 'unavailable' || rounds === 'unavailable') return null; // unavailable must never be reinterpreted as proportional or one-round.
   const effectiveVotes = rounds === 2 ? runoffShares(votes) : votes;
   if (system === 'majoritarian') {
     const sorted = Object.entries(effectiveVotes).sort((a, b) => b[1] - a[1]);
@@ -104,6 +105,13 @@ export function runElection(state: SimulationState, countryId: string, chamberId
     const independents = chamber.independentOtherSeats;
     const partySeats = Math.max(0, chamber.totalSeats - independents);
     const converted = seatsForSystem(state, countryId, votes, partySeats, thresholdBps);
+    if (converted === null) {
+      // Unknown electoral rules: the election is unavailable and the current chamber is preserved.
+      chambers[chamberId] = chamber;
+      totalSeats += chamber.totalSeats;
+      for (const [p, s] of Object.entries(chamber.seatsByParty)) aggregate[p] = (aggregate[p] ?? 0) + s;
+      continue;
+    }
     const seatsByParty: Record<string, number> = {};
     for (const partyId of Object.keys(entry.parties).sort()) { seatsByParty[partyId] = converted[partyId] ?? 0; aggregate[partyId] = (aggregate[partyId] ?? 0) + seatsByParty[partyId]; }
     totalSeats += chamber.totalSeats;

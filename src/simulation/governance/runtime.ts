@@ -558,11 +558,12 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
     if (parliamentPower === 'none') powerBlockedReason = 'parliament_has_no_legislative_power';
     else if (parliamentPower === 'consultative') powerBlockedReason = 'parliamentary_opinion_non_binding';
   }
-  // weak_legislative requires a 2/3 supermajority; below that the executive's position is not overridden.
-  const weakLegislativeOverride = parliamentPower === 'weak_legislative' && parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 3 >= parliamentaryEstimate.totalSeats * 2;
-  const parliamentAdopts = parliamentaryEstimate.chambers.every(item => item.adopted) && (parliamentPower !== 'weak_legislative' || weakLegislativeOverride);
+  // weak_legislative: the executive's position holds by default; the parliament can only override
+  // it with a 2/3 supermajority rejection (an explicit override, not a new adoption majority).
+  const weakLegislativeOverride = parliamentPower === 'weak_legislative' && parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.noSeats * 3 >= parliamentaryEstimate.totalSeats * 2;
+  const parliamentAdopts = parliamentPower === 'weak_legislative' ? !weakLegislativeOverride : parliamentaryEstimate.chambers.every(item => item.adopted);
   const outcome = expired || powerBlockedReason !== undefined || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentAdopts ? 'adopted' : 'rejected';
-  const reason = expired ? 'effective_date_expired' as const : powerBlockedReason ?? (parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined);
+  const reason = expired ? 'effective_date_expired' as const : powerBlockedReason ?? (weakLegislativeOverride ? 'executive_override' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined);
   const protectedViolation = outcome === 'adopted' && proposal.kind === 'fiscal_reform' ? rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload) : undefined;
   let amendmentReason: 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | undefined;
   if (proposal.kind === 'constitutional_amendment' && outcome === 'adopted') {
@@ -588,6 +589,11 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   }
   const resolved = { ...proposal, status: effectiveOutcome === 'adopted' ? 'enacted' as const : effectiveOutcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate: effectiveParliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: effectiveOutcome === 'adopted' ? proposalEffectsFor(proposal, { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: enactmentReference?.reformFingerprint, protectedMaterialKeys, unprotectedMaterialKeys }) : [] } as PoliticalProposal;
   next = { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
+  // legislative_and_censure: a parliamentary rejection is a censure event that pressures the government.
+  if (parliamentPower === 'legislative_and_censure' && effectiveOutcome === 'rejected') {
+    const country = next.politics.countries[proposal.countryId];
+    if (country) next = { ...next, politics: { ...next.politics, countries: { ...next.politics.countries, [proposal.countryId]: { ...country, recentOpinionDrivers: [...country.recentOpinionDrivers, { date: state.date, drivers: [POLITICAL_ISSUES.indexOf('public_order')] }].slice(-12) } } } };
+  }
   return addProposalResultBriefing(next, resolved);
 }
 
