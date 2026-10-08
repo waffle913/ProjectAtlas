@@ -453,6 +453,18 @@ function proposalEffectsFor(proposal: PoliticalProposal, fiscalReformSequence: n
   }
 }
 
+/** Typed dispatch: enact the adopted proposal through its owning subsystem exactly once. */
+function proposalEnactFor(state: SimulationState, proposal: PoliticalProposal): { next: SimulationState; fiscalReformSequence?: number; reformFingerprint?: string } {
+  switch (proposal.kind) {
+    case 'fiscal_reform': {
+      const fiscalReformSequence = state.fiscal.nextSequence;
+      const reformInput = { countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...structuredClone(proposal.payload), origin: { type: 'governance_proposal' as const, proposalId: proposal.id, proposalFingerprint: proposal.submittedPayloadFingerprint! } };
+      const reformFingerprint = fiscalReformFingerprint(reformInput);
+      return { next: scheduleFiscalReform(state, reformInput), fiscalReformSequence, reformFingerprint };
+    }
+  }
+}
+
 export function createFiscalProposal(state: SimulationState, input: { proposerPersonId: string; countryId: string; effectiveDate: string; payload: FiscalProposalPayload }): SimulationState {
   const proposer = requirePerson(state, input.proposerPersonId); requireCountry(state, input.countryId);
   if (proposer.countryId !== input.countryId) throw new Error('Proposal Country does not match proposer scope.');
@@ -479,6 +491,9 @@ export function hasPoliticalAuthority(state: SimulationState, personIdValue: str
 export function submitProposalForActor(state: SimulationState, proposalIdValue: string, actorPersonId: string): SimulationState {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || proposal.status !== 'draft') throw new Error('Only a draft proposal can be submitted.');
   const actor = requirePerson(state, actorPersonId);
+  // Locked gameplay rule: only the true proposer presents the bill; another authorized person
+  // may suggest ideas but does not submit another proposer's draft. AI acts through its own leader.
+  if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposal\'s proposer may submit this draft.');
   if (proposalSubmitCapabilities(proposal).some(capability => !hasCapability(proposal, actor, capability))) throw new Error('Actor lacks authority to submit this reform.');
   validatePayload(state, proposal.countryId, proposal.effectiveDate, proposal.payload);
   const frozen = structuredClone(proposal); frozen.status = 'submitted'; frozen.submittedOn = state.date; frozen.submittedPayloadFingerprint = governanceFingerprint({ effectiveDate: frozen.effectiveDate, payload: frozen.payload });
@@ -520,7 +535,7 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   const outcome = expired || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected', reason = expired ? 'effective_date_expired' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined;
   const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome, resolvedOn: state.date, reason };
   let next = state, scheduledFiscalReformSequence: number | undefined, enactmentReference: PoliticalProposal['enactmentReference'];
-  if (outcome === 'adopted') { scheduledFiscalReformSequence = state.fiscal.nextSequence; const reformInput = { countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...structuredClone(proposal.payload), origin: { type: 'governance_proposal' as const, proposalId: proposal.id, proposalFingerprint: proposal.submittedPayloadFingerprint! } }; enactmentReference = { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: fiscalReformFingerprint(reformInput) }; next = scheduleFiscalReform(state, reformInput); }
+  if (outcome === 'adopted') { const enacted = proposalEnactFor(state, proposal); next = enacted.next; scheduledFiscalReformSequence = enacted.fiscalReformSequence; enactmentReference = enacted.fiscalReformSequence !== undefined && enacted.reformFingerprint !== undefined ? { fiscalReformSequence: enacted.fiscalReformSequence, reformFingerprint: enacted.reformFingerprint } : undefined; }
   const resolved: PoliticalProposal = { ...proposal, status: outcome === 'adopted' ? 'enacted' : outcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: outcome === 'adopted' ? proposalEffectsFor(proposal, scheduledFiscalReformSequence!, enactmentReference!.reformFingerprint) : [] };
   next = { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
   return addProposalResultBriefing(next, resolved);

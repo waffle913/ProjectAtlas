@@ -240,7 +240,7 @@ export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; n
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1'; seatApportionment?: 'identity_hash_v1' }
 export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' }
 export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
-export interface PoliticalProposal<K extends ProposalKind = ProposalKind> {
+export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
   id: string;
   countryId: string;
   proposerPersonId: string;
@@ -263,6 +263,11 @@ export interface PoliticalProposal<K extends ProposalKind = ProposalKind> {
   analysis?: ProposalAnalysis;
   evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1' | 'situational-plurality-0.15-v2';
 }
+
+/** The canonical stored proposal type: a discriminated union linking kind -> payload -> effects,
+ *  so the compiler guarantees kind A carries payload A and effects A even once several kinds exist. */
+export type AnyPoliticalProposal = { [K in ProposalKind]: PoliticalProposalFor<K> }[ProposalKind];
+export type PoliticalProposal = AnyPoliticalProposal;
 
 export interface GovernanceState {
   version: typeof GOVERNANCE_VERSION;

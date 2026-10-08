@@ -165,7 +165,7 @@ describe('0.22 generic policy framework', () => {
     expect(state.governance.proposals[proposalId].status).toBe('submitted');
   });
 
-  it('lets a non-controlled authorized actor resolve a vote and refuses an actor without authority', () => {
+  it('lets a non-controlled authorized actor resolve a vote and refuses a non-proposer or authority-less actor', () => {
     const fixture = resolvableFixture(true);
     let state = submitProposal(fixture.state, fixture.proposalId);
     const actor = createPoliticalPerson(state, { displayName: 'Second authorized minister', countryId: fixture.countryId });
@@ -173,9 +173,14 @@ describe('0.22 generic policy framework', () => {
     state = assignPoliticalOffice(actor, actorId, { role: 'head_of_government', countryId: fixture.countryId });
     state = resolveProposalVoteForActor(state, fixture.proposalId, actorId, fixture.registry, fixture.profiles);
     expect(state.governance.proposals[fixture.proposalId].status).toBe('enacted');
-    const outsider = createPoliticalPerson(fixture.state, { displayName: 'Unauthorized person', countryId: fixture.countryId });
+    // A non-proposer, even authorized, may not submit another proposer's draft.
+    const outsider = createPoliticalPerson(fixture.state, { displayName: 'Non-proposer person', countryId: fixture.countryId });
     const outsiderId = Object.keys(outsider.governance.persons).at(-1)!;
-    expect(() => submitProposalForActor(outsider, fixture.proposalId, outsiderId)).toThrow(/lacks authority/);
+    expect(() => submitProposalForActor(outsider, fixture.proposalId, outsiderId)).toThrow(/proposer may submit/);
+    // A proposer who lost office lacks authority.
+    const draft = createFiscalProposal(outsider, { proposerPersonId: outsiderId, countryId: fixture.countryId, effectiveDate: '2026-02-01', payload: { annualBudget: { ...outsider.fiscal.countries[fixture.countryId].annualBudget, infrastructure: 1 } } });
+    const draftId = draft.governance.proposalOrder.at(-1)!;
+    expect(() => submitProposalForActor(draft, draftId, outsiderId)).toThrow(/lacks authority/);
   });
 
   it('restricts withdrawal to the original proposer only', () => {
