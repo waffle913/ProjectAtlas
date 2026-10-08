@@ -624,7 +624,7 @@ export function appointViceLeader(state: SimulationState, countryId: string, act
  *  the constitution's vacancy-succession rule. */
 export function runGovernmentSuccession(state: SimulationState): SimulationState {
   let next = state;
-  for (const [countryId, cabinet] of Object.entries(state.governance.cabinets)) {
+  for (const [countryId, cabinet] of Object.entries(state.governance.cabinets ?? {})) {
     if (!cabinet.viceLeaderPersonId) continue;
     const head = Object.values(state.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
     if (head) continue;

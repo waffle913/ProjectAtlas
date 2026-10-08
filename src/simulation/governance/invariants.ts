@@ -261,7 +261,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
       }
     } else if (proposal.scheduledFiscalReformSequence !== undefined || proposal.enactmentReference) errors.push(`Non-enacted proposal ${id} references a fiscal reform.`);
   }
-  for (const [countryId, cabinet] of Object.entries(g.cabinets)) {
+  for (const [countryId, cabinet] of Object.entries(g.cabinets ?? {})) {
     if (cabinet.countryId !== countryId || !context.countryIds.has(countryId)) errors.push(`Cabinet ${countryId} has an invalid identity.`);
     if (cabinet.viceLeaderPersonId !== undefined && (!g.persons[cabinet.viceLeaderPersonId] || g.persons[cabinet.viceLeaderPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} has an invalid deputy reference.`);
     for (const [portfolioId, portfolio] of Object.entries(cabinet.portfolios)) {
