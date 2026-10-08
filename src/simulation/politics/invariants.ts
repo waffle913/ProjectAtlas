@@ -55,6 +55,12 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
   for (const [regionId, region] of Object.entries(politics.regionalOpinion)) if (!context.regionIds.has(regionId) || !state.socioeconomy.regions[regionId] || !politics.countries[region.countryId]?.regionIds.includes(regionId)) errors.push(`Unlinked political Region ${regionId}.`);
   const expectedOrganizations = Object.values(politicalRegistry.organizations).filter(item => context.countryIds.has(item.countryId));
   for (const organization of expectedOrganizations) { const dynamic = politics.organizations[organization.id]; if (!dynamic || dynamic.organizationId !== organization.id || !validDate(dynamic.lastUpdatedOn) || dynamic.lastUpdatedOn > state.date || POLITICAL_ISSUES.some(issue => !bounded(dynamic.currentPositions[issue])) || dynamic.recentDrivers.length > POLITICS_MODEL.historyLimit || dynamic.recentDrivers.some(item => !validDate(item.date) || item.date > state.date || item.issues.some(issue => !POLITICAL_ISSUES.includes(issue)))) errors.push(`Invalid dynamic organization ${organization.id}.`); }
-  for (const organizationId of Object.keys(politics.organizations)) if (!politicalRegistry.organizations[organizationId]) errors.push(`Unknown dynamic organization ${organizationId}.`);
+  for (const [organizationId, organization] of Object.entries(politics.organizations)) {
+    if (!['active', 'dissolved', 'banned'].includes(organization.status)) errors.push(`Organization ${organizationId} has an invalid status.`);
+    if (organization.fundsUsd !== undefined && (!Number.isSafeInteger(organization.fundsUsd) || organization.fundsUsd < 0)) errors.push(`Organization ${organizationId} has invalid funds.`);
+    for (const [personId, membership] of Object.entries(organization.members ?? {})) if (membership.personId !== personId || !['member', 'leader'].includes(membership.role)) errors.push(`Organization ${organizationId} has an invalid membership ${personId}.`);
+    for (const banEvent of organization.banEvents ?? []) if (!validDate(banEvent.date) || banEvent.date > state.date || !banEvent.actorPersonId?.trim() || !banEvent.motive?.trim() || !banEvent.evidence?.trim()) errors.push(`Organization ${organizationId} has an invalid ban event.`);
+    for (const current of Object.values(organization.internalCurrents ?? {})) if (!current.id?.trim() || !current.name?.trim() || !Number.isSafeInteger(current.salienceBps)) errors.push(`Organization ${organizationId} has an invalid internal current.`);
+  }
   return errors;
 } };

@@ -15,7 +15,7 @@ export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal } from './analysis';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type PublicSupportEstimate } from './model';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type ProposalPayload, type PublicSupportEstimate } from './model';
 import { rejectProtectedModification, applyConstitutionalAmendment, scheduleConstitutionalAmendment } from '../constitution/runtime';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
@@ -494,7 +494,7 @@ export function createFiscalProposal(state: SimulationState, input: { proposerPe
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [id]: proposal }, proposalOrder: [...state.governance.proposalOrder, id], nextProposalSequence: state.governance.nextProposalSequence + 1 });
 }
 
-export function replaceDraftProposal(state: SimulationState, proposalIdValue: string, input: { effectiveDate?: string; payload?: FiscalProposalPayload }): SimulationState {
+export function replaceDraftProposal(state: SimulationState, proposalIdValue: string, input: { effectiveDate?: string; payload?: ProposalPayload }): SimulationState {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal) throw new Error('Unknown political proposal.');
   if (proposal.status !== 'draft') throw new Error('Submitted proposal content is immutable.');
   const effectiveDate = input.effectiveDate ?? proposal.effectiveDate, payload = input.payload ?? proposal.payload;

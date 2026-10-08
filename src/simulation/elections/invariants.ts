@@ -25,6 +25,9 @@ export const electionsInvariant: SimulationInvariant = {
         for (const promise of party.promises) if (!validDate(promise.madeOn) || promise.madeOn > state.date) errors.push(`Elections ${countryId} party ${party.partyId} has a malformed promise date.`);
       }
       if (!['majority', 'minority', 'coalition', 'unavailable'].includes(entry.government.confidence)) errors.push(`Elections ${countryId} has an invalid government confidence.`);
+      for (const coalitionPartyId of entry.government.coalitionPartyIds) {
+        if (!entry.parties[coalitionPartyId]) errors.push(`Elections ${countryId} government references unknown party ${coalitionPartyId}.`);
+      }
     }
     return errors;
   },

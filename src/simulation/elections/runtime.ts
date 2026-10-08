@@ -1,6 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
-import type { FiscalProposalPayload, ProposalKind } from '../governance/model';
+import type { FiscalProposalPayload, ProposalKind, ProposalPayload } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
 import { assignPoliticalOffice, revokePoliticalOffice } from '../governance/runtime';
 import { ELECTIONS_VERSION, proportionalSeats, type CampaignPromise, type ElectionChamberState, type ElectionCountryState, type GovernmentConfidence } from './model';
@@ -173,7 +173,7 @@ export function runElectionCycle(state: SimulationState): SimulationState {
 }
 
 /** Record a campaign promise; it never applies the promised policy itself. */
-export function makeCampaignPromise(state: SimulationState, partyId: string, countryId: string, subject: string, promisedKind: ProposalKind, promisedPayload?: FiscalProposalPayload): SimulationState {
+export function makeCampaignPromise(state: SimulationState, partyId: string, countryId: string, subject: string, promisedKind: ProposalKind, promisedPayload?: ProposalPayload): SimulationState {
   const entry = countryEntry(state, countryId);
   const party = entry.parties[partyId];
   if (!party) throw new Error('Unknown party for this Country.');
