@@ -27,6 +27,7 @@ const requirePerson = (state: SimulationState, id: string) => { const person = s
 const requireControlled = (state: SimulationState, id: string) => { if (state.governance.player.controlledPersonId !== id) throw new Error('The proposer is not the controlled person.'); return requirePerson(state, id); };
 const capabilitiesFor = (role: PoliticalOfficeRole): AuthorityCapability[] => role === 'head_of_government'
   ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations']
+  : role === 'head_of_state' ? ['sponsor_legislation', 'vote_legislation', 'access_government_information', 'command_military_operations']
   : role === 'legislator' ? ['sponsor_legislation', 'vote_legislation'] : [];
 const authorityLimitation = 'Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule.';
 const LEADER_PROFILE_VARIATION_BPS = 250;
@@ -444,7 +445,7 @@ function proposalSubmitCapabilities(proposal: PoliticalProposal): AuthorityCapab
       if (proposal.payload.annualBudget) capabilities.push('sponsor_budget_reform');
       return capabilities;
     }
-    case 'constitutional_amendment': return ['sponsor_legislation'];
+    case 'constitutional_amendment': return ['sponsor_legislation', 'access_government_information'];
   }
 }
 
@@ -618,7 +619,7 @@ export function appointMinister(state: SimulationState, countryId: string, actor
   const cabinet = cabinetFor(state, countryId);
   if (Object.values(cabinet.portfolios).some(p => p.ministerPersonId === ministerPersonId)) throw new Error('This person already holds a portfolio.');
   const portfolio: Portfolio = { id: portfolioId, name: portfolioName, ministerPersonId };
-  const office = { role: 'minister' as const, countryId, title: portfolioName, appointedOn: state.date, authorityProfile: minister.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional office.' } };
+  const office = { role: 'minister' as const, countryId, title: portfolioName, appointedOn: state.date, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities: capabilitiesFor('minister'), limitation: 'Derived from constitutional office.' } };
   return { ...state, governance: { ...state.governance, persons: { ...state.governance.persons, [ministerPersonId]: { ...minister, office } }, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios: { ...cabinet.portfolios, [portfolioId]: portfolio } } } } };
 }
 
@@ -661,7 +662,7 @@ export function runGovernmentSuccession(state: SimulationState): SimulationState
       if (predecessor) next = revokePoliticalOffice(next, predecessor.id);
     }
     const title = vacancy === 'deputy_permanent' ? 'Head of government' : 'Head of government (acting)';
-    const office = { role: 'head_of_government' as const, countryId, title, appointedOn: state.date, authorityProfile: vice.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional succession.' } };
+    const office = { role: 'head_of_government' as const, countryId, title, appointedOn: state.date, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities: capabilitiesFor('head_of_government'), limitation: 'Derived from constitutional succession.' } };
     next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [vice.id]: { ...vice, office } } } };
   }
   return next;
