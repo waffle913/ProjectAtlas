@@ -60,3 +60,45 @@ export function inspectPolitics(state: SimulationState, countryId: string) {
   const parties = definition?.partyIds ?? [], decode = (region: RegionalPoliticalOpinion | undefined) => region && ({ ...region, cohorts: Object.fromEntries(Object.entries(region.cohorts).map(([id, value]) => [id, { issuePreferencesBps: Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, value[0][index]])), issueSalienceBps: Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, value[1][index]])), partySupportBps: Object.fromEntries([...parties.map((partyId, index) => [partyId, value[2][index]]), ['undecided', value[2][parties.length]]]), engagementBps: value[3], materialSentimentBps: value[4], baselineDisposableIncomePerPerson: value[5], recentMaterialDrivers: value[6].map(index => POLITICAL_ISSUES[index]) }])) });
   return structuredClone({ date: state.date, country: { ...country, coverage: definition?.coverage }, institutions: definition ? politicalRegistry.institutions[definition.institutionId] : undefined, parties: parties.map((id, index) => ({ ...politicalRegistry.parties[id], nationalSupportBps: country.nationalSupportBps[index] })), organizations: definition?.organizationIds.map(id => ({ ...politicalRegistry.organizations[id], dynamic: state.politics.organizations[id] })) ?? [], regionalOpinion: Object.fromEntries(country.regionIds.map(id => [id, decode(state.politics.regionalOpinion[id])])) });
 }
+
+const activeOrganization = (state: SimulationState, organizationId: string) => {
+  const organization = state.politics.organizations[organizationId];
+  if (!organization) throw new Error(`Unknown organization: ${organizationId}`);
+  return organization;
+};
+
+/** Join an organization (reuses the registry organizationId; never a second registry). */
+export function joinOrganization(state: SimulationState, personId: string, organizationId: string): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  if (organization.status !== 'active') throw new Error('Only an active organization admits members.');
+  const members = { ...organization.members, [personId]: { personId, role: 'member' as const, joinedOn: state.date } };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, members } } } };
+}
+
+export function leaveOrganization(state: SimulationState, personId: string, organizationId: string): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  const members = { ...organization.members }; delete members[personId];
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, members } } } };
+}
+
+/** Dissolve an organization (no longer active). */
+export function dissolveOrganization(state: SimulationState, organizationId: string): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'dissolved' } } } };
+}
+
+/** Procedurally ban an organization. */
+export function banOrganization(state: SimulationState, organizationId: string): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'banned' } } } };
+}
+
+/** A public action (sit-in / demonstration / strike) adds a causal opinion driver, never a raw bonus. */
+export function runOrganizationAction(state: SimulationState, organizationId: string, action: 'sit_in' | 'demonstration' | 'strike'): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  if (organization.status !== 'active') throw new Error('A dissolved or banned organization cannot act.');
+  const issueIndex = action === 'strike' ? POLITICAL_ISSUES.indexOf('labour_protection') : POLITICAL_ISSUES.indexOf('public_order');
+  const issues = issueIndex >= 0 ? [POLITICAL_ISSUES[issueIndex]] : [];
+  const driver = { date: state.date, issues };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, lastUpdatedOn: state.date, recentDrivers: [...organization.recentDrivers, driver].slice(-M.historyLimit) } } } };
+}

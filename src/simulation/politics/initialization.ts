@@ -55,7 +55,7 @@ export function organizationStateFor(state: SimulationState, organization: Polit
   else { target[POLITICAL_ISSUES.indexOf('fiscal_distribution')] = clamp(target[0] - tax / 4 - distress / 5); target[POLITICAL_ISSUES.indexOf('infrastructure')] = clamp(target[4] + infrastructureGap / 3); target[POLITICAL_ISSUES.indexOf('public_order')] = clamp(target[5] + unemployment / 5); }
   const currentPositions = Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, prior ? blend(prior.currentPositions[issue], target[index], POLITICS_MODEL.organizationInertiaBps) : target[index]])) as Record<PoliticalIssue, number>;
   const issues = organization.issuePriorities.filter(issue => Math.abs(target[POLITICAL_ISSUES.indexOf(issue)] - base[POLITICAL_ISSUES.indexOf(issue)]) >= 250);
-  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit) };
+  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit), status: prior?.status ?? 'active', members: prior?.members ?? {}, fundsUsd: prior?.fundsUsd ?? 0, internalCurrents: prior?.internalCurrents ?? {} };
 }
 
 export function initializePolitics(state: SimulationState, countryIds: Iterable<string>, regions: readonly RegionEntity[], _data?: PoliticalInitializationData): SimulationState['politics'] {
