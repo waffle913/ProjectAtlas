@@ -16,6 +16,7 @@ import { analyzeProposal } from './analysis';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type FiscalProposalPayload, type GovernanceState, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type PublicSupportEstimate } from './model';
+import { rejectProtectedModification } from '../constitution/runtime';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
 const proposalId = (sequence: number) => `proposal.${sequence.toString().padStart(8, '0')}`;
@@ -533,10 +534,13 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   if (!hasCapability(proposal, actor, 'vote_legislation')) throw new Error('Actor lacks authority to resolve this legislative vote.');
   const analysis = analyzeProposal(state, proposal), publicEstimate = estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate = estimateParliamentarySupport(state, proposal, registry, profiles, analysis), expired = state.date > proposal.effectiveDate;
   const outcome = expired || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected', reason = expired ? 'effective_date_expired' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined;
-  const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome, resolvedOn: state.date, reason };
+  const protectedViolation = outcome === 'adopted' && proposal.kind === 'fiscal_reform' ? rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload) : undefined;
+  const effectiveOutcome = protectedViolation ? 'rejected' : outcome;
+  const effectiveReason = protectedViolation ? 'constitutionally_protected' as const : reason;
+  const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome: effectiveOutcome, resolvedOn: state.date, reason: effectiveReason };
   let next = state, scheduledFiscalReformSequence: number | undefined, enactmentReference: PoliticalProposal['enactmentReference'];
-  if (outcome === 'adopted') { const enacted = proposalEnactFor(state, proposal); next = enacted.next; scheduledFiscalReformSequence = enacted.fiscalReformSequence; enactmentReference = enacted.fiscalReformSequence !== undefined && enacted.reformFingerprint !== undefined ? { fiscalReformSequence: enacted.fiscalReformSequence, reformFingerprint: enacted.reformFingerprint } : undefined; }
-  const resolved: PoliticalProposal = { ...proposal, status: outcome === 'adopted' ? 'enacted' : outcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: outcome === 'adopted' ? proposalEffectsFor(proposal, scheduledFiscalReformSequence!, enactmentReference!.reformFingerprint) : [] };
+  if (effectiveOutcome === 'adopted') { const enacted = proposalEnactFor(state, proposal); next = enacted.next; scheduledFiscalReformSequence = enacted.fiscalReformSequence; enactmentReference = enacted.fiscalReformSequence !== undefined && enacted.reformFingerprint !== undefined ? { fiscalReformSequence: enacted.fiscalReformSequence, reformFingerprint: enacted.reformFingerprint } : undefined; }
+  const resolved: PoliticalProposal = { ...proposal, status: effectiveOutcome === 'adopted' ? 'enacted' : effectiveOutcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: effectiveOutcome === 'adopted' ? proposalEffectsFor(proposal, scheduledFiscalReformSequence!, enactmentReference!.reformFingerprint) : [] };
   next = { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
   return addProposalResultBriefing(next, resolved);
 }
