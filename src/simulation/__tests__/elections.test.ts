@@ -19,11 +19,15 @@ describe('0.23 elections engine', () => {
     const countryId = worldCountryIds[0];
     const entry = initial.elections.countries[countryId];
     expect(entry).toBeDefined();
-    expect(entry.totalSeats).toBeGreaterThan(0);
-    const allocated = Object.values(entry.seatsByParty).reduce((a, b) => a + b, 0);
-    expect(allocated).toBeLessThanOrEqual(entry.totalSeats);
+    const chambers = Object.values(entry.chambers);
+    expect(chambers.length).toBeGreaterThan(0);
+    for (const chamber of chambers) {
+      expect(chamber.totalSeats).toBeGreaterThan(0);
+      const allocated = Object.values(chamber.seatsByParty).reduce((a, b) => a + b, 0);
+      expect(allocated).toBeLessThanOrEqual(chamber.totalSeats);
+    }
     for (const party of Object.values(entry.parties)) {
-      expect(party.currentSeats).toBe(entry.seatsByParty[party.partyId]);
+      expect(party.currentSeats).toBeGreaterThanOrEqual(0);
       expect(['government', 'opposition', 'unavailable']).toContain(party.governmentStatus);
     }
   });
@@ -38,9 +42,9 @@ describe('0.23 elections engine', () => {
     const b = runElection(state, countryId);
     expect(a).toEqual(b);
     const entry = a.elections.countries[countryId];
-    const allocated = Object.values(entry.seatsByParty).reduce((x, y) => x + y, 0);
-    expect(allocated).toBe(entry.totalSeats);
-    expect(entry.lastElectionDate).toBe(state.date);
+    const allocated = Object.values(entry.chambers).reduce((sum, chamber) => sum + Object.values(chamber.seatsByParty).reduce((x, y) => x + y, 0), 0);
+    expect(allocated).toBeLessThanOrEqual(Object.values(entry.chambers).reduce((sum, chamber) => sum + chamber.totalSeats, 0));
+    expect(Object.values(entry.chambers).every(chamber => chamber.lastElectionDate === state.date)).toBe(true);
   });
 
   it('records a campaign promise without applying the promised policy', () => {

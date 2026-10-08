@@ -31,12 +31,18 @@ export interface PartyElectionState {
   credibilityBps?: number;
 }
 
-export interface ElectionCountryState {
-  countryId: string;
+export interface ElectionChamberState {
+  chamberId: string;
   seatsByParty: Record<string, number>;
   totalSeats: number;
+  independentOtherSeats: number;
   lastElectionDate?: string;
   nextElectionDate?: string;
+}
+
+export interface ElectionCountryState {
+  countryId: string;
+  chambers: Record<string, ElectionChamberState>;
   government: { coalitionPartyIds: string[]; confidence: GovernmentConfidence };
   parties: Record<string, PartyElectionState>;
 }
@@ -57,18 +63,21 @@ export function initializeElections(state: SimulationState, countryIds?: readonl
   for (const countryId of ids) {
     const country = politicalRegistry.countries[countryId];
     const institution = country ? politicalRegistry.institutions[country.institutionId] : undefined;
-    const chamber = institution?.chambers.find(c => c.seatAllocationStatus === 'sourced');
-    const seatsByParty = chamber?.seatsByParty ?? {};
-    const partyIds = Object.keys(seatsByParty).sort();
-    const totalSeats = chamber?.totalSeats ?? Object.values(seatsByParty).reduce((a, b) => a + b, 0);
+    const sourcedChambers = institution?.chambers.filter(c => c.seatAllocationStatus === 'sourced') ?? [];
+    const chambers: Record<string, ElectionChamberState> = {};
+    const allPartyIds = new Set<string>();
+    for (const chamber of sourcedChambers) {
+      const seatsByParty = { ...chamber.seatsByParty };
+      for (const partyId of Object.keys(seatsByParty)) allPartyIds.add(partyId);
+      chambers[chamber.id] = { chamberId: chamber.id, seatsByParty, totalSeats: chamber.totalSeats ?? Object.values(seatsByParty).reduce((a, b) => a + b, 0), independentOtherSeats: chamber.independentOtherSeats ?? 0, lastElectionDate: chamber.electionDate, nextElectionDate: chamber.termEnd };
+    }
     const parties: Record<string, PartyElectionState> = {};
-    for (const partyId of partyIds) parties[partyId] = {
-      partyId, currentSeats: seatsByParty[partyId],
-      governmentStatus: institution?.governingPartyIds.length ? (institution.governingPartyIds.includes(partyId) ? 'government' : 'opposition') : 'unavailable',
-      promises: [],
-    };
+    for (const partyId of [...allPartyIds].sort()) {
+      const currentSeats = Object.values(chambers).reduce((sum, c) => sum + (c.seatsByParty[partyId] ?? 0), 0);
+      parties[partyId] = { partyId, currentSeats, governmentStatus: institution?.governingPartyIds.length ? (institution.governingPartyIds.includes(partyId) ? 'government' : 'opposition') : 'unavailable', promises: [] };
+    }
     countries[countryId] = {
-      countryId, seatsByParty: { ...seatsByParty }, totalSeats, lastElectionDate: chamber?.electionDate, nextElectionDate: chamber?.termEnd,
+      countryId, chambers,
       government: { coalitionPartyIds: institution?.governingPartyIds ?? [], confidence: institution?.governingPartyIds.length ? 'majority' : 'unavailable' },
       parties,
     };

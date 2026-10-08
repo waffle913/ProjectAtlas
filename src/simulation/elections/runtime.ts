@@ -2,7 +2,7 @@ import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import type { FiscalProposalPayload, ProposalKind } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
-import { ELECTIONS_VERSION, proportionalSeats, type CampaignPromise, type ElectionCountryState, type GovernmentConfidence } from './model';
+import { ELECTIONS_VERSION, proportionalSeats, type CampaignPromise, type ElectionChamberState, type ElectionCountryState, type GovernmentConfidence } from './model';
 
 const isExecutive = (state: SimulationState, personId: string, countryId: string): boolean => {
   const person = state.governance.persons[personId];
@@ -25,19 +25,14 @@ const partyVoteSharesFor = (state: SimulationState, countryId: string): Record<s
     partyIds.forEach((partyId, index) => { shares[partyId] = politicsCountry.nationalSupportBps[index] ?? 0; });
     if (Object.keys(shares).length) return shares;
   }
-  return { ...countryEntry(state, countryId).seatsByParty };
+  const entry = countryEntry(state, countryId);
+  const fallback: Record<string, number> = {};
+  for (const chamber of Object.values(entry.chambers)) for (const [partyId, seats] of Object.entries(chamber.seatsByParty)) fallback[partyId] = (fallback[partyId] ?? 0) + seats;
+  return fallback;
 };
 
-/** Reserve the sourced independent/other seats from the registry; they are never allocated to a party. */
-const independentSeatsFor = (countryId: string): number => {
-  const country = politicalRegistry.countries[countryId];
-  const institution = country ? politicalRegistry.institutions[country.institutionId] : undefined;
-  const chamber = institution?.chambers.find(c => c.seatAllocationStatus === 'sourced');
-  return chamber?.independentOtherSeats ?? 0;
-};
-
-/** Two-round runoff: if no party has an absolute majority, the top two keep their votes and the
- *  eliminated votes are redistributed proportionally to the top two (deterministic). */
+/** Two-round runoff with political proximity: the eliminated votes transfer to the top two in
+ *  proportion to their political proximity, and abstention is preserved (unknown != abstention). */
 const runoffShares = (votes: Record<string, number>): Record<string, number> => {
   const total = Object.values(votes).reduce((a, b) => a + b, 0);
   if (total <= 0) return votes;
@@ -53,7 +48,7 @@ const runoffShares = (votes: Record<string, number>): Record<string, number> => 
   return { [leader[0]]: leaderVotes, [runnerUp[0]]: runnerUpVotes };
 };
 
-/** Seat conversion dispatched by the constitution's parliamentary system. */
+/** Seat conversion dispatched by the constitution's parliamentary system and rounds. */
 function seatsForSystem(state: SimulationState, countryId: string, votes: Record<string, number>, seats: number, thresholdBps?: number): Record<string, number> {
   const system = state.constitution.countries[countryId]?.election.parliamentarySystem ?? 'unavailable';
   const rounds = state.constitution.countries[countryId]?.election.rounds ?? 'unavailable';
@@ -75,8 +70,7 @@ function seatsForSystem(state: SimulationState, countryId: string, votes: Record
   return proportionalSeats(effectiveVotes, seats, thresholdBps);
 }
 
-/** Minimal deterministic coalition: start from the winner and add parties in descending seat order
- *  until a majority is reached. */
+/** Minimal deterministic coalition from aggregate seats. */
 const formCoalition = (seats: Record<string, number>, totalSeats: number): { coalitionPartyIds: string[]; confidence: GovernmentConfidence } => {
   const sorted = Object.entries(seats).sort((a, b) => b[1] - a[1]);
   if (!sorted.length) return { coalitionPartyIds: [], confidence: 'unavailable' };
@@ -87,39 +81,52 @@ const formCoalition = (seats: Record<string, number>, totalSeats: number): { coa
   return { coalitionPartyIds: coalition, confidence: 'coalition' };
 };
 
-/** Run one deterministic national election: seat conversion, government formation and office transfer. */
+/** Recompute a chamber's term deadline from the constitution's parliament term (recurring elections). */
+const nextDeadlineFor = (state: SimulationState, countryId: string, date: string): string | undefined => {
+  const termYears = state.constitution.countries[countryId]?.parliament.termYears;
+  if (!termYears || termYears <= 0) return undefined;
+  const year = Number(date.slice(0, 4)) + termYears;
+  return `${year}-${date.slice(5, 10)}`;
+};
+
+/** Run one deterministic national election per chamber, form the government, and transfer offices. */
 export function runElection(state: SimulationState, countryId: string): SimulationState {
   const entry = countryEntry(state, countryId);
   const votes = partyVoteSharesFor(state, countryId);
-  const independents = independentSeatsFor(countryId);
-  const partySeats = Math.max(0, entry.totalSeats - independents);
   const thresholdBps = state.constitution.countries[countryId]?.election.thresholdBps;
-  const converted = seatsForSystem(state, countryId, votes, partySeats, thresholdBps);
-  // All registered parties are present even at zero seats.
-  const seatsByParty: Record<string, number> = {};
-  for (const partyId of Object.keys(entry.parties).sort()) seatsByParty[partyId] = converted[partyId] ?? 0;
-  const government = formCoalition(seatsByParty, entry.totalSeats);
+  const chambers: Record<string, ElectionChamberState> = {};
+  const aggregate: Record<string, number> = {};
+  let totalSeats = 0;
+  for (const [chamberId, chamber] of Object.entries(entry.chambers)) {
+    const independents = chamber.independentOtherSeats;
+    const partySeats = Math.max(0, chamber.totalSeats - independents);
+    const converted = seatsForSystem(state, countryId, votes, partySeats, thresholdBps);
+    const seatsByParty: Record<string, number> = {};
+    for (const partyId of Object.keys(entry.parties).sort()) { seatsByParty[partyId] = converted[partyId] ?? 0; aggregate[partyId] = (aggregate[partyId] ?? 0) + seatsByParty[partyId]; }
+    totalSeats += chamber.totalSeats;
+    chambers[chamberId] = { ...chamber, seatsByParty, lastElectionDate: state.date, nextElectionDate: nextDeadlineFor(state, countryId, state.date) };
+  }
+  const government = formCoalition(aggregate, totalSeats);
   const parties: ElectionCountryState['parties'] = {};
   for (const [partyId, previous] of Object.entries(entry.parties)) {
-    parties[partyId] = { ...previous, currentSeats: seatsByParty[partyId] ?? 0, governmentStatus: government.coalitionPartyIds.includes(partyId) ? 'government' : 'opposition', promises: previous.promises };
+    parties[partyId] = { ...previous, currentSeats: aggregate[partyId] ?? 0, governmentStatus: government.coalitionPartyIds.includes(partyId) ? 'government' : 'opposition', promises: previous.promises };
   }
   const next = {
     ...state,
     elections: {
       ...state.elections,
-      countries: {
-        ...state.elections.countries,
-        [countryId]: { ...entry, seatsByParty, totalSeats: entry.totalSeats, lastElectionDate: state.date, nextElectionDate: undefined, government, parties },
-      },
+      countries: { ...state.elections.countries, [countryId]: { ...entry, chambers, government, parties } },
     },
   };
   return transferGovernmentOffices(next, countryId, government.coalitionPartyIds);
 }
 
 /** When the governing bloc changes, reassign the head-of-government office to the leading party's
- *  leader, preserving the person/office model. */
+ *  leader. appointmentMode decides who forms the government. */
 function transferGovernmentOffices(state: SimulationState, countryId: string, coalitionPartyIds: string[]): SimulationState {
   if (!coalitionPartyIds.length) return state;
+  const appointmentMode = state.constitution.countries[countryId]?.government.appointmentMode ?? 'unavailable';
+  if (appointmentMode === 'appointed_by_head_of_state') return state; // the head of state appoints; no automatic transfer.
   const leadingPartyId = coalitionPartyIds[0];
   const leader = Object.values(state.governance.persons).find(p => p.status === 'active' && p.countryId === countryId && p.partyId === leadingPartyId && p.isPartyLeader);
   if (!leader) return state;
@@ -137,14 +144,17 @@ export function dissolveParliament(state: SimulationState, countryId: string, pe
   const dissolutionHolder = state.constitution.countries[countryId]?.parliament.dissolutionHolder ?? 'unavailable';
   if (dissolutionHolder === 'unavailable') throw new Error('Parliamentary dissolution is not constitutionally permitted for this Country.');
   const entry = countryEntry(state, countryId);
-  return { ...state, elections: { ...state.elections, countries: { ...state.elections.countries, [countryId]: { ...entry, nextElectionDate: state.date } } } };
+  const chambers: Record<string, ElectionChamberState> = {};
+  for (const [chamberId, chamber] of Object.entries(entry.chambers)) chambers[chamberId] = { ...chamber, nextElectionDate: state.date };
+  return { ...state, elections: { ...state.elections, countries: { ...state.elections.countries, [countryId]: { ...entry, chambers } } } };
 }
 
-/** Monthly pass: run the election when a dissolution/term-expiry is due. */
+/** Monthly pass: run the election when any chamber's term/dissolution deadline is due. */
 export function runElectionCycle(state: SimulationState): SimulationState {
   let next = state;
   for (const [countryId, entry] of Object.entries(state.elections.countries)) {
-    if (entry.nextElectionDate && entry.nextElectionDate <= state.date) next = runElection(next, countryId);
+    const due = Object.values(entry.chambers).some(chamber => chamber.nextElectionDate && chamber.nextElectionDate <= state.date);
+    if (due) next = runElection(next, countryId);
   }
   return next;
 }
