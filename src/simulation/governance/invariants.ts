@@ -1,4 +1,5 @@
 import type { SimulationInvariant } from '../invariants';
+import type { SimulationState } from '../../types';
 import { canonicalJson } from '../fingerprint';
 import { dateValid, validatePolicy } from '../fiscal/math';
 import { fiscalReformFingerprint, validateBudget } from '../fiscal/runtime';
@@ -125,7 +126,7 @@ function validateAnalysis(analysis: ProposalAnalysis): boolean {
   return analysis.genuinelyNeutral === neutral && (!neutral || !analysis.expectedConsequences.some(item => item.coverage !== 'unavailable' && item.directionBps !== 0));
 }
 
-function validateInstitutionalEvidence(proposal: PoliticalProposal): boolean {
+function validateInstitutionalEvidence(state: SimulationState, proposal: PoliticalProposal): boolean {
   const effects = proposal.analysis?.institutionalEffects;
   if (!Array.isArray(effects) || !effects.every(isInstitutionalPowerTransfer) || new Set(effects.map(item => item.id)).size !== effects.length
     || new Set(effects.map(institutionalTransferKey)).size !== effects.length) return false;
@@ -145,7 +146,7 @@ function validateInstitutionalEvidence(proposal: PoliticalProposal): boolean {
           agreementBps: interest.materialAgreementBps, confidenceBps: interest.materialConfidenceBps, coverage: interest.materialCoverage,
           positiveDrivers: [], negativeDrivers: [], tradeoffs: [],
         };
-        const expected = evaluatePartyInstitutionalInterest(proposal.countryId, evaluation.partyId, politicalRegistry, effects, material);
+        const expected = evaluatePartyInstitutionalInterest(state, proposal.countryId, evaluation.partyId, politicalRegistry, effects, material);
         if (canonicalJson(interest) !== canonicalJson(expected)) return false;
         const applied = applyPartyInstitutionalInterest(material, expected);
         if (evaluation.agreementBps !== applied.agreementBps || evaluation.confidenceBps !== applied.confidenceBps || evaluation.coverage !== applied.coverage) return false;
@@ -238,7 +239,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     const institutional = proposal.evaluationVersion === 'situational-plurality-0.15-v2';
     const plurality = institutional || proposal.evaluationVersion === 'plurality-0.15-v1';
     if (proposal.evaluationVersion !== undefined && !['legacy-0.14-v1', 'situational-0.14-v2', 'plurality-0.15-v1', 'situational-plurality-0.15-v2'].includes(proposal.evaluationVersion)) errors.push(`Invalid evaluation version for ${id}.`);
-    if (institutional ? !validateInstitutionalEvidence(proposal)
+    if (institutional ? !validateInstitutionalEvidence(state, proposal)
       : proposal.analysis?.institutionalEffects !== undefined || [proposal.parliamentaryEstimate, proposal.voteResult].some(estimate => Array.isArray(estimate?.chambers) && estimate.chambers.some(chamber => Array.isArray(chamber.partyEvaluations) && chamber.partyEvaluations.some(item => item.institutionalInterest !== undefined)))) errors.push(`Invalid institutional evidence for ${id}.`);
     if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly, plurality, id, proposal.countryId)) errors.push(`Invalid parliamentary estimate for ${id}.`);
     if (proposal.analysis && !validateAnalysis(proposal.analysis)) errors.push(`Invalid proposal analysis for ${id}.`);

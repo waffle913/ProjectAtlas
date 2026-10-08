@@ -756,7 +756,7 @@ function institutionalFixture(oppositionSeats = 80) {
     confidenceBps: 10_000, coverage: 'complete', source: 'Synthetic explicit legal power transfer, not a playable reform or observation.',
     explanation: 'Test-only movement of budget initiative from this chamber to the executive.',
   };
-  return { registry, countryId, oppositionId, governmentId, institution, chamber, effect };
+  return { registry, countryId, oppositionId, governmentId, institution, chamber, effect, state: { elections: { countries: {} } } as unknown as SimulationState };
 }
 
 function institutionalProfile(partyId: string, uniform = false): PartyGoalProfile {
@@ -839,7 +839,7 @@ describe('governance 0.15 situational institutional interest', () => {
     const fixture = institutionalFixture(0);
     const material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
     for (const partyId of [fixture.oppositionId, fixture.governmentId]) {
-      const result = evaluatePartyInstitutionalInterest(fixture.countryId, partyId, fixture.registry, [fixture.effect], material);
+      const result = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, partyId, fixture.registry, [fixture.effect], material);
       expect(result).toMatchObject({ status: 'modelled', adjustmentBps: 0, confidenceBps: 10_000 });
       expect(result.effects[0].fromStakeBps).toBe(result.effects[0].toStakeBps);
     }
@@ -884,7 +884,7 @@ describe('governance 0.15 situational institutional interest', () => {
     expect(derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive').stakeBps).toBe(5_250);
     fixture.registry.countries[fixture.countryId].coverage.coalition = 'partial';
     const material = { agreementBps: 6_000, confidenceBps: 10_000, coverage: 'complete' as const };
-    const partial = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material);
+    const partial = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material);
     expect(partial).toMatchObject({ coverage: 'partial', confidenceBps: 7_000 });
   });
 
@@ -939,7 +939,7 @@ describe('governance 0.15 situational institutional interest', () => {
     fixture.institution.governingPartyIds = [];
     const stake = derivePartyInstitutionalStake(fixture.registry, fixture.countryId, fixture.oppositionId, 'executive');
     expect(stake.coverage).toBe('unavailable'); expect(stake.stakeBps).toBeUndefined();
-    expect(evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material).status).toBe('unavailable');
+    expect(evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect], material).status).toBe('unavailable');
   });
 
   it.each(['outside', 'sole', 'coalition'] as const)('preserves unavailable coalition evidence for %s executive stakes despite listed governing parties', position => {
@@ -1082,7 +1082,7 @@ describe('governance 0.15 situational institutional interest', () => {
       chamber.seatsByParty = { [fixture.oppositionId]: 40, [fixture.governmentId]: 60 };
       fixture.institution.chambers.push(chamber); distinct.from = `chamber:${chamber.id}`;
     } else { distinct.from = fixture.effect.to; distinct.to = fixture.effect.from; }
-    const result = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect, distinct], material);
+    const result = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect, distinct], material);
     expect(result).toMatchObject({
       status: 'modelled', coverage: 'complete', confidenceBps: 10_000,
       adjustmentBps: distinction === 'lever' ? -4_800 : distinction === 'source chamber' ? -3_600 : 0,
@@ -1174,13 +1174,13 @@ describe('governance 0.15 situational institutional interest', () => {
       { ...fixture.effect, id: 'synthetic.reverse', from: 'executive', to: fixture.effect.from, confidenceBps: 7_000 },
       { ...fixture.effect, id: 'synthetic.null', from: 'none', to: fixture.effect.from, confidenceBps: 5_000 },
     ];
-    const original = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, effects, material);
+    const original = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, fixture.registry, effects, material);
     const reordered = structuredClone(fixture.registry), institution = reordered.institutions[reordered.countries[fixture.countryId].institutionId];
     institution.governingPartyIds.reverse();
     for (const chamber of institution.chambers) chamber.seatsByParty = Object.fromEntries(Object.entries(chamber.seatsByParty).reverse());
     reordered.parties = Object.fromEntries(Object.entries(reordered.parties).reverse());
-    expect(evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, reordered, effects, material)).toEqual(original);
-    const reversed = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, reordered, [...effects].reverse(), material);
+    expect(evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, reordered, effects, material)).toEqual(original);
+    const reversed = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, reordered, [...effects].reverse(), material);
     for (const field of ['adjustmentBps', 'confidenceBps', 'coverage', 'status', 'governmentStatus', 'materialAgreementBps'] as const) expect(reversed[field]).toBe(original[field]);
     expect(reversed.effects.map(item => item.id)).toEqual([...effects].reverse().map(item => item.id));
     const second = structuredClone(institution.chambers[0]); second.id = 'chamber.synthetic-other'; institution.chambers.push(second);
@@ -1199,7 +1199,7 @@ describe('governance 0.15 situational institutional interest', () => {
     };
     for (const coverage of ['complete', 'partial'] as const) {
       const known = { ...fixture.effect, coverage };
-      const knownResult = evaluatePartyInstitutionalInterest(fixture.countryId, partyId, fixture.registry, [known], material);
+      const knownResult = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, partyId, fixture.registry, [known], material);
       expect(Math.sign(knownResult.adjustmentBps)).toBe(direction === 'negative' ? -1 : 1);
       for (const effects of [[known, unknown], [unknown, known]]) {
         analysis.institutionalEffects = effects;
@@ -1232,7 +1232,7 @@ describe('governance 0.15 situational institutional interest', () => {
     const partial: InstitutionalPowerTransfer = {
       ...fixture.effect, id: 'synthetic.partial-reverse', from: 'executive', to: fixture.effect.from, coverage: 'partial', confidenceBps: 9_000,
     };
-    const result = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect, partial], material);
+    const result = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, fixture.registry, [fixture.effect, partial], material);
     expect(result).toMatchObject({ status: 'modelled', coverage: 'partial', confidenceBps: 8_500, adjustmentBps: -720 });
     expect(result.effects[0]).toMatchObject({ rawInterestBps: -8_000, effectiveInterestBps: -8_000, confidenceBps: 10_000 });
     expect(result.effects[1]).toMatchObject({ rawInterestBps: 8_000, effectiveInterestBps: 5_600, coverage: 'partial', confidenceBps: 7_000 });
@@ -1244,7 +1244,7 @@ describe('governance 0.15 situational institutional interest', () => {
     expect(evaluation).toMatchObject({ agreementBps: 5_280, confidenceBps: 8_500, coverage: 'partial', vote: 'abstain' });
     expect(evaluatePartyInternalVoteDistribution(analysis, goals, evaluation).unknownBps).toBe(0);
     for (const effects of [[fixture.effect, fixture.effect], [{ ...fixture.effect, source: '' }], [{ ...fixture.effect, confidenceBps: -1 }]]) {
-      const rejected = evaluatePartyInstitutionalInterest(fixture.countryId, fixture.oppositionId, fixture.registry, effects, material);
+      const rejected = evaluatePartyInstitutionalInterest(fixture.state, fixture.countryId, fixture.oppositionId, fixture.registry, effects, material);
       expect(rejected).toMatchObject({ status: 'unavailable', adjustmentBps: 0, confidenceBps: 0 });
       expect(rejected.negativeDrivers).toContain('Institutional evidence is malformed or duplicated.');
     }

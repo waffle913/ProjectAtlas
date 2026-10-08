@@ -149,7 +149,7 @@ export function evaluatePartyProposal(state: SimulationState, proposal: Politica
   const party = registry.parties[partyId]; if (!party) return { partyId, agreementBps: 5_000, confidenceBps: 0, coverage: 'unavailable', compromiseCostBps: 0, vote: 'unknown', positiveDrivers: [], negativeDrivers: ['Unknown party.'], tradeoffs: [], issueEvaluations: [] };
   const analysis = analysisOverride ?? analyzeProposal(state, proposal);
   const material = evaluateProfile(analysis, profileOverride ?? derivePartyGoalProfile(party));
-  const institutionalInterest = evaluatePartyInstitutionalInterest(proposal.countryId, partyId, registry, analysis.institutionalEffects ?? [], material);
+  const institutionalInterest = evaluatePartyInstitutionalInterest(state, proposal.countryId, partyId, registry, analysis.institutionalEffects ?? [], material);
   const result = applyPartyInstitutionalInterest(material, institutionalInterest);
   const vote = result.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || result.coverage === 'unavailable' ? 'unknown' : result.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : result.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
   return { partyId, ...result, institutionalInterest, vote };

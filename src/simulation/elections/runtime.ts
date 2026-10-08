@@ -91,8 +91,8 @@ const nextDeadlineFor = (state: SimulationState, countryId: string, date: string
   return `${year}-${date.slice(5, 10)}`;
 };
 
-/** Run one deterministic national election per chamber, form the government, and transfer offices. */
-export function runElection(state: SimulationState, countryId: string): SimulationState {
+/** Run a deterministic election for the given chambers (default: all), form the government, and transfer offices. */
+export function runElection(state: SimulationState, countryId: string, chamberIds?: readonly string[]): SimulationState {
   const entry = countryEntry(state, countryId);
   const votes = partyVoteSharesFor(state, countryId);
   const thresholdBps = state.constitution.countries[countryId]?.election.thresholdBps;
@@ -100,6 +100,7 @@ export function runElection(state: SimulationState, countryId: string): Simulati
   const aggregate: Record<string, number> = {};
   let totalSeats = 0;
   for (const [chamberId, chamber] of Object.entries(entry.chambers)) {
+    if (chamberIds && !chamberIds.includes(chamberId)) { chambers[chamberId] = chamber; totalSeats += chamber.totalSeats; for (const [p, s] of Object.entries(chamber.seatsByParty)) aggregate[p] = (aggregate[p] ?? 0) + s; continue; }
     const independents = chamber.independentOtherSeats;
     const partySeats = Math.max(0, chamber.totalSeats - independents);
     const converted = seatsForSystem(state, countryId, votes, partySeats, thresholdBps);
@@ -128,7 +129,8 @@ export function runElection(state: SimulationState, countryId: string): Simulati
 function transferGovernmentOffices(state: SimulationState, countryId: string, coalitionPartyIds: string[]): SimulationState {
   if (!coalitionPartyIds.length) return state;
   const appointmentMode = state.constitution.countries[countryId]?.government.appointmentMode ?? 'unavailable';
-  if (appointmentMode === 'appointed_by_head_of_state') return state; // the head of state appoints; no automatic transfer.
+  // Nothing is inferred when the appointment mode is unavailable; the head of state appoints separately.
+  if (appointmentMode === 'appointed_by_head_of_state' || appointmentMode === 'unavailable') return state;
   const leadingPartyId = coalitionPartyIds[0];
   const leader = Object.values(state.governance.persons).find(p => p.status === 'active' && p.countryId === countryId && p.partyId === leadingPartyId && p.isPartyLeader);
   if (!leader) return state;
@@ -154,8 +156,8 @@ export function dissolveParliament(state: SimulationState, countryId: string, pe
 export function runElectionCycle(state: SimulationState): SimulationState {
   let next = state;
   for (const [countryId, entry] of Object.entries(state.elections.countries)) {
-    const due = Object.values(entry.chambers).some(chamber => chamber.nextElectionDate && chamber.nextElectionDate <= state.date);
-    if (due) next = runElection(next, countryId);
+    const dueChamberIds = Object.entries(entry.chambers).filter(([, chamber]) => chamber.nextElectionDate && chamber.nextElectionDate <= state.date).map(([chamberId]) => chamberId);
+    if (dueChamberIds.length) next = runElection(next, countryId, dueChamberIds);
   }
   return next;
 }
