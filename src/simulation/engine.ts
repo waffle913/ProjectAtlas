@@ -13,6 +13,7 @@ import { registerOperationsReportTasks } from './operations/reports';
 import { registerMultilateralTasks } from './multilateral/runtime';
 import { registerMultilateralReportTasks } from './multilateral/reports';
 import { registerConstitutionTasks } from './constitution/runtime';
+import { registerElectionTasks } from './elections/runtime';
 import type { SimulationState } from '../types';
 import { applyPendingFidelityTransitions } from './fidelity';
 import { SimulationScheduler } from './scheduler';
@@ -21,7 +22,7 @@ import { validateFidelityConservation } from './invariants';
 export const CORE_FIDELITY_TASK_ID = 'engine.apply-fidelity-transitions';
 
 export function createCoreScheduler() {
-  return registerOperationsTasks(registerOperationsReportTasks(registerInternationalReportTasks(registerInternationalTasks(registerMultilateralReportTasks(registerMultilateralTasks(registerConstitutionTasks(registerTradeReportTasks(registerTradeTasks(registerMilitaryReportTasks(registerMilitaryTasks(registerInformationTasks(registerPoliticalTasks(registerCrisisTasks(registerFiscalTasks(registerSocioeconomicTasks(new SimulationScheduler().register({
+  return registerOperationsTasks(registerOperationsReportTasks(registerInternationalReportTasks(registerInternationalTasks(registerMultilateralReportTasks(registerMultilateralTasks(registerConstitutionTasks(registerElectionTasks(registerTradeReportTasks(registerTradeTasks(registerMilitaryReportTasks(registerMilitaryTasks(registerInformationTasks(registerPoliticalTasks(registerCrisisTasks(registerFiscalTasks(registerSocioeconomicTasks(new SimulationScheduler().register({
     id: CORE_FIDELITY_TASK_ID,
     cadence: 'daily',
     priority: -1_000,
@@ -32,7 +33,7 @@ export function createCoreScheduler() {
       if (violations.length) throw new Error(violations.map(item => item.message).join('\n'));
       return next;
     },
-  })))))))))))))))));
+  }))))))))))))))))));
 }
 
 export const advanceSimulationDays = (state: SimulationState, days: number, scheduler = createCoreScheduler()) => {

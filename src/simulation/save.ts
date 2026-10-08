@@ -24,6 +24,7 @@ import { initializeOperations } from './operations/runtime';
 import { emptyMultilateral, MULTILATERAL_VERSION } from './multilateral/model';
 import { initializeMultilateral } from './multilateral/runtime';
 import { initializeConstitution, emptyConstitution } from './constitution/model';
+import { initializeElections, emptyElections } from './elections/model';
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
 import { assertSimulationInvariants, type InvariantContext } from './invariants';
@@ -58,9 +59,9 @@ const countryIdsFor = (state: { territoryOwnership: Record<string, string | unde
   }
   return countryIds;
 };
-const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields | 'international' | 'operations' | 'multilateral' | 'constitution'>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
+const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields | 'international' | 'operations' | 'multilateral' | 'constitution' | 'elections'>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
   const countryIds = countryIdsFor(state, regions, context);
-  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
+  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
   const withPolitics = { ...crisis, politics: initializePolitics(crisis, countryIds, regions), governance: emptyGovernance(crisis.date) };
   return initializeOperations(initializeInternational(initializeMultilateral(initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics))))));
@@ -97,7 +98,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     const fiscal = version >= 9 ? upgradeFiscalStateV1(current.fiscal, current.date) : emptyFiscal();
     const countryIds = countryIdsFor(current, regions, diplomacyContext);
     const crisis = version >= 10 ? current.crisis! : initializeCrisisState(emptyCrisis(), countryIds, current.date);
-    const base = { ...current, schemaVersion: 19 as const, operations: version >= 17 ? current.operations! : emptyOperations(), international: version >= 16 ? current.international! : emptyInternational(), multilateral: version >= 18 ? current.multilateral! : emptyMultilateral(), constitution: version >= 19 ? current.constitution! : initializeConstitution(current, [...countryIds]).constitution, trade: version >= 15 ? current.trade : emptyTrade(), military: version >= 14 ? current.military : emptyMilitary(), information: version >= 13 ? current.information! : emptyInformation(current.date), governance: version >= 12 ? current.governance! : emptyGovernance(current.date), politics: version >= 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
+    const base = { ...current, schemaVersion: 19 as const, operations: version >= 17 ? current.operations! : emptyOperations(), international: version >= 16 ? current.international! : emptyInternational(), multilateral: version >= 18 ? current.multilateral! : emptyMultilateral(), constitution: version >= 19 ? current.constitution! : initializeConstitution(current, [...countryIds]).constitution, elections: version >= 19 ? current.elections! : initializeElections(current, [...countryIds]).elections, trade: version >= 15 ? current.trade : emptyTrade(), military: version >= 14 ? current.military : emptyMilitary(), information: version >= 13 ? current.information! : emptyInformation(current.date), governance: version >= 12 ? current.governance! : emptyGovernance(current.date), politics: version >= 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
     const upgraded = cloneSimulationState(base);
     const fiscalRestored = version >= 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
     const savedRegistryVersion = version >= 11 ? (current.politics as { registryVersion?: unknown }).registryVersion : undefined;

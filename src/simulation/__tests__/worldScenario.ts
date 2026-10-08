@@ -2,6 +2,7 @@ import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
 import { emptyMultilateral } from '../multilateral/model';
 import { emptyConstitution } from '../constitution/model';
+import { emptyElections } from '../elections/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
 import { emptyFiscal } from '../fiscal/model';
@@ -27,7 +28,7 @@ export const worldContext = { regions: worldRegions, countryIds: new Set(worldCo
 export const worldInputs = { demographics, economics, national, facts: facts.countries } as unknown as InitializationData;
 export const worldPoliticalInputs = { countries: entityRegistry.countries, offices } as unknown as PoliticalInitializationData;
 export const worldBase = (): SimulationState => ({
-  schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+  schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
   territoryOwnership: Object.fromEntries(entityRegistry.territories.map(t => [t.id, t.initialOwnerCountryId])),
   regionOwnership: Object.fromEntries(worldRegions.map(r => [r.id, r.initialOwnerCountryId])),
   populationByRegion: Object.fromEntries(demographics.records.map(r => [r.regionId, r.status === 'unavailable' ? undefined : r.baselinePopulation])),

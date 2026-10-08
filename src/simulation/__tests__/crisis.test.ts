@@ -2,6 +2,7 @@ import { emptyOperations } from '../operations/model';
 import { emptyInternational } from '../international/model';
 import { emptyMultilateral } from '../multilateral/model';
 import { emptyConstitution } from '../constitution/model';
+import { emptyElections } from '../elections/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
 import { describe, expect, it } from 'vitest';
@@ -29,7 +30,7 @@ const region = (id: string): RegionEntity => ({ id: `region.${id}`, parentCountr
 const build = (ids = ['a'], seed = 'crisis-seed'): { state: SimulationState; regions: RegionEntity[] } => {
   const regions = ids.map(region), countryIds = ids.map(id => `country.${id}`);
   let state: SimulationState = {
-    schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+    schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
     territoryOwnership: {}, regionOwnership: Object.fromEntries(regions.map(r => [r.id, r.parentCountryId])),
     populationByRegion: Object.fromEntries(regions.map(r => [r.id, 100_000])), economicOutputByRegion: Object.fromEntries(regions.map(r => [r.id, 1_200_000_000])),
     bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(countryIds, seed),

@@ -10,6 +10,7 @@ import { internationalInvariant } from './international/invariants';
 import { operationsInvariant } from './operations/invariants';
 import { multilateralInvariant } from './multilateral/invariants';
 import { constitutionInvariant } from './constitution/invariants';
+import { electionsInvariant } from './elections/invariants';
 import type { RegionEntity, SimulationState } from '../types';
 import { validateDiplomacyState, type DiplomacyContext } from './diplomacy';
 import { validateWarState } from './war';
@@ -45,6 +46,7 @@ export const coreInvariants: readonly SimulationInvariant[] = [
   operationsInvariant,
   multilateralInvariant,
   constitutionInvariant,
+  electionsInvariant,
   {
     id: 'canonical-state-shape',
     check: state => {

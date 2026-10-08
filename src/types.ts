@@ -10,6 +10,7 @@ import type { InternationalState } from './simulation/international/model';
 import type { OperationsState } from './simulation/operations/model';
 import type { MultilateralState } from './simulation/multilateral/model';
 import type { ConstitutionState } from './simulation/constitution/model';
+import type { ElectionsState } from './simulation/elections/model';
 export type EntityKind = 'sovereign' | 'dependency' | 'disputed' | 'other';
 
 export interface DataSource { name: string; url: string; datasetId: string; retrievedAt: string }
@@ -146,6 +147,7 @@ export interface SimulationState {
   international: InternationalState;
   multilateral: MultilateralState;
   constitution: ConstitutionState;
+  elections: ElectionsState;
   trade: TradeState;
   military: MilitaryState;
   governance: GovernanceState;
