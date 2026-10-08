@@ -24,7 +24,10 @@ La dérivation se fait **strictement** depuis `politicalRegistry.institutions` (
 ## Procédures implémentées
 
 - **Urgence** (`constitution/runtime.ts`) : `declareEmergency` exige une crise active **et** le poste exécutif ; `endEmergency` lève les restrictions ; `runEmergencyMonth` (cadence mensuelle) expire la justification quand les crises cessent.
-- **Binding constitutionnel / clés protégées** : `registerConstitutionalBinding` enregistre des clés matérielles ; `rejectProtectedModification`, intégré dans `resolveProposalVoteForActor`, rejette une loi ordinaire qui modifierait une clé protégée (raison `constitutionally_protected`) ; un amendement constitutionnel en est exempté.
+- **Binding constitutionnel / clés protégées** : `registerConstitutionalBinding`/`removeConstitutionalBinding` enregistrent des clés matérielles du registre canonique `MATERIAL_KEYS` ; `rejectProtectedModification`, intégré dans `resolveProposalVoteForActor`, rejette une loi ordinaire qui modifierait une clé protégée ; un amendement constitutionnel en est exempté. Les clés sont validées contre `MATERIAL_KEYS`, jamais inventées.
+- **Amendement constitutionnel** (`constitutional_amendment`) : classification automatique principal (changement de droits/structure) / secondaire (clés matérielles) ; seuil parlementaire et référendum **bloquants quand unavailable** ; contrôle constitutionnel avant/après promulgation ; effet appliqué **à la date effective** via `pendingAmendments`.
+- **Pouvoirs du Parlement** : `none`/`consultative`/`weak_legislative` bloquent l'adoption législative ; les instruments administratifs en sont exemptés.
+- **Intégrité** : le fingerprint soumis inclut `instrumentClass` et `constitutionalDisposition`.
 
 ## Non implémenté (0.23, documenté)
 

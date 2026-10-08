@@ -2,7 +2,14 @@
 
 ## Statut
 
-**Non implémenté dans 0.23** — différé. Ce document enregistre le contrat ciblé afin qu'il ne soit pas réinventé plus tard ; il ne prétend pas qu'un moteur existe.
+**Implémenté pour les familles représentées par le registre 0.13** (partis via gouvernance/élections ; syndicats et associations via `politics.organizations`). Les organisations religieuses n'existent pas dans le registre 0.13 : aucune n'est fabriquée, la couverture reste `unavailable`.
+
+## Fonctions implémentées
+
+- `joinOrganization` / `leaveOrganization` / `dissolveOrganization`.
+- `banOrganization(actorPersonId, motive, evidence)` — interdiction **procédurale** avec acteur, motif et preuve, tracée (`banEvents`) et **appelable** (`appealBan`).
+- `runOrganizationAction(sit_in | demonstration | strike)` — **gated par le type** (grève réservée aux syndicats), par les **droits constitutionnels** (assemblée/grève) et par **l'état d'urgence** (restrictions) ; ajoute un driver d'opinion causal, jamais un bonus.
+- `setOrganizationFunds` (financement déterministe) et `addInternalCurrent` (courants internes modélisés).
 
 ## Contrat ciblé (futur)
 

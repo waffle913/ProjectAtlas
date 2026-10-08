@@ -58,7 +58,7 @@ export function upgradeGovernanceSchema12(state: SimulationState): SimulationSta
   }
   const hasSuccessionState = Boolean(state.governance.successions && state.governance.successionOrder && Number.isSafeInteger(state.governance.nextSuccessionSequence));
   if (!changed && hasSuccessionState && state.fiscal.reforms.every((reform, index) => reform.origin === reforms[index].origin) && receipts.length === state.fiscal.reformReceipts.length) return state;
-  return { ...state, governance: { ...state.governance, proposals, successions: state.governance.successions ?? {}, successionOrder: state.governance.successionOrder ?? [], nextSuccessionSequence: state.governance.nextSuccessionSequence ?? 0 }, fiscal: { ...state.fiscal, reforms, reformReceipts: receipts.sort((a, b) => a.sequence - b.sequence) } };
+  return { ...state, governance: { ...state.governance, proposals, successions: state.governance.successions ?? {}, successionOrder: state.governance.successionOrder ?? [], nextSuccessionSequence: state.governance.nextSuccessionSequence ?? 0, cabinets: state.governance.cabinets ?? {} }, fiscal: { ...state.fiscal, reforms, reformReceipts: receipts.sort((a, b) => a.sequence - b.sequence) } };
 }
 
 /** Idempotent, derived backfill for the 0.22 generalized proposal model. Existing fiscal

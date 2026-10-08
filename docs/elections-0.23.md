@@ -8,11 +8,11 @@ Implémenté, tests dédiés (`src/simulation/__tests__/elections.test.ts`), sch
 
 `SimulationState.elections` (`ElectionsState`) contient, par Country :
 
-- `seatsByParty` : allocation **dynamique** courante (initialisée à partir de l'allocation sourcée du registre, jamais modifiée en place) ;
-- `totalSeats` : total de la chambre compétente ;
-- `lastElectionDate` / `nextElectionDate` : cycle électoral (dissolution/expiration) ;
-- `government` : partis de la coalition au pouvoir + confiance (`majority`/`minority`/`coalition`/`unavailable`) ;
-- `parties` : état par parti (sièges courants, statut gouvernement/opposition, promesses, crédibilité dérivée).
+- `chambers` : allocation **dynamique par chambre** (`ElectionChamberState`), alignée sur les chambres sourcées du registre 0.13 — les votes parlementaires et l'intérêt institutionnel lisent la même réalité post-élection ;
+- `totalSeats`/`seatsByParty` par chambre, `independentOtherSeats` réservés ;
+- `lastElectionDate`/`nextElectionDate` par chambre (échéances électorales **récurrentes**) ;
+- `government` : coalition au pouvoir + confiance, formée selon `appointmentMode` ;
+- `parties` : état par parti (sièges courants, statut, promesses, crédibilité), tous les partis présents même à zéro siège.
 
 ## Conversion des votes
 

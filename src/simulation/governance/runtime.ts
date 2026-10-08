@@ -515,7 +515,7 @@ export function submitProposalForActor(state: SimulationState, proposalIdValue: 
   if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposal\'s proposer may submit this draft.');
   if (proposalSubmitCapabilities(proposal).some(capability => !hasCapability(proposal, actor, capability))) throw new Error('Actor lacks authority to submit this reform.');
   if (proposal.kind === 'fiscal_reform') validatePayload(state, proposal.countryId, proposal.effectiveDate, proposal.payload);
-  const frozen = structuredClone(proposal); frozen.status = 'submitted'; frozen.submittedOn = state.date; frozen.submittedPayloadFingerprint = governanceFingerprint({ effectiveDate: frozen.effectiveDate, payload: frozen.payload, instrumentClass: frozen.instrumentClass, constitutionalDisposition: frozen.constitutionalDisposition });
+  const frozen = structuredClone(proposal); frozen.status = 'submitted'; frozen.submittedOn = state.date; frozen.submittedPayloadFingerprint = governanceFingerprint({ effectiveDate: frozen.effectiveDate, payload: frozen.payload });
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: frozen } });
 }
 
