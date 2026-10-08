@@ -87,9 +87,11 @@ export function dissolveOrganization(state: SimulationState, organizationId: str
   return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'dissolved' } } } };
 }
 
-/** Procedurally ban an organization with an accountable actor, motive and evidence; the ban is appealable. */
+/** Procedurally ban an organization with an accountable, authorized actor, motive and evidence. */
 export function banOrganization(state: SimulationState, organizationId: string, actorPersonId: string, motive: string, evidence: string): SimulationState {
   const organization = activeOrganization(state, organizationId);
+  const actor = state.governance.persons[actorPersonId];
+  if (!actor || !['head_of_government', 'head_of_state'].includes(actor.office?.role ?? '')) throw new Error('Only the executive head may ban an organization.');
   if (!motive?.trim() || !evidence?.trim()) throw new Error('A ban requires an explicit motive and evidence.');
   const banEvents = [...organization.banEvents, { date: state.date, actorPersonId, motive, evidence }];
   return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'banned', banEvents } } } };
@@ -104,11 +106,13 @@ export function appealBan(state: SimulationState, organizationId: string): Simul
   return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'active', banEvents } } } };
 }
 
-/** Set the organization's funds from a deterministic donation; it never creates economic value. */
-export function setOrganizationFunds(state: SimulationState, organizationId: string, fundsUsd: number): SimulationState {
+/** Donate to an organization from a real donor; funds are never created ex nihilo. */
+export function donateToOrganization(state: SimulationState, organizationId: string, donorPersonId: string, amountUsd: number): SimulationState {
   const organization = activeOrganization(state, organizationId);
-  if (!Number.isSafeInteger(fundsUsd) || fundsUsd < 0) throw new Error('Organization funds must be a non-negative integer.');
-  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, fundsUsd } } } };
+  const donor = state.governance.persons[donorPersonId];
+  if (!donor) throw new Error('Unknown donor person.');
+  if (!Number.isSafeInteger(amountUsd) || amountUsd < 0) throw new Error('Donation must be a non-negative integer.');
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, fundsUsd: (organization.fundsUsd ?? 0) + amountUsd } } } };
 }
 
 /** Register an internal current (a modelled faction; not an observed faction share). */
@@ -129,8 +133,7 @@ export function runOrganizationAction(state: SimulationState, organizationId: st
   const constitution = countryId ? state.constitution.countries[countryId] : undefined;
   if (action === 'strike' && constitution?.emergency.restrictions.strikesBanned) throw new Error('Strikes are banned under the state of emergency.');
   if (action !== 'strike' && constitution?.emergency.restrictions.assembliesBanned) throw new Error('Assemblies are banned under the state of emergency.');
-  if (action === 'strike' && constitution?.rights.strike === 'not_guaranteed') throw new Error('The right to strike is not constitutionally guaranteed.');
-  if (action !== 'strike' && ['strongly_restricted', 'not_guaranteed'].includes(constitution?.rights.assembly ?? '')) throw new Error('Assembly is not constitutionally guaranteed.');
+  // A missing constitutional guarantee does NOT mean the action is illegal; ordinary law determines it.
   const issueIndex = action === 'strike' ? POLITICAL_ISSUES.indexOf('labour_protection') : POLITICAL_ISSUES.indexOf('public_order');
   const issues = issueIndex >= 0 ? [POLITICAL_ISSUES[issueIndex]] : [];
   const driver = { date: state.date, issues };
