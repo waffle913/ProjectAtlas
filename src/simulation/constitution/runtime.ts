@@ -1,6 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
-import { CONSTITUTION_VERSION, MATERIAL_KEYS, type ConstitutionalDispositionKind, type ConstitutionalRights, type EmergencyConstitution } from './model';
+import { CONSTITUTION_VERSION, MATERIAL_KEYS, type ConstitutionalDispositionKind, type ConstitutionalRights, type EmergencyConstitution, type PendingAmendment } from './model';
 
 /** A person holding the executive office of the Country (head of government or head of state). */
 const isExecutive = (state: SimulationState, personId: string, countryId: string): boolean => {
@@ -32,6 +32,30 @@ export function endEmergency(state: SimulationState, countryId: string, personId
   const entry = state.constitution.countries[countryId];
   if (!entry) throw new Error('No constitutional state for this Country.');
   return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...entry, emergency: { status: 'none', justificationCrisisIds: [], restrictions: { assembliesBanned: false, strikesBanned: false, policePowersEnhanced: false, bordersClosed: false } } } } } };
+}
+
+/** Monthly pass: expire the emergency justification once its crises are no longer active. */
+/** Schedule an adopted amendment to apply at its effective date, recording the constitutional
+ *  judicial-review timing/effect. The effect is never applied before the effective date. */
+export function scheduleConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; effectiveDate: string; payload: { materialKeysToProtect?: string[]; materialKeysToUnprotect?: string[]; rightChanges?: Partial<ConstitutionalRights> } }): SimulationState {
+  const judicialReview = state.constitution.countries[proposal.countryId]?.judicialReview ?? { timing: 'unavailable' as const, effect: 'unavailable' as const };
+  const pending: PendingAmendment = { instrumentId: proposal.id, countryId: proposal.countryId, applyOn: proposal.effectiveDate, payload: proposal.payload, judicialReview: { timing: judicialReview.timing, effect: judicialReview.effect } };
+  return { ...state, constitution: { ...state.constitution, pendingAmendments: [...state.constitution.pendingAmendments, pending] } };
+}
+
+/** Apply amendments whose effective date has arrived, exactly once, and drop them from the queue. */
+export function applyDueAmendments(state: SimulationState): SimulationState {
+  const due = state.constitution.pendingAmendments.filter(amendment => amendment.applyOn <= state.date);
+  if (!due.length) return state;
+  let next = state;
+  for (const amendment of due) {
+    if (amendment.judicialReview.timing === 'before_promulgation' || amendment.judicialReview.timing === 'both') {
+      // A constitutional court must exist and may annul; without a court the amendment cannot be promulgated.
+      if (state.constitution.countries[amendment.countryId]?.judicialReview.courtExists !== 'exists') continue;
+    }
+    next = applyConstitutionalAmendment(next, { id: amendment.instrumentId, countryId: amendment.countryId, payload: amendment.payload }).next;
+  }
+  return { ...next, constitution: { ...next.constitution, pendingAmendments: next.constitution.pendingAmendments.filter(amendment => amendment.applyOn > state.date) } };
 }
 
 /** Monthly pass: expire the emergency justification once its crises are no longer active. */
@@ -115,4 +139,6 @@ export function applyConstitutionalAmendment(state: SimulationState, proposal: {
 
 export const constitutionVersion = () => CONSTITUTION_VERSION;
 
-export const registerConstitutionTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'constitution.monthly', cadence: 'monthly', priority: 460, run: runEmergencyMonth });
+export const runConstitutionMonth = (state: SimulationState) => runEmergencyMonth(applyDueAmendments(state));
+
+export const registerConstitutionTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'constitution.monthly', cadence: 'monthly', priority: 460, run: runConstitutionMonth });

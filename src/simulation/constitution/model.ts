@@ -138,10 +138,20 @@ export interface ConstitutionStateEntry {
   bindingEvents: ConstitutionalBindingEvent[];
 }
 
+export interface PendingAmendment {
+  instrumentId: string;
+  countryId: string;
+  applyOn: string;
+  payload: { materialKeysToProtect?: string[]; materialKeysToUnprotect?: string[]; rightChanges?: Partial<ConstitutionalRights> };
+  judicialReview: { timing: JudicialTiming; effect: JudicialEffect };
+}
+
 export interface ConstitutionState {
   version: typeof CONSTITUTION_VERSION;
   initializedOn?: string;
   countries: Record<string, ConstitutionStateEntry>;
+  /** Amendments adopted but not yet effective; applied at their effective date by the monthly task. */
+  pendingAmendments: PendingAmendment[];
 }
 
 const unavailableRights = (): ConstitutionalRights => ({
@@ -151,7 +161,7 @@ const unavailableRights = (): ConstitutionalRights => ({
   health: 'unavailable', education: 'unavailable', socialProtection: 'unavailable',
 });
 
-export const emptyConstitution = (): ConstitutionState => ({ version: CONSTITUTION_VERSION, countries: {} });
+export const emptyConstitution = (): ConstitutionState => ({ version: CONSTITUTION_VERSION, countries: {}, pendingAmendments: [] });
 
 const headOfStateFromRegistry = (institution: NationalInstitutions | undefined): HeadOfStateConstitution => {
   switch (institution?.executiveSystem) {
@@ -221,5 +231,5 @@ export function initializeConstitution(state: SimulationState, countryIds?: read
       bindingEvents: [],
     };
   }
-  return { ...state, constitution: { version: CONSTITUTION_VERSION, initializedOn: state.date, countries } };
+  return { ...state, constitution: { version: CONSTITUTION_VERSION, initializedOn: state.date, countries, pendingAmendments: [] } };
 }

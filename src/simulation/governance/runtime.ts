@@ -16,7 +16,7 @@ import { analyzeProposal } from './analysis';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type PublicSupportEstimate } from './model';
-import { rejectProtectedModification, applyConstitutionalAmendment } from '../constitution/runtime';
+import { rejectProtectedModification, applyConstitutionalAmendment, scheduleConstitutionalAmendment } from '../constitution/runtime';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
 const proposalId = (sequence: number) => `proposal.${sequence.toString().padStart(8, '0')}`;
@@ -466,8 +466,8 @@ function proposalEnactFor(state: SimulationState, proposal: PoliticalProposal): 
       return { next: scheduleFiscalReform(state, reformInput), fiscalReformSequence, reformFingerprint };
     }
     case 'constitutional_amendment': {
-      const applied = applyConstitutionalAmendment(state, proposal);
-      return { next: applied.next, protectedMaterialKeys: applied.protectedMaterialKeys, unprotectedMaterialKeys: applied.unprotectedMaterialKeys };
+      const next = scheduleConstitutionalAmendment(state, { id: proposal.id, countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, payload: proposal.payload });
+      return { next, protectedMaterialKeys: proposal.payload.materialKeysToProtect ?? [], unprotectedMaterialKeys: proposal.payload.materialKeysToUnprotect ?? [] };
     }
   }
 }
