@@ -15,7 +15,7 @@ export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal } from './analysis';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type PublicSupportEstimate } from './model';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type PublicSupportEstimate } from './model';
 import { rejectProtectedModification, applyConstitutionalAmendment } from '../constitution/runtime';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
@@ -452,7 +452,7 @@ function proposalSubmitCapabilities(proposal: PoliticalProposal): AuthorityCapab
 function proposalEffectsFor(proposal: PoliticalProposal, enactment: { fiscalReformSequence?: number; reformFingerprint?: string; protectedMaterialKeys?: string[]; unprotectedMaterialKeys?: string[] }): ProposalEffect[] {
   switch (proposal.kind) {
     case 'fiscal_reform': return [{ category: 'fiscal_reform', fiscalReformSequence: enactment.fiscalReformSequence!, reformFingerprint: enactment.reformFingerprint! }];
-    case 'constitutional_amendment': return [{ category: 'constitutional_amendment', disposition: proposal.payload.disposition, protectedMaterialKeys: enactment.protectedMaterialKeys ?? [], unprotectedMaterialKeys: enactment.unprotectedMaterialKeys ?? [] }];
+    case 'constitutional_amendment': return [{ category: 'constitutional_amendment', disposition: proposal.constitutionalDisposition ?? 'secondary', protectedMaterialKeys: enactment.protectedMaterialKeys ?? [], unprotectedMaterialKeys: enactment.unprotectedMaterialKeys ?? [] }];
   }
 }
 
@@ -476,9 +476,11 @@ function proposalEnactFor(state: SimulationState, proposal: PoliticalProposal): 
 export function createConstitutionalAmendmentProposal(state: SimulationState, input: { proposerPersonId: string; countryId: string; effectiveDate: string; payload: ConstitutionalAmendmentPayload }): SimulationState {
   const proposer = requirePerson(state, input.proposerPersonId); requireCountry(state, input.countryId);
   if (proposer.countryId !== input.countryId) throw new Error('Proposal Country does not match proposer scope.');
-  if (!input.payload.disposition || !['principal', 'secondary'].includes(input.payload.disposition)) throw new Error('Invalid constitutional disposition.');
+  // Automatic principal/secondary classification: a rights or structural change is principal; a
+  // material-key protection/removal is secondary. The disposition is derived, never freely chosen.
+  const disposition: ConstitutionalDisposition = input.payload.rightChanges ? 'principal' : 'secondary';
   const id = proposalId(state.governance.nextProposalSequence);
-  const proposal: PoliticalProposal = { id, countryId: input.countryId, proposerPersonId: proposer.id, createdOn: state.date, kind: 'constitutional_amendment', instrumentClass: 'constitutional_amendment', constitutionalDisposition: input.payload.disposition, payload: structuredClone(input.payload), status: 'draft', effectiveDate: input.effectiveDate, effects: [] };
+  const proposal: PoliticalProposal = { id, countryId: input.countryId, proposerPersonId: proposer.id, createdOn: state.date, kind: 'constitutional_amendment', instrumentClass: 'constitutional_amendment', constitutionalDisposition: disposition, payload: structuredClone(input.payload), status: 'draft', effectiveDate: input.effectiveDate, effects: [] };
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [id]: proposal }, proposalOrder: [...state.governance.proposalOrder, id], nextProposalSequence: state.governance.nextProposalSequence + 1 });
 }
 
@@ -513,7 +515,7 @@ export function submitProposalForActor(state: SimulationState, proposalIdValue: 
   if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposal\'s proposer may submit this draft.');
   if (proposalSubmitCapabilities(proposal).some(capability => !hasCapability(proposal, actor, capability))) throw new Error('Actor lacks authority to submit this reform.');
   if (proposal.kind === 'fiscal_reform') validatePayload(state, proposal.countryId, proposal.effectiveDate, proposal.payload);
-  const frozen = structuredClone(proposal); frozen.status = 'submitted'; frozen.submittedOn = state.date; frozen.submittedPayloadFingerprint = governanceFingerprint({ effectiveDate: frozen.effectiveDate, payload: frozen.payload });
+  const frozen = structuredClone(proposal); frozen.status = 'submitted'; frozen.submittedOn = state.date; frozen.submittedPayloadFingerprint = governanceFingerprint({ effectiveDate: frozen.effectiveDate, payload: frozen.payload, instrumentClass: frozen.instrumentClass, constitutionalDisposition: frozen.constitutionalDisposition });
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: frozen } });
 }
 
@@ -549,15 +551,20 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   const actor = requirePerson(state, actorPersonId);
   if (!hasCapability(proposal, actor, 'vote_legislation')) throw new Error('Actor lacks authority to resolve this legislative vote.');
   const analysis = analyzeProposal(state, proposal), publicEstimate = estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate = estimateParliamentarySupport(state, proposal, registry, profiles, analysis), expired = state.date > proposal.effectiveDate;
-  const outcome = expired || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected', reason = expired ? 'effective_date_expired' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined;
+  const parliamentPower = state.constitution.countries[proposal.countryId]?.parliament.power;
+  const legislativePathBlocked = proposal.instrumentClass !== 'administrative_action' && ['none', 'consultative', 'weak_legislative'].includes(parliamentPower ?? '');
+  const outcome = expired || legislativePathBlocked || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected', reason = expired ? 'effective_date_expired' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined;
   const protectedViolation = outcome === 'adopted' && proposal.kind === 'fiscal_reform' ? rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload) : undefined;
-  let amendmentReason: 'constitutional_threshold' | 'referendum_failed' | undefined;
+  let amendmentReason: 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | undefined;
   if (proposal.kind === 'constitutional_amendment' && outcome === 'adopted') {
     const amendment = state.constitution.countries[proposal.countryId]?.amendment;
-    if (amendment?.parliamentaryThresholdBps !== undefined && parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 10000 < amendment.parliamentaryThresholdBps * parliamentaryEstimate.totalSeats) amendmentReason = 'constitutional_threshold';
-    if (!amendmentReason && amendment) {
-      const referendumRequired = amendment.referendum === 'always' || (amendment.referendum === 'principal_only' && proposal.payload.disposition === 'principal');
-      if (referendumRequired && publicEstimate.supportBps <= publicEstimate.opposeBps) amendmentReason = 'referendum_failed';
+    if (!amendment || amendment.parliamentaryThresholdBps === undefined || amendment.referendum === 'unavailable') amendmentReason = 'constitutional_procedure_unavailable';
+    else {
+      if (parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 10000 < amendment.parliamentaryThresholdBps * parliamentaryEstimate.totalSeats) amendmentReason = 'constitutional_threshold';
+      if (!amendmentReason) {
+        const referendumRequired = amendment.referendum === 'always' || (amendment.referendum === 'principal_only' && proposal.constitutionalDisposition === 'principal');
+        if (referendumRequired && publicEstimate.supportBps <= publicEstimate.opposeBps) amendmentReason = 'referendum_failed';
+      }
     }
   }
   const blocked = Boolean(protectedViolation || amendmentReason);

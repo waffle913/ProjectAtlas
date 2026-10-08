@@ -16,6 +16,15 @@ export type SuffrageMode = 'universal' | 'restricted' | 'unavailable';
 export type ParliamentarySystem = 'majoritarian' | 'proportional' | 'mixed' | 'unavailable';
 export type ReferendumRule = 'never' | 'always' | 'principal_only' | 'unavailable';
 export type ConstitutionalDispositionKind = 'principal' | 'secondary';
+
+/** Canonical registry of the material keys a constitutional secondary disposition may protect.
+ *  An amendment must reference keys from this registry; an unknown key is rejected, never invented. */
+export const MATERIAL_KEYS = Object.freeze([
+  'fiscal.personal', 'fiscal.consumption', 'fiscal.employee', 'fiscal.employer', 'fiscal.corporate',
+  'fiscal.annualBudget.health', 'fiscal.annualBudget.education', 'fiscal.annualBudget.pensions',
+  'fiscal.annualBudget.incomeSupport', 'fiscal.annualBudget.infrastructure', 'fiscal.annualBudget.administration', 'fiscal.annualBudget.defense',
+] as const);
+export type MaterialKey = typeof MATERIAL_KEYS[number];
 export type TerritorialOrganization = 'unitary' | 'federal' | 'unavailable';
 export type RegionalAutonomy = 'none' | 'autonomous_region_elected_leader' | 'unavailable';
 export type JudicialCourt = 'exists' | 'none' | 'unavailable';

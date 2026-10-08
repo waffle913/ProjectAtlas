@@ -133,7 +133,6 @@ export interface FiscalReformEnactment {
 /** Payload of a constitutional amendment: it may protect/unprotect canonical material keys and
  *  change the constitution's rights record. It never applies an arbitrary effect itself. */
 export interface ConstitutionalAmendmentPayload {
-  disposition: ConstitutionalDisposition;
   materialKeysToProtect?: string[];
   materialKeysToUnprotect?: string[];
   rightChanges?: Partial<ConstitutionalRights>;
@@ -178,7 +177,7 @@ export const PROPOSAL_CONTRACTS: { [K in ProposalKind]: ProposalContract<K> } = 
       tradeoffs: 'A tax change redistributes disposable income and public revenue; a budget reallocation shifts spending between public services and defence.',
     },
     defaultInstrumentClass: 'law',
-    allowedInstrumentClasses: ['law', 'constitutional_amendment'],
+    allowedInstrumentClasses: ['law'],
   },
   constitutional_amendment: {
     kind: 'constitutional_amendment',
@@ -267,7 +266,7 @@ export interface PartyChamberEvaluation extends PartyProposalEvaluation { seats:
 export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
 export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: PartyChamberEvaluation[] }
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1'; seatApportionment?: 'identity_hash_v1' }
-export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' }
+export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' }
 export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
 export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
   id: string;

@@ -204,14 +204,14 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
       ? ((!proposal.payload.policy && !proposal.payload.annualBudget) || (proposal.payload.policy && safe(() => validatePolicy(proposal.payload.policy!, proposal.countryId, proposal.effectiveDate))) || (proposal.payload.annualBudget && safe(() => validateBudget(proposal.payload.annualBudget!))))
       : false;
     const amendmentPayloadInvalid = proposal.kind === 'constitutional_amendment'
-      ? !['principal', 'secondary'].includes(proposal.payload.disposition) || (!proposal.payload.materialKeysToProtect?.length && !proposal.payload.materialKeysToUnprotect?.length && !proposal.payload.rightChanges)
+      ? !proposal.constitutionalDisposition || !['principal', 'secondary'].includes(proposal.constitutionalDisposition) || (!proposal.payload.materialKeysToProtect?.length && !proposal.payload.materialKeysToUnprotect?.length && !proposal.payload.rightChanges)
       : false;
     if (fiscalPayloadInvalid || amendmentPayloadInvalid) errors.push(`Invalid payload for ${id}.`);
     if (proposal.status === 'draft' && (proposal.submittedOn || proposal.submittedPayloadFingerprint || proposal.resolvedOn || proposal.voteResult)) errors.push(`Draft ${id} contains lifecycle residue.`);
     if (proposal.status === 'submitted' && (proposal.resolvedOn || proposal.voteResult)) errors.push(`Submitted proposal ${id} contains resolution residue.`);
     if (proposal.status === 'withdrawn' && proposal.voteResult) errors.push(`Withdrawn proposal ${id} contains a vote result.`);
     if (['submitted', 'enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.submittedOn || !dateValid(proposal.submittedOn) || proposal.submittedOn < proposal.createdOn || proposal.submittedOn > state.date)) errors.push(`Invalid submission lifecycle for ${id}.`);
-    if (proposal.submittedOn && proposal.submittedPayloadFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload })) errors.push(`Submitted proposal ${id} payload was modified.`);
+    if (proposal.submittedOn && proposal.submittedPayloadFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload, instrumentClass: proposal.instrumentClass, constitutionalDisposition: proposal.constitutionalDisposition })) errors.push(`Submitted proposal ${id} payload was modified.`);
     if (['enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.resolvedOn || !proposal.voteResult || proposal.voteResult.outcome !== (proposal.status === 'enacted' ? 'adopted' : proposal.status))) errors.push(`Invalid resolution lifecycle for ${id}.`);
     if (proposal.resolvedOn && (!dateValid(proposal.resolvedOn) || proposal.resolvedOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.resolvedOn > state.date)) errors.push(`Invalid resolution date for ${id}.`);
     if (!(PROPOSAL_KINDS as readonly string[]).includes(proposal.kind)) errors.push(`Unknown proposal kind for ${id}.`);

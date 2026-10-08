@@ -1,6 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
-import { CONSTITUTION_VERSION, type ConstitutionalDispositionKind, type ConstitutionalRights, type EmergencyConstitution } from './model';
+import { CONSTITUTION_VERSION, MATERIAL_KEYS, type ConstitutionalDispositionKind, type ConstitutionalRights, type EmergencyConstitution } from './model';
 
 /** A person holding the executive office of the Country (head of government or head of state). */
 const isExecutive = (state: SimulationState, personId: string, countryId: string): boolean => {
@@ -101,6 +101,8 @@ export function removeConstitutionalBinding(state: SimulationState, countryId: s
 export function applyConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; payload: { materialKeysToProtect?: string[]; materialKeysToUnprotect?: string[]; rightChanges?: Partial<ConstitutionalRights> } }): { next: SimulationState; protectedMaterialKeys: string[]; unprotectedMaterialKeys: string[] } {
   const protect = proposal.payload.materialKeysToProtect ?? [];
   const unprotect = proposal.payload.materialKeysToUnprotect ?? [];
+  const unknown = [...protect, ...unprotect].filter(key => !(MATERIAL_KEYS as readonly string[]).includes(key));
+  if (unknown.length) throw new Error(`Unknown material keys cannot be constitutionally protected: ${unknown.join(', ')}.`);
   let next = state;
   if (protect.length) next = registerConstitutionalBinding(next, proposal.countryId, protect, proposal.id);
   if (unprotect.length) next = removeConstitutionalBinding(next, proposal.countryId, unprotect, proposal.id);
