@@ -3,6 +3,7 @@ import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { restoreSimulationState } from '../save';
 import { createPoliticalPerson, assignPoliticalOffice, setControlledPerson, createConstitutionalAmendmentProposal, replaceDraftProposal } from '../governance/runtime';
+import { politicalRegistry } from '../politics/registry';
 import type { SimulationState } from '../../types';
 
 let initial: SimulationState;
@@ -62,5 +63,38 @@ describe('0.23 migrations and discriminated drafting', () => {
     expect(pending.status).toBe('blocked');
     expect((pending.payload as { rightsChanges?: unknown }).rightsChanges).toEqual({ strike: 'guaranteed' });
     expect((pending as { decision?: unknown }).decision).toBeUndefined();
+  });
+
+  it('reconciles a legacy mono-chamber elections entry with the real registry chamber id', () => {
+    const countryId = worldCountryIds[0];
+    const institution = politicalRegistry.institutions[politicalRegistry.countries[countryId]?.institutionId];
+    const realChamberId = institution?.chambers[0]?.id;
+    if (!realChamberId) return;
+    const current = initial.elections.countries[countryId];
+    const legacy = structuredClone(initial) as unknown as { elections: { countries: Record<string, Record<string, unknown>> } };
+    const source = current.chambers[realChamberId] ?? Object.values(current.chambers)[0];
+    legacy.elections.countries[countryId] = { countryId, seatsByParty: source.seatsByParty, totalSeats: source.totalSeats, independentOtherSeats: source.independentOtherSeats, lastElectionDate: source.lastElectionDate, nextElectionDate: source.nextElectionDate, government: current.government, parties: current.parties };
+    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
+    expect(restored.elections.countries[countryId].chambers[realChamberId]).toBeDefined();
+    expect(restored.elections.countries[countryId].chambers[`chamber.${countryId}`]).toBeUndefined();
+  });
+
+  it('converts a legacy full appliedPrior snapshot into a limited appliedInverse', () => {
+    const countryId = worldCountryIds[0];
+    const legacy = structuredClone(initial) as unknown as { constitution: { pendingAmendments: Array<Record<string, unknown>> } };
+    const preRights = { ...initial.constitution.countries[countryId].rights, strike: 'guaranteed' as const, union: 'not_guaranteed' as const };
+    legacy.constitution.pendingAmendments = [{
+      instrumentId: 'proposal.legacy-applied', countryId, applyOn: '2026-01-01',
+      payload: { materialKeysToProtect: ['fiscal.corporate'], rightsChanges: { strike: 'not_guaranteed' } },
+      judicialReview: { timing: 'after_promulgation', effect: 'annul' },
+      status: 'promulgated', appliedOn: '2026-01-01',
+      appliedPrior: { protectedMaterialKeys: [], rights: preRights, parliament: {}, headOfState: {}, government: {}, election: {}, judicialReview: {}, territory: {}, amendment: {} },
+    }];
+    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
+    const pending = restored.constitution.pendingAmendments[0] as unknown as Record<string, unknown>;
+    expect(pending.appliedPrior).toBeUndefined();
+    const inverse = pending.appliedInverse as Record<string, unknown>;
+    expect(inverse.rights).toEqual({ strike: 'guaranteed' });
+    expect(inverse.parliament).toBeUndefined();
   });
 });

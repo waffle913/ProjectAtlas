@@ -32,6 +32,7 @@ export const electionsInvariant: SimulationInvariant = {
       for (const coalitionPartyId of entry.government.coalitionPartyIds) {
         if (!entry.parties[coalitionPartyId]) errors.push(`Elections ${countryId} government references unknown party ${coalitionPartyId}.`);
       }
+      if (entry.directElection !== undefined && (!validDate(entry.directElection.on) || entry.directElection.on > state.date || !entry.directElection.winnerPartyId.trim() || !entry.directElection.actorPersonId.trim() || !entry.parties[entry.directElection.winnerPartyId])) errors.push(`Elections ${countryId} has an invalid direct-election record.`);
     }
     return errors;
   },

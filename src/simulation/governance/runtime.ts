@@ -12,11 +12,12 @@ import { namePoolForCountry } from './namePools';
 import entityRegistry from '../../data/entity-registry.json';
 import { capabilitiesForReconciledAuthority, executiveAuthorityBasis } from './officeEvidence';
 export { capabilitiesForReconciledAuthority } from './officeEvidence';
-import { analyzeProposal } from './analysis';
+import { analyzeProposal, derivePartyGoalProfile, GOVERNANCE_VOTE_THRESHOLDS, materialContextForProposal } from './analysis';
+import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest } from './institutionalInterest';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type ProposalKind, type ProposalPayload, type ProposalPayloadByKind, type PublicSupportEstimate } from './model';
-import { rejectProtectedModification, applyConstitutionalAmendment, scheduleConstitutionalAmendment } from '../constitution/runtime';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type InstitutionalPowerTransfer, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PartyProposalEvaluation, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type ProposalKind, type ProposalPayload, type ProposalPayloadByKind, type PublicSupportEstimate } from './model';
+import { rejectProtectedModification, scheduleConstitutionalAmendment } from '../constitution/runtime';
 import { MATERIAL_KEYS } from '../constitution/model';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
@@ -484,10 +485,21 @@ function proposalEnactFor(state: SimulationState, proposal: PoliticalProposal): 
   }
 }
 
+/** Validate a constitutional amendment payload: material keys must be canonical and it must change
+ *  something. Shared by creation, draft replacement and submission so invalid payloads are rejected
+ *  at the earliest step, never only at replacement. */
+function validateConstitutionalAmendmentPayload(payload: ConstitutionalAmendmentPayload): void {
+  const unknown = [...(payload.materialKeysToProtect ?? []), ...(payload.materialKeysToUnprotect ?? [])].filter(key => !(MATERIAL_KEYS as readonly string[]).includes(key));
+  if (unknown.length) throw new Error(`Unknown material keys cannot be constitutionally protected: ${unknown.join(', ')}.`);
+  const changed = Boolean(payload.materialKeysToProtect?.length || payload.materialKeysToUnprotect?.length || payload.rightsChanges || payload.parliamentChanges || payload.executiveChanges || payload.electionChanges || payload.judicialChanges || payload.territoryChanges || payload.amendmentChanges);
+  if (!changed) throw new Error('A constitutional amendment payload must change something.');
+}
+
 /** Propose a constitutional amendment (principal or secondary disposition). Requires legislation authority. */
 export function createConstitutionalAmendmentProposal(state: SimulationState, input: { proposerPersonId: string; countryId: string; effectiveDate: string; payload: ConstitutionalAmendmentPayload }): SimulationState {
   const proposer = requirePerson(state, input.proposerPersonId); requireCountry(state, input.countryId);
   if (proposer.countryId !== input.countryId) throw new Error('Proposal Country does not match proposer scope.');
+  validateConstitutionalAmendmentPayload(input.payload);
   // Automatic principal/secondary classification: a rights or structural change is principal; a
   // material-key protection/removal is secondary. The disposition is derived, never freely chosen.
   const disposition: ConstitutionalDisposition = input.payload.rightsChanges || input.payload.parliamentChanges || input.payload.executiveChanges || input.payload.electionChanges || input.payload.judicialChanges || input.payload.territoryChanges || input.payload.amendmentChanges ? 'principal' : 'secondary';
@@ -513,11 +525,7 @@ export function replaceDraftProposal<K extends ProposalKind>(state: SimulationSt
   if (proposal.kind === 'fiscal_reform') {
     validatePayload(state, proposal.countryId, effectiveDate, payload as FiscalProposalPayload);
   } else if (proposal.kind === 'constitutional_amendment') {
-    const amendment = payload as ConstitutionalAmendmentPayload;
-    const unknown = [...(amendment.materialKeysToProtect ?? []), ...(amendment.materialKeysToUnprotect ?? [])].filter(key => !(MATERIAL_KEYS as readonly string[]).includes(key));
-    if (unknown.length) throw new Error(`Unknown material keys cannot be constitutionally protected: ${unknown.join(', ')}.`);
-    const changed = Boolean(amendment.materialKeysToProtect?.length || amendment.materialKeysToUnprotect?.length || amendment.rightsChanges || amendment.parliamentChanges || amendment.executiveChanges || amendment.electionChanges || amendment.judicialChanges || amendment.territoryChanges || amendment.amendmentChanges);
-    if (!changed) throw new Error('A constitutional amendment payload must change something.');
+    validateConstitutionalAmendmentPayload(payload as ConstitutionalAmendmentPayload);
   }
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, effectiveDate, payload: structuredClone(payload) } as PoliticalProposal } });
 }
@@ -536,6 +544,7 @@ export function submitProposalForActor(state: SimulationState, proposalIdValue: 
   if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposal\'s proposer may submit this draft.');
   if (proposalSubmitCapabilities(proposal).some(capability => !hasCapability(proposal, actor, capability))) throw new Error('Actor lacks authority to submit this reform.');
   if (proposal.kind === 'fiscal_reform') validatePayload(state, proposal.countryId, proposal.effectiveDate, proposal.payload);
+  if (proposal.kind === 'constitutional_amendment') validateConstitutionalAmendmentPayload(proposal.payload);
   const frozen = structuredClone(proposal); frozen.status = 'submitted'; frozen.submittedOn = state.date; frozen.submittedPayloadFingerprint = governanceFingerprint({ effectiveDate: frozen.effectiveDate, payload: frozen.payload });
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: frozen } });
 }
@@ -550,14 +559,14 @@ export function submitProposal(state: SimulationState, proposalIdValue: string):
  *  only the proposal's original proposer may withdraw it, and no capability is re-checked.
  *  The player wrapper additionally requires the controlled person. */
 export function withdrawProposalForActor(state: SimulationState, proposalIdValue: string, actorPersonId: string): SimulationState {
-  const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || !['draft', 'submitted'].includes(proposal.status)) throw new Error('Proposal cannot be withdrawn.');
+  const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || !['draft', 'submitted', 'consulted'].includes(proposal.status)) throw new Error('Proposal cannot be withdrawn.');
   const actor = requirePerson(state, actorPersonId);
   if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposer can withdraw this proposal.');
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, status: 'withdrawn', resolvedOn: state.date } } });
 }
 
 export function withdrawProposal(state: SimulationState, proposalIdValue: string): SimulationState {
-  const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || !['draft', 'submitted'].includes(proposal.status)) throw new Error('Proposal cannot be withdrawn.');
+  const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || !['draft', 'submitted', 'consulted'].includes(proposal.status)) throw new Error('Proposal cannot be withdrawn.');
   requireControlled(state, proposal.proposerPersonId);
   return withdrawProposalForActor(state, proposalIdValue, proposal.proposerPersonId);
 }
@@ -574,15 +583,16 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   const analysis = analyzeProposal(state, proposal), publicEstimate = estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate = estimateParliamentarySupport(state, proposal, registry, profiles, analysis), expired = state.date > proposal.effectiveDate;
   const parliamentPower = state.constitution.countries[proposal.countryId]?.parliament.power;
   const legislativeInstrument = proposal.instrumentClass !== 'administrative_action';
-  let powerBlockedReason: 'parliament_has_no_legislative_power' | 'parliamentary_opinion_non_binding' | undefined;
-  if (legislativeInstrument) {
-    if (parliamentPower === 'none') powerBlockedReason = 'parliament_has_no_legislative_power';
-    else if (parliamentPower === 'consultative') powerBlockedReason = 'parliamentary_opinion_non_binding';
+  let next = state;
+  if (legislativeInstrument && parliamentPower === 'consultative' && !expired) {
+    // Non-binding parliamentary opinion: recorded, then the executive decides separately.
+    const consulted = { ...proposal, status: 'consulted' as const, analysis, evaluationVersion: 'situational-plurality-0.15-v2' as const, publicEstimate, parliamentaryEstimate } as PoliticalProposal;
+    return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: consulted } });
   }
   let outcome: LegislativeVoteResult['outcome'];
   let reason: LegislativeVoteResult['reason'];
   if (expired) { outcome = 'unavailable'; reason = 'effective_date_expired'; }
-  else if (powerBlockedReason) { outcome = 'unavailable'; reason = powerBlockedReason; }
+  else if (legislativeInstrument && parliamentPower === 'none') { outcome = 'adopted'; reason = 'no_parliamentary_vote_required'; }
   else if (parliamentaryEstimate.coverage !== 'complete') { outcome = 'unavailable'; reason = 'institutional_data_unavailable'; }
   else {
     // weak_legislative still votes by ordinary majority; a rejection is provisional and may later be
@@ -593,18 +603,68 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   const protectedViolation = outcome === 'adopted' && proposal.kind === 'fiscal_reform' ? rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload) : undefined;
   const amendmentReason = outcome === 'adopted' && proposal.kind === 'constitutional_amendment' ? amendmentProcedureReason(state, proposal, parliamentaryEstimate, publicEstimate) : undefined;
   const blocked = Boolean(protectedViolation || amendmentReason);
-  const effectiveParliamentaryEstimate = blocked ? { ...parliamentaryEstimate, chambers: parliamentaryEstimate.chambers.map(chamber => ({ ...chamber, adopted: false as const })) } : parliamentaryEstimate;
+  // The parliamentary estimate records the chamber opinion as evaluated — never rewritten to look
+  // like a rejection when the block came from the constitutional procedure (referendum/threshold) or
+  // a protected material key. The rejection reason is what distinguishes those outcomes.
   const effectiveOutcome = blocked ? 'rejected' : outcome;
   const effectiveReason = amendmentReason ?? (protectedViolation ? 'constitutionally_protected' as const : reason);
-  const voteResult: LegislativeVoteResult = { ...effectiveParliamentaryEstimate, outcome: effectiveOutcome, resolvedOn: state.date, reason: effectiveReason };
-  let next = state, scheduledFiscalReformSequence: number | undefined, enactmentReference: PoliticalProposal['enactmentReference'], protectedMaterialKeys: string[] | undefined, unprotectedMaterialKeys: string[] | undefined;
+  const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome: effectiveOutcome, resolvedOn: state.date, reason: effectiveReason };
+  let scheduledFiscalReformSequence: number | undefined, enactmentReference: PoliticalProposal['enactmentReference'], protectedMaterialKeys: string[] | undefined, unprotectedMaterialKeys: string[] | undefined;
   if (effectiveOutcome === 'adopted') {
     const enacted = proposalEnactFor(state, proposal); next = enacted.next; scheduledFiscalReformSequence = enacted.fiscalReformSequence; protectedMaterialKeys = enacted.protectedMaterialKeys; unprotectedMaterialKeys = enacted.unprotectedMaterialKeys;
     enactmentReference = enacted.fiscalReformSequence !== undefined && enacted.reformFingerprint !== undefined ? { fiscalReformSequence: enacted.fiscalReformSequence, reformFingerprint: enacted.reformFingerprint } : undefined;
   }
-  const resolved = { ...proposal, status: effectiveOutcome === 'adopted' ? 'enacted' as const : effectiveOutcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate: effectiveParliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: effectiveOutcome === 'adopted' ? proposalEffectsFor(proposal, { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: enactmentReference?.reformFingerprint, protectedMaterialKeys, unprotectedMaterialKeys }) : [] } as PoliticalProposal;
+  const resolved = { ...proposal, status: effectiveOutcome === 'adopted' ? 'enacted' as const : effectiveOutcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: effectiveOutcome === 'adopted' ? proposalEffectsFor(proposal, { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: enactmentReference?.reformFingerprint, protectedMaterialKeys, unprotectedMaterialKeys }) : [] } as PoliticalProposal;
   next = { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
   return addProposalResultBriefing(next, resolved);
+}
+
+/** Hold a real constitutional referendum. Only amendments the constitution requires a referendum for
+ *  may be put to one, and the recorded outcome (adopted/rejected) is what the amendment procedure
+ *  then checks — never a silent re-derivation from the public estimate. */
+export function holdReferendum(state: SimulationState, proposalIdValue: string, actorPersonId: string): SimulationState {
+  const proposal = state.governance.proposals[proposalIdValue];
+  if (!proposal || !['submitted', 'consulted'].includes(proposal.status)) throw new Error('Only a submitted or consulted proposal may be put to a referendum.');
+  if (proposal.kind !== 'constitutional_amendment') throw new Error('Only a constitutional amendment may be put to a referendum.');
+  if (!isExecutiveActor(state, actorPersonId, proposal.countryId)) throw new Error('Only the executive head may call a referendum.');
+  const amendment = state.constitution.countries[proposal.countryId]?.amendment;
+  const required = amendment?.referendum === 'always' || (amendment?.referendum === 'principal_only' && proposal.constitutionalDisposition === 'principal');
+  if (!required) throw new Error('This amendment does not require a referendum under the constitution.');
+  const publicEstimate = estimatePublicSupport(state, proposal, proposal.analysis);
+  const referendumResult = { heldOn: state.date, adopted: publicEstimate.supportBps > publicEstimate.opposeBps, supportBps: publicEstimate.supportBps, opposeBps: publicEstimate.opposeBps };
+  return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, publicEstimate, referendumResult } } });
+}
+
+/** Decide a consulted (consultative-parliament) proposal: the parliamentary opinion is non-binding,
+ *  so the executive enacts or rejects it explicitly. */
+export function decideConsultativeProposal(state: SimulationState, proposalIdValue: string, actorPersonId: string, decision: 'enact' | 'reject'): SimulationState {
+  const proposal = state.governance.proposals[proposalIdValue];
+  if (!proposal || proposal.status !== 'consulted') throw new Error('Only a consulted proposal may receive an executive decision.');
+  const parliamentPower = state.constitution.countries[proposal.countryId]?.parliament.power;
+  if (parliamentPower !== 'consultative') throw new Error('Only a consultative parliament opinion requires an executive decision.');
+  if (!isExecutiveActor(state, actorPersonId, proposal.countryId)) throw new Error('Only the executive head may decide a consulted proposal.');
+  if (state.date > proposal.effectiveDate) throw new Error('The proposal has expired and cannot be decided.');
+  const parliamentaryEstimate = proposal.parliamentaryEstimate ?? estimateParliamentarySupport(state, proposal, politicalRegistry, {}, proposal.analysis);
+  if (decision === 'reject') {
+    const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome: 'rejected', resolvedOn: state.date, reason: 'executive_decision' };
+    const resolved = { ...proposal, status: 'rejected' as const, resolvedOn: state.date, voteResult } as PoliticalProposal;
+    return addProposalResultBriefing(cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: resolved } }), resolved);
+  }
+  if (proposal.kind === 'fiscal_reform') {
+    const protectedViolation = rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload);
+    if (protectedViolation) throw new Error(protectedViolation);
+  }
+  if (proposal.kind === 'constitutional_amendment') {
+    const publicEstimate = proposal.publicEstimate ?? estimatePublicSupport(state, proposal, proposal.analysis);
+    const amendmentReason = amendmentProcedureReason(state, proposal, parliamentaryEstimate, publicEstimate);
+    if (amendmentReason) throw new Error(`The constitutional amendment procedure blocks the decision: ${amendmentReason}.`);
+  }
+  const enacted = proposalEnactFor(state, proposal);
+  const scheduledFiscalReformSequence = enacted.fiscalReformSequence;
+  const enactmentReference = enacted.fiscalReformSequence !== undefined && enacted.reformFingerprint !== undefined ? { fiscalReformSequence: enacted.fiscalReformSequence, reformFingerprint: enacted.reformFingerprint } : undefined;
+  const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome: 'adopted', resolvedOn: state.date, reason: 'executive_decision' };
+  const resolved = { ...proposal, status: 'enacted' as const, resolvedOn: state.date, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: proposalEffectsFor(proposal, { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: enactmentReference?.reformFingerprint, protectedMaterialKeys: enacted.protectedMaterialKeys, unprotectedMaterialKeys: enacted.unprotectedMaterialKeys }) } as PoliticalProposal;
+  return addProposalResultBriefing(cloneGovernance(enacted.next, { ...enacted.next.governance, proposals: { ...enacted.next.governance.proposals, [proposal.id]: resolved } }), resolved);
 }
 
 /** Constitutional amendment procedure (threshold + referendum) shared by the normal vote and the
@@ -612,9 +672,14 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
 function amendmentProcedureReason(state: SimulationState, proposal: PoliticalProposal, parliamentaryEstimate: ParliamentarySupportEstimate, publicEstimate: PublicSupportEstimate): 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | undefined {
   const amendment = state.constitution.countries[proposal.countryId]?.amendment;
   if (!amendment || amendment.parliamentaryThresholdBps === undefined || amendment.referendum === 'unavailable') return 'constitutional_procedure_unavailable';
-  if (parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 10000 < amendment.parliamentaryThresholdBps * parliamentaryEstimate.totalSeats) return 'constitutional_threshold';
+  // The supermajority threshold governs a binding parliamentary vote. A parliament with no
+  // legislative power (`none`) has no vote to fail it, and a consultative parliament's opinion is
+  // non-binding, so the threshold is not_applicable there; the referendum requirement still applies.
+  const parliamentPower = state.constitution.countries[proposal.countryId]?.parliament.power;
+  const bindingVote = parliamentPower !== undefined && !['none', 'consultative'].includes(parliamentPower);
+  if (bindingVote && parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 10000 < amendment.parliamentaryThresholdBps * parliamentaryEstimate.totalSeats) return 'constitutional_threshold';
   const referendumRequired = amendment.referendum === 'always' || (amendment.referendum === 'principal_only' && proposal.constitutionalDisposition === 'principal');
-  if (referendumRequired && publicEstimate.supportBps <= publicEstimate.opposeBps) return 'referendum_failed';
+  if (referendumRequired && (!proposal.referendumResult || !proposal.referendumResult.adopted)) return 'referendum_failed';
   return undefined;
 }
 
@@ -653,9 +718,11 @@ export function overrideParliamentaryRejection(state: SimulationState, proposalI
   return addProposalResultBriefing(next, resolved);
 }
 
-/** A real censure procedure: a legislator moves no-confidence, the current parliamentary seats decide
- *  deterministically, and an adopted motion removes the head of government (and, for a government
- *  censure, the cabinet). It only exists when the constitution provides it. */
+/** A real censure procedure: a legislator moves no-confidence, each party's stance is evaluated by
+ *  the same parliamentary/party behavior engine (material dissatisfaction plus institutional
+ *  self-interest), the current seats decide deterministically, and an adopted motion removes the head
+ *  of government (and, for a government censure, the cabinet). It only exists when the constitution
+ *  provides it. */
 export function censureGovernment(state: SimulationState, countryId: string, actorPersonId: string): SimulationState {
   const responsibility = state.constitution.countries[countryId]?.government.responsibility ?? 'unavailable';
   if (!['government_censurable', 'leader_censurable'].includes(responsibility)) throw new Error('This Country\'s constitution does not provide for censure.');
@@ -669,8 +736,28 @@ export function censureGovernment(state: SimulationState, countryId: string, act
     totalSeats += chamber.totalSeats;
     for (const [partyId, count] of Object.entries(chamber.seatsByParty)) seats[partyId] = (seats[partyId] ?? 0) + count;
   }
-  const confidenceSeats = entry.government.coalitionPartyIds.reduce((sum, partyId) => sum + (seats[partyId] ?? 0), 0);
-  if ((totalSeats - confidenceSeats) * 2 <= totalSeats) throw new Error('The censure motion fails without a parliamentary majority.');
+  const context = materialContextForProposal(state, { countryId } as PoliticalProposal);
+  const distress = context.fiscalDistress.valueBps ?? 0;
+  const unemployment = context.unemployment.valueBps ?? 0;
+  const serviceGap = context.publicServices.valueBps !== undefined ? 10_000 - context.publicServices.valueBps : 0;
+  const materialAgreementBps = Math.max(0, Math.min(10_000, Math.round(distress * 0.6 + unemployment * 0.2 + serviceGap * 0.2)));
+  const censureEffect: InstitutionalPowerTransfer = {
+    id: 'censure.confidence', lever: 'confidence_power', from: 'executive', to: 'none',
+    confidenceBps: 10_000, coverage: 'complete', source: 'censure_motion',
+    explanation: 'A successful censure removes the current executive.',
+  };
+  let yesSeats = 0, noSeats = 0, abstainSeats = 0;
+  for (const partyId of politicalRegistry.countries[countryId]?.partyIds ?? []) {
+    const material: Pick<PartyProposalEvaluation, 'agreementBps' | 'confidenceBps' | 'coverage' | 'positiveDrivers' | 'negativeDrivers' | 'tradeoffs'> = { agreementBps: materialAgreementBps, confidenceBps: 6_000, coverage: 'partial', positiveDrivers: [], negativeDrivers: [], tradeoffs: [] };
+    const interest = evaluatePartyInstitutionalInterest(state, countryId, partyId, politicalRegistry, [censureEffect], material);
+    const applied = applyPartyInstitutionalInterest(material, interest);
+    const partySeats = seats[partyId] ?? 0;
+    if (applied.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || applied.coverage === 'unavailable') { abstainSeats += partySeats; continue; }
+    if (applied.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps) yesSeats += partySeats;
+    else if (applied.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps) noSeats += partySeats;
+    else abstainSeats += partySeats;
+  }
+  if (yesSeats * 2 <= totalSeats) throw new Error('The censure motion fails without a parliamentary majority.');
   let next = state;
   const head = Object.values(next.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
   if (head) next = revokePoliticalOffice(next, head.id);

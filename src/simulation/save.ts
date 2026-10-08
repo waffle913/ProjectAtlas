@@ -26,6 +26,7 @@ import { emptyMultilateral, MULTILATERAL_VERSION } from './multilateral/model';
 import { initializeMultilateral } from './multilateral/runtime';
 import { initializeConstitution, emptyConstitution } from './constitution/model';
 import { initializeElections, emptyElections } from './elections/model';
+import { institutionalStakesFingerprint } from './governance/institutionalInterest';
 
 /** Idempotent intra-schema-19 backfill for saves written before pendingAmendments, per-chamber
  *  elections, cabinets, organization banEvents, episode-identity emergencies and the renamed
@@ -56,7 +57,7 @@ function backfillSchema19(state: SimulationState): SimulationState {
   const pendingAmendments = (state.constitution.pendingAmendments ?? []).map(amendment => {
     let updated = { ...amendment };
     let changed = false;
-    const payload = updated.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown };
+    const payload = updated.payload as unknown as { rightChanges?: unknown } & NonNullable<(typeof updated)['payload']>;
     if (payload.rightsChanges === undefined && payload.rightChanges !== undefined) {
       updated = { ...updated, payload: { ...updated.payload, rightsChanges: payload.rightChanges } as typeof updated.payload };
       changed = true;
@@ -79,6 +80,29 @@ function backfillSchema19(state: SimulationState): SimulationState {
       }
       changed = true;
     }
+    // Legacy full pre-application snapshots are converted to the limited inverse: only the fields
+    // this amendment's payload actually changed. A later annulment then restores exactly those,
+    // never a whole-constitution snapshot that could erase a later amendment.
+    const legacyPrior = (updated as unknown as { appliedPrior?: Record<string, unknown>; appliedInverse?: unknown }).appliedPrior;
+    if (legacyPrior !== undefined && (updated as unknown as { appliedInverse?: unknown }).appliedInverse === undefined) {
+      const pick = <T extends object>(source: unknown, changed: unknown): Partial<T> => {
+        const sourceRecord = (source ?? {}) as Record<string, unknown>;
+        const changedRecord = (changed ?? {}) as Record<string, unknown>;
+        return Object.fromEntries(Object.keys(changedRecord).filter(key => key in sourceRecord).map(key => [key, sourceRecord[key]])) as Partial<T>;
+      };
+      const inverse: Record<string, unknown> = {};
+      if (payload.rightsChanges && Object.keys(payload.rightsChanges).length) inverse.rights = pick(legacyPrior.rights, payload.rightsChanges);
+      if (payload.parliamentChanges && Object.keys(payload.parliamentChanges).length) inverse.parliament = pick(legacyPrior.parliament, payload.parliamentChanges);
+      if (payload.executiveChanges?.headOfState && Object.keys(payload.executiveChanges.headOfState).length) inverse.headOfState = pick(legacyPrior.headOfState, payload.executiveChanges.headOfState);
+      if (payload.executiveChanges?.government && Object.keys(payload.executiveChanges.government).length) inverse.government = pick(legacyPrior.government, payload.executiveChanges.government);
+      if (payload.electionChanges && Object.keys(payload.electionChanges).length) inverse.election = pick(legacyPrior.election, payload.electionChanges);
+      if (payload.judicialChanges && Object.keys(payload.judicialChanges).length) inverse.judicialReview = pick(legacyPrior.judicialReview, payload.judicialChanges);
+      if (payload.territoryChanges) inverse.territory = pick(legacyPrior.territory, payload.territoryChanges);
+      if (payload.amendmentChanges && Object.keys(payload.amendmentChanges).length) inverse.amendment = pick(legacyPrior.amendment, payload.amendmentChanges);
+      const { appliedPrior: _legacyPrior, ...withoutLegacyPrior } = updated as unknown as { appliedPrior?: unknown } & typeof updated;
+      updated = { ...withoutLegacyPrior, appliedInverse: inverse };
+      changed = true;
+    }
     return changed ? updated : amendment;
   });
   if (constitutionChanged || state.constitution.pendingAmendments === undefined || pendingAmendments.some((amendment, index) => amendment !== state.constitution.pendingAmendments![index])) {
@@ -89,7 +113,8 @@ function backfillSchema19(state: SimulationState): SimulationState {
   for (const [countryId, entry] of Object.entries(state.elections.countries)) {
     const legacy = entry as unknown as { chambers?: unknown; seatsByParty?: Record<string, number>; totalSeats?: number; independentOtherSeats?: number; lastElectionDate?: string; nextElectionDate?: string };
     if (legacy.chambers === undefined && legacy.seatsByParty) {
-      const chamberId = `chamber.${countryId}`;
+      const institution = politicalRegistry.institutions[politicalRegistry.countries[countryId]?.institutionId];
+      const chamberId = institution?.chambers[0]?.id ?? `chamber.${countryId}`;
       electionsCountries[countryId] = { countryId, chambers: { [chamberId]: { chamberId, seatsByParty: legacy.seatsByParty, totalSeats: legacy.totalSeats ?? 0, independentOtherSeats: legacy.independentOtherSeats ?? 0, lastElectionDate: legacy.lastElectionDate, nextElectionDate: legacy.nextElectionDate } }, government: entry.government, parties: entry.parties };
       electionsChanged = true;
     } else electionsCountries[countryId] = entry;
@@ -98,8 +123,14 @@ function backfillSchema19(state: SimulationState): SimulationState {
   const organizations: Record<string, SimulationState['politics']['organizations'][string]> = {};
   let orgChanged = false;
   for (const [organizationId, organization] of Object.entries(state.politics.organizations)) {
-    if (organization.banEvents === undefined || organization.status === undefined || organization.members === undefined || organization.internalCurrents === undefined) {
-      organizations[organizationId] = { ...organization, status: organization.status ?? 'active', members: organization.members ?? {}, fundsUsd: organization.fundsUsd, internalCurrents: organization.internalCurrents ?? {}, banEvents: organization.banEvents ?? [] };
+    const needsBackfill = organization.banEvents === undefined || organization.status === undefined || organization.members === undefined || organization.internalCurrents === undefined
+      || organization.fundingEvents === undefined || organization.claims === undefined || organization.dissolutionEvents === undefined;
+    if (needsBackfill) {
+      const backfilled = { ...organization, status: organization.status ?? 'active', members: organization.members ?? {}, fundsUsd: organization.fundsUsd, internalCurrents: organization.internalCurrents ?? {}, banEvents: organization.banEvents ?? [], claims: organization.claims ?? [], dissolutionEvents: organization.dissolutionEvents ?? [] };
+      // A tracked treasury written before the funding ledger gets a migration-date seed event, so
+      // the ledger replays exactly the saved funds without inventing prior funding history.
+      backfilled.fundingEvents = organization.fundingEvents ?? (organization.fundsUsd !== undefined ? [{ on: state.date, amountUsd: organization.fundsUsd, kind: 'seed' as const }] : []);
+      organizations[organizationId] = backfilled;
       orgChanged = true;
     } else organizations[organizationId] = organization;
   }
@@ -119,7 +150,10 @@ function backfillSchema19(state: SimulationState): SimulationState {
       next = { ...next, governance: { ...next.governance, cabinets: cabinetsChanged ? cabinets : (state.governance.cabinets ?? {}) } };
     }
   }
-  // Legacy singular `rightChanges` field on governance proposal payloads.
+  // Legacy singular `rightChanges` field on governance proposal payloads, and versioned proof
+  // stamping for institutional-interest evaluations written before the stakes snapshot existed.
+  // Stamping derives from the recorded fields only, so a legacy evaluation becomes intrinsically
+  // validatable (and stays valid after a later election) without inventing evidence.
   const proposals: Record<string, SimulationState['governance']['proposals'][string]> = {};
   let proposalsChanged = false;
   for (const [id, proposal] of Object.entries(state.governance.proposals)) {
@@ -132,6 +166,27 @@ function backfillSchema19(state: SimulationState): SimulationState {
         continue;
       }
     }
+    const stampEvaluation = (estimate: typeof proposal.parliamentaryEstimate | typeof proposal.voteResult): void => {
+      if (!estimate || !Array.isArray(estimate.chambers)) return;
+      for (const chamber of estimate.chambers) {
+        if (!Array.isArray(chamber.partyEvaluations)) continue;
+        for (const evaluation of chamber.partyEvaluations) {
+          const interest = evaluation.institutionalInterest as unknown as { stakesFingerprint?: string; method?: string; status?: string; coverage?: string; confidenceBps?: number; adjustmentBps?: number; governmentStatus?: string; effects?: unknown[] } | undefined;
+          if (!interest || interest.stakesFingerprint !== undefined) continue;
+          if (interest.method === undefined || interest.status === undefined || interest.coverage === undefined || interest.confidenceBps === undefined || interest.adjustmentBps === undefined || interest.governmentStatus === undefined || !Array.isArray(interest.effects)) continue;
+          interest.stakesFingerprint = institutionalStakesFingerprint({
+            method: interest.method as 'situational_institutional_interest_v1', countryId: proposal.countryId, partyId: evaluation.partyId,
+            status: interest.status as 'not_applicable' | 'modelled' | 'unavailable', coverage: interest.coverage as 'unavailable' | 'partial' | 'complete',
+            confidenceBps: interest.confidenceBps, adjustmentBps: interest.adjustmentBps,
+            governmentStatus: interest.governmentStatus as 'government' | 'opposition' | 'unavailable',
+            effects: interest.effects as Parameters<typeof institutionalStakesFingerprint>[0]['effects'],
+          });
+          proposalsChanged = true;
+        }
+      }
+    };
+    stampEvaluation(proposal.parliamentaryEstimate);
+    stampEvaluation(proposal.voteResult);
     proposals[id] = proposal;
   }
   if (proposalsChanged) next = { ...next, governance: { ...next.governance, proposals } };

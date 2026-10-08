@@ -193,17 +193,18 @@ export interface PendingAmendment {
   decision?: AmendmentDecision;
   /** Set once the amendment was actually applied; exactly-once application never repeats it. */
   appliedOn?: string;
-  /** Reversible pre-application snapshot captured only for a posteriori annulment/incompatibility. */
-  appliedPrior?: {
-    protectedMaterialKeys: string[];
-    rights: ConstitutionalRights;
-    parliament: ParliamentConstitution;
-    headOfState: HeadOfStateConstitution;
-    government: GovernmentConstitution;
-    election: ElectionConstitution;
-    judicialReview: JudicialReviewConstitution;
-    territory: { organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] };
-    amendment: AmendmentConstitution;
+  /** Limited inverse captured at application time: only the fields this amendment actually changed
+   *  (their pre-amendment values). A posteriori annulment restores exactly these, never a full
+   *  snapshot that could erase a later amendment. Material keys are reversed from the payload lists. */
+  appliedInverse?: {
+    rights?: Partial<ConstitutionalRights>;
+    parliament?: Partial<ParliamentConstitution>;
+    headOfState?: Partial<HeadOfStateConstitution>;
+    government?: Partial<GovernmentConstitution>;
+    election?: Partial<ElectionConstitution>;
+    judicialReview?: Partial<JudicialReviewConstitution>;
+    territory?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] }>;
+    amendment?: Partial<AmendmentConstitution>;
   };
   /** Procedural block reason; never a court verdict. */
   blockReason?: 'not_enacted' | 'judicial_review_unavailable';

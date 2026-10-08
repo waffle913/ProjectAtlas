@@ -13,6 +13,18 @@ export const INSTITUTIONAL_INTEREST_MODEL = Object.freeze({
   sensitivityMaxBps: 15_000,
 });
 
+/** Versioned proof of an institutional-interest record: everything the record contains except the
+ *  material baseline (which has its own fingerprint) and the derived drivers. Computed from the
+ *  recorded fields only, so a saved evaluation validates intrinsically — a later election never
+ *  invalidates it — while any tampered field (method, governmentStatus, source, stakes, adjustment,
+ *  confidence, …) breaks the fingerprint. */
+export const institutionalStakesFingerprint = (interest: Pick<PartyInstitutionalInterestEvaluation, 'method' | 'status' | 'coverage' | 'confidenceBps' | 'adjustmentBps' | 'governmentStatus' | 'effects'> & { countryId: string; partyId: string }): string =>
+  governanceFingerprint({
+    method: interest.method, countryId: interest.countryId, partyId: interest.partyId,
+    status: interest.status, coverage: interest.coverage, confidenceBps: interest.confidenceBps, adjustmentBps: interest.adjustmentBps, governmentStatus: interest.governmentStatus,
+    effects: interest.effects.map(item => [item.id, item.lever, item.from, item.to, item.source, item.explanation, item.fromStakeBps, item.toStakeBps, item.rawInterestBps, item.effectiveInterestBps, item.confidenceBps, item.coverage]),
+  });
+
 const clampBps = (value: number) => Math.max(0, Math.min(10_000, Math.round(value)));
 const clampSignedBps = (value: number) => Math.max(-10_000, Math.min(10_000, Math.round(value)));
 const coverageRank: Readonly<Record<EvaluationCoverage, number>> = { unavailable: 0, partial: 1, complete: 2 };
@@ -172,18 +184,27 @@ export function evaluatePartyInstitutionalInterest(
     materialAgreementBps: material.agreementBps, materialConfidenceBps: material.confidenceBps, materialCoverage: material.coverage,
     materialBaselineFingerprint: governanceFingerprint({ agreementBps: material.agreementBps, confidenceBps: material.confidenceBps, coverage: material.coverage }),
   };
+  // Versioned proof of the branch stakes actually used, recorded for every evaluation (including
+  // not_applicable and unavailable) so a saved evaluation validates intrinsically even after a later
+  // election changes the parliament it was computed against — without breaking corruption detection.
+  const stamp = (record: Pick<PartyInstitutionalInterestEvaluation, 'status' | 'coverage' | 'confidenceBps' | 'adjustmentBps' | 'effects'>) =>
+    institutionalStakesFingerprint({ method: baseline.method, countryId, partyId, governmentStatus: baseline.governmentStatus, ...record });
   if (!Array.isArray(effects) || effects.some(item => !isInstitutionalPowerTransfer(item)) || new Set(effects.map(item => item.id)).size !== effects.length
     || new Set(effects.map(institutionalTransferKey)).size !== effects.length) {
+    const record = { status: 'unavailable' as const, coverage: 'unavailable' as const, confidenceBps: 0, adjustmentBps: 0, effects: [] };
     return {
-      ...baseline, status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0, effects: [], positiveDrivers: [],
+      ...baseline, ...record, positiveDrivers: [],
       negativeDrivers: ['Institutional evidence is malformed or duplicated.'],
       limitation: 'Malformed institutional effects are never converted into strategic assumptions.',
+      stakesFingerprint: stamp(record),
     };
   }
   if (!effects.length) {
+    const record = { status: 'not_applicable' as const, coverage: 'complete' as const, confidenceBps: 10_000, adjustmentBps: 0, effects: [] };
     return {
-      ...baseline, status: 'not_applicable', coverage: 'complete', confidenceBps: 10_000, adjustmentBps: 0, effects: [], positiveDrivers: [], negativeDrivers: [],
+      ...baseline, ...record, positiveDrivers: [], negativeDrivers: [],
       limitation: 'No explicit institutional power transfer. Government/opposition status alone never changes the vote.',
+      stakesFingerprint: stamp(record),
     };
   }
   const evaluated: PartyInstitutionalInterestEvaluation['effects'] = effects.map(effect => {
@@ -198,21 +219,27 @@ export function evaluatePartyInstitutionalInterest(
   });
   const known = evaluated.filter(item => item.coverage !== 'unavailable');
   if (known.length !== evaluated.length) {
+    const record = { status: 'unavailable' as const, coverage: 'unavailable' as const, confidenceBps: 0, adjustmentBps: 0, effects: evaluated };
     return {
-      ...baseline, status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0, effects: evaluated, positiveDrivers: [],
+      ...baseline, ...record, positiveDrivers: [],
       negativeDrivers: ['Institutional effects exist, but current branch leverage is unavailable.'],
       limitation: 'Unknown institutional control remains UNKNOWN; no opposition assumption is substituted.',
+      stakesFingerprint: stamp(record),
     };
   }
   const meanInterestBps = scaledRatioSigned(known.reduce((sum, item) => sum + item.effectiveInterestBps, 0), 1, known.length);
-  return {
-    ...baseline, status: 'modelled',
-    coverage: evaluated.some(item => item.coverage !== 'complete') ? 'partial' : 'complete',
+  const record = {
+    status: 'modelled' as const,
+    coverage: (evaluated.some(item => item.coverage !== 'complete') ? 'partial' : 'complete') as 'partial' | 'complete',
     confidenceBps: ratio(known.reduce((sum, item) => sum + item.confidenceBps, 0), 1, known.length),
     adjustmentBps: clampSignedBps(scaledRatioSigned(meanInterestBps, INSTITUTIONAL_INTEREST_MODEL.maxAgreementAdjustmentBps, 10_000)), effects: evaluated,
+  };
+  return {
+    ...baseline, ...record,
     positiveDrivers: known.filter(item => item.effectiveInterestBps > 0).map(item => `${item.lever}: ${item.from} -> ${item.to} increases current institutional leverage.`),
     negativeDrivers: known.filter(item => item.effectiveInterestBps < 0).map(item => `${item.lever}: ${item.from} -> ${item.to} reduces current institutional leverage.`),
     limitation: 'Institutional self-interest uses explicit power transfers and current branch leverage. The scaling is a modelled V1 prior, not an observed behavioral coefficient.',
+    stakesFingerprint: stamp(record),
   };
 }
 

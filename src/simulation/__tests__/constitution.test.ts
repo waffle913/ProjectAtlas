@@ -1,8 +1,9 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
-import { createPoliticalPerson, assignPoliticalOffice, setControlledPerson } from '../governance/runtime';
-import { declareEmergency, endEmergency, runEmergencyMonth, rejectProtectedModification, applyConstitutionalAmendment, scheduleConstitutionalAmendment, applyDueAmendments, referAmendmentForJudicialReview, decideAmendmentJudicialReview } from '../constitution/runtime';
+import { assertSimulationInvariants } from '../invariants';
+import { createPoliticalPerson, assignPoliticalOffice, setControlledPerson, createConstitutionalAmendmentProposal, submitProposalForActor, resolveProposalVoteForActor } from '../governance/runtime';
+import { declareEmergency, endEmergency, runEmergencyMonth, rejectProtectedModification, scheduleConstitutionalAmendment, applyDueAmendments, referAmendmentForJudicialReview, decideAmendmentJudicialReview } from '../constitution/runtime';
 import { initializeConstitution } from '../constitution/model';
 import type { PoliticalProposal } from '../governance/model';
 import type { SimulationState } from '../../types';
@@ -45,7 +46,9 @@ describe('0.23 constitution procedures', () => {
   it('registers protected material keys and rejects ordinary-law modification of them', () => {
     const countryId = worldCountryIds[0];
     let state = initializeConstitution(initial, [countryId]);
-    state = applyConstitutionalAmendment(state, { id: 'proposal.amendment', countryId, payload: { materialKeysToProtect: ['fiscal.corporate'] } }).next;
+    state = { ...state, date: '2026-02-01' };
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-15');
+    state = applyDueAmendments(state);
     expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
     expect(rejectProtectedModification(state, countryId, 'law', { policy: { corporate: { rateBps: 2000 } as never }, annualBudget: undefined })).toMatch(/constitutionally protected material keys/);
     expect(rejectProtectedModification(state, countryId, 'constitutional_amendment', { policy: { corporate: { rateBps: 2000 } as never }, annualBudget: undefined })).toBeUndefined();
@@ -107,7 +110,7 @@ describe('0.23 constitution procedures', () => {
     const countryId = worldCountryIds[0];
     let state = executive();
     const personId = state.governance.player.controlledPersonId!;
-    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'after_promulgation', effect: 'annul' } } } } };
+    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'after_promulgation', effect: 'annul', accessors: ['executive'] } } } } };
     state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-15');
     state = applyDueAmendments(state);
     expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
@@ -119,6 +122,124 @@ describe('0.23 constitution procedures', () => {
     expect(state.constitution.pendingAmendments[0].status).toBe('annulled');
     expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual([]);
     expect(state.constitution.countries[countryId].bindingEvents).toHaveLength(0);
+  });
+
+  it('keeps an already-applied amendment promulgated exactly once after a posteriori clear/advisory', () => {
+    const countryId = worldCountryIds[0];
+    let state = executive();
+    const personId = state.governance.player.controlledPersonId!;
+    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'after_promulgation', effect: 'annul', accessors: ['executive'] } } } } };
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-15');
+    state = applyDueAmendments(state);
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
+    const instrumentId = state.constitution.pendingAmendments[0].instrumentId;
+    state = referAmendmentForJudicialReview(state, instrumentId, personId);
+    state = decideAmendmentJudicialReview(state, instrumentId, { outcome: 'clear', effect: 'annul' });
+    expect(state.constitution.pendingAmendments[0].status).toBe('promulgated');
+    expect(state.constitution.pendingAmendments[0].appliedOn).toBe('2026-02-01');
+    // A second monthly pass must not re-apply.
+    const keys = state.constitution.countries[countryId].protectedMaterialKeys;
+    state = applyDueAmendments(state);
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(keys);
+    expect(state.constitution.countries[countryId].bindingEvents).toHaveLength(1);
+  });
+
+  it('annuls amendment A without erasing a later amendment B (limited inverse)', () => {
+    const countryId = worldCountryIds[0];
+    let state = executive();
+    const personId = state.governance.player.controlledPersonId!;
+    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], rights: { ...state.constitution.countries[countryId].rights, strike: 'not_guaranteed', union: 'not_guaranteed' }, judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'after_promulgation', effect: 'annul', accessors: ['executive'] } } } } };
+    // A protects fiscal.corporate and sets strike=guaranteed.
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'], rightsChanges: { strike: 'guaranteed' } }, '2026-01-15');
+    state = applyDueAmendments(state);
+    const aId = state.constitution.pendingAmendments[0].instrumentId;
+    expect(state.constitution.countries[countryId].rights.strike).toBe('guaranteed');
+    // B (later) protects fiscal.consumption and sets union=guaranteed.
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.consumption'], rightsChanges: { union: 'guaranteed' } }, '2026-01-20');
+    state = applyDueAmendments(state);
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.consumption', 'fiscal.corporate']);
+    // Annul A a posteriori.
+    state = referAmendmentForJudicialReview(state, aId, personId);
+    state = decideAmendmentJudicialReview(state, aId, { outcome: 'annulled', effect: 'annul' });
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.consumption']);
+    expect(state.constitution.countries[countryId].rights.strike).toBe('not_guaranteed');
+    expect(state.constitution.countries[countryId].rights.union).toBe('guaranteed'); // B preserved
+  });
+
+  it('annulling A never removes a key that a later amendment B also protected', () => {
+    const countryId = worldCountryIds[0];
+    let state = executive();
+    const personId = state.governance.player.controlledPersonId!;
+    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'after_promulgation', effect: 'annul', accessors: ['executive'] } } } } };
+    // A protects fiscal.corporate; a later B protects the same key again.
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-15');
+    state = applyDueAmendments(state);
+    const aId = state.constitution.pendingAmendments[0].instrumentId;
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-20');
+    state = applyDueAmendments(state);
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
+    state = referAmendmentForJudicialReview(state, aId, personId);
+    state = decideAmendmentJudicialReview(state, aId, { outcome: 'annulled', effect: 'annul' });
+    // B's independent protection of the same key survives the annulment of A.
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
+    expect(state.constitution.countries[countryId].bindingEvents.map(e => e.instrumentId)).toEqual([state.constitution.pendingAmendments[1].instrumentId]);
+  });
+
+  it('keeps a priori cleared amendments in a scheduled state that satisfies the invariants', () => {
+    const countryId = worldCountryIds[0];
+    let state = executive();
+    const personId = state.governance.player.controlledPersonId!;
+    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], parliament: { ...state.constitution.countries[countryId].parliament, power: 'none' }, judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'before_promulgation', effect: 'annul', accessors: ['executive'] } } } } };
+    // Canonical procedure: a real enacted instrument, not a hand-made fixture.
+    state = createConstitutionalAmendmentProposal(state, { proposerPersonId: personId, countryId, effectiveDate: '2026-02-15', payload: { materialKeysToProtect: ['fiscal.corporate'] } });
+    const proposalId = state.governance.proposalOrder.at(-1)!;
+    state = submitProposalForActor(state, proposalId, personId);
+    state = resolveProposalVoteForActor(state, proposalId, personId);
+    expect(state.governance.proposals[proposalId].status).toBe('enacted');
+    state = { ...state, date: '2026-03-01' };
+    state = applyDueAmendments(state);
+    const instrumentId = state.constitution.pendingAmendments[0].instrumentId;
+    expect(state.constitution.pendingAmendments[0].status).toBe('referred');
+    state = decideAmendmentJudicialReview(state, instrumentId, { outcome: 'clear', effect: 'annul' });
+    expect(state.constitution.pendingAmendments[0].status).toBe('scheduled');
+    expect(state.constitution.pendingAmendments[0].decision?.outcome).toBe('clear');
+    // The a-priori-cleared intermediate state is legitimate and must pass the invariants.
+    expect(assertSimulationInvariants(state, worldContext, 'save')).toBe(true);
+    state = applyDueAmendments(state);
+    expect(state.constitution.pendingAmendments[0].status).toBe('promulgated');
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
+  });
+
+  it('records declare_incompatibility without reversing the applied effects', () => {
+    const countryId = worldCountryIds[0];
+    let state = executive();
+    const personId = state.governance.player.controlledPersonId!;
+    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'after_promulgation', effect: 'declare_incompatibility', accessors: ['executive'] } } } } };
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-15');
+    state = applyDueAmendments(state);
+    const instrumentId = state.constitution.pendingAmendments[0].instrumentId;
+    state = referAmendmentForJudicialReview(state, instrumentId, personId);
+    state = decideAmendmentJudicialReview(state, instrumentId, { outcome: 'incompatible', effect: 'declare_incompatibility' });
+    expect(state.constitution.pendingAmendments[0].status).toBe('incompatible');
+    expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
+  });
+
+  it('enforces judicial accessors and refuses saisine when timing is none or unavailable', () => {
+    const countryId = worldCountryIds[0];
+    let state = executive();
+    const personId = state.governance.player.controlledPersonId!;
+    state = { ...state, date: '2026-02-01', constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], judicialReview: { ...state.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'none', effect: 'annul', accessors: ['executive'] } } } } };
+    state = enactedAmendment(state, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-15');
+    state = applyDueAmendments(state);
+    const instrumentId = state.constitution.pendingAmendments[0].instrumentId;
+    expect(() => referAmendmentForJudicialReview(state, instrumentId, personId)).toThrow(/no judicial review/);
+    // A non-accessor (an executive) cannot seize the court when accessors only allow parliamentary parties.
+    let state2 = executive();
+    state2 = { ...state2, date: '2026-02-01', constitution: { ...state2.constitution, countries: { ...state2.constitution.countries, [countryId]: { ...state2.constitution.countries[countryId], judicialReview: { ...state2.constitution.countries[countryId].judicialReview, courtExists: 'exists', timing: 'after_promulgation', effect: 'annul', accessors: ['parliamentary_parties'] } } } } };
+    state2 = enactedAmendment(state2, countryId, { materialKeysToProtect: ['fiscal.corporate'] }, '2026-01-15');
+    state2 = applyDueAmendments(state2);
+    const instrumentId2 = state2.constitution.pendingAmendments[0].instrumentId;
+    expect(() => referAmendmentForJudicialReview(state2, instrumentId2, personId)).toThrow(/accessors/);
   });
 
   it('uses justifying episode identity and applies progressive discontent while unjustified', () => {

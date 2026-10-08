@@ -239,6 +239,9 @@ export interface PartyInstitutionalInterestEvaluation {
   materialBaselineFingerprint: string;
   adjustmentBps: number; effects: PartyInstitutionalEffectEvaluation[];
   positiveDrivers: string[]; negativeDrivers: string[]; limitation: string;
+  /** Versioned proof of the branch stakes actually used at vote time, so a later election never
+   *  invalidates a historically saved evaluation. */
+  stakesFingerprint?: string;
 }
 export interface ProposalMaterialContext {
   unemployment: CoveredMetric; fiscalSustainability: CoveredMetric; incomeSecurity: CoveredMetric;
@@ -274,8 +277,8 @@ export interface PartyChamberEvaluation extends PartyProposalEvaluation { seats:
 export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
 export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: PartyChamberEvaluation[] }
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1'; seatApportionment?: 'identity_hash_v1' }
-export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | 'parliament_has_no_legislative_power' | 'parliamentary_opinion_non_binding' | 'executive_override' }
-export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
+export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | 'parliament_has_no_legislative_power' | 'parliamentary_opinion_non_binding' | 'executive_override' | 'no_parliamentary_vote_required' | 'executive_decision' }
+export type PoliticalProposalStatus = 'draft' | 'submitted' | 'consulted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
 export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
   id: string;
   countryId: string;
@@ -295,6 +298,9 @@ export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
   voteResult?: LegislativeVoteResult;
   scheduledFiscalReformSequence?: number;
   enactmentReference?: { fiscalReformSequence: number; reformFingerprint: string };
+  /** A real constitutional referendum outcome, recorded by holdReferendum and required by the
+   *  amendment procedure whenever the constitution demands a referendum. */
+  referendumResult?: { heldOn: string; adopted: boolean; supportBps: number; opposeBps: number };
   effects: ProposalEffectByKind[K][];
   analysis?: ProposalAnalysis;
   evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1' | 'situational-plurality-0.15-v2';

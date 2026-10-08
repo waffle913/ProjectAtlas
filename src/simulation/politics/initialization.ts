@@ -4,7 +4,7 @@ import { allocate, INCOMES, ratio, type SocioRegion } from '../socioeconomy/mode
 import { aggregateNationalSupport } from './aggregation';
 import { availableNeedsCoverage } from '../trade/runtime';
 import type { RegionFiscal } from '../fiscal/model';
-import { emptyPolitics, POLITICAL_ISSUES, POLITICS_MODEL, type CohortPoliticalOpinion, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalOrganization, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
+import { emptyPolitics, POLITICAL_ISSUES, POLITICS_MODEL, type CohortPoliticalOpinion, type InternalCurrent, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalOrganization, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
 import { politicalRegistry } from './registry';
 
 // Retained for call-site compatibility. Static politics now comes from the pinned registry.
@@ -55,15 +55,22 @@ export function organizationStateFor(state: SimulationState, organization: Polit
   else { target[POLITICAL_ISSUES.indexOf('fiscal_distribution')] = clamp(target[0] - tax / 4 - distress / 5); target[POLITICAL_ISSUES.indexOf('infrastructure')] = clamp(target[4] + infrastructureGap / 3); target[POLITICAL_ISSUES.indexOf('public_order')] = clamp(target[5] + unemployment / 5); }
   const currentPositions = Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, prior ? blend(prior.currentPositions[issue], target[index], POLITICS_MODEL.organizationInertiaBps) : target[index]])) as Record<PoliticalIssue, number>;
   const issues = organization.issuePriorities.filter(issue => Math.abs(target[POLITICAL_ISSUES.indexOf(issue)] - base[POLITICAL_ISSUES.indexOf(issue)]) >= 250);
-  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit), status: prior?.status ?? 'active', members: prior?.members ?? {}, fundsUsd: prior?.fundsUsd, internalCurrents: prior?.internalCurrents ?? {}, banEvents: prior?.banEvents ?? [], countryId: organization.countryId, type: organization.type, displayName: organization.displayName, source: 'registry' };
+  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit), status: prior?.status ?? 'active', members: prior?.members ?? {}, fundsUsd: prior?.fundsUsd, internalCurrents: prior?.internalCurrents ?? {}, banEvents: prior?.banEvents ?? [], fundingEvents: prior?.fundingEvents ?? [], strikeFundUsd: prior?.strikeFundUsd, claims: prior?.claims ?? [], cyberSecurityBps: prior?.cyberSecurityBps, dissolutionEvents: prior?.dissolutionEvents ?? [], countryId: organization.countryId, type: organization.type, displayName: organization.displayName, source: 'registry' };
 }
 
 /** A party's mutable organizational state, derived from the 0.13 registry party (positions) while
  *  keeping membership, funding, currents, status and ban history mutable. Never fabricates ideology. */
 export function partyOrganizationStateFor(party: PoliticalParty, date: string, prior?: OrganizationPoliticalState): OrganizationPoliticalState {
+  // The mutable party line is never reset from the static registry: current positions carry over
+  // with inertia so internal currents and evolutions can move them progressively.
+  const registryPositions = Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, party.issuePositions[issue].preferenceBps])) as Record<PoliticalIssue, number>;
+  let currentPositions = prior
+    ? Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, blend(prior.currentPositions[issue], registryPositions[issue], POLITICS_MODEL.organizationInertiaBps)])) as Record<PoliticalIssue, number>
+    : registryPositions;
+  if (prior) currentPositions = evolvePositionsWithCurrents(currentPositions, Object.values(prior.internalCurrents ?? {}));
   return {
     organizationId: party.id,
-    currentPositions: Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, party.issuePositions[issue].preferenceBps])) as Record<PoliticalIssue, number>,
+    currentPositions,
     lastUpdatedOn: date,
     recentDrivers: prior?.recentDrivers ?? [],
     status: prior?.status ?? 'active',
@@ -71,11 +78,35 @@ export function partyOrganizationStateFor(party: PoliticalParty, date: string, p
     fundsUsd: prior?.fundsUsd,
     internalCurrents: prior?.internalCurrents ?? {},
     banEvents: prior?.banEvents ?? [],
+    fundingEvents: prior?.fundingEvents ?? [],
+    strikeFundUsd: prior?.strikeFundUsd,
+    claims: prior?.claims ?? [],
+    cyberSecurityBps: prior?.cyberSecurityBps,
+    dissolutionEvents: prior?.dissolutionEvents ?? [],
     countryId: party.countryId,
     type: 'party',
     displayName: party.displayName,
     source: 'registry',
   };
+}
+
+/** Internal currents move the mutable party line a bounded, progressive step each week toward the
+ *  salience-weighted average of their modelled positions. Issues without any current position are
+ *  untouched; currents with no positions change nothing. Never observed faction data. */
+export function evolvePositionsWithCurrents(currentPositions: Record<PoliticalIssue, number>, currents: readonly InternalCurrent[]): Record<PoliticalIssue, number> {
+  const weighted = POLITICAL_ISSUES.map(() => 0), weights = POLITICAL_ISSUES.map(() => 0);
+  for (const current of currents) {
+    if (!current.issuePositions) continue;
+    const weight = Math.max(1, current.salienceBps);
+    for (const issue of POLITICAL_ISSUES) {
+      const position = current.issuePositions[issue];
+      if (position === undefined) continue;
+      const index = POLITICAL_ISSUES.indexOf(issue);
+      weighted[index] += position * weight;
+      weights[index] += weight;
+    }
+  }
+  return Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, weights[index] > 0 ? blend(currentPositions[issue], Math.round(weighted[index] / weights[index]), POLITICS_MODEL.currentEvolutionBps) : currentPositions[issue]])) as Record<PoliticalIssue, number>;
 }
 
 export function initializePolitics(state: SimulationState, countryIds: Iterable<string>, regions: readonly RegionEntity[], _data?: PoliticalInitializationData): SimulationState['politics'] {

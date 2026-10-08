@@ -54,6 +54,9 @@ export interface ElectionCountryState {
   chambers: Record<string, ElectionChamberState>;
   government: { coalitionPartyIds: string[]; confidence: GovernmentConfidence };
   parties: Record<string, PartyElectionState>;
+  /** Dated trace of a direct executive election (appointmentMode elected_directly); a parliamentary
+   *  election never writes this. */
+  directElection?: { on: string; winnerPartyId: string; actorPersonId: string };
 }
 
 export interface ElectionsState {

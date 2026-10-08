@@ -1,5 +1,5 @@
 import type { SimulationInvariant } from '../invariants';
-import { IDEOLOGY_DIMENSIONS, POLITICAL_ISSUES, POLITICS_MODEL, type PoliticalProvenance, type PoliticalRegistry } from './model';
+import { IDEOLOGY_DIMENSIONS, POLITICAL_ISSUES, POLITICS_MODEL, type PoliticalIssue, type PoliticalProvenance, type PoliticalRegistry } from './model';
 import { politicalRegistry } from './registry';
 import { isSimulationDate as validDate } from '../date';
 import { aggregateNationalSupport } from './aggregation';
@@ -59,7 +59,7 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
     if (!['active', 'dissolved', 'banned'].includes(organization.status)) errors.push(`Organization ${organizationId} has an invalid status.`);
     if (organization.fundsUsd !== undefined && (!Number.isSafeInteger(organization.fundsUsd) || organization.fundsUsd < 0)) errors.push(`Organization ${organizationId} has invalid funds.`);
     if (organization.countryId !== undefined && !context.countryIds.has(organization.countryId)) errors.push(`Organization ${organizationId} has an invalid Country.`);
-    if (organization.type !== undefined && !['union', 'association', 'party'].includes(organization.type)) errors.push(`Organization ${organizationId} has an invalid type.`);
+    if (organization.type !== undefined && !['union', 'association', 'party', 'religious'].includes(organization.type)) errors.push(`Organization ${organizationId} has an invalid type.`);
     if (organization.source !== undefined && !['registry', 'dynamic'].includes(organization.source)) errors.push(`Organization ${organizationId} has an invalid source.`);
     for (const [personId, membership] of Object.entries(organization.members ?? {})) if (membership.personId !== personId || !['member', 'leader'].includes(membership.role)) errors.push(`Organization ${organizationId} has an invalid membership ${personId}.`);
     for (const banEvent of organization.banEvents ?? []) {
@@ -68,7 +68,28 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
       if (banEvent.appealDecision !== undefined && !['restore', 'uphold'].includes(banEvent.appealDecision)) errors.push(`Organization ${organizationId} has an invalid appeal decision.`);
       if (banEvent.appealResolvedOn && !validDate(banEvent.appealResolvedOn)) errors.push(`Organization ${organizationId} has an invalid appeal resolution date.`);
     }
-    for (const current of Object.values(organization.internalCurrents ?? {})) if (!current.id?.trim() || !current.name?.trim() || !Number.isSafeInteger(current.salienceBps)) errors.push(`Organization ${organizationId} has an invalid internal current.`);
+    for (const current of Object.values(organization.internalCurrents ?? {})) {
+      if (!current.id?.trim() || !current.name?.trim() || !Number.isSafeInteger(current.salienceBps) || current.salienceBps < 0 || current.salienceBps > 10_000) errors.push(`Organization ${organizationId} has an invalid internal current.`);
+      if (current.issuePositions !== undefined && (typeof current.issuePositions !== 'object' || Object.entries(current.issuePositions).some(([issue, value]) => !POLITICAL_ISSUES.includes(issue as PoliticalIssue) || !Number.isSafeInteger(value) || value < 0 || value > 10_000))) errors.push(`Organization ${organizationId} has an invalid internal-current issue position.`);
+    }
+    for (const claim of organization.claims ?? []) {
+      if (!claim.id?.trim() || !validDate(claim.madeOn) || claim.madeOn > state.date || !POLITICAL_ISSUES.includes(claim.issue) || !Number.isSafeInteger(claim.targetBps) || claim.targetBps < 0 || claim.targetBps > 10_000 || !claim.rationale?.trim() || !['pending', 'settled'].includes(claim.status)) errors.push(`Organization ${organizationId} has an invalid union claim.`);
+      if (claim.settlement !== undefined && (!validDate(claim.settlement.on) || claim.settlement.on > state.date || !claim.settlement.byPersonId?.trim() || !['accepted', 'rejected'].includes(claim.settlement.outcome) || (claim.settlement.outcome === 'accepted' && (claim.settlement.agreedBps === undefined || !Number.isSafeInteger(claim.settlement.agreedBps) || claim.settlement.agreedBps < 0 || claim.settlement.agreedBps > 10_000)))) errors.push(`Organization ${organizationId} has an invalid union claim settlement.`);
+    }
+    for (const dissolution of organization.dissolutionEvents ?? []) {
+      if (!validDate(dissolution.date) || dissolution.date > state.date || !dissolution.actorPersonId?.trim() || !dissolution.motive?.trim()) errors.push(`Organization ${organizationId} has an invalid dissolution event.`);
+    }
+    if (organization.fundsUsd !== undefined && (!Number.isSafeInteger(organization.fundsUsd) || organization.fundsUsd < 0)) errors.push(`Organization ${organizationId} has an invalid treasury.`);
+    if (organization.strikeFundUsd !== undefined && (!Number.isSafeInteger(organization.strikeFundUsd) || organization.strikeFundUsd < 0)) errors.push(`Organization ${organizationId} has an invalid strike fund.`);
+    if (organization.cyberSecurityBps !== undefined && (!Number.isSafeInteger(organization.cyberSecurityBps) || organization.cyberSecurityBps < 0 || organization.cyberSecurityBps > 10_000)) errors.push(`Organization ${organizationId} has an invalid cyber posture.`);
+    if (organization.fundingEvents !== undefined) {
+      if (!Array.isArray(organization.fundingEvents) || organization.fundingEvents.some(event => !validDate(event.on) || event.on > state.date || !Number.isSafeInteger(event.amountUsd) || !['seed', 'donation', 'strike_cost', 'cybersecurity_spending', 'cyber_attack_cost', 'cyber_theft', 'split_transfer'].includes(event.kind))) errors.push(`Organization ${organizationId} has an invalid funding ledger.`);
+      else if (organization.fundsUsd !== undefined) {
+        // Conservation: the tracked treasury is exactly the replay of the dated funding ledger.
+        const replayed = organization.fundingEvents.reduce((sum, event) => sum + event.amountUsd, 0);
+        if (replayed !== organization.fundsUsd + (organization.strikeFundUsd ?? 0)) errors.push(`Organization ${organizationId} funding does not reconcile with its ledger.`);
+      }
+    }
   }
   return errors;
 } };

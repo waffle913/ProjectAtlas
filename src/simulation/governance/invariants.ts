@@ -7,7 +7,7 @@ import { politicalRegistry } from '../politics/registry';
 import { persistedOfficeEvidenceErrors } from './officeEvidence';
 import { GOVERNANCE_GOALS, GOVERNANCE_VOTE_THRESHOLDS, aggregateIssueEffects } from './analysis';
 import { allocatePartySeats, INTERNAL_PARTY_DISTRIBUTION_MODEL } from './internalPartyDistribution';
-import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, institutionalTransferKey, isInstitutionalPowerTransfer } from './institutionalInterest';
+import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, institutionalTransferKey, isInstitutionalPowerTransfer, institutionalStakesFingerprint } from './institutionalInterest';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint, PROPOSAL_CONTRACTS, PROPOSAL_INSTRUMENT_CLASSES, PROPOSAL_KINDS,
   type ChamberSupportEstimate, type PartyChamberEvaluation, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis, type ProposalEffect,
@@ -135,8 +135,8 @@ function validateInstitutionalEvidence(state: SimulationState, proposal: Politic
     if (holder.startsWith('chamber:') && (!institution || institution.countryId !== proposal.countryId
       || !institution.chambers.some(chamber => chamber.id === holder.slice(8) && chamber.countryId === proposal.countryId))) return false;
   }
-  for (const estimate of [proposal.parliamentaryEstimate, proposal.voteResult]) {
-    if (!estimate || !Array.isArray(estimate.chambers)) return false;
+  for (const estimate of [proposal.parliamentaryEstimate, proposal.voteResult].filter((item): item is NonNullable<typeof item> => item !== undefined)) {
+    if (!Array.isArray(estimate.chambers)) return false;
     for (const chamber of estimate.chambers) {
       if (!Array.isArray(chamber.partyEvaluations)) return false;
       for (const evaluation of chamber.partyEvaluations) {
@@ -146,10 +146,23 @@ function validateInstitutionalEvidence(state: SimulationState, proposal: Politic
           agreementBps: interest.materialAgreementBps, confidenceBps: interest.materialConfidenceBps, coverage: interest.materialCoverage,
           positiveDrivers: [], negativeDrivers: [], tradeoffs: [],
         };
-        const expected = evaluatePartyInstitutionalInterest(state, proposal.countryId, evaluation.partyId, politicalRegistry, effects, material);
-        if (canonicalJson(interest) !== canonicalJson(expected)) return false;
-        const applied = applyPartyInstitutionalInterest(material, expected);
-        if (evaluation.agreementBps !== applied.agreementBps || evaluation.confidenceBps !== applied.confidenceBps || evaluation.coverage !== applied.coverage) return false;
+        if (interest.stakesFingerprint !== undefined) {
+          // Versioned snapshot: validate intrinsic integrity, never recompute branch stakes from the
+          // current parliament (which may have changed after a later election). Every tampered field
+          // of the record breaks the fingerprint.
+          const expectedStakes = institutionalStakesFingerprint({ method: interest.method, countryId: proposal.countryId, partyId: evaluation.partyId, status: interest.status, coverage: interest.coverage, confidenceBps: interest.confidenceBps, adjustmentBps: interest.adjustmentBps, governmentStatus: interest.governmentStatus, effects: interest.effects });
+          if (interest.stakesFingerprint !== expectedStakes) return false;
+          if (interest.materialBaselineFingerprint !== governanceFingerprint({ agreementBps: interest.materialAgreementBps, confidenceBps: interest.materialConfidenceBps, coverage: interest.materialCoverage })) return false;
+          const applied = applyPartyInstitutionalInterest(material, interest);
+          if (evaluation.agreementBps !== applied.agreementBps || evaluation.confidenceBps !== applied.confidenceBps || evaluation.coverage !== applied.coverage) return false;
+        } else {
+          // Legacy records without a versioned snapshot keep the historical recomputation check.
+          const expected = evaluatePartyInstitutionalInterest(state, proposal.countryId, evaluation.partyId, politicalRegistry, effects, material);
+          const { stakesFingerprint: _fingerprint, ...expectedWithoutFingerprint } = expected;
+          if (canonicalJson(interest) !== canonicalJson(expectedWithoutFingerprint)) return false;
+          const applied = applyPartyInstitutionalInterest(material, expected);
+          if (evaluation.agreementBps !== applied.agreementBps || evaluation.confidenceBps !== applied.confidenceBps || evaluation.coverage !== applied.coverage) return false;
+        }
       }
     }
   }
@@ -178,7 +191,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (person.partyId && politicalRegistry.parties[person.partyId]?.countryId !== person.countryId) errors.push(`Invalid party reference for ${id}.`);
     if (person.isPartyLeader && !person.partyId) errors.push(`Party leader ${id} has no party.`);
     if (person.status !== 'active' && person.office) errors.push(`Inactive person ${id} retains a political office.`);
-    if (person.office && (!['head_of_government', 'head_of_state', 'legislator'].includes(person.office.role) || person.office.countryId !== person.countryId || !person.office.title?.trim() || !dateValid(person.office.appointedOn) || person.office.appointedOn < g.initializedOn || person.office.appointedOn < person.createdOn || person.office.appointedOn > state.date || person.office.authorityProfile.status !== 'modelled_constitutional_abstraction' || !person.office.authorityProfile.limitation || person.office.authorityProfile.capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item)))) errors.push(`Malformed office for ${id}.`);
+    if (person.office && (!['head_of_government', 'head_of_state', 'legislator', 'minister'].includes(person.office.role) || person.office.countryId !== person.countryId || !person.office.title?.trim() || !dateValid(person.office.appointedOn) || person.office.appointedOn < g.initializedOn || person.office.appointedOn < person.createdOn || person.office.appointedOn > state.date || person.office.authorityProfile.status !== 'modelled_constitutional_abstraction' || !person.office.authorityProfile.limitation || person.office.authorityProfile.capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item)))) errors.push(`Malformed office for ${id}.`);
     if (person.office?.evidence) {
       const evidence = person.office.evidence;
       errors.push(...persistedOfficeEvidenceErrors(person, state.date));
@@ -201,7 +214,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
   const reformSequences = new Set<number>();
   for (const [id, proposal] of Object.entries(g.proposals)) {
     const proposer = g.persons[proposal.proposerPersonId];
-    if (proposal.id !== id || !id.match(/^proposal\.\d{8}$/) || Number(id.slice(9)) >= g.nextProposalSequence || !['draft', 'submitted', 'enacted', 'rejected', 'withdrawn', 'unavailable'].includes(proposal.status) || !proposer || proposer.countryId !== proposal.countryId || !context.countryIds.has(proposal.countryId) || !dateValid(proposal.createdOn) || proposal.createdOn < g.initializedOn || proposal.createdOn > state.date || !dateValid(proposal.effectiveDate) || proposal.effectiveDate < proposal.createdOn) errors.push(`Malformed proposal ${id}.`);
+    if (proposal.id !== id || !id.match(/^proposal\.\d{8}$/) || Number(id.slice(9)) >= g.nextProposalSequence || !['draft', 'submitted', 'consulted', 'enacted', 'rejected', 'withdrawn', 'unavailable'].includes(proposal.status) || !proposer || proposer.countryId !== proposal.countryId || !context.countryIds.has(proposal.countryId) || !dateValid(proposal.createdOn) || proposal.createdOn < g.initializedOn || proposal.createdOn > state.date || !dateValid(proposal.effectiveDate) || proposal.effectiveDate < proposal.createdOn) errors.push(`Malformed proposal ${id}.`);
     const fiscalPayloadInvalid = proposal.kind === 'fiscal_reform'
       ? ((!proposal.payload.policy && !proposal.payload.annualBudget) || (proposal.payload.policy && safe(() => validatePolicy(proposal.payload.policy!, proposal.countryId, proposal.effectiveDate))) || (proposal.payload.annualBudget && safe(() => validateBudget(proposal.payload.annualBudget!))))
       : false;
@@ -211,11 +224,14 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (fiscalPayloadInvalid || amendmentPayloadInvalid) errors.push(`Invalid payload for ${id}.`);
     if (proposal.status === 'draft' && (proposal.submittedOn || proposal.submittedPayloadFingerprint || proposal.resolvedOn || proposal.voteResult)) errors.push(`Draft ${id} contains lifecycle residue.`);
     if (proposal.status === 'submitted' && (proposal.resolvedOn || proposal.voteResult)) errors.push(`Submitted proposal ${id} contains resolution residue.`);
+    if (proposal.status === 'consulted' && (proposal.resolvedOn || proposal.voteResult || !proposal.parliamentaryEstimate)) errors.push(`Consulted proposal ${id} has invalid lifecycle residue.`);
     if (proposal.status === 'withdrawn' && proposal.voteResult) errors.push(`Withdrawn proposal ${id} contains a vote result.`);
-    if (['submitted', 'enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.submittedOn || !dateValid(proposal.submittedOn) || proposal.submittedOn < proposal.createdOn || proposal.submittedOn > state.date)) errors.push(`Invalid submission lifecycle for ${id}.`);
+    if (['submitted', 'consulted', 'enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.submittedOn || !dateValid(proposal.submittedOn) || proposal.submittedOn < proposal.createdOn || proposal.submittedOn > state.date)) errors.push(`Invalid submission lifecycle for ${id}.`);
     if (proposal.submittedOn && proposal.submittedPayloadFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload })) errors.push(`Submitted proposal ${id} payload was modified.`);
     if (['enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.resolvedOn || !proposal.voteResult || proposal.voteResult.outcome !== (proposal.status === 'enacted' ? 'adopted' : proposal.status))) errors.push(`Invalid resolution lifecycle for ${id}.`);
     if (proposal.resolvedOn && (!dateValid(proposal.resolvedOn) || proposal.resolvedOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.resolvedOn > state.date)) errors.push(`Invalid resolution date for ${id}.`);
+    if (proposal.referendumResult && (!dateValid(proposal.referendumResult.heldOn) || proposal.referendumResult.heldOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.referendumResult.heldOn > state.date || typeof proposal.referendumResult.adopted !== 'boolean' || !Number.isSafeInteger(proposal.referendumResult.supportBps) || !Number.isSafeInteger(proposal.referendumResult.opposeBps) || proposal.referendumResult.supportBps < 0 || proposal.referendumResult.supportBps > 10_000 || proposal.referendumResult.opposeBps < 0 || proposal.referendumResult.opposeBps > 10_000 || proposal.referendumResult.supportBps + proposal.referendumResult.opposeBps > 10_000)) errors.push(`Invalid referendum record for ${id}.`);
+    if (proposal.referendumResult && proposal.status === 'draft') errors.push(`Draft proposal ${id} carries a referendum record.`);
     if (!(PROPOSAL_KINDS as readonly string[]).includes(proposal.kind)) errors.push(`Unknown proposal kind for ${id}.`);
     if (!PROPOSAL_INSTRUMENT_CLASSES.includes(proposal.instrumentClass)) errors.push(`Invalid instrument class for ${id}.`);
     const contract = PROPOSAL_CONTRACTS[proposal.kind];
@@ -250,16 +266,20 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
         const { outcome: _outcome, resolvedOn: _resolvedOn, reason: _reason, ...recordedEstimate } = proposal.voteResult;
         if (!proposal.parliamentaryEstimate || canonicalJson(recordedEstimate) !== canonicalJson(proposal.parliamentaryEstimate)) errors.push(`Plurality estimate/result mismatch for ${id}.`);
       }
-      const executiveOverride = proposal.voteResult.reason === 'executive_override';
+      const executiveOverride = proposal.voteResult.reason === 'executive_override' || proposal.voteResult.reason === 'executive_decision' || proposal.voteResult.reason === 'no_parliamentary_vote_required';
+      // A rejection whose reason is a constitutional procedure block (referendum, threshold, protected
+      // key) or an executive decision is not a parliamentary defeat: the chamber opinion is recorded
+      // as evaluated, and the reason distinguishes the outcome.
+      const parliamentaryDefeat = proposal.voteResult.outcome === 'rejected' && !['executive_decision', 'referendum_failed', 'constitutional_threshold', 'constitutionally_protected'].includes(proposal.voteResult.reason ?? '');
       if (proposal.voteResult.outcome === 'adopted' && !executiveOverride && (proposal.voteResult.coverage !== 'complete' || !proposal.voteResult.chambers.length || !proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Adopted vote ${id} is not supported by every complete chamber.`);
-      if (proposal.voteResult.outcome === 'rejected' && (proposal.voteResult.coverage !== 'complete' || proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Rejected vote ${id} is inconsistent with its chambers.`);
+      if (parliamentaryDefeat && (proposal.voteResult.coverage !== 'complete' || proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Rejected vote ${id} is inconsistent with its chambers.`);
       if (executiveOverride && proposal.voteResult.chambers.every(chamber => chamber.adopted === true)) errors.push(`Executive override ${id} does not follow a parliamentary rejection.`);
       if (proposal.voteResult.outcome === 'unavailable' && !proposal.voteResult.reason) errors.push(`Unavailable vote ${id} has no reason.`);
       if (proposal.voteResult.reason === 'institutional_data_unavailable' && proposal.voteResult.coverage === 'complete') errors.push(`Unavailable vote ${id} falsely reports complete institutional coverage.`);
       if (proposal.voteResult.reason === 'effective_date_expired' && state.date <= proposal.effectiveDate) errors.push(`Proposal ${id} is falsely marked expired.`);
     }
     if (proposal.evaluationVersion === 'situational-0.14-v2' && (!proposal.analysis || !proposal.publicEstimate || !proposal.parliamentaryEstimate || !proposal.voteResult)) errors.push(`Situational evaluation ${id} is incomplete.`);
-    if (plurality && (!proposal.analysis || !proposal.publicEstimate || !proposal.parliamentaryEstimate || !proposal.voteResult)) errors.push(`Plurality evaluation ${id} is incomplete.`);
+    if (plurality && proposal.status !== 'consulted' && (!proposal.analysis || !proposal.publicEstimate || !proposal.parliamentaryEstimate || !proposal.voteResult)) errors.push(`Plurality evaluation ${id} is incomplete.`);
     if (proposal.status === 'enacted') {
       if (proposal.kind === 'fiscal_reform') {
         const sequence = proposal.scheduledFiscalReformSequence, expectedFingerprint = fiscalReformFingerprint({ countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...proposal.payload });

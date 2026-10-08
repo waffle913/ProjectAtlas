@@ -61,36 +61,59 @@ const courtExists = (state: SimulationState, countryId: string): boolean => stat
 
 const hasDecision = (amendment: PendingAmendment): boolean => amendment.decision !== undefined;
 
-/** Record the reversible pre-application constitution entry, used only for a posteriori reversal. */
-function captureAppliedPrior(state: SimulationState, countryId: string): PendingAmendment['appliedPrior'] {
+const pickFields = <T extends object>(source: T, changed: object): Partial<T> =>
+  Object.fromEntries(Object.keys(changed).filter(key => key in source).map(key => [key, (source as Record<string, unknown>)[key]])) as Partial<T>;
+
+/** Capture the limited inverse: only the pre-amendment values of the fields this payload actually
+ *  changes. A posteriori annulment restores exactly these, never a full snapshot that could erase a
+ *  later amendment. Material keys are reversed from the payload lists, not from this record. */
+function captureAppliedInverse(state: SimulationState, countryId: string, payload: PendingAmendment['payload']): PendingAmendment['appliedInverse'] {
   const entry = state.constitution.countries[countryId];
-  return {
-    protectedMaterialKeys: [...entry.protectedMaterialKeys],
-    rights: structuredClone(entry.rights),
-    parliament: structuredClone(entry.parliament),
-    headOfState: structuredClone(entry.headOfState),
-    government: structuredClone(entry.government),
-    election: structuredClone(entry.election),
-    judicialReview: structuredClone(entry.judicialReview),
-    territory: structuredClone(entry.territory),
-    amendment: structuredClone(entry.amendment),
-  };
+  if (!entry) return undefined;
+  const inverse: NonNullable<PendingAmendment['appliedInverse']> = {};
+  if (payload.rightsChanges && Object.keys(payload.rightsChanges).length) inverse.rights = pickFields(entry.rights, payload.rightsChanges);
+  if (payload.parliamentChanges && Object.keys(payload.parliamentChanges).length) inverse.parliament = pickFields(entry.parliament, payload.parliamentChanges);
+  if (payload.executiveChanges?.headOfState && Object.keys(payload.executiveChanges.headOfState).length) inverse.headOfState = pickFields(entry.headOfState, payload.executiveChanges.headOfState);
+  if (payload.executiveChanges?.government && Object.keys(payload.executiveChanges.government).length) inverse.government = pickFields(entry.government, payload.executiveChanges.government);
+  if (payload.electionChanges && Object.keys(payload.electionChanges).length) inverse.election = pickFields(entry.election, payload.electionChanges);
+  if (payload.judicialChanges && Object.keys(payload.judicialChanges).length) inverse.judicialReview = pickFields(entry.judicialReview, payload.judicialChanges);
+  if (payload.territoryChanges) inverse.territory = pickFields(entry.territory, payload.territoryChanges);
+  if (payload.amendmentChanges && Object.keys(payload.amendmentChanges).length) inverse.amendment = pickFields(entry.amendment, payload.amendmentChanges);
+  return inverse;
 }
 
-/** Refer an amendment to the constitutional court (saisine). The timing is derived from the
- *  constitution's judicial-review timing: a priori when it requires a before-promulgation control. */
+const personAccessorKinds = (person: SimulationState['governance']['persons'][string]): Array<'executive' | 'government' | 'parliament' | 'parliamentary_parties' | 'citizens'> => {
+  const kinds: Array<'executive' | 'government' | 'parliament' | 'parliamentary_parties' | 'citizens'> = [];
+  const role = person.office?.role;
+  if (person.office?.countryId === person.countryId) {
+    if (role === 'head_of_government' || role === 'head_of_state') kinds.push('executive');
+    if (role === 'head_of_government' || role === 'minister') kinds.push('government');
+    if (role === 'legislator') kinds.push('parliament');
+  }
+  if (person.isPartyLeader) kinds.push('parliamentary_parties');
+  kinds.push('citizens');
+  return kinds;
+};
+
+/** Refer an amendment to the constitutional court (saisine). The constitution's accessors are
+ *  enforced, and the saisine timing follows the real judicial-review timing: `both` allows a priori
+ *  (before application) and a posteriori (after application); `none`/`unavailable` refuse a saisine. */
 export function referAmendmentForJudicialReview(state: SimulationState, instrumentId: string, byPersonId: string): SimulationState {
   const amendment = findPending(state, instrumentId);
   const person = state.governance.persons[byPersonId];
   if (!person || person.status !== 'active' || person.countryId !== amendment.countryId) throw new Error('Only an active person of the Country may refer the amendment.');
-  if (!person.office) throw new Error('Only an officeholder may refer an amendment for judicial review.');
+  const timing: JudicialTiming = amendment.judicialReview.timing;
+  if (timing === 'none' || timing === 'unavailable') throw new Error('This constitution provides no judicial review; no saisine is possible.');
   if (!['scheduled', 'promulgated'].includes(amendment.status)) throw new Error('Only a scheduled or applied amendment may be referred for judicial review.');
   if (!courtExists(state, amendment.countryId)) throw new Error('This Country has no constitutional court to review the amendment.');
-  const timing: AmendmentReferralTiming = amendment.judicialReview.timing === 'before_promulgation' || amendment.judicialReview.timing === 'both'
-    ? 'before_promulgation'
-    : 'after_promulgation';
-  const referral = { on: state.date, byPersonId, timing };
-  return replacePending(state, { ...amendment, status: 'referred', referral });
+  const accessors = state.constitution.countries[amendment.countryId]?.judicialReview.accessors ?? [];
+  const kinds = personAccessorKinds(person);
+  if (!accessors.some(kind => kinds.includes(kind))) throw new Error('This person is not among the constitutional accessors who may seize the court.');
+  const applied = amendment.appliedOn !== undefined;
+  if (timing === 'before_promulgation' && applied) throw new Error('This constitution allows only a priori review; an already-applied amendment cannot be seized again.');
+  if (timing === 'after_promulgation' && !applied) throw new Error('This constitution allows only a posteriori review; the amendment has not been applied yet.');
+  const referralTiming: AmendmentReferralTiming = applied ? 'after_promulgation' : 'before_promulgation';
+  return replacePending(state, { ...amendment, status: 'referred', referral: { on: state.date, byPersonId, timing: referralTiming } });
 }
 
 type AmendmentReferralTiming = 'before_promulgation' | 'after_promulgation';
@@ -101,7 +124,6 @@ type AmendmentReferralTiming = 'before_promulgation' | 'after_promulgation';
 export function decideAmendmentJudicialReview(state: SimulationState, instrumentId: string, verdict: { outcome: JudicialVerdict; effect: JudicialEffect }): SimulationState {
   const amendment = findPending(state, instrumentId);
   if (amendment.status !== 'referred') throw new Error('Only a referred amendment may receive a judicial decision.');
-  const constitution = state.constitution.countries[amendment.countryId];
   const grantedEffect = amendment.judicialReview.effect;
   if (grantedEffect === 'unavailable') throw new Error('This constitution grants the court no known power; a verdict cannot be issued from an unavailable power.');
   const admissible = verdict.outcome === 'clear'
@@ -113,15 +135,23 @@ export function decideAmendmentJudicialReview(state: SimulationState, instrument
   if (!admissible) throw new Error(`Verdict ${verdict.outcome} is not within the court's constitutional power (${grantedEffect}).`);
   if (verdict.effect !== grantedEffect) throw new Error('The exercised effect must equal the court\'s granted constitutional effect.');
   const decision = { outcome: verdict.outcome, effect: verdict.effect, on: state.date };
-  // A posteriori annulment/incompatibility reverses the already-applied amendment.
-  if ((verdict.outcome === 'annulled' || verdict.outcome === 'incompatible') && amendment.appliedOn && amendment.appliedPrior) {
-    const reversed = reverseConstitutionalAmendment(state, amendment);
-    return replacePending(reversed, { ...amendment, status: verdict.outcome === 'annulled' ? 'annulled' : 'incompatible', decision });
+  if (verdict.outcome === 'annulled') {
+    // A posteriori annulment reverses only this amendment's own changes; a priori annulment just blocks.
+    if (amendment.appliedOn) {
+      const reversed = reverseConstitutionalAmendment(state, amendment);
+      return replacePending(reversed, { ...amendment, status: 'annulled', decision });
+    }
+    return replacePending(state, { ...amendment, status: 'annulled', decision });
   }
-  if (verdict.outcome === 'annulled' || verdict.outcome === 'incompatible') {
-    return replacePending(state, { ...amendment, status: verdict.outcome === 'annulled' ? 'annulled' : 'incompatible', decision });
+  if (verdict.outcome === 'incompatible') {
+    // Distinct from annulment: the incompatibility is recorded without reversing the applied effects.
+    return replacePending(state, { ...amendment, status: 'incompatible', decision });
   }
-  // A clear or advisory verdict removes the a priori block; the amendment is ready to apply.
+  // A clear or advisory verdict removes the a priori block only when the amendment was not yet applied.
+  if (amendment.appliedOn) {
+    // Already applied (a posteriori review): stays promulgated — never re-scheduled or re-applied.
+    return replacePending(state, { ...amendment, status: 'promulgated', decision });
+  }
   return replacePending(state, { ...amendment, status: 'scheduled', decision });
 }
 
@@ -149,9 +179,9 @@ export function applyDueAmendments(state: SimulationState): SimulationState {
       }
       if (amendment.decision!.outcome === 'annulled' || amendment.decision!.outcome === 'incompatible') { continue; }
     }
-    const appliedPrior = timing === 'after_promulgation' || timing === 'both' ? captureAppliedPrior(next, amendment.countryId) : undefined;
+    const appliedInverse = timing === 'after_promulgation' || timing === 'both' ? captureAppliedInverse(next, amendment.countryId, amendment.payload) : undefined;
     next = applyConstitutionalAmendment(next, { id: amendment.instrumentId, countryId: amendment.countryId, payload: amendment.payload }).next;
-    terminal('promulgated', { appliedOn: state.date, ...(appliedPrior ? { appliedPrior } : {}) });
+    terminal('promulgated', { appliedOn: state.date, ...(appliedInverse ? { appliedInverse } : {}) });
   }
   return next;
 }
@@ -238,8 +268,12 @@ function removeConstitutionalBinding(state: SimulationState, countryId: string, 
 }
 
 /** Apply an adopted constitutional amendment: protect/unprotect material keys and revise the
- *  constitution's rights record. The owning governance runtime calls this exactly once on adoption. */
-export function applyConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; payload: PendingAmendment['payload'] }): { next: SimulationState; protectedMaterialKeys: string[]; unprotectedMaterialKeys: string[] } {
+ *  constitution's rights record. Internal: it requires canonical proof of an enacted instrument, so
+ *  it can never be used to bypass parliamentary adoption. The owning governance runtime schedules
+ *  the amendment and the monthly task applies it exactly once. */
+function applyConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; payload: PendingAmendment['payload'] }): { next: SimulationState; protectedMaterialKeys: string[]; unprotectedMaterialKeys: string[] } {
+  const instrument = state.governance.proposals[proposal.id];
+  if (!instrument || instrument.status !== 'enacted' || instrument.kind !== 'constitutional_amendment') throw new Error('Only an enacted constitutional amendment may be applied.');
   const protect = proposal.payload.materialKeysToProtect ?? [];
   const unprotect = proposal.payload.materialKeysToUnprotect ?? [];
   const unknown = [...protect, ...unprotect].filter(key => !(MATERIAL_KEYS as readonly string[]).includes(key));
@@ -264,34 +298,37 @@ export function applyConstitutionalAmendment(state: SimulationState, proposal: {
   return { next, protectedMaterialKeys: protect, unprotectedMaterialKeys: unprotect };
 }
 
-/** Reverse an already-applied amendment after a posteriori annulment/incompatibility, restoring the
- *  recorded pre-application constitution entry and removing this instrument's binding trace. */
+/** Reverse an already-applied amendment after a posteriori annulment. It restores only the fields and
+ *  material keys this amendment actually changed (the limited inverse), never a full snapshot that
+ *  could erase a later amendment. Material keys are rebuilt by replaying the dated binding trace
+ *  without this instrument, so a later amendment's protection or removal of the same key survives.
+ *  `declare_incompatibility` never calls this — it does not reverse. */
 function reverseConstitutionalAmendment(state: SimulationState, amendment: PendingAmendment): SimulationState {
   const entry = state.constitution.countries[amendment.countryId];
-  if (!entry || !amendment.appliedPrior) return state;
-  const prior = amendment.appliedPrior;
-  return {
-    ...state,
-    constitution: {
-      ...state.constitution,
-      countries: {
-        ...state.constitution.countries,
-        [amendment.countryId]: {
-          ...entry,
-          protectedMaterialKeys: [...prior.protectedMaterialKeys],
-          rights: structuredClone(prior.rights),
-          parliament: structuredClone(prior.parliament),
-          headOfState: structuredClone(prior.headOfState),
-          government: structuredClone(prior.government),
-          election: structuredClone(prior.election),
-          judicialReview: structuredClone(prior.judicialReview),
-          territory: structuredClone(prior.territory),
-          amendment: structuredClone(prior.amendment),
-          bindingEvents: entry.bindingEvents.filter(event => event.instrumentId !== amendment.instrumentId),
-        },
-      },
-    },
-  };
+  if (!entry) return state;
+  const inverse = amendment.appliedInverse;
+  // Every protection/removal is traced as a dated binding event, so the protected set is exactly the
+  // replay of the remaining trace (baseline empty at initialization). Filtering this instrument out
+  // and replaying never erases a later amendment's change — even for the same material key.
+  const events = entry.bindingEvents
+    .filter(event => event.instrumentId !== amendment.instrumentId)
+    .slice()
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const keys = new Set<string>();
+  for (const event of events) {
+    if (event.action === 'protected') keys.add(event.materialKey);
+    else keys.delete(event.materialKey);
+  }
+  const updated = { ...entry, protectedMaterialKeys: [...keys].sort(), bindingEvents: events };
+  if (inverse?.rights) updated.rights = { ...entry.rights, ...inverse.rights };
+  if (inverse?.parliament) updated.parliament = { ...entry.parliament, ...inverse.parliament };
+  if (inverse?.headOfState) updated.headOfState = { ...entry.headOfState, ...inverse.headOfState };
+  if (inverse?.government) updated.government = { ...entry.government, ...inverse.government };
+  if (inverse?.election) updated.election = { ...entry.election, ...inverse.election };
+  if (inverse?.judicialReview) updated.judicialReview = { ...entry.judicialReview, ...inverse.judicialReview };
+  if (inverse?.territory) updated.territory = { ...entry.territory, ...inverse.territory };
+  if (inverse?.amendment) updated.amendment = { ...entry.amendment, ...inverse.amendment };
+  return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [amendment.countryId]: updated } } };
 }
 
 export const constitutionVersion = () => CONSTITUTION_VERSION;
