@@ -604,18 +604,23 @@ export function appointMinister(state: SimulationState, countryId: string, actor
   if (!isHeadOfGovernment(state, actorPersonId, countryId)) throw new Error('Only the head of government may appoint ministers.');
   const minister = state.governance.persons[ministerPersonId];
   if (!minister || minister.countryId !== countryId) throw new Error('Minister is not a person of this Country.');
+  if (minister.office?.role === 'minister' && minister.office.countryId === countryId) throw new Error('This person already holds a ministerial office.');
   const cabinet = cabinetFor(state, countryId);
+  if (Object.values(cabinet.portfolios).some(p => p.ministerPersonId === ministerPersonId)) throw new Error('This person already holds a portfolio.');
   const portfolio: Portfolio = { id: portfolioId, name: portfolioName, ministerPersonId };
-  return { ...state, governance: { ...state.governance, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios: { ...cabinet.portfolios, [portfolioId]: portfolio } } } } };
+  const office = { role: 'minister' as const, countryId, title: portfolioName, appointedOn: state.date, authorityProfile: minister.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional office.' } };
+  return { ...state, governance: { ...state.governance, persons: { ...state.governance.persons, [ministerPersonId]: { ...minister, office } }, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios: { ...cabinet.portfolios, [portfolioId]: portfolio } } } } };
 }
 
-/** Remove a minister from office. */
+/** Remove a minister from office and clear their ministerial portfolio. */
 export function removeMinister(state: SimulationState, countryId: string, actorPersonId: string, ministerPersonId: string): SimulationState {
   if (!isHeadOfGovernment(state, actorPersonId, countryId)) throw new Error('Only the head of government may remove ministers.');
   const cabinet = cabinetFor(state, countryId);
   const portfolios: Record<string, Portfolio> = {};
   for (const [id, portfolio] of Object.entries(cabinet.portfolios)) portfolios[id] = portfolio.ministerPersonId === ministerPersonId ? { ...portfolio, ministerPersonId: undefined } : portfolio;
-  return { ...state, governance: { ...state.governance, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios } } } };
+  const minister = state.governance.persons[ministerPersonId];
+  const persons = minister && minister.office?.role === 'minister' ? { ...state.governance.persons, [ministerPersonId]: { ...minister, office: undefined } } : state.governance.persons;
+  return { ...state, governance: { ...state.governance, persons, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios } } } };
 }
 
 /** Appoint the deputy head of government. */
@@ -639,7 +644,9 @@ export function runGovernmentSuccession(state: SimulationState): SimulationState
     if (vacancy === 'unavailable') continue;
     const vice = state.governance.persons[cabinet.viceLeaderPersonId];
     if (!vice || vice.status !== 'active') continue;
-    const office = { role: 'head_of_government' as const, countryId, title: 'Head of government (acting)', appointedOn: state.date, authorityProfile: vice.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional succession.' } };
+    // Temporary succession keeps the deputy as an acting head; permanent succession is a full transfer.
+    const title = vacancy === 'deputy_permanent' ? 'Head of government' : 'Head of government (acting)';
+    const office = { role: 'head_of_government' as const, countryId, title, appointedOn: state.date, authorityProfile: vice.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional succession.' } };
     next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [vice.id]: { ...vice, office } } } };
   }
   return next;
