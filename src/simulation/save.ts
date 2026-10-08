@@ -25,6 +25,42 @@ import { emptyMultilateral, MULTILATERAL_VERSION } from './multilateral/model';
 import { initializeMultilateral } from './multilateral/runtime';
 import { initializeConstitution, emptyConstitution } from './constitution/model';
 import { initializeElections, emptyElections } from './elections/model';
+
+/** Idempotent intra-schema-19 backfill for saves written before pendingAmendments, per-chamber
+ *  elections and organization banEvents were introduced. Present fields are never rewritten. */
+function backfillSchema19(state: SimulationState): SimulationState {
+  let next = state;
+  const constitutionCountries: Record<string, SimulationState['constitution']['countries'][string]> = {};
+  let constitutionChanged = false;
+  for (const [countryId, entry] of Object.entries(state.constitution.countries)) {
+    if (entry.bindingEvents === undefined) { constitutionCountries[countryId] = { ...entry, bindingEvents: [] }; constitutionChanged = true; }
+    else constitutionCountries[countryId] = entry;
+  }
+  if (constitutionChanged || state.constitution.pendingAmendments === undefined) {
+    next = { ...next, constitution: { ...next.constitution, pendingAmendments: next.constitution.pendingAmendments ?? [], countries: constitutionChanged ? constitutionCountries : next.constitution.countries } };
+  }
+  const electionsCountries: Record<string, SimulationState['elections']['countries'][string]> = {};
+  let electionsChanged = false;
+  for (const [countryId, entry] of Object.entries(state.elections.countries)) {
+    const legacy = entry as unknown as { chambers?: unknown; seatsByParty?: Record<string, number>; totalSeats?: number; independentOtherSeats?: number; lastElectionDate?: string; nextElectionDate?: string };
+    if (legacy.chambers === undefined && legacy.seatsByParty) {
+      const chamberId = `chamber.${countryId}`;
+      electionsCountries[countryId] = { countryId, chambers: { [chamberId]: { chamberId, seatsByParty: legacy.seatsByParty, totalSeats: legacy.totalSeats ?? 0, independentOtherSeats: legacy.independentOtherSeats ?? 0, lastElectionDate: legacy.lastElectionDate, nextElectionDate: legacy.nextElectionDate } }, government: entry.government, parties: entry.parties };
+      electionsChanged = true;
+    } else electionsCountries[countryId] = entry;
+  }
+  if (electionsChanged) next = { ...next, elections: { ...next.elections, countries: electionsCountries } };
+  const organizations: Record<string, SimulationState['politics']['organizations'][string]> = {};
+  let orgChanged = false;
+  for (const [organizationId, organization] of Object.entries(state.politics.organizations)) {
+    if (organization.banEvents === undefined || organization.status === undefined || organization.members === undefined || organization.internalCurrents === undefined) {
+      organizations[organizationId] = { ...organization, status: organization.status ?? 'active', members: organization.members ?? {}, fundsUsd: organization.fundsUsd, internalCurrents: organization.internalCurrents ?? {}, banEvents: organization.banEvents ?? [] };
+      orgChanged = true;
+    } else organizations[organizationId] = organization;
+  }
+  if (orgChanged) next = { ...next, politics: { ...next.politics, organizations } };
+  return next;
+}
 import type { RegionEntity, SimulationState } from '../types';
 import type { DiplomacyContext } from './diplomacy';
 import { assertSimulationInvariants, type InvariantContext } from './invariants';
@@ -128,6 +164,9 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
       restored = upgradeOperationsDeployments(restored);
     }
     if (version < 18) restored = initializeMultilateral(restored);
+    // Intra-schema-19 backfill for saves written before pendingAmendments, per-chamber elections
+    // and organization banEvents were introduced. Idempotent: present fields are never rewritten.
+    restored = backfillSchema19(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

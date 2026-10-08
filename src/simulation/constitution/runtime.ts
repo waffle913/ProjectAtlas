@@ -1,6 +1,7 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import { CONSTITUTION_VERSION, MATERIAL_KEYS, type ConstitutionalDispositionKind, type ConstitutionalRights, type EmergencyConstitution, type PendingAmendment } from './model';
+import { POLITICAL_ISSUES } from '../politics/model';
 
 /** A person holding the executive office of the Country (head of government or head of state). */
 const isExecutive = (state: SimulationState, personId: string, countryId: string): boolean => {
@@ -58,14 +59,21 @@ export function applyDueAmendments(state: SimulationState): SimulationState {
   return { ...next, constitution: { ...next.constitution, pendingAmendments: next.constitution.pendingAmendments.filter(amendment => amendment.applyOn > state.date) } };
 }
 
-/** Monthly pass: expire the emergency justification once its crises are no longer active. */
+/** Monthly pass: expire the emergency once its exact justification crises are no longer active;
+ *  maintaining it without justification adds a causal dissatisfaction driver to opinion. */
 export function runEmergencyMonth(state: SimulationState): SimulationState {
   let changed = false;
   const countries: Record<string, SimulationState['constitution']['countries'][string]> = {};
   for (const [countryId, entry] of Object.entries(state.constitution.countries)) {
-    if (entry.emergency.status === 'active' && entry.emergency.justificationCrisisIds.length && !hasActiveCrisis(state, countryId)) {
-      countries[countryId] = { ...entry, emergency: { ...entry.emergency, status: 'expired' } };
-      changed = true;
+    if (entry.emergency.status === 'active' && entry.emergency.justificationCrisisIds.length) {
+      const currentByType = state.crisis.countries[countryId]?.currentByType ?? {};
+      const justificationActive = entry.emergency.justificationCrisisIds.some(type => (currentByType as Record<string, { state: string } | undefined>)[type]?.state === 'ACTIVE');
+      if (!justificationActive) {
+        countries[countryId] = { ...entry, emergency: { ...entry.emergency, status: 'expired' } };
+        changed = true;
+        const country = state.politics.countries[countryId];
+        if (country) state = { ...state, politics: { ...state.politics, countries: { ...state.politics.countries, [countryId]: { ...country, recentOpinionDrivers: [...country.recentOpinionDrivers, { date: state.date, drivers: [POLITICAL_ISSUES.indexOf('public_order')] }].slice(-12) } } } };
+      } else countries[countryId] = entry;
     } else countries[countryId] = entry;
   }
   return changed ? { ...state, constitution: { ...state.constitution, countries } } : state;
