@@ -298,6 +298,18 @@ export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
 export type AnyPoliticalProposal = { [K in ProposalKind]: PoliticalProposalFor<K> }[ProposalKind];
 export type PoliticalProposal = AnyPoliticalProposal;
 
+export interface GovernmentCabinet {
+  countryId: string;
+  viceLeaderPersonId?: string;
+  portfolios: Record<string, Portfolio>;
+}
+
+export interface Portfolio {
+  id: string;
+  name: string;
+  ministerPersonId?: string;
+}
+
 export interface GovernanceState {
   version: typeof GOVERNANCE_VERSION;
   initializedOn?: string;
@@ -311,6 +323,8 @@ export interface GovernanceState {
   successions: Record<string, LeadershipSuccession>;
   successionOrder: string[];
   nextSuccessionSequence: number;
+  /** National cabinets: ministers are PoliticalPersonState with offices; portfolios are a coordination structure, not a second engine. */
+  cabinets: Record<string, GovernmentCabinet>;
 }
 
 export const emptyGovernance = (initializedOn?: string): GovernanceState => ({
@@ -326,6 +340,7 @@ export const emptyGovernance = (initializedOn?: string): GovernanceState => ({
   successions: {},
   successionOrder: [],
   nextSuccessionSequence: 0,
+  cabinets: {},
 });
 
 export const governanceFingerprint = deterministicFingerprint;

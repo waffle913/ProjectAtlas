@@ -15,7 +15,7 @@ export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal } from './analysis';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type FiscalProposalPayload, type GovernanceState, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type PublicSupportEstimate } from './model';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type PublicSupportEstimate } from './model';
 import { rejectProtectedModification, applyConstitutionalAmendment } from '../constitution/runtime';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
@@ -584,3 +584,58 @@ export function resolveProposalVote(state: SimulationState, proposalIdValue: str
 export const inspectGovernance = (state: SimulationState) => structuredClone(state.governance);
 export const inspectPlayer = (state: SimulationState) => structuredClone(state.governance.player.controlledPersonId ? state.governance.persons[state.governance.player.controlledPersonId] : undefined);
 export const inspectProposal = (state: SimulationState, id: string) => structuredClone(state.governance.proposals[id]);
+
+const isHeadOfGovernment = (state: SimulationState, personId: string, countryId: string): boolean => {
+  const person = state.governance.persons[personId];
+  return Boolean(person?.status === 'active' && person.office?.countryId === countryId && person.office.role === 'head_of_government');
+};
+
+const cabinetFor = (state: SimulationState, countryId: string): GovernmentCabinet => state.governance.cabinets[countryId] ?? { countryId, portfolios: {} };
+
+/** Appoint a minister to a portfolio. Requires the head-of-government office. */
+export function appointMinister(state: SimulationState, countryId: string, actorPersonId: string, ministerPersonId: string, portfolioId: string, portfolioName: string): SimulationState {
+  if (!isHeadOfGovernment(state, actorPersonId, countryId)) throw new Error('Only the head of government may appoint ministers.');
+  const minister = state.governance.persons[ministerPersonId];
+  if (!minister || minister.countryId !== countryId) throw new Error('Minister is not a person of this Country.');
+  const cabinet = cabinetFor(state, countryId);
+  const portfolio: Portfolio = { id: portfolioId, name: portfolioName, ministerPersonId };
+  return { ...state, governance: { ...state.governance, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios: { ...cabinet.portfolios, [portfolioId]: portfolio } } } } };
+}
+
+/** Remove a minister from office. */
+export function removeMinister(state: SimulationState, countryId: string, actorPersonId: string, ministerPersonId: string): SimulationState {
+  if (!isHeadOfGovernment(state, actorPersonId, countryId)) throw new Error('Only the head of government may remove ministers.');
+  const cabinet = cabinetFor(state, countryId);
+  const portfolios: Record<string, Portfolio> = {};
+  for (const [id, portfolio] of Object.entries(cabinet.portfolios)) portfolios[id] = portfolio.ministerPersonId === ministerPersonId ? { ...portfolio, ministerPersonId: undefined } : portfolio;
+  return { ...state, governance: { ...state.governance, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios } } } };
+}
+
+/** Appoint the deputy head of government. */
+export function appointViceLeader(state: SimulationState, countryId: string, actorPersonId: string, vicePersonId: string): SimulationState {
+  if (!isHeadOfGovernment(state, actorPersonId, countryId)) throw new Error('Only the head of government may appoint a deputy.');
+  const vice = state.governance.persons[vicePersonId];
+  if (!vice || vice.countryId !== countryId) throw new Error('Deputy is not a person of this Country.');
+  const cabinet = cabinetFor(state, countryId);
+  return { ...state, governance: { ...state.governance, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, viceLeaderPersonId: vicePersonId } } } };
+}
+
+/** Monthly succession: when the head of government is inactive, the deputy takes over according to
+ *  the constitution's vacancy-succession rule. */
+export function runGovernmentSuccession(state: SimulationState): SimulationState {
+  let next = state;
+  for (const [countryId, cabinet] of Object.entries(state.governance.cabinets)) {
+    if (!cabinet.viceLeaderPersonId) continue;
+    const head = Object.values(state.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
+    if (head) continue;
+    const vacancy = state.constitution.countries[countryId]?.government.vacancySuccession ?? 'unavailable';
+    if (vacancy === 'unavailable') continue;
+    const vice = state.governance.persons[cabinet.viceLeaderPersonId];
+    if (!vice || vice.status !== 'active') continue;
+    const office = { role: 'head_of_government' as const, countryId, title: 'Head of government (acting)', appointedOn: state.date, authorityProfile: vice.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional succession.' } };
+    next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [vice.id]: { ...vice, office } } } };
+  }
+  return next;
+}
+
+export const registerGovernmentTasks = (scheduler: import('../scheduler').SimulationScheduler) => scheduler.register({ id: 'government.monthly', cadence: 'monthly', priority: 450, run: runGovernmentSuccession });

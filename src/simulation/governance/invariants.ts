@@ -261,5 +261,13 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
       }
     } else if (proposal.scheduledFiscalReformSequence !== undefined || proposal.enactmentReference) errors.push(`Non-enacted proposal ${id} references a fiscal reform.`);
   }
+  for (const [countryId, cabinet] of Object.entries(g.cabinets)) {
+    if (cabinet.countryId !== countryId || !context.countryIds.has(countryId)) errors.push(`Cabinet ${countryId} has an invalid identity.`);
+    if (cabinet.viceLeaderPersonId !== undefined && (!g.persons[cabinet.viceLeaderPersonId] || g.persons[cabinet.viceLeaderPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} has an invalid deputy reference.`);
+    for (const [portfolioId, portfolio] of Object.entries(cabinet.portfolios)) {
+      if (!portfolio || portfolio.id !== portfolioId || !portfolio.name?.trim()) errors.push(`Cabinet ${countryId} has an invalid portfolio ${portfolioId}.`);
+      if (portfolio.ministerPersonId !== undefined && (!g.persons[portfolio.ministerPersonId] || g.persons[portfolio.ministerPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} portfolio ${portfolioId} has an invalid minister reference.`);
+    }
+  }
   return errors;
 } };
