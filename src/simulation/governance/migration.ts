@@ -1,7 +1,7 @@
 import type { SimulationState } from '../../types';
 import { fiscalReformFingerprint } from '../fiscal/runtime';
 import { GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
-import { governanceFingerprint, type ChamberSupportEstimate, type ParliamentarySupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type PublicSupportEstimate } from './model';
+import { governanceFingerprint, proposalContract, type ChamberSupportEstimate, type ParliamentarySupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type PublicSupportEstimate } from './model';
 
 const correctedDecision = (evaluation: PartyProposalEvaluation): PartyProposalEvaluation['vote'] => evaluation.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || evaluation.coverage === 'unavailable' ? 'unknown' : evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
 function upgradeChamber(original: ChamberSupportEstimate): ChamberSupportEstimate {
@@ -69,11 +69,15 @@ export function upgradeGovernanceProposalModel(state: SimulationState): Simulati
   const proposals: Record<string, PoliticalProposal> = {};
   for (const [id, original] of Object.entries(state.governance.proposals)) {
     const proposal = structuredClone(original) as PoliticalProposal;
-    if (proposal.instrumentClass === undefined) { proposal.instrumentClass = 'law'; changed = true; }
-    const expectedEffects = proposal.enactmentReference
-      ? [{ category: 'fiscal_reform' as const, fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
-      : [];
-    if (proposal.effects === undefined || JSON.stringify(proposal.effects) !== JSON.stringify(expectedEffects)) { proposal.effects = expectedEffects; changed = true; }
+    if (proposal.instrumentClass === undefined) { proposal.instrumentClass = proposalContract(proposal.kind).defaultInstrumentClass; changed = true; }
+    // Backfill only ABSENT fields. A present-but-inconsistent effects array is left untouched so
+    // the ordinary invariants can reject it rather than the migration silently repairing corruption.
+    if (proposal.effects === undefined) {
+      proposal.effects = proposal.enactmentReference
+        ? [{ category: 'fiscal_reform' as const, fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
+        : [];
+      changed = true;
+    }
     proposals[id] = changed ? proposal : original;
   }
   return changed ? { ...state, governance: { ...state.governance, proposals } } : state;

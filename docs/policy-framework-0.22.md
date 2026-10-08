@@ -72,5 +72,28 @@ research, diplomacy V2, military V2, and any final UI redesign.
 `src/simulation/__tests__/policyFramework.test.ts` covers: migration backfill of
 pre-0.22 fiscal proposals, exactly-once effect with no re-application after
 reload, no effect before adoption/rejection, descriptors absent from saves,
-unknown instrument class rejected (no arbitrary effect), and the debug-reality
-information boundary.
+unknown instrument class rejected (no arbitrary effect), the debug-reality
+information boundary, unknown kind and post-submission instrument changes
+rejected, forged cross-domain effects rejected at reload, constitutional
+disposition rejected in 0.22, and the engine-vs-player authority split.
+
+## Corrective review (0.22 audit pass)
+
+- **Strict derivation instead of a changed fingerprint.** `kind`,
+  `instrumentClass` and `constitutionalDisposition` are strictly derived in 0.22
+  and validated by the invariant against the contract default; the submitted
+  fingerprint continues to cover `effectiveDate` + `payload`. A proposal cannot
+  change instrument class or constitutional disposition after submission without
+  being rejected. The typed contract (`PROPOSAL_CONTRACTS`) reserves
+  `allowedInstrumentClasses` so 0.23 can introduce constitutional entrenchment
+  without reworking the model or hard-binding a category to a single class.
+- **Engine commands split from the player wrapper.** `submitProposalForActor`,
+  `withdrawProposalForActor` and `resolveProposalVoteForActor` check real office
+  powers for an explicit `actorPersonId`; the player wrappers (`submitProposal`,
+  `withdrawProposal`, `resolveProposalVote`) still require the controlled person.
+- **Migration never repairs corruption.** `upgradeGovernanceProposalModel`
+  backfills only absent `instrumentClass`/`effects`; a present-but-inconsistent
+  `effects` array is left for the invariant to reject.
+- **Fiscal reform material effect timing.** Adoption schedules the fiscal reform
+  exactly once; its material effect applies only from the proposal's effective
+  date, never at adoption.

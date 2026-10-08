@@ -4,7 +4,7 @@ import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { politicalRegistry } from '../politics/registry';
 import type { PoliticalRegistry } from '../politics/model';
-import { createFiscalProposal, createPoliticalPerson, assignPoliticalOffice, setControlledPerson, submitProposal, resolveProposalVote, inspectProposalSupport, estimateParliamentarySupport } from '../governance/runtime';
+import { createFiscalProposal, createPoliticalPerson, assignPoliticalOffice, setControlledPerson, submitProposal, submitProposalForActor, resolveProposalVote, resolveProposalVoteForActor, withdrawProposalForActor, inspectProposalSupport, estimateParliamentarySupport } from '../governance/runtime';
 import { derivePartyGoalProfile } from '../governance/analysis';
 import { POLICY_CATEGORY_REGISTRY, type GovernanceGoal, type PartyGoalProfile } from '../governance/model';
 import { assertSimulationInvariants } from '../invariants';
@@ -115,5 +115,53 @@ describe('0.22 generic policy framework', () => {
     const proposalId = state.governance.proposalOrder[0];
     const support = inspectProposalSupport(state, proposalId);
     expect(support.informationStatus).toBe('engine_debug_reality');
+  });
+
+  it('rejects an unknown proposal kind and an instrument class changed after submission', () => {
+    const fixture = resolvableFixture(true);
+    const forged = structuredClone(fixture.state) as unknown as { governance: { proposals: Record<string, { kind: string; instrumentClass: string }> } };
+    forged.governance.proposals[fixture.proposalId].kind = 'naval_expansion';
+    expect(() => assertSimulationInvariants(forged as unknown as SimulationState, worldContext, 'save')).toThrow(/Unknown proposal kind/);
+    const submitted = submitProposal(fixture.state, fixture.proposalId);
+    const changed = structuredClone(submitted) as unknown as { governance: { proposals: Record<string, { instrumentClass: string }> } };
+    changed.governance.proposals[fixture.proposalId].instrumentClass = 'constitutional_amendment';
+    expect(() => assertSimulationInvariants(changed as unknown as SimulationState, worldContext, 'save')).toThrow(/not the 0.22 default/);
+  });
+
+  it('rejects a forged typed effect at reload instead of repairing it', () => {
+    const fixture = resolvableFixture(true);
+    let state = submitProposal(fixture.state, fixture.proposalId);
+    state = resolveProposalVoteForActor(state, fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles);
+    expect(state.governance.proposals[fixture.proposalId].status).toBe('enacted');
+    const forged = structuredClone(state) as unknown as { governance: { proposals: Record<string, { effects: Array<{ reformFingerprint: string }> }> } };
+    forged.governance.proposals[fixture.proposalId].effects[0].reformFingerprint = 'forged-fingerprint';
+    expect(() => restoreSimulationState(JSON.stringify(forged), worldRegions, {}, {}, worldContext)).toThrow(/matching typed effect/);
+  });
+
+  it('rejects a cross-domain effect category and a constitutional disposition in 0.22', () => {
+    const fixture = resolvableFixture(true);
+    let state = submitProposal(fixture.state, fixture.proposalId);
+    state = resolveProposalVoteForActor(state, fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles);
+    const crossDomain = structuredClone(state) as unknown as { governance: { proposals: Record<string, { effects: Array<{ category: string }> }> } };
+    crossDomain.governance.proposals[fixture.proposalId].effects[0].category = 'other_domain';
+    expect(() => assertSimulationInvariants(crossDomain as unknown as SimulationState, worldContext, 'save')).toThrow(/Invalid typed effects/);
+    const disposition = structuredClone(state) as unknown as { governance: { proposals: Record<string, { constitutionalDisposition: string }> } };
+    disposition.governance.proposals[fixture.proposalId].constitutionalDisposition = 'secondary';
+    expect(() => assertSimulationInvariants(disposition as unknown as SimulationState, worldContext, 'save')).toThrow(/not representable in 0.22/);
+  });
+
+  it('lets a non-controlled authorized actor use the engine path while the player wrapper stays restricted', () => {
+    const fixture = resolvableFixture(true);
+    const actor = createPoliticalPerson(fixture.state, { displayName: 'Non-controlled authorized minister', countryId: fixture.countryId });
+    const actorId = Object.keys(actor.governance.persons).at(-1)!;
+    let state = assignPoliticalOffice(actor, actorId, { role: 'head_of_government', countryId: fixture.countryId });
+    const current = state.fiscal.countries[fixture.countryId].annualBudget;
+    state = createFiscalProposal(state, { proposerPersonId: actorId, countryId: fixture.countryId, effectiveDate: '2026-02-01', payload: { annualBudget: { ...current, infrastructure: current.infrastructure * 2 } } });
+    const proposalId = state.governance.proposalOrder.at(-1)!;
+    // The player wrapper requires the controlled person, so it rejects a non-controlled proposer.
+    expect(() => submitProposal(state, proposalId)).toThrow(/not the controlled person/);
+    // The engine command checks real office powers, not governance.player.controlledPersonId.
+    state = submitProposalForActor(state, proposalId, actorId);
+    expect(state.governance.proposals[proposalId].status).toBe('submitted');
   });
 });
