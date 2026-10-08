@@ -126,7 +126,7 @@ function transferGovernmentOffices(state: SimulationState, countryId: string, co
   const currentHead = Object.values(state.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
   if (currentHead?.id === leader.id) return state;
   let next = state;
-  if (currentHead) next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [currentHead.id]: { ...currentHead, status: 'inactive', office: undefined } } } };
+  if (currentHead) next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [currentHead.id]: { ...currentHead, office: undefined } } } };
   const office = { role: 'head_of_government' as const, countryId, title: 'Head of government', appointedOn: state.date, authorityProfile: leader.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional office.' }, assignedOn: state.date };
   return { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [leader.id]: { ...leader, status: 'active', office } } } };
 }
