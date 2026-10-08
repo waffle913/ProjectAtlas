@@ -20,10 +20,10 @@ Implémenté, tests dédiés (`src/simulation/__tests__/elections.test.ts`), sch
 
 ## Commandes
 
-- `dissolveParliament(state, countryId, personId)` : exige le poste exécutif ; programme une élection.
-- `runElection(state, countryId)` : recompute les sièges de façon déterministe et forme le gouvernement.
-- `runElectionCycle` (cadence mensuelle) : déclenche l'élection quand `nextElectionDate` est atteinte.
-- `makeCampaignPromise(...)` : enregistre une promesse typée (`promisedKind`/`promisedPayload`) **sans jamais appliquer la politique elle-même** ; la promesse ne devient un effet que si le futur système l'adopte par la voie institutionnelle.
+- `dissolveParliament(state, countryId, personId)` : exige le poste exécutif **et** le détenteur exact de la dissolution (`executive`) ; programme une élection.
+- `runElection(state, countryId, chamberIds?)` : recompute les sièges par chambre de façon déterministe ; `runElectionCycle` ne réélit **que la chambre arrivée à échéance**.
+- `runElectionCycle` (cadence mensuelle) : déclenche l'élection quand une chambre atteint sa propre échéance.
+- `makeCampaignPromise(...)` : enregistre une promesse typée **sans jamais appliquer la politique**.
 
 ## Non implémenté (0.23, documenté)
 
