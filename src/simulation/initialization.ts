@@ -11,7 +11,7 @@ import { initializeTrade } from './trade/runtime';
 import { initializeInternational } from './international/runtime';
 import { initializeOperations } from './operations/runtime';
 import { initializeMultilateral } from './multilateral/runtime';
-
+import { initializeConstitution } from './constitution/model';
 /** Composes the existing domain initializers for a new game without running a simulation evaluation. */
 export function initializeNewGame(
   state: SimulationState,
@@ -24,5 +24,5 @@ export function initializeNewGame(
   const fiscal = initializeFiscal(initializeSocioeconomy(initializeInformationState(state), regions, socioeconomicData));
   const crisis = { ...fiscal, crisis: initializeCrisisState(fiscal.crisis, ids, fiscal.date) };
   const withPolitics = { ...crisis, politics: initializePolitics(crisis, ids, regions, politicalData), governance: crisis.governance?.initializedOn ? crisis.governance : emptyGovernance(crisis.date) };
-  return initializeOperations(initializeInternational(initializeMultilateral(initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics))))));
+  return initializeOperations(initializeInternational(initializeMultilateral(initializeConstitution(initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics))), ids))));
 }

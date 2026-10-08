@@ -9,6 +9,7 @@ import { tradeInvariant } from './trade/invariants';
 import { internationalInvariant } from './international/invariants';
 import { operationsInvariant } from './operations/invariants';
 import { multilateralInvariant } from './multilateral/invariants';
+import { constitutionInvariant } from './constitution/invariants';
 import type { RegionEntity, SimulationState } from '../types';
 import { validateDiplomacyState, type DiplomacyContext } from './diplomacy';
 import { validateWarState } from './war';
@@ -43,11 +44,12 @@ export const coreInvariants: readonly SimulationInvariant[] = [
   internationalInvariant,
   operationsInvariant,
   multilateralInvariant,
+  constitutionInvariant,
   {
     id: 'canonical-state-shape',
     check: state => {
       const errors: string[] = [];
-      if (state.schemaVersion !== 18) errors.push(`Expected schema 18, received ${state.schemaVersion}.`);
+      if (state.schemaVersion !== 19) errors.push(`Expected schema 19, received ${state.schemaVersion}.`);
       if (!validDate(state.date) || !Number.isSafeInteger(state.engine.tick) || state.engine.tick < 0 || !nonEmpty(state.engine.seed)) errors.push('Simulation date, tick or seed is malformed.');
       if (typeof state.paused !== 'boolean' || ![1, 2, 5].includes(state.speed)) errors.push('Simulation pause or speed is malformed.');
       if (Object.values(state.populationByRegion).some(value => value !== undefined && (!Number.isSafeInteger(value) || value < 0))) errors.push('Region population contains an invalid quantity.');

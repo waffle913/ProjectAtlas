@@ -1,0 +1,30 @@
+import type { SimulationInvariant } from '../invariants';
+import { CONSTITUTION_VERSION } from './model';
+
+const thresholds = ['parliamentaryThresholdBps', 'thresholdBps'] as const;
+const validStatus = ['sourced', 'derived', 'modelled', 'unavailable'];
+
+export const constitutionInvariant: SimulationInvariant = {
+  id: 'constitution-0.23-integrity',
+  check(state, context) {
+    const errors: string[] = [];
+    const constitution = state.constitution;
+    if (!constitution || constitution.version !== CONSTITUTION_VERSION) return ['Malformed constitution domain.'];
+    if (constitution.initializedOn !== undefined && constitution.initializedOn > state.date) errors.push('Constitution domain is initialized after the current date.');
+    for (const [countryId, entry] of Object.entries(constitution.countries)) {
+      if (entry.countryId !== countryId || !context.countryIds.has(countryId)) errors.push(`Constitution ${countryId} has an invalid identity.`);
+      if (!validStatus.includes(entry.coverage) || !validStatus.includes(entry.provenance.status)) errors.push(`Constitution ${countryId} has invalid coverage.`);
+      for (const key of thresholds) {
+        const value = (entry as unknown as Record<string, unknown>)[key];
+        if (value !== undefined && value !== null && (!Number.isSafeInteger(value) || (value as number) < 0 || (value as number) > 10000)) errors.push(`Constitution ${countryId} has an invalid threshold ${key}.`);
+      }
+      if (entry.headOfState.termYears !== undefined && (!Number.isSafeInteger(entry.headOfState.termYears) || entry.headOfState.termYears <= 0)) errors.push(`Constitution ${countryId} has an invalid head-of-state term.`);
+      if (entry.headOfState.maxTerms !== undefined && (!Number.isSafeInteger(entry.headOfState.maxTerms) || entry.headOfState.maxTerms <= 0)) errors.push(`Constitution ${countryId} has an invalid head-of-state max terms.`);
+      if (!Array.isArray(entry.protectedMaterialKeys) || entry.protectedMaterialKeys.some(key => typeof key !== 'string' || !key.trim())) errors.push(`Constitution ${countryId} has invalid protected material keys.`);
+      const restrictions = entry.emergency.restrictions;
+      for (const field of [restrictions.assembliesBanned, restrictions.strikesBanned, restrictions.policePowersEnhanced, restrictions.bordersClosed]) if (typeof field !== 'boolean') errors.push(`Constitution ${countryId} has an invalid emergency restriction.`);
+      if (!['none', 'active', 'expired'].includes(entry.emergency.status)) errors.push(`Constitution ${countryId} has an invalid emergency status.`);
+    }
+    return errors;
+  },
+};
