@@ -37,7 +37,7 @@ export function endEmergency(state: SimulationState, countryId: string, personId
 /** Monthly pass: expire the emergency justification once its crises are no longer active. */
 /** Schedule an adopted amendment to apply at its effective date, recording the constitutional
  *  judicial-review timing/effect. The effect is never applied before the effective date. */
-export function scheduleConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; effectiveDate: string; payload: { materialKeysToProtect?: string[]; materialKeysToUnprotect?: string[]; rightChanges?: Partial<ConstitutionalRights> } }): SimulationState {
+export function scheduleConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; effectiveDate: string; payload: PendingAmendment['payload'] }): SimulationState {
   const judicialReview = state.constitution.countries[proposal.countryId]?.judicialReview ?? { timing: 'unavailable' as const, effect: 'unavailable' as const };
   const pending: PendingAmendment = { instrumentId: proposal.id, countryId: proposal.countryId, applyOn: proposal.effectiveDate, payload: proposal.payload, judicialReview: { timing: judicialReview.timing, effect: judicialReview.effect } };
   return { ...state, constitution: { ...state.constitution, pendingAmendments: [...state.constitution.pendingAmendments, pending] } };
@@ -122,7 +122,7 @@ function removeConstitutionalBinding(state: SimulationState, countryId: string, 
 
 /** Apply an adopted constitutional amendment: protect/unprotect material keys and revise the
  *  constitution's rights record. The owning governance runtime calls this exactly once on adoption. */
-export function applyConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; payload: { materialKeysToProtect?: string[]; materialKeysToUnprotect?: string[]; rightChanges?: Partial<ConstitutionalRights> } }): { next: SimulationState; protectedMaterialKeys: string[]; unprotectedMaterialKeys: string[] } {
+export function applyConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; payload: PendingAmendment['payload'] }): { next: SimulationState; protectedMaterialKeys: string[]; unprotectedMaterialKeys: string[] } {
   const protect = proposal.payload.materialKeysToProtect ?? [];
   const unprotect = proposal.payload.materialKeysToUnprotect ?? [];
   const unknown = [...protect, ...unprotect].filter(key => !(MATERIAL_KEYS as readonly string[]).includes(key));
@@ -130,9 +130,18 @@ export function applyConstitutionalAmendment(state: SimulationState, proposal: {
   let next = state;
   if (protect.length) next = registerConstitutionalBinding(next, proposal.countryId, protect, proposal.id);
   if (unprotect.length) next = removeConstitutionalBinding(next, proposal.countryId, unprotect, proposal.id);
-  if (proposal.payload.rightChanges && Object.keys(proposal.payload.rightChanges).length) {
-    const entry = next.constitution.countries[proposal.countryId];
-    if (entry) next = { ...next, constitution: { ...next.constitution, countries: { ...next.constitution.countries, [proposal.countryId]: { ...entry, rights: { ...entry.rights, ...proposal.payload.rightChanges } } } } };
+  const entry = next.constitution.countries[proposal.countryId];
+  if (entry) {
+    const p = proposal.payload;
+    const updated = { ...entry };
+    if (p.rightsChanges && Object.keys(p.rightsChanges).length) updated.rights = { ...entry.rights, ...p.rightsChanges };
+    if (p.parliamentChanges && Object.keys(p.parliamentChanges).length) updated.parliament = { ...entry.parliament, ...p.parliamentChanges };
+    if (p.executiveChanges?.headOfState) updated.headOfState = { ...entry.headOfState, ...p.executiveChanges.headOfState };
+    if (p.executiveChanges?.government) updated.government = { ...entry.government, ...p.executiveChanges.government };
+    if (p.electionChanges && Object.keys(p.electionChanges).length) updated.election = { ...entry.election, ...p.electionChanges };
+    if (p.judicialChanges && Object.keys(p.judicialChanges).length) updated.judicialReview = { ...entry.judicialReview, ...p.judicialChanges };
+    if (p.territoryChanges) updated.territory = { ...entry.territory, ...p.territoryChanges };
+    next = { ...next, constitution: { ...next.constitution, countries: { ...next.constitution.countries, [proposal.countryId]: updated } } };
   }
   return { next, protectedMaterialKeys: protect, unprotectedMaterialKeys: unprotect };
 }

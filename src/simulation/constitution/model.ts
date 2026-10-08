@@ -142,7 +142,16 @@ export interface PendingAmendment {
   instrumentId: string;
   countryId: string;
   applyOn: string;
-  payload: { materialKeysToProtect?: string[]; materialKeysToUnprotect?: string[]; rightChanges?: Partial<ConstitutionalRights> };
+  payload: {
+    materialKeysToProtect?: string[];
+    materialKeysToUnprotect?: string[];
+    rightsChanges?: Partial<ConstitutionalRights>;
+    parliamentChanges?: Partial<ParliamentConstitution>;
+    executiveChanges?: { headOfState?: Partial<HeadOfStateConstitution>; government?: Partial<GovernmentConstitution> };
+    electionChanges?: Partial<ElectionConstitution>;
+    judicialChanges?: Partial<JudicialReviewConstitution>;
+    territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] }>;
+  };
   judicialReview: { timing: JudicialTiming; effect: JudicialEffect };
 }
 

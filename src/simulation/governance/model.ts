@@ -1,6 +1,6 @@
 import type { Budget, Policy } from '../fiscal/model';
 import type { PoliticalIssue } from '../politics/model';
-import type { ConstitutionalRights } from '../constitution/model';
+import type { ConstitutionalRights, ParliamentConstitution, HeadOfStateConstitution, GovernmentConstitution, ElectionConstitution, JudicialReviewConstitution, TerritorialOrganization, RegionalAutonomy } from '../constitution/model';
 import { deterministicFingerprint } from '../fingerprint';
 
 export const GOVERNANCE_VERSION = 'governance-0.14-v1' as const;
@@ -135,7 +135,12 @@ export interface FiscalReformEnactment {
 export interface ConstitutionalAmendmentPayload {
   materialKeysToProtect?: string[];
   materialKeysToUnprotect?: string[];
-  rightChanges?: Partial<ConstitutionalRights>;
+  rightsChanges?: Partial<ConstitutionalRights>;
+  parliamentChanges?: Partial<ParliamentConstitution>;
+  executiveChanges?: { headOfState?: Partial<HeadOfStateConstitution>; government?: Partial<GovernmentConstitution> };
+  electionChanges?: Partial<ElectionConstitution>;
+  judicialChanges?: Partial<JudicialReviewConstitution>;
+  territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] }>;
 }
 
 export interface ConstitutionalAmendmentEnactment {
@@ -266,7 +271,7 @@ export interface PartyChamberEvaluation extends PartyProposalEvaluation { seats:
 export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
 export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: PartyChamberEvaluation[] }
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1'; seatApportionment?: 'identity_hash_v1' }
-export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' }
+export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | 'parliament_has_no_legislative_power' | 'parliamentary_opinion_non_binding' | 'executive_override' }
 export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
 export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
   id: string;

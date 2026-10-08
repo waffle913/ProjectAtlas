@@ -478,7 +478,7 @@ export function createConstitutionalAmendmentProposal(state: SimulationState, in
   if (proposer.countryId !== input.countryId) throw new Error('Proposal Country does not match proposer scope.');
   // Automatic principal/secondary classification: a rights or structural change is principal; a
   // material-key protection/removal is secondary. The disposition is derived, never freely chosen.
-  const disposition: ConstitutionalDisposition = input.payload.rightChanges ? 'principal' : 'secondary';
+  const disposition: ConstitutionalDisposition = input.payload.rightsChanges || input.payload.parliamentChanges || input.payload.executiveChanges || input.payload.electionChanges || input.payload.judicialChanges || input.payload.territoryChanges ? 'principal' : 'secondary';
   const id = proposalId(state.governance.nextProposalSequence);
   const proposal: PoliticalProposal = { id, countryId: input.countryId, proposerPersonId: proposer.id, createdOn: state.date, kind: 'constitutional_amendment', instrumentClass: 'constitutional_amendment', constitutionalDisposition: disposition, payload: structuredClone(input.payload), status: 'draft', effectiveDate: input.effectiveDate, effects: [] };
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [id]: proposal }, proposalOrder: [...state.governance.proposalOrder, id], nextProposalSequence: state.governance.nextProposalSequence + 1 });
@@ -552,8 +552,17 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   if (!hasCapability(proposal, actor, 'vote_legislation')) throw new Error('Actor lacks authority to resolve this legislative vote.');
   const analysis = analyzeProposal(state, proposal), publicEstimate = estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate = estimateParliamentarySupport(state, proposal, registry, profiles, analysis), expired = state.date > proposal.effectiveDate;
   const parliamentPower = state.constitution.countries[proposal.countryId]?.parliament.power;
-  const legislativePathBlocked = proposal.instrumentClass !== 'administrative_action' && ['none', 'consultative', 'weak_legislative'].includes(parliamentPower ?? '');
-  const outcome = expired || legislativePathBlocked || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected', reason = expired ? 'effective_date_expired' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined;
+  const legislativeInstrument = proposal.instrumentClass !== 'administrative_action';
+  let powerBlockedReason: 'parliament_has_no_legislative_power' | 'parliamentary_opinion_non_binding' | undefined;
+  if (legislativeInstrument) {
+    if (parliamentPower === 'none') powerBlockedReason = 'parliament_has_no_legislative_power';
+    else if (parliamentPower === 'consultative') powerBlockedReason = 'parliamentary_opinion_non_binding';
+  }
+  // weak_legislative requires a 2/3 supermajority; below that the executive's position is not overridden.
+  const weakLegislativeOverride = parliamentPower === 'weak_legislative' && parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 3 >= parliamentaryEstimate.totalSeats * 2;
+  const parliamentAdopts = parliamentaryEstimate.chambers.every(item => item.adopted) && (parliamentPower !== 'weak_legislative' || weakLegislativeOverride);
+  const outcome = expired || powerBlockedReason !== undefined || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentAdopts ? 'adopted' : 'rejected';
+  const reason = expired ? 'effective_date_expired' as const : powerBlockedReason ?? (parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined);
   const protectedViolation = outcome === 'adopted' && proposal.kind === 'fiscal_reform' ? rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload) : undefined;
   let amendmentReason: 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | undefined;
   if (proposal.kind === 'constitutional_amendment' && outcome === 'adopted') {

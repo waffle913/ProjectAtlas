@@ -204,7 +204,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
       ? ((!proposal.payload.policy && !proposal.payload.annualBudget) || (proposal.payload.policy && safe(() => validatePolicy(proposal.payload.policy!, proposal.countryId, proposal.effectiveDate))) || (proposal.payload.annualBudget && safe(() => validateBudget(proposal.payload.annualBudget!))))
       : false;
     const amendmentPayloadInvalid = proposal.kind === 'constitutional_amendment'
-      ? !proposal.constitutionalDisposition || !['principal', 'secondary'].includes(proposal.constitutionalDisposition) || (!proposal.payload.materialKeysToProtect?.length && !proposal.payload.materialKeysToUnprotect?.length && !proposal.payload.rightChanges)
+      ? !proposal.constitutionalDisposition || !['principal', 'secondary'].includes(proposal.constitutionalDisposition) || (!proposal.payload.materialKeysToProtect?.length && !proposal.payload.materialKeysToUnprotect?.length && !proposal.payload.rightsChanges && !proposal.payload.parliamentChanges && !proposal.payload.executiveChanges && !proposal.payload.electionChanges && !proposal.payload.judicialChanges && !proposal.payload.territoryChanges)
       : false;
     if (fiscalPayloadInvalid || amendmentPayloadInvalid) errors.push(`Invalid payload for ${id}.`);
     if (proposal.status === 'draft' && (proposal.submittedOn || proposal.submittedPayloadFingerprint || proposal.resolvedOn || proposal.voteResult)) errors.push(`Draft ${id} contains lifecycle residue.`);
@@ -219,6 +219,11 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     const contract = PROPOSAL_CONTRACTS[proposal.kind];
     if (contract && !contract.allowedInstrumentClasses.includes(proposal.instrumentClass)) errors.push(`Instrument class ${proposal.instrumentClass} is not allowed for ${proposal.kind} proposal ${id}.`);
     if (proposal.constitutionalDisposition !== undefined && (proposal.kind !== 'constitutional_amendment' || !['principal', 'secondary'].includes(proposal.constitutionalDisposition))) errors.push(`Constitutional disposition is invalid for ${proposal.kind} proposal ${id}.`);
+    if (proposal.kind === 'constitutional_amendment') {
+      const structural = Boolean(proposal.payload.rightsChanges || proposal.payload.parliamentChanges || proposal.payload.executiveChanges || proposal.payload.electionChanges || proposal.payload.judicialChanges || proposal.payload.territoryChanges);
+      const derived = structural ? 'principal' : 'secondary';
+      if (proposal.constitutionalDisposition !== derived) errors.push(`Constitutional disposition ${id} is not derived from its payload.`);
+    }
     const effectValid = (effect: ProposalEffect) => effect.category === proposal.kind && (effect.category === 'fiscal_reform'
       ? Number.isSafeInteger(effect.fiscalReformSequence) && typeof effect.reformFingerprint === 'string'
       : Array.isArray(effect.protectedMaterialKeys) && Array.isArray(effect.unprotectedMaterialKeys));
