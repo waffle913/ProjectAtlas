@@ -1,5 +1,6 @@
 import type { Budget, Policy } from '../fiscal/model';
 import type { PoliticalIssue } from '../politics/model';
+import type { ConstitutionalRights } from '../constitution/model';
 import { deterministicFingerprint } from '../fingerprint';
 
 export const GOVERNANCE_VERSION = 'governance-0.14-v1' as const;
@@ -98,7 +99,7 @@ export interface FiscalProposalPayload { policy?: Policy; annualBudget?: Budget 
 // 0.22 generic decision/policy/law framework. `kind` is the machine category; `fiscal_reform`
 // is the first member. Future milestones add new categories with their own typed payloads and
 // effects — none are implemented here.
-export const PROPOSAL_KINDS = ['fiscal_reform'] as const;
+export const PROPOSAL_KINDS = ['fiscal_reform', 'constitutional_amendment'] as const;
 export type ProposalKind = typeof PROPOSAL_KINDS[number];
 
 // Distinguishes what sort of public decision a proposal is. A fiscal reform adopted through
@@ -115,8 +116,8 @@ export type ConstitutionalDisposition = 'principal' | 'secondary';
 
 // Typed per-kind payload and effect mappings. Only `fiscal_reform` has a concrete
 // implementation in 0.22; the union collapses to it today and grows per future milestone.
-export interface ProposalPayloadByKind { fiscal_reform: FiscalProposalPayload }
-export interface ProposalEffectByKind { fiscal_reform: FiscalReformEnactment }
+export interface ProposalPayloadByKind { fiscal_reform: FiscalProposalPayload; constitutional_amendment: ConstitutionalAmendmentPayload }
+export interface ProposalEffectByKind { fiscal_reform: FiscalReformEnactment; constitutional_amendment: ConstitutionalAmendmentEnactment }
 export type ProposalPayload = ProposalPayloadByKind[ProposalKind];
 export type ProposalEffect = ProposalEffectByKind[ProposalKind];
 
@@ -127,6 +128,22 @@ export interface FiscalReformEnactment {
   category: 'fiscal_reform';
   fiscalReformSequence: number;
   reformFingerprint: string;
+}
+
+/** Payload of a constitutional amendment: it may protect/unprotect canonical material keys and
+ *  change the constitution's rights record. It never applies an arbitrary effect itself. */
+export interface ConstitutionalAmendmentPayload {
+  disposition: ConstitutionalDisposition;
+  materialKeysToProtect?: string[];
+  materialKeysToUnprotect?: string[];
+  rightChanges?: Partial<ConstitutionalRights>;
+}
+
+export interface ConstitutionalAmendmentEnactment {
+  category: 'constitutional_amendment';
+  disposition: ConstitutionalDisposition;
+  protectedMaterialKeys: string[];
+  unprotectedMaterialKeys: string[];
 }
 
 // Static, pedagogical description of a proposal category. This is documentation, not a
@@ -162,6 +179,18 @@ export const PROPOSAL_CONTRACTS: { [K in ProposalKind]: ProposalContract<K> } = 
     },
     defaultInstrumentClass: 'law',
     allowedInstrumentClasses: ['law', 'constitutional_amendment'],
+  },
+  constitutional_amendment: {
+    kind: 'constitutional_amendment',
+    descriptor: {
+      kind: 'constitutional_amendment',
+      title: 'Constitutional amendment',
+      summary: 'Amends the constitution as a principal or secondary disposition: protects or removes canonical material keys, or changes the constitution\'s rights record.',
+      usage: 'Entrench a material policy at constitutional level so an ordinary law can no longer modify it, or revise the rights record. Requires the constitutional procedure (threshold, referendum, judicial review).',
+      context: 'Constitutional dispositions bind the legislature; they are created and removed only through this procedure, with a dated, traceable binding record.',
+    },
+    defaultInstrumentClass: 'constitutional_amendment',
+    allowedInstrumentClasses: ['constitutional_amendment'],
   },
 };
 
@@ -238,7 +267,7 @@ export interface PartyChamberEvaluation extends PartyProposalEvaluation { seats:
 export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
 export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: PartyChamberEvaluation[] }
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1'; seatApportionment?: 'identity_hash_v1' }
-export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' }
+export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' }
 export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
 export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
   id: string;

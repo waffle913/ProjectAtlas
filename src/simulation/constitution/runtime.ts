@@ -1,6 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
-import { CONSTITUTION_VERSION, type ConstitutionalDispositionKind, type EmergencyConstitution } from './model';
+import { CONSTITUTION_VERSION, type ConstitutionalDispositionKind, type ConstitutionalRights, type EmergencyConstitution } from './model';
 
 /** A person holding the executive office of the Country (head of government or head of state). */
 const isExecutive = (state: SimulationState, personId: string, countryId: string): boolean => {
@@ -94,6 +94,21 @@ export function removeConstitutionalBinding(state: SimulationState, countryId: s
   const merged = entry.protectedMaterialKeys.filter(key => !removed.has(key)).sort();
   const events = [...entry.bindingEvents, ...materialKeys.map(materialKey => ({ date: state.date, materialKey, action: 'unprotected' as const, instrumentId, provenance: 'constitutional_amendment' as const }))];
   return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...entry, protectedMaterialKeys: merged, bindingEvents: events } } } };
+}
+
+/** Apply an adopted constitutional amendment: protect/unprotect material keys and revise the
+ *  constitution's rights record. The owning governance runtime calls this exactly once on adoption. */
+export function applyConstitutionalAmendment(state: SimulationState, proposal: { id: string; countryId: string; payload: { materialKeysToProtect?: string[]; materialKeysToUnprotect?: string[]; rightChanges?: Partial<ConstitutionalRights> } }): { next: SimulationState; protectedMaterialKeys: string[]; unprotectedMaterialKeys: string[] } {
+  const protect = proposal.payload.materialKeysToProtect ?? [];
+  const unprotect = proposal.payload.materialKeysToUnprotect ?? [];
+  let next = state;
+  if (protect.length) next = registerConstitutionalBinding(next, proposal.countryId, protect, proposal.id);
+  if (unprotect.length) next = removeConstitutionalBinding(next, proposal.countryId, unprotect, proposal.id);
+  if (proposal.payload.rightChanges && Object.keys(proposal.payload.rightChanges).length) {
+    const entry = next.constitution.countries[proposal.countryId];
+    if (entry) next = { ...next, constitution: { ...next.constitution, countries: { ...next.constitution.countries, [proposal.countryId]: { ...entry, rights: { ...entry.rights, ...proposal.payload.rightChanges } } } } };
+  }
+  return { next, protectedMaterialKeys: protect, unprotectedMaterialKeys: unprotect };
 }
 
 export const constitutionVersion = () => CONSTITUTION_VERSION;

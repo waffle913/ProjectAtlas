@@ -9,7 +9,7 @@ import { allocatePartySeats, INTERNAL_PARTY_DISTRIBUTION_MODEL } from './interna
 import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, institutionalTransferKey, isInstitutionalPowerTransfer } from './institutionalInterest';
 import {
   AUTHORITY_CAPABILITIES, GOVERNANCE_VERSION, governanceFingerprint, PROPOSAL_CONTRACTS, PROPOSAL_INSTRUMENT_CLASSES, PROPOSAL_KINDS,
-  type ChamberSupportEstimate, type PartyChamberEvaluation, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis,
+  type ChamberSupportEstimate, type PartyChamberEvaluation, type PartyProposalEvaluation, type PoliticalProposal, type ProposalAnalysis, type ProposalEffect,
 } from './model';
 
 const safe = (fn: () => void) => { try { fn(); return false; } catch { return true; } };
@@ -200,7 +200,13 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
   for (const [id, proposal] of Object.entries(g.proposals)) {
     const proposer = g.persons[proposal.proposerPersonId];
     if (proposal.id !== id || !id.match(/^proposal\.\d{8}$/) || Number(id.slice(9)) >= g.nextProposalSequence || !['draft', 'submitted', 'enacted', 'rejected', 'withdrawn', 'unavailable'].includes(proposal.status) || !proposer || proposer.countryId !== proposal.countryId || !context.countryIds.has(proposal.countryId) || !dateValid(proposal.createdOn) || proposal.createdOn < g.initializedOn || proposal.createdOn > state.date || !dateValid(proposal.effectiveDate) || proposal.effectiveDate < proposal.createdOn) errors.push(`Malformed proposal ${id}.`);
-    if ((!proposal.payload.policy && !proposal.payload.annualBudget) || (proposal.payload.policy && safe(() => validatePolicy(proposal.payload.policy!, proposal.countryId, proposal.effectiveDate))) || (proposal.payload.annualBudget && safe(() => validateBudget(proposal.payload.annualBudget!)))) errors.push(`Invalid fiscal payload for ${id}.`);
+    const fiscalPayloadInvalid = proposal.kind === 'fiscal_reform'
+      ? ((!proposal.payload.policy && !proposal.payload.annualBudget) || (proposal.payload.policy && safe(() => validatePolicy(proposal.payload.policy!, proposal.countryId, proposal.effectiveDate))) || (proposal.payload.annualBudget && safe(() => validateBudget(proposal.payload.annualBudget!))))
+      : false;
+    const amendmentPayloadInvalid = proposal.kind === 'constitutional_amendment'
+      ? !['principal', 'secondary'].includes(proposal.payload.disposition) || (!proposal.payload.materialKeysToProtect?.length && !proposal.payload.materialKeysToUnprotect?.length && !proposal.payload.rightChanges)
+      : false;
+    if (fiscalPayloadInvalid || amendmentPayloadInvalid) errors.push(`Invalid payload for ${id}.`);
     if (proposal.status === 'draft' && (proposal.submittedOn || proposal.submittedPayloadFingerprint || proposal.resolvedOn || proposal.voteResult)) errors.push(`Draft ${id} contains lifecycle residue.`);
     if (proposal.status === 'submitted' && (proposal.resolvedOn || proposal.voteResult)) errors.push(`Submitted proposal ${id} contains resolution residue.`);
     if (proposal.status === 'withdrawn' && proposal.voteResult) errors.push(`Withdrawn proposal ${id} contains a vote result.`);
@@ -211,12 +217,16 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (!(PROPOSAL_KINDS as readonly string[]).includes(proposal.kind)) errors.push(`Unknown proposal kind for ${id}.`);
     if (!PROPOSAL_INSTRUMENT_CLASSES.includes(proposal.instrumentClass)) errors.push(`Invalid instrument class for ${id}.`);
     const contract = PROPOSAL_CONTRACTS[proposal.kind];
-    // 0.22 has no constitutional procedure, so kind/instrument/disposition are strictly derived:
-    // the instrument must be the category's default and no constitutional disposition may exist.
-    if (contract && proposal.instrumentClass !== contract.defaultInstrumentClass) errors.push(`Instrument class ${proposal.instrumentClass} is not the 0.22 default for ${proposal.kind} proposal ${id}.`);
-    if (proposal.constitutionalDisposition !== undefined) errors.push(`Constitutional disposition is not representable in 0.22 for ${id}.`);
-    if (!Array.isArray(proposal.effects) || proposal.effects.some(effect => effect.category !== proposal.kind || !Number.isSafeInteger(effect.fiscalReformSequence) || typeof effect.reformFingerprint !== 'string')) errors.push(`Invalid typed effects for ${id}.`);
-    if (proposal.status === 'enacted' && (proposal.effects.length !== 1 || !proposal.enactmentReference || proposal.effects[0].fiscalReformSequence !== proposal.enactmentReference.fiscalReformSequence || proposal.effects[0].reformFingerprint !== proposal.enactmentReference.reformFingerprint)) errors.push(`Enacted proposal ${id} lacks exactly one matching typed effect.`);
+    if (contract && !contract.allowedInstrumentClasses.includes(proposal.instrumentClass)) errors.push(`Instrument class ${proposal.instrumentClass} is not allowed for ${proposal.kind} proposal ${id}.`);
+    if (proposal.constitutionalDisposition !== undefined && (proposal.kind !== 'constitutional_amendment' || !['principal', 'secondary'].includes(proposal.constitutionalDisposition))) errors.push(`Constitutional disposition is invalid for ${proposal.kind} proposal ${id}.`);
+    const effectValid = (effect: ProposalEffect) => effect.category === proposal.kind && (effect.category === 'fiscal_reform'
+      ? Number.isSafeInteger(effect.fiscalReformSequence) && typeof effect.reformFingerprint === 'string'
+      : Array.isArray(effect.protectedMaterialKeys) && Array.isArray(effect.unprotectedMaterialKeys));
+    if (!Array.isArray(proposal.effects) || proposal.effects.some(effect => !effectValid(effect))) errors.push(`Invalid typed effects for ${id}.`);
+    if (proposal.status === 'enacted') {
+      if (proposal.effects.length !== 1) errors.push(`Enacted proposal ${id} lacks exactly one matching typed effect.`);
+      else if (proposal.kind === 'fiscal_reform' && proposal.enactmentReference && (proposal.effects[0].fiscalReformSequence !== proposal.enactmentReference.fiscalReformSequence || proposal.effects[0].reformFingerprint !== proposal.enactmentReference.reformFingerprint)) errors.push(`Enacted proposal ${id} has a typed effect inconsistent with its enactment reference.`);
+    }
     if (proposal.status !== 'enacted' && proposal.effects.length !== 0) errors.push(`Non-enacted proposal ${id} records a typed effect before becoming effective.`);
     if (proposal.publicEstimate && (![proposal.publicEstimate.supportBps, proposal.publicEstimate.opposeBps, proposal.publicEstimate.neutralBps, proposal.publicEstimate.unknownBps, proposal.publicEstimate.confidenceBps].every(bps) || proposal.publicEstimate.supportBps + proposal.publicEstimate.opposeBps + proposal.publicEstimate.neutralBps + proposal.publicEstimate.unknownBps !== 10_000 || !coverage(proposal.publicEstimate.coverage) || ![proposal.publicEstimate.representedPersons, proposal.publicEstimate.knownPersons, proposal.publicEstimate.unknownPersons].every(nonNegative) || proposal.publicEstimate.knownPersons + proposal.publicEstimate.unknownPersons !== proposal.publicEstimate.representedPersons || proposal.publicEstimate.coverage === 'complete' && proposal.publicEstimate.unknownPersons !== 0 || proposal.publicEstimate.coverage === 'unavailable' && proposal.publicEstimate.knownPersons !== 0)) errors.push(`Invalid public estimate for ${id}.`);
     const legacyAggregateOnly = proposal.evaluationVersion === 'legacy-0.14-v1' && ['enacted', 'rejected', 'unavailable'].includes(proposal.status);

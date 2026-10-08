@@ -1855,7 +1855,7 @@ describe('governance 0.14 player and political decisions', () => {
     expect(proposal.status).toBe('enacted'); expect(proposal.voteResult?.outcome).toBe('adopted'); expect(state.paused).toBe(true); expect(state.fiscal.reforms.filter(reform => reform.sequence === proposal.scheduledFiscalReformSequence)).toHaveLength(1);
     expect(state.fiscal.countries).toBe(fiscalBefore.countries); expect(state.socioeconomy).toBe(socioBefore); expect(state.politics).toBe(politicsBefore); expect(state.crisis).toBe(crisisBefore);
     const applied = advanceSimulationDays(state, 31); expect(applied.fiscal.reforms.some(reform => reform.sequence === proposal.scheduledFiscalReformSequence)).toBe(false);
-    if (proposal.payload.policy) expect(applied.fiscal.countries[fixture.countryId].policy).toEqual(proposal.payload.policy); else expect(applied.fiscal.countries[fixture.countryId].annualBudget).toEqual(proposal.payload.annualBudget);
+    if (proposal.kind === 'fiscal_reform' && proposal.payload.policy) expect(applied.fiscal.countries[fixture.countryId].policy).toEqual(proposal.payload.policy); else if (proposal.kind === 'fiscal_reform') expect(applied.fiscal.countries[fixture.countryId].annualBudget).toEqual(proposal.payload.annualBudget);
   }, 30_000);
 
   it('allows later material fiscal consequences to reach opinion through the existing scheduler', () => {
@@ -2320,14 +2320,14 @@ describe('governance 0.14 situational corrective contracts', () => {
   it('holds transfers constant in a tax-only counterfactual', () => {
     const made = taxDraft('personal', rule => { rule.bands![0].rateBps = Math.min(10_000, rule.bands![0].rateBps + 500); }), state = structuredClone(made.state), regionId = Object.keys(state.fiscal.regions).find(id => state.regionOwnership[id] === made.countryId)!;
     const region = state.fiscal.regions[regionId]; region.transfers = [101, 202, 303]; region.disposable = region.disposable.map((value, index) => value + region.transfers[index]);
-    const result = evaluateImmediateFiscalPolicyCounterfactual(state, made.countryId, made.proposal.payload.policy!, made.proposal.effectiveDate);
+    const result = evaluateImmediateFiscalPolicyCounterfactual(state, made.countryId, (made.proposal.payload as FiscalProposalPayload).policy!, made.proposal.effectiveDate);
     expect(result.proposedTransfersByIncome).toEqual(result.currentTransfersByIncome); expect(result.currentTransfersByIncome.reduce((sum, value) => sum + value, 0)).toBeGreaterThanOrEqual(606);
   });
 
   it('attributes disposable-income change only to direct-tax incidence', () => {
     const made = taxDraft('personal', rule => { rule.bands![0].rateBps = Math.min(10_000, rule.bands![0].rateBps + 500); }), state = structuredClone(made.state), regionId = Object.keys(state.fiscal.regions).find(id => state.regionOwnership[id] === made.countryId)!;
     const region = state.fiscal.regions[regionId]; region.transfers = [111, 222, 333]; region.disposable = region.disposable.map((value, index) => value + region.transfers[index]);
-    const result = evaluateImmediateFiscalPolicyCounterfactual(state, made.countryId, made.proposal.payload.policy!, made.proposal.effectiveDate);
+    const result = evaluateImmediateFiscalPolicyCounterfactual(state, made.countryId, (made.proposal.payload as FiscalProposalPayload).policy!, made.proposal.effectiveDate);
     for (let index = 0; index < 3; index++) expect(result.proposedDisposableByIncome[index] - result.currentDisposableByIncome[index]).toBe(-(result.proposedDirectTaxByIncome[index] - result.currentDirectTaxByIncome[index]));
   });
 

@@ -155,7 +155,7 @@ export function produceGovernmentProposalEstimate(state: SimulationState, propos
   if (!hasGovernmentInformationAccess(state, personId, proposal.countryId)) throw new Error('Government office access is required to estimate proposal reactions.');
   if (!['draft', 'submitted'].includes(proposal.status)) throw new Error('Only an unresolved proposal can receive a Government Information estimate.');
 
-  const analyzedContent = structuredClone({ effectiveDate: proposal.effectiveDate, payload: proposal.payload });
+  const analyzedContent = structuredClone({ effectiveDate: proposal.effectiveDate, payload: proposal.payload as never });
   const proposalContentFingerprint = governanceFingerprint(analyzedContent);
   const institution = politicalRegistry.institutions[politicalRegistry.countries[proposal.countryId]?.institutionId];
   const chambers: ChamberBriefingResult[] = (institution?.chambers ?? []).map(chamber => ({
@@ -219,7 +219,7 @@ export function produceGovernmentProposalEstimate(state: SimulationState, propos
 
 function inspectEstimate(state: SimulationState, report: GovernmentProposalEstimate): GovernmentProposalEstimateInspection {
   const proposal = state.governance.proposals[report.proposalId];
-  return { ...structuredClone(report), stale: !proposal || report.proposalContentFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload }) };
+  return { ...structuredClone(report), stale: !proposal || report.proposalContentFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload as never }) };
 }
 
 export function inspectGovernmentProposalEstimates(state: SimulationState, countryId: string, personId: string): GovernmentProposalEstimateInspection[] {

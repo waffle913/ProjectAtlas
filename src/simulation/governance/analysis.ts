@@ -6,7 +6,7 @@ import { sum } from '../fiscal/math';
 import { availableNeedsCoverage } from '../trade/runtime';
 import { POLITICAL_ISSUES, type PoliticalParty, type PoliticalRegistry } from '../politics/model';
 import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest } from './institutionalInterest';
-import type { CoveredMetric, DirectPolicyChange, EvaluationCoverage, ExpectedConsequence, GovernanceGoal, PartyGoalProfile, PartyIssueEvaluation, PartyIssuePreference, PartyProposalEvaluation, PoliticalProposal, ProposalAnalysis, ProposalMaterialContext, UnsupportedProposalChange } from './model';
+import type { CoveredMetric, DirectPolicyChange, EvaluationCoverage, ExpectedConsequence, FiscalProposalPayload, GovernanceGoal, PartyGoalProfile, PartyIssueEvaluation, PartyIssuePreference, PartyProposalEvaluation, PoliticalProposal, ProposalAnalysis, ProposalMaterialContext, UnsupportedProposalChange } from './model';
 
 export const GOVERNANCE_GOALS = [...POLITICAL_ISSUES, 'fiscal_sustainability'] as const satisfies readonly GovernanceGoal[];
 export const GOVERNANCE_VOTE_THRESHOLDS = Object.freeze({ yesAgreementBps: 6_000, noAgreementBps: 4_000, minimumConfidenceBps: 3_000 });
@@ -59,19 +59,20 @@ export const aggregateIssueEffects = (consequences: readonly ExpectedConsequence
 export function analyzeProposal(state: SimulationState, proposal: PoliticalProposal): ProposalAnalysis {
   const country = state.fiscal.countries[proposal.countryId]; if (!country) throw new Error('Proposal Country has no fiscal state.');
   const materialContext = materialContextForProposal(state, proposal), directPolicyChanges: DirectPolicyChange[] = [], unsupportedChanges: UnsupportedProposalChange[] = [], expectedConsequences: ExpectedConsequence[] = [], limitations: string[] = [];
-  if (proposal.payload.annualBudget) for (const category of CATEGORIES) { const before = country.annualBudget[category], after = proposal.payload.annualBudget[category]; if (before !== after) directPolicyChanges.push({ path: `annualBudget.${category}`, before, after, delta: after - before, coverage: 'complete', explanation: 'Explicit annual appropriation change.' }); }
-  const defenseDelta = proposal.payload.annualBudget ? (proposal.payload.annualBudget.defense ?? 0) - (country.annualBudget.defense ?? 0) : 0;
+  const fiscalPayload: FiscalProposalPayload = proposal.kind === 'fiscal_reform' ? proposal.payload : { policy: undefined, annualBudget: undefined };
+  if (fiscalPayload.annualBudget) for (const category of CATEGORIES) { const before = country.annualBudget[category], after = fiscalPayload.annualBudget[category]; if (before !== after) directPolicyChanges.push({ path: `annualBudget.${category}`, before, after, delta: after - before, coverage: 'complete', explanation: 'Explicit annual appropriation change.' }); }
+  const defenseDelta = fiscalPayload.annualBudget ? (fiscalPayload.annualBudget.defense ?? 0) - (country.annualBudget.defense ?? 0) : 0;
   if (defenseDelta) {
-    directPolicyChanges.push({ path: 'annualBudget.defense', before: country.annualBudget.defense ?? 0, after: proposal.payload.annualBudget!.defense ?? 0, delta: defenseDelta, coverage: 'complete', explanation: 'Explicit modelled defense spending authorization, not an observation of real military spending.' });
+    directPolicyChanges.push({ path: 'annualBudget.defense', before: country.annualBudget.defense ?? 0, after: fiscalPayload.annualBudget!.defense ?? 0, delta: defenseDelta, coverage: 'complete', explanation: 'Explicit modelled defense spending authorization, not an observation of real military spending.' });
     unsupportedChanges.push({ path: 'annualBudget.defense.capability', coverage: 'unavailable', reason: 'Future capability depends on actual workforce, financing, materials, production delays and maintenance; a budget is not combat power.' });
   }
-  if (proposal.payload.policy) for (const kind of Object.keys(categoryKinds) as TaxKind[]) {
-    const before = country.policy[kind], after = proposal.payload.policy[kind]; if (JSON.stringify(before) === JSON.stringify(after)) continue;
+  if (fiscalPayload.policy) for (const kind of Object.keys(categoryKinds) as TaxKind[]) {
+    const before = country.policy[kind], after = fiscalPayload.policy[kind]; if (JSON.stringify(before) === JSON.stringify(after)) continue;
     const coverage: EvaluationCoverage = before === null || after === null ? 'unavailable' : 'complete'; structuralDiff(before, after, `policy.${kind}`, coverage, directPolicyChanges);
     if (before === null || after === null) unsupportedChanges.push({ path: `policy.${kind}`, coverage: 'unavailable', reason: `${before === null ? 'Current' : 'Proposed'} legal rule is unavailable; absence is not a zero rate and no rate delta is inferred.` });
   }
-  if (proposal.payload.annualBudget) {
-    const after = proposal.payload.annualBudget, before = country.annualBudget, serviceDelta = after.health + after.education - before.health - before.education, securityDelta = after.pensions + after.incomeSupport - before.pensions - before.incomeSupport, infrastructureDelta = after.infrastructure - before.infrastructure;
+  if (fiscalPayload.annualBudget) {
+    const after = fiscalPayload.annualBudget, before = country.annualBudget, serviceDelta = after.health + after.education - before.health - before.education, securityDelta = after.pensions + after.incomeSupport - before.pensions - before.incomeSupport, infrastructureDelta = after.infrastructure - before.infrastructure;
     let supportedDefensePressure = 0;
     if (defenseDelta) {
       const request = country.account?.defense?.requested;
@@ -86,10 +87,10 @@ export function analyzeProposal(state: SimulationState, proposal: PoliticalPropo
     if (infrastructureDelta) expectedConsequences.push(consequence('infrastructure', budgetDirection(infrastructureDelta, before.infrastructure, infrastructureSeverity), 8_000, materialContext.infrastructure.coverage, 'annualBudget.infrastructure', 'Infrastructure appropriation direction weighted by current capacity and backlog.'));
     if (totalDelta) expectedConsequences.push(consequence('fiscal_sustainability', -budgetDirection(totalDelta, Math.max(1, totalRevenueFor(state, proposal.countryId)), materialContext.fiscalDistress.valueBps ?? 0), 8_500, materialContext.fiscalSustainability.coverage, 'annualBudget.total', defenseDelta ? 'Existing civilian appropriation pressure plus defense authorization constrained by dated actual requested obligations; future military capability and staffing are not forecast.' : 'Immediate appropriation pressure relative to current revenue; no macroeconomic forecast.'));
   }
-  if (proposal.payload.policy) {
-    const changedKinds = (Object.keys(categoryKinds) as TaxKind[]).filter(kind => JSON.stringify(country.policy[kind]) !== JSON.stringify(proposal.payload.policy![kind])), supportedKinds = changedKinds.filter(kind => country.policy[kind] !== null && proposal.payload.policy![kind] !== null);
+  if (fiscalPayload.policy) {
+    const changedKinds = (Object.keys(categoryKinds) as TaxKind[]).filter(kind => JSON.stringify(country.policy[kind]) !== JSON.stringify(fiscalPayload.policy![kind])), supportedKinds = changedKinds.filter(kind => country.policy[kind] !== null && fiscalPayload.policy![kind] !== null);
     if (supportedKinds.length) {
-      const counterfactual = evaluateImmediateFiscalPolicyCounterfactual(state, proposal.countryId, proposal.payload.policy, proposal.effectiveDate), categories = supportedKinds.flatMap(kind => categoryKinds[kind]), revenueDelta = sum(categories.map(category => counterfactual.proposedRevenueByCategory[category] - counterfactual.currentRevenueByCategory[category]));
+      const counterfactual = evaluateImmediateFiscalPolicyCounterfactual(state, proposal.countryId, fiscalPayload.policy, proposal.effectiveDate), categories = supportedKinds.flatMap(kind => categoryKinds[kind]), revenueDelta = sum(categories.map(category => counterfactual.proposedRevenueByCategory[category] - counterfactual.currentRevenueByCategory[category]));
       if (revenueDelta) expectedConsequences.push(consequence('fiscal_sustainability', signed(scaledRatioSigned(ratio(revenueDelta, Math.max(1, totalRevenueFor(state, proposal.countryId)), 5_000)!, 5_000 + (materialContext.fiscalDistress.valueBps ?? 0), 10_000)), 9_000, 'complete', `fiscal.counterfactual.${categories.join('+')}`, 'Immediate known-tax revenue delta on current simulated bases.'));
       const cashIncomeKinds = supportedKinds.some(kind => ['personal', 'payroll'].includes(kind));
       if (cashIncomeKinds) {
