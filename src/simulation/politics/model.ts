@@ -24,7 +24,10 @@ export type CohortPoliticalOpinion = [number[], number[], number[], number, numb
 export const COHORT = Object.freeze({ preferences: 0, salience: 1, support: 2, engagement: 3, sentiment: 4, baselineIncome: 5, drivers: 6 } as const);
 export interface RegionalPoliticalOpinion { regionId: string; countryId: string; cohorts: Record<string, CohortPoliticalOpinion> }
 export interface PoliticalCountryState { countryId: string; regionIds: string[]; nationalSupportBps: number[]; recentOpinionDrivers: Array<{ date: string; drivers: number[] }> }
-export interface OrganizationPoliticalState { organizationId: string; currentPositions: Record<PoliticalIssue, number>; lastUpdatedOn: string; recentDrivers: Array<{ date: string; issues: PoliticalIssue[] }>; status: 'active' | 'dissolved' | 'banned'; members: Record<string, OrganizationMembership>; fundsUsd: number; internalCurrents: Record<string, InternalCurrent>; banEvents: OrganizationBanEvent[] }
+/** The four locked organization families. The 0.13 registry supplies parties, unions and
+ *  associations; religious organizations have no registry type, so their coverage stays unavailable. */
+export type OrganizationFamily = 'party' | 'union' | 'association' | 'religious';
+export interface OrganizationPoliticalState { organizationId: string; currentPositions: Record<PoliticalIssue, number>; lastUpdatedOn: string; recentDrivers: Array<{ date: string; issues: PoliticalIssue[] }>; status: 'active' | 'dissolved' | 'banned'; members: Record<string, OrganizationMembership>; fundsUsd?: number; internalCurrents: Record<string, InternalCurrent>; banEvents: OrganizationBanEvent[] }
 export interface OrganizationMembership { personId: string; role: 'member' | 'leader'; joinedOn: string }
 export interface InternalCurrent { id: string; name: string; salienceBps: number }
 export interface OrganizationBanEvent { date: string; actorPersonId: string; motive: string; evidence: string; appealedOn?: string }

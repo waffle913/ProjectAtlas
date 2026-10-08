@@ -904,7 +904,7 @@ describe('governance 0.15 situational institutional interest', () => {
         const stake = derivePartyInstitutionalStake(fixture.registry, fixture.countryId, partyId, 'executive');
         expect(stake.coverage).toBe('unavailable'); expect(stake.stakeBps).toBeUndefined();
         const goals = institutionalProfile(partyId);
-        const evaluation = evaluatePartyProposal(initial, historicalPlurality.proposal, partyId, fixture.registry, goals, analysis);
+        const evaluation = evaluatePartyProposal(fixture.state, historicalPlurality.proposal, partyId, fixture.registry, goals, analysis);
         expect(evaluation.institutionalInterest).toMatchObject({
           status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0,
           governmentStatus: fixture.institution.governingPartyIds.includes(partyId) ? 'government' : 'opposition',

@@ -653,7 +653,12 @@ export function runGovernmentSuccession(state: SimulationState): SimulationState
     if (vacancy === 'unavailable') continue;
     const vice = state.governance.persons[cabinet.viceLeaderPersonId];
     if (!vice || vice.status !== 'active') continue;
-    // Temporary succession keeps the deputy as an acting head; permanent succession is a full transfer.
+    // Material divergence: permanent succession revokes the predecessor's office; temporary
+    // succession leaves the predecessor's office in place so they may resume.
+    if (vacancy === 'deputy_permanent') {
+      const predecessor = Object.values(next.governance.persons).find(p => p.id !== vice.id && p.office?.countryId === countryId && p.office.role === 'head_of_government');
+      if (predecessor) next = revokePoliticalOffice(next, predecessor.id);
+    }
     const title = vacancy === 'deputy_permanent' ? 'Head of government' : 'Head of government (acting)';
     const office = { role: 'head_of_government' as const, countryId, title, appointedOn: state.date, authorityProfile: vice.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional succession.' } };
     next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [vice.id]: { ...vice, office } } } };

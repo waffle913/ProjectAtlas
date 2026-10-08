@@ -106,10 +106,10 @@ export function derivePartyInstitutionalStake(registry: PoliticalRegistry, count
   return { holder, coverage: 'unavailable', limitation: `Unknown institutional holder: ${holder}` };
 }
 
-function currentGovernmentStatus(state: SimulationState, countryId: string, partyId: string): PartyInstitutionalInterestEvaluation['governmentStatus'] {
+function currentGovernmentStatus(state: SimulationState, countryId: string, partyId: string, registry: PoliticalRegistry): PartyInstitutionalInterestEvaluation['governmentStatus'] {
   const dynamic = state.elections?.countries[countryId]?.government.coalitionPartyIds;
   if (dynamic && dynamic.length) return dynamic.includes(partyId) ? 'government' : 'opposition';
-  const country = politicalRegistry.countries[countryId], institution = politicalRegistry.institutions[country?.institutionId], party = politicalRegistry.parties[partyId];
+  const country = registry.countries[countryId], institution = registry.institutions[country?.institutionId], party = registry.parties[partyId];
   if (!country || !institution || !party) return 'unavailable';
   const governing = [...new Set(institution.governingPartyIds)].filter(id => country.partyIds.includes(id));
   return governing.length ? governing.includes(partyId) ? 'government' : 'opposition' : party.governmentStatus;
@@ -128,7 +128,7 @@ export function evaluatePartyInstitutionalInterest(
   material: Pick<PartyProposalEvaluation, 'agreementBps' | 'confidenceBps' | 'coverage'>,
 ): PartyInstitutionalInterestEvaluation {
   const baseline = {
-    method: INSTITUTIONAL_INTEREST_MODEL.method, governmentStatus: currentGovernmentStatus(state, countryId, partyId),
+    method: INSTITUTIONAL_INTEREST_MODEL.method, governmentStatus: currentGovernmentStatus(state, countryId, partyId, registry),
     materialAgreementBps: material.agreementBps, materialConfidenceBps: material.confidenceBps, materialCoverage: material.coverage,
     materialBaselineFingerprint: governanceFingerprint({ agreementBps: material.agreementBps, confidenceBps: material.confidenceBps, coverage: material.coverage }),
   };
