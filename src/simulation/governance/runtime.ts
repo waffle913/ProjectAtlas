@@ -491,6 +491,9 @@ export function submitProposal(state: SimulationState, proposalIdValue: string):
   return submitProposalForActor(state, proposalIdValue, proposal.proposerPersonId);
 }
 
+/** Withdrawal is a proposer's procedural right, not an exercise of current office power:
+ *  only the proposal's original proposer may withdraw it, and no capability is re-checked.
+ *  The player wrapper additionally requires the controlled person. */
 export function withdrawProposalForActor(state: SimulationState, proposalIdValue: string, actorPersonId: string): SimulationState {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal || !['draft', 'submitted'].includes(proposal.status)) throw new Error('Proposal cannot be withdrawn.');
   const actor = requirePerson(state, actorPersonId);

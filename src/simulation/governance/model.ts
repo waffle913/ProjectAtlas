@@ -240,15 +240,15 @@ export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; n
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1'; seatApportionment?: 'identity_hash_v1' }
 export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' }
 export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
-export interface PoliticalProposal {
+export interface PoliticalProposal<K extends ProposalKind = ProposalKind> {
   id: string;
   countryId: string;
   proposerPersonId: string;
   createdOn: string;
-  kind: ProposalKind;
+  kind: K;
   instrumentClass: ProposalInstrumentClass;
   constitutionalDisposition?: ConstitutionalDisposition;
-  payload: ProposalPayload;
+  payload: ProposalPayloadByKind[K];
   status: PoliticalProposalStatus;
   effectiveDate: string;
   submittedOn?: string;
@@ -259,7 +259,7 @@ export interface PoliticalProposal {
   voteResult?: LegislativeVoteResult;
   scheduledFiscalReformSequence?: number;
   enactmentReference?: { fiscalReformSequence: number; reformFingerprint: string };
-  effects: ProposalEffect[];
+  effects: ProposalEffectByKind[K][];
   analysis?: ProposalAnalysis;
   evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1' | 'situational-plurality-0.15-v2';
 }

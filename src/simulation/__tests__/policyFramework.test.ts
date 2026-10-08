@@ -164,4 +164,36 @@ describe('0.22 generic policy framework', () => {
     state = submitProposalForActor(state, proposalId, actorId);
     expect(state.governance.proposals[proposalId].status).toBe('submitted');
   });
+
+  it('lets a non-controlled authorized actor resolve a vote and refuses an actor without authority', () => {
+    const fixture = resolvableFixture(true);
+    let state = submitProposal(fixture.state, fixture.proposalId);
+    const actor = createPoliticalPerson(state, { displayName: 'Second authorized minister', countryId: fixture.countryId });
+    const actorId = Object.keys(actor.governance.persons).at(-1)!;
+    state = assignPoliticalOffice(actor, actorId, { role: 'head_of_government', countryId: fixture.countryId });
+    state = resolveProposalVoteForActor(state, fixture.proposalId, actorId, fixture.registry, fixture.profiles);
+    expect(state.governance.proposals[fixture.proposalId].status).toBe('enacted');
+    const outsider = createPoliticalPerson(fixture.state, { displayName: 'Unauthorized person', countryId: fixture.countryId });
+    const outsiderId = Object.keys(outsider.governance.persons).at(-1)!;
+    expect(() => submitProposalForActor(outsider, fixture.proposalId, outsiderId)).toThrow(/lacks authority/);
+  });
+
+  it('restricts withdrawal to the original proposer only', () => {
+    const fixture = resolvableFixture(true);
+    const actor = createPoliticalPerson(fixture.state, { displayName: 'Non-proposer minister', countryId: fixture.countryId });
+    const actorId = Object.keys(actor.governance.persons).at(-1)!;
+    const state = assignPoliticalOffice(actor, actorId, { role: 'head_of_government', countryId: fixture.countryId });
+    expect(() => withdrawProposalForActor(state, fixture.proposalId, actorId)).toThrow(/Only the proposer/);
+    const withdrawn = withdrawProposalForActor(state, fixture.proposalId, fixture.personId);
+    expect(withdrawn.governance.proposals[fixture.proposalId].status).toBe('withdrawn');
+  });
+
+  it('rejects a pre-0.22 save with an unknown kind explicitly rather than a TypeError', () => {
+    const fixture = resolvableFixture(true);
+    const forged = structuredClone(fixture.state) as unknown as { governance: { proposals: Record<string, Record<string, unknown>> } };
+    const raw = forged.governance.proposals[fixture.proposalId] as Record<string, unknown>;
+    raw.kind = 'naval_expansion';
+    delete raw.instrumentClass; delete raw.effects;
+    expect(() => restoreSimulationState(JSON.stringify(forged), worldRegions, {}, {}, worldContext)).toThrow(/unknown proposal kind/);
+  });
 });

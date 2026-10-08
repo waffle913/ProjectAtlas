@@ -1,7 +1,7 @@
 import type { SimulationState } from '../../types';
 import { fiscalReformFingerprint } from '../fiscal/runtime';
 import { GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
-import { governanceFingerprint, proposalContract, type ChamberSupportEstimate, type ParliamentarySupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type PublicSupportEstimate } from './model';
+import { governanceFingerprint, proposalContract, PROPOSAL_KINDS, type ChamberSupportEstimate, type ParliamentarySupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type PublicSupportEstimate } from './model';
 
 const correctedDecision = (evaluation: PartyProposalEvaluation): PartyProposalEvaluation['vote'] => evaluation.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || evaluation.coverage === 'unavailable' ? 'unknown' : evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
 function upgradeChamber(original: ChamberSupportEstimate): ChamberSupportEstimate {
@@ -69,6 +69,9 @@ export function upgradeGovernanceProposalModel(state: SimulationState): Simulati
   const proposals: Record<string, PoliticalProposal> = {};
   for (const [id, original] of Object.entries(state.governance.proposals)) {
     const proposal = structuredClone(original) as PoliticalProposal;
+    // A save may carry unvalidated JSON: an unknown kind must fail explicitly, never dereference
+    // a missing contract and crash with a TypeError.
+    if (!(PROPOSAL_KINDS as readonly string[]).includes(proposal.kind)) throw new Error(`Cannot migrate proposal ${id}: unknown proposal kind ${String(proposal.kind)}.`);
     if (proposal.instrumentClass === undefined) { proposal.instrumentClass = proposalContract(proposal.kind).defaultInstrumentClass; changed = true; }
     // Backfill only ABSENT fields. A present-but-inconsistent effects array is left untouched so
     // the ordinary invariants can reject it rather than the migration silently repairing corruption.
