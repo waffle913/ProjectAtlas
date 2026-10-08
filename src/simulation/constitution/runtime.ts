@@ -80,7 +80,7 @@ const fiscalMaterialKeys = (state: SimulationState, countryId: string, payload: 
   for (const [category, proposed] of Object.entries(payload.policy ?? {})) {
     if (proposed === undefined) continue;
     const key = `fiscal.${category}`;
-    if (proposed === null) { keys.push(key); continue; }
+    if (proposed === null) { if (currentPolicy[category] !== undefined && currentPolicy[category] !== null) keys.push(key); continue; }
     const existing = currentPolicy[category];
     if (JSON.stringify(proposed) !== JSON.stringify(existing)) keys.push(key);
   }
@@ -100,9 +100,9 @@ export function rejectProtectedModification(state: SimulationState, countryId: s
   return undefined;
 }
 
-/** Record the material keys a secondary constitutional disposition protects. Only a constitutional
- *  amendment may call this; the `instrumentId` is required for the dated, traceable binding. */
-export function registerConstitutionalBinding(state: SimulationState, countryId: string, materialKeys: string[], instrumentId: string): SimulationState {
+/** Record the material keys a secondary constitutional disposition protects. Internal: only an
+ *  enacted amendment (via applyConstitutionalAmendment) may call this. */
+function registerConstitutionalBinding(state: SimulationState, countryId: string, materialKeys: string[], instrumentId: string): SimulationState {
   const entry = state.constitution.countries[countryId];
   if (!entry) throw new Error('No constitutional state for this Country.');
   const merged = [...new Set([...entry.protectedMaterialKeys, ...materialKeys])].sort();
@@ -110,8 +110,8 @@ export function registerConstitutionalBinding(state: SimulationState, countryId:
   return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...entry, protectedMaterialKeys: merged, bindingEvents: events } } } };
 }
 
-/** Remove constitutional protection of material keys, likewise only through a constitutional amendment. */
-export function removeConstitutionalBinding(state: SimulationState, countryId: string, materialKeys: string[], instrumentId: string): SimulationState {
+/** Remove constitutional protection of material keys. Internal: only an enacted amendment may call this. */
+function removeConstitutionalBinding(state: SimulationState, countryId: string, materialKeys: string[], instrumentId: string): SimulationState {
   const entry = state.constitution.countries[countryId];
   if (!entry) throw new Error('No constitutional state for this Country.');
   const removed = new Set(materialKeys);

@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { createPoliticalPerson, assignPoliticalOffice, setControlledPerson } from '../governance/runtime';
-import { declareEmergency, endEmergency, runEmergencyMonth, rejectProtectedModification, registerConstitutionalBinding } from '../constitution/runtime';
+import { declareEmergency, endEmergency, runEmergencyMonth, rejectProtectedModification, applyConstitutionalAmendment } from '../constitution/runtime';
 import { initializeConstitution } from '../constitution/model';
 
 let initial: ReturnType<typeof initializeNewGame>;
@@ -43,7 +43,7 @@ describe('0.23 constitution procedures', () => {
   it('registers protected material keys and rejects ordinary-law modification of them', () => {
     const countryId = worldCountryIds[0];
     let state = initializeConstitution(initial, [countryId]);
-    state = registerConstitutionalBinding(state, countryId, ['fiscal.corporate'], 'proposal.amendment');
+    state = applyConstitutionalAmendment(state, { id: 'proposal.amendment', countryId, payload: { materialKeysToProtect: ['fiscal.corporate'] } }).next;
     expect(state.constitution.countries[countryId].protectedMaterialKeys).toEqual(['fiscal.corporate']);
     expect(rejectProtectedModification(state, countryId, 'law', { policy: { corporate: { rateBps: 2000 } as never }, annualBudget: undefined })).toMatch(/constitutionally protected material keys/);
     expect(rejectProtectedModification(state, countryId, 'constitutional_amendment', { policy: { corporate: { rateBps: 2000 } as never }, annualBudget: undefined })).toBeUndefined();

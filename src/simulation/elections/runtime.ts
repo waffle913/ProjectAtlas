@@ -2,6 +2,7 @@ import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
 import type { FiscalProposalPayload, ProposalKind } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
+import { assignPoliticalOffice, revokePoliticalOffice } from '../governance/runtime';
 import { ELECTIONS_VERSION, proportionalSeats, type CampaignPromise, type ElectionChamberState, type ElectionCountryState, type GovernmentConfidence } from './model';
 
 const isExecutive = (state: SimulationState, personId: string, countryId: string): boolean => {
@@ -52,6 +53,7 @@ const runoffShares = (votes: Record<string, number>): Record<string, number> => 
 function seatsForSystem(state: SimulationState, countryId: string, votes: Record<string, number>, seats: number, thresholdBps?: number): Record<string, number> {
   const system = state.constitution.countries[countryId]?.election.parliamentarySystem ?? 'unavailable';
   const rounds = state.constitution.countries[countryId]?.election.rounds ?? 'unavailable';
+  if (system === 'unavailable' || rounds === 'unavailable') return {}; // unavailable must never be reinterpreted as proportional or one-round.
   const effectiveVotes = rounds === 2 ? runoffShares(votes) : votes;
   if (system === 'majoritarian') {
     const sorted = Object.entries(effectiveVotes).sort((a, b) => b[1] - a[1]);
@@ -133,16 +135,15 @@ function transferGovernmentOffices(state: SimulationState, countryId: string, co
   const currentHead = Object.values(state.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
   if (currentHead?.id === leader.id) return state;
   let next = state;
-  if (currentHead) next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [currentHead.id]: { ...currentHead, office: undefined } } } };
-  const office = { role: 'head_of_government' as const, countryId, title: 'Head of government', appointedOn: state.date, authorityProfile: leader.office?.authorityProfile ?? { status: 'modelled_constitutional_abstraction' as const, capabilities: [], limitation: 'Derived from constitutional office.' }, assignedOn: state.date };
-  return { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [leader.id]: { ...leader, status: 'active', office } } } };
+  if (currentHead) next = revokePoliticalOffice(next, currentHead.id);
+  return assignPoliticalOffice(next, leader.id, { role: 'head_of_government', countryId });
 }
 
 /** Dissolve parliament and call a fresh election. Requires the executive office and the constitutional right to dissolve. */
 export function dissolveParliament(state: SimulationState, countryId: string, personId: string): SimulationState {
   if (!isExecutive(state, personId, countryId)) throw new Error('Only the executive head may dissolve parliament.');
   const dissolutionHolder = state.constitution.countries[countryId]?.parliament.dissolutionHolder ?? 'unavailable';
-  if (dissolutionHolder === 'unavailable') throw new Error('Parliamentary dissolution is not constitutionally permitted for this Country.');
+  if (dissolutionHolder !== 'executive') throw new Error('This Country does not grant the executive the power to dissolve parliament.');
   const entry = countryEntry(state, countryId);
   const chambers: Record<string, ElectionChamberState> = {};
   for (const [chamberId, chamber] of Object.entries(entry.chambers)) chambers[chamberId] = { ...chamber, nextElectionDate: state.date };

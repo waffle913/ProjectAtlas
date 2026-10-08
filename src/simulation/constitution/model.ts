@@ -20,7 +20,7 @@ export type ConstitutionalDispositionKind = 'principal' | 'secondary';
 /** Canonical registry of the material keys a constitutional secondary disposition may protect.
  *  An amendment must reference keys from this registry; an unknown key is rejected, never invented. */
 export const MATERIAL_KEYS = Object.freeze([
-  'fiscal.personal', 'fiscal.consumption', 'fiscal.employee', 'fiscal.employer', 'fiscal.corporate',
+  'fiscal.personal', 'fiscal.consumption', 'fiscal.employee', 'fiscal.employer', 'fiscal.corporate', 'fiscal.payroll',
   'fiscal.annualBudget.health', 'fiscal.annualBudget.education', 'fiscal.annualBudget.pensions',
   'fiscal.annualBudget.incomeSupport', 'fiscal.annualBudget.infrastructure', 'fiscal.annualBudget.administration', 'fiscal.annualBudget.defense',
 ] as const);

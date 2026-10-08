@@ -252,14 +252,16 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (proposal.evaluationVersion === 'situational-0.14-v2' && (!proposal.analysis || !proposal.publicEstimate || !proposal.parliamentaryEstimate || !proposal.voteResult)) errors.push(`Situational evaluation ${id} is incomplete.`);
     if (plurality && (!proposal.analysis || !proposal.publicEstimate || !proposal.parliamentaryEstimate || !proposal.voteResult)) errors.push(`Plurality evaluation ${id} is incomplete.`);
     if (proposal.status === 'enacted') {
-      const sequence = proposal.scheduledFiscalReformSequence, expectedFingerprint = fiscalReformFingerprint({ countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...proposal.payload });
-      if (sequence === undefined || !nonNegative(sequence) || sequence >= state.fiscal.nextSequence || reformSequences.has(sequence) || !proposal.enactmentReference || proposal.enactmentReference.fiscalReformSequence !== sequence || proposal.enactmentReference.reformFingerprint !== expectedFingerprint) errors.push(`Enacted proposal ${id} has an invalid fiscal enactment reference.`);
-      else {
-        reformSequences.add(sequence);
-        const evidence = [...state.fiscal.reforms, ...state.fiscal.reformReceipts].filter(item => item.sequence === sequence && item.countryId === proposal.countryId && item.effectiveDate === proposal.effectiveDate && (!('reformFingerprint' in item) ? fiscalReformFingerprint(item) === expectedFingerprint : item.reformFingerprint === expectedFingerprint) && item.origin?.type === 'governance_proposal' && item.origin.proposalId === id && item.origin.proposalFingerprint === proposal.submittedPayloadFingerprint);
-        if (evidence.length !== 1) errors.push(`Enacted proposal ${id} does not own exactly one matching fiscal reform or receipt.`);
+      if (proposal.kind === 'fiscal_reform') {
+        const sequence = proposal.scheduledFiscalReformSequence, expectedFingerprint = fiscalReformFingerprint({ countryId: proposal.countryId, effectiveDate: proposal.effectiveDate, ...proposal.payload });
+        if (sequence === undefined || !nonNegative(sequence) || sequence >= state.fiscal.nextSequence || reformSequences.has(sequence) || !proposal.enactmentReference || proposal.enactmentReference.fiscalReformSequence !== sequence || proposal.enactmentReference.reformFingerprint !== expectedFingerprint) errors.push(`Enacted proposal ${id} has an invalid fiscal enactment reference.`);
+        else {
+          reformSequences.add(sequence);
+          const evidence = [...state.fiscal.reforms, ...state.fiscal.reformReceipts].filter(item => item.sequence === sequence && item.countryId === proposal.countryId && item.effectiveDate === proposal.effectiveDate && (!('reformFingerprint' in item) ? fiscalReformFingerprint(item) === expectedFingerprint : item.reformFingerprint === expectedFingerprint) && item.origin?.type === 'governance_proposal' && item.origin.proposalId === id && item.origin.proposalFingerprint === proposal.submittedPayloadFingerprint);
+          if (evidence.length !== 1) errors.push(`Enacted proposal ${id} does not own exactly one matching fiscal reform or receipt.`);
+        }
       }
-    } else if (proposal.scheduledFiscalReformSequence !== undefined || proposal.enactmentReference) errors.push(`Non-enacted proposal ${id} references a fiscal reform.`);
+    } else if (proposal.kind === 'fiscal_reform' && (proposal.scheduledFiscalReformSequence !== undefined || proposal.enactmentReference)) errors.push(`Non-enacted proposal ${id} references a fiscal reform.`);
   }
   for (const [countryId, cabinet] of Object.entries(g.cabinets ?? {})) {
     if (cabinet.countryId !== countryId || !context.countryIds.has(countryId)) errors.push(`Cabinet ${countryId} has an invalid identity.`);

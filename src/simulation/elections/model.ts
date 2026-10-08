@@ -1,5 +1,5 @@
 import type { SimulationState } from '../../types';
-import type { ProposalKind, FiscalProposalPayload } from '../governance/model';
+import type { ProposalKind, ProposalPayload } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
 import { allocate } from '../socioeconomy/model';
 
@@ -16,7 +16,7 @@ export interface CampaignPromise {
   subject: string;
   /** The promised policy references a real proposal kind and payload — it never applies the policy itself. */
   promisedKind: ProposalKind;
-  promisedPayload?: FiscalProposalPayload;
+  promisedPayload?: ProposalPayload;
   status: PromiseStatus;
   credibilityBps: number;
   result?: string;
@@ -72,7 +72,7 @@ export function initializeElections(state: SimulationState, countryIds?: readonl
       chambers[chamber.id] = { chamberId: chamber.id, seatsByParty, totalSeats: chamber.totalSeats ?? Object.values(seatsByParty).reduce((a, b) => a + b, 0), independentOtherSeats: chamber.independentOtherSeats ?? 0, lastElectionDate: chamber.electionDate, nextElectionDate: chamber.termEnd };
     }
     const parties: Record<string, PartyElectionState> = {};
-    for (const partyId of [...allPartyIds].sort()) {
+    for (const partyId of politicalRegistry.countries[countryId]?.partyIds ?? []) {
       const currentSeats = Object.values(chambers).reduce((sum, c) => sum + (c.seatsByParty[partyId] ?? 0), 0);
       parties[partyId] = { partyId, currentSeats, governmentStatus: institution?.governingPartyIds.length ? (institution.governingPartyIds.includes(partyId) ? 'government' : 'opposition') : 'unavailable', promises: [] };
     }
