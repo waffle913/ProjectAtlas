@@ -7,6 +7,7 @@ import { initializePolitics, rebasePoliticsRegistry } from './politics/initializ
 import { politicalRegistry } from './politics/registry';
 import { initializeSocioeconomy } from './socioeconomy/initialization';
 import { emptyGovernance } from './governance/model';
+import { governanceFingerprint } from './governance/model';
 import { upgradeGovernanceSchema12, upgradeGovernanceProposalModel } from './governance/migration';
 import { initializePartyLeaders } from './governance/runtime';
 import { emptyInformation, INFORMATION_VERSION } from './information/model';
@@ -27,17 +28,61 @@ import { initializeConstitution, emptyConstitution } from './constitution/model'
 import { initializeElections, emptyElections } from './elections/model';
 
 /** Idempotent intra-schema-19 backfill for saves written before pendingAmendments, per-chamber
- *  elections and organization banEvents were introduced. Present fields are never rewritten. */
+ *  elections, cabinets, organization banEvents, episode-identity emergencies and the renamed
+ *  `rightsChanges` amendment field were introduced. Present fields are never rewritten. */
 function backfillSchema19(state: SimulationState): SimulationState {
   let next = state;
+  const rightsKeys = ['expression', 'press', 'assembly', 'association', 'religion', 'equalityBeforeLaw', 'antiDiscrimination', 'privateProperty', 'privacy', 'fairTrial', 'protectionFromArbitraryArrest', 'strike', 'union', 'vote', 'health', 'education', 'socialProtection'] as const;
   const constitutionCountries: Record<string, SimulationState['constitution']['countries'][string]> = {};
   let constitutionChanged = false;
   for (const [countryId, entry] of Object.entries(state.constitution.countries)) {
-    if (entry.bindingEvents === undefined) { constitutionCountries[countryId] = { ...entry, bindingEvents: [] }; constitutionChanged = true; }
+    let updated = { ...entry };
+    let changed = false;
+    if (entry.bindingEvents === undefined) { updated.bindingEvents = []; changed = true; }
+    if (entry.rights === undefined || rightsKeys.some(key => entry.rights[key] === undefined)) {
+      updated.rights = { ...entry.rights, ...Object.fromEntries(rightsKeys.filter(key => entry.rights?.[key] === undefined).map(key => [key, 'unavailable' as const])) };
+      changed = true;
+    }
+    const legacyEmergency = entry.emergency as unknown as { justificationCrisisIds?: string[]; justificationEpisodeIds?: string[] };
+    if (legacyEmergency.justificationEpisodeIds === undefined && Array.isArray(legacyEmergency.justificationCrisisIds)) {
+      const currentByType = state.crisis.countries[countryId]?.currentByType ?? {};
+      const episodeIds = legacyEmergency.justificationCrisisIds.map(type => (currentByType as Record<string, { id: string } | undefined>)[type]?.id).filter((id): id is string => Boolean(id));
+      updated.emergency = { ...entry.emergency, justificationEpisodeIds: episodeIds };
+      changed = true;
+    }
+    if (changed) { constitutionCountries[countryId] = updated; constitutionChanged = true; }
     else constitutionCountries[countryId] = entry;
   }
-  if (constitutionChanged || state.constitution.pendingAmendments === undefined) {
-    next = { ...next, constitution: { ...next.constitution, pendingAmendments: next.constitution.pendingAmendments ?? [], countries: constitutionChanged ? constitutionCountries : next.constitution.countries } };
+  const pendingAmendments = (state.constitution.pendingAmendments ?? []).map(amendment => {
+    let updated = { ...amendment };
+    let changed = false;
+    const payload = updated.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown };
+    if (payload.rightsChanges === undefined && payload.rightChanges !== undefined) {
+      updated = { ...updated, payload: { ...updated.payload, rightsChanges: payload.rightChanges } as typeof updated.payload };
+      changed = true;
+    }
+    if (updated.status === undefined) {
+      const legacyDecision = updated.decision as unknown as { timing?: unknown; outcome?: string; effect?: string; on?: string } | undefined;
+      if (legacyDecision && 'timing' in legacyDecision) {
+        // Old verdict shape { timing, effect, outcome } → translate to the new verdict shape.
+        if (legacyDecision.outcome === 'annulled') {
+          updated = { ...updated, status: 'annulled', decision: { outcome: 'annulled', effect: (legacyDecision.effect ?? 'unavailable') as typeof updated.decision extends { effect: infer E } ? E : never, on: legacyDecision.on ?? state.date } };
+        } else if (legacyDecision.outcome === 'promulgated') {
+          const { decision: _decision, ...rest } = updated as unknown as { decision?: unknown };
+          updated = { ...rest, status: 'promulgated' } as typeof updated;
+        } else {
+          const { decision: _decision, ...rest } = updated as unknown as { decision?: unknown };
+          updated = { ...rest, status: 'blocked', blockReason: 'not_enacted' } as typeof updated;
+        }
+      } else {
+        updated = { ...updated, status: 'scheduled' };
+      }
+      changed = true;
+    }
+    return changed ? updated : amendment;
+  });
+  if (constitutionChanged || state.constitution.pendingAmendments === undefined || pendingAmendments.some((amendment, index) => amendment !== state.constitution.pendingAmendments![index])) {
+    next = { ...next, constitution: { ...next.constitution, pendingAmendments, countries: constitutionChanged ? constitutionCountries : next.constitution.countries } };
   }
   const electionsCountries: Record<string, SimulationState['elections']['countries'][string]> = {};
   let electionsChanged = false;
@@ -59,6 +104,37 @@ function backfillSchema19(state: SimulationState): SimulationState {
     } else organizations[organizationId] = organization;
   }
   if (orgChanged) next = { ...next, politics: { ...next.politics, organizations } };
+  // Cabinets and their trace/coordination fields: a newly-introduced 0.23 system is initialized
+  //  empty on the migration date, never replayed. Idempotent: present fields are never rewritten.
+  {
+    const cabinets: Record<string, SimulationState['governance']['cabinets'][string]> = {};
+    let cabinetsChanged = false;
+    for (const [countryId, cabinet] of Object.entries(state.governance.cabinets ?? {})) {
+      if (cabinet.portfolios === undefined || cabinet.censureEvents === undefined) {
+        cabinets[countryId] = { ...cabinet, portfolios: cabinet.portfolios ?? {}, censureEvents: cabinet.censureEvents ?? [] };
+        cabinetsChanged = true;
+      } else cabinets[countryId] = cabinet;
+    }
+    if (state.governance.cabinets === undefined || cabinetsChanged) {
+      next = { ...next, governance: { ...next.governance, cabinets: cabinetsChanged ? cabinets : (state.governance.cabinets ?? {}) } };
+    }
+  }
+  // Legacy singular `rightChanges` field on governance proposal payloads.
+  const proposals: Record<string, SimulationState['governance']['proposals'][string]> = {};
+  let proposalsChanged = false;
+  for (const [id, proposal] of Object.entries(state.governance.proposals)) {
+    if (proposal.kind === 'constitutional_amendment') {
+      const payload = proposal.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown };
+      if (payload.rightsChanges === undefined && payload.rightChanges !== undefined) {
+        const renamed = { ...proposal.payload, rightsChanges: payload.rightChanges } as typeof proposal.payload;
+        proposals[id] = { ...proposal, payload: renamed, ...(proposal.submittedPayloadFingerprint ? { submittedPayloadFingerprint: governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: renamed }) } : {}) } as typeof proposal;
+        proposalsChanged = true;
+        continue;
+      }
+    }
+    proposals[id] = proposal;
+  }
+  if (proposalsChanged) next = { ...next, governance: { ...next.governance, proposals } };
   return next;
 }
 import type { RegionEntity, SimulationState } from '../types';

@@ -1,5 +1,5 @@
 import type { SimulationState } from '../../types';
-import type { ProposalKind, ProposalPayload } from '../governance/model';
+import type { ProposalKind, ProposalPayloadByKind } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
 import { allocate } from '../socioeconomy/model';
 
@@ -8,19 +8,28 @@ export const ELECTIONS_VERSION = 'elections-0.23-v1';
 export type PromiseStatus = 'pending' | 'fulfilled' | 'partially_fulfilled' | 'broken' | 'unavailable';
 export type GovernmentConfidence = 'majority' | 'minority' | 'coalition' | 'unavailable';
 
-export interface CampaignPromise {
+export interface CampaignPromiseBase {
   id: string;
   partyId: string;
   countryId: string;
   madeOn: string;
   subject: string;
-  /** The promised policy references a real proposal kind and payload — it never applies the policy itself. */
-  promisedKind: ProposalKind;
-  promisedPayload?: ProposalPayload;
   status: PromiseStatus;
   credibilityBps: number;
   result?: string;
 }
+
+/** A discriminated campaign promise: the promised kind determines the payload type, so a promise
+ *  never carries a payload of another kind. */
+export interface FiscalCampaignPromise extends CampaignPromiseBase {
+  promisedKind: 'fiscal_reform';
+  promisedPayload?: ProposalPayloadByKind['fiscal_reform'];
+}
+export interface AmendmentCampaignPromise extends CampaignPromiseBase {
+  promisedKind: 'constitutional_amendment';
+  promisedPayload?: ProposalPayloadByKind['constitutional_amendment'];
+}
+export type CampaignPromise = FiscalCampaignPromise | AmendmentCampaignPromise;
 
 export interface PartyElectionState {
   partyId: string;

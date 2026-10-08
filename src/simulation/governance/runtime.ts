@@ -15,8 +15,9 @@ export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal } from './analysis';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
-import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type ProposalPayload, type PublicSupportEstimate } from './model';
+import { AUTHORITY_CAPABILITIES, governanceFingerprint, proposalContract, type AuthorityCapability, type ChamberSupportEstimate, type ConstitutionalAmendmentPayload, type ConstitutionalDisposition, type FiscalProposalPayload, type GovernanceState, type GovernmentCabinet, type LeadershipSuccession, type LegislativeVoteResult, type ParliamentarySupportEstimate, type PartyGoalProfile, type PoliticalOfficeRole, type PoliticalPersonState, type PoliticalProposal, type Portfolio, type ProposalAnalysis, type ProposalEffect, type ProposalImpact, type ProposalKind, type ProposalPayload, type ProposalPayloadByKind, type PublicSupportEstimate } from './model';
 import { rejectProtectedModification, applyConstitutionalAmendment, scheduleConstitutionalAmendment } from '../constitution/runtime';
+import { MATERIAL_KEYS } from '../constitution/model';
 export { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
 const personId = (sequence: number) => `person.${sequence.toString().padStart(8, '0')}`;
 const proposalId = (sequence: number) => `proposal.${sequence.toString().padStart(8, '0')}`;
@@ -424,12 +425,22 @@ export function assignPoliticalOffice(state: SimulationState, personIdValue: str
   if (capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item))) throw new Error('Unknown authority capability.');
   const title = input.role === 'head_of_government' ? 'Head of Government' : input.role === 'head_of_state' ? 'Head of State' : 'Legislator';
   const office = { role: input.role, countryId: input.countryId, title, appointedOn, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities, limitation: authorityLimitation } };
-  return cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [person.id]: { ...person, office } } });
+  const governance: GovernanceState = { ...state.governance, persons: { ...state.governance.persons, [person.id]: { ...person, office } } };
+  if (input.role === 'head_of_government') {
+    const cabinet = cabinetFor({ ...state, governance }, input.countryId);
+    governance.cabinets = { ...governance.cabinets, [input.countryId]: { ...cabinet, lastHeadPersonId: person.id, actingHead: undefined } };
+  }
+  return cloneGovernance(state, governance);
 }
 
 export function revokePoliticalOffice(state: SimulationState, personIdValue: string): SimulationState {
   const person = requirePerson(state, personIdValue); const { office: _office, ...withoutOffice } = person;
-  return cloneGovernance(state, { ...state.governance, persons: { ...state.governance.persons, [person.id]: withoutOffice } });
+  const governance: GovernanceState = { ...state.governance, persons: { ...state.governance.persons, [person.id]: withoutOffice } };
+  if (person.office?.role === 'head_of_government') {
+    const cabinet = cabinetFor(state, person.office.countryId);
+    governance.cabinets = { ...governance.cabinets, [person.office.countryId]: { ...cabinet, lastHeadPersonId: person.id } };
+  }
+  return cloneGovernance(state, governance);
 }
 
 function validatePayload(state: SimulationState, countryId: string, effectiveDate: string, payload: FiscalProposalPayload) {
@@ -494,11 +505,20 @@ export function createFiscalProposal(state: SimulationState, input: { proposerPe
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [id]: proposal }, proposalOrder: [...state.governance.proposalOrder, id], nextProposalSequence: state.governance.nextProposalSequence + 1 });
 }
 
-export function replaceDraftProposal(state: SimulationState, proposalIdValue: string, input: { effectiveDate?: string; payload?: ProposalPayload }): SimulationState {
+export function replaceDraftProposal<K extends ProposalKind>(state: SimulationState, proposalIdValue: string, input: { effectiveDate?: string; payload?: ProposalPayloadByKind[K] }): SimulationState {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal) throw new Error('Unknown political proposal.');
   if (proposal.status !== 'draft') throw new Error('Submitted proposal content is immutable.');
-  const effectiveDate = input.effectiveDate ?? proposal.effectiveDate, payload = input.payload ?? proposal.payload;
-  if (proposal.kind === 'fiscal_reform') validatePayload(state, proposal.countryId, effectiveDate, payload as FiscalProposalPayload);
+  const effectiveDate = input.effectiveDate ?? proposal.effectiveDate;
+  const payload = (input.payload ?? proposal.payload) as ProposalPayloadByKind[K];
+  if (proposal.kind === 'fiscal_reform') {
+    validatePayload(state, proposal.countryId, effectiveDate, payload as FiscalProposalPayload);
+  } else if (proposal.kind === 'constitutional_amendment') {
+    const amendment = payload as ConstitutionalAmendmentPayload;
+    const unknown = [...(amendment.materialKeysToProtect ?? []), ...(amendment.materialKeysToUnprotect ?? [])].filter(key => !(MATERIAL_KEYS as readonly string[]).includes(key));
+    if (unknown.length) throw new Error(`Unknown material keys cannot be constitutionally protected: ${unknown.join(', ')}.`);
+    const changed = Boolean(amendment.materialKeysToProtect?.length || amendment.materialKeysToUnprotect?.length || amendment.rightsChanges || amendment.parliamentChanges || amendment.executiveChanges || amendment.electionChanges || amendment.judicialChanges || amendment.territoryChanges || amendment.amendmentChanges);
+    if (!changed) throw new Error('A constitutional amendment payload must change something.');
+  }
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, effectiveDate, payload: structuredClone(payload) } as PoliticalProposal } });
 }
 
@@ -559,25 +579,19 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
     if (parliamentPower === 'none') powerBlockedReason = 'parliament_has_no_legislative_power';
     else if (parliamentPower === 'consultative') powerBlockedReason = 'parliamentary_opinion_non_binding';
   }
-  // weak_legislative: the executive's position holds by default; the parliament can only override
-  // it with a 2/3 supermajority rejection (an explicit override, not a new adoption majority).
-  const weakLegislativeOverride = parliamentPower === 'weak_legislative' && parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.noSeats * 3 >= parliamentaryEstimate.totalSeats * 2;
-  const parliamentAdopts = parliamentPower === 'weak_legislative' ? !weakLegislativeOverride : parliamentaryEstimate.chambers.every(item => item.adopted);
-  const outcome = expired || powerBlockedReason !== undefined || parliamentaryEstimate.coverage !== 'complete' ? 'unavailable' : parliamentAdopts ? 'adopted' : 'rejected';
-  const reason = expired ? 'effective_date_expired' as const : powerBlockedReason ?? (weakLegislativeOverride ? 'executive_override' as const : parliamentaryEstimate.coverage !== 'complete' ? 'institutional_data_unavailable' as const : undefined);
-  const protectedViolation = outcome === 'adopted' && proposal.kind === 'fiscal_reform' ? rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload) : undefined;
-  let amendmentReason: 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | undefined;
-  if (proposal.kind === 'constitutional_amendment' && outcome === 'adopted') {
-    const amendment = state.constitution.countries[proposal.countryId]?.amendment;
-    if (!amendment || amendment.parliamentaryThresholdBps === undefined || amendment.referendum === 'unavailable') amendmentReason = 'constitutional_procedure_unavailable';
-    else {
-      if (parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 10000 < amendment.parliamentaryThresholdBps * parliamentaryEstimate.totalSeats) amendmentReason = 'constitutional_threshold';
-      if (!amendmentReason) {
-        const referendumRequired = amendment.referendum === 'always' || (amendment.referendum === 'principal_only' && proposal.constitutionalDisposition === 'principal');
-        if (referendumRequired && publicEstimate.supportBps <= publicEstimate.opposeBps) amendmentReason = 'referendum_failed';
-      }
-    }
+  let outcome: LegislativeVoteResult['outcome'];
+  let reason: LegislativeVoteResult['reason'];
+  if (expired) { outcome = 'unavailable'; reason = 'effective_date_expired'; }
+  else if (powerBlockedReason) { outcome = 'unavailable'; reason = powerBlockedReason; }
+  else if (parliamentaryEstimate.coverage !== 'complete') { outcome = 'unavailable'; reason = 'institutional_data_unavailable'; }
+  else {
+    // weak_legislative still votes by ordinary majority; a rejection is provisional and may later be
+    // overridden explicitly by the executive (a separate command), never silently re-decided here.
+    outcome = parliamentaryEstimate.chambers.every(item => item.adopted) ? 'adopted' : 'rejected';
+    reason = undefined;
   }
+  const protectedViolation = outcome === 'adopted' && proposal.kind === 'fiscal_reform' ? rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload) : undefined;
+  const amendmentReason = outcome === 'adopted' && proposal.kind === 'constitutional_amendment' ? amendmentProcedureReason(state, proposal, parliamentaryEstimate, publicEstimate) : undefined;
   const blocked = Boolean(protectedViolation || amendmentReason);
   const effectiveParliamentaryEstimate = blocked ? { ...parliamentaryEstimate, chambers: parliamentaryEstimate.chambers.map(chamber => ({ ...chamber, adopted: false as const })) } : parliamentaryEstimate;
   const effectiveOutcome = blocked ? 'rejected' : outcome;
@@ -591,6 +605,89 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   const resolved = { ...proposal, status: effectiveOutcome === 'adopted' ? 'enacted' as const : effectiveOutcome, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2', publicEstimate, parliamentaryEstimate: effectiveParliamentaryEstimate, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: effectiveOutcome === 'adopted' ? proposalEffectsFor(proposal, { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: enactmentReference?.reformFingerprint, protectedMaterialKeys, unprotectedMaterialKeys }) : [] } as PoliticalProposal;
   next = { ...next, governance: { ...next.governance, proposals: { ...next.governance.proposals, [proposal.id]: resolved } } };
   return addProposalResultBriefing(next, resolved);
+}
+
+/** Constitutional amendment procedure (threshold + referendum) shared by the normal vote and the
+ *  executive override, so an override can never bypass a constitutional requirement. */
+function amendmentProcedureReason(state: SimulationState, proposal: PoliticalProposal, parliamentaryEstimate: ParliamentarySupportEstimate, publicEstimate: PublicSupportEstimate): 'constitutional_threshold' | 'referendum_failed' | 'constitutional_procedure_unavailable' | undefined {
+  const amendment = state.constitution.countries[proposal.countryId]?.amendment;
+  if (!amendment || amendment.parliamentaryThresholdBps === undefined || amendment.referendum === 'unavailable') return 'constitutional_procedure_unavailable';
+  if (parliamentaryEstimate.totalSeats > 0 && parliamentaryEstimate.yesSeats * 10000 < amendment.parliamentaryThresholdBps * parliamentaryEstimate.totalSeats) return 'constitutional_threshold';
+  const referendumRequired = amendment.referendum === 'always' || (amendment.referendum === 'principal_only' && proposal.constitutionalDisposition === 'principal');
+  if (referendumRequired && publicEstimate.supportBps <= publicEstimate.opposeBps) return 'referendum_failed';
+  return undefined;
+}
+
+const isExecutiveActor = (state: SimulationState, personId: string, countryId: string): boolean => {
+  const person = state.governance.persons[personId];
+  return Boolean(person?.status === 'active' && person.office?.countryId === countryId && ['head_of_government', 'head_of_state'].includes(person.office.role));
+};
+
+/** Explicit executive override of a weak-legislature parliamentary rejection. The parliamentary
+ *  rejection is recorded as-is; this command is the separate constitutional procedure that enacts it. */
+export function overrideParliamentaryRejection(state: SimulationState, proposalIdValue: string, actorPersonId: string): SimulationState {
+  const proposal = state.governance.proposals[proposalIdValue];
+  if (!proposal || proposal.status !== 'rejected' || proposal.voteResult?.outcome !== 'rejected') throw new Error('Only a parliamentary rejection can be overridden.');
+  if (proposal.voteResult.reason) throw new Error('A rejection for a constitutional reason cannot be overridden.');
+  const parliamentPower = state.constitution.countries[proposal.countryId]?.parliament.power;
+  if (parliamentPower !== 'weak_legislative') throw new Error('Only a weak legislature\'s rejection may be overridden by the executive.');
+  const actor = requirePerson(state, actorPersonId);
+  if (!isExecutiveActor(state, actorPersonId, proposal.countryId)) throw new Error('Only the executive head may override a parliamentary rejection.');
+  if (state.date > proposal.effectiveDate) throw new Error('The proposal has expired and cannot be overridden.');
+  const parliamentaryEstimate = proposal.parliamentaryEstimate ?? estimateParliamentarySupport(state, proposal, politicalRegistry, {}, proposal.analysis);
+  if (proposal.kind === 'fiscal_reform') {
+    const protectedViolation = rejectProtectedModification(state, proposal.countryId, proposal.instrumentClass, proposal.payload);
+    if (protectedViolation) throw new Error(protectedViolation);
+  }
+  if (proposal.kind === 'constitutional_amendment') {
+    const publicEstimate = proposal.publicEstimate ?? estimatePublicSupport(state, proposal, proposal.analysis);
+    const amendmentReason = amendmentProcedureReason(state, proposal, parliamentaryEstimate, publicEstimate);
+    if (amendmentReason) throw new Error(`The constitutional amendment procedure blocks the override: ${amendmentReason}.`);
+  }
+  const enacted = proposalEnactFor(state, proposal);
+  const scheduledFiscalReformSequence = enacted.fiscalReformSequence;
+  const enactmentReference = enacted.fiscalReformSequence !== undefined && enacted.reformFingerprint !== undefined ? { fiscalReformSequence: enacted.fiscalReformSequence, reformFingerprint: enacted.reformFingerprint } : undefined;
+  const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome: 'adopted', resolvedOn: state.date, reason: 'executive_override' };
+  const resolved = { ...proposal, status: 'enacted' as const, resolvedOn: state.date, voteResult, scheduledFiscalReformSequence, enactmentReference, effects: proposalEffectsFor(proposal, { fiscalReformSequence: scheduledFiscalReformSequence, reformFingerprint: enactmentReference?.reformFingerprint, protectedMaterialKeys: enacted.protectedMaterialKeys, unprotectedMaterialKeys: enacted.unprotectedMaterialKeys }) } as PoliticalProposal;
+  const next = { ...enacted.next, governance: { ...enacted.next.governance, proposals: { ...enacted.next.governance.proposals, [proposal.id]: resolved } } };
+  return addProposalResultBriefing(next, resolved);
+}
+
+/** A real censure procedure: a legislator moves no-confidence, the current parliamentary seats decide
+ *  deterministically, and an adopted motion removes the head of government (and, for a government
+ *  censure, the cabinet). It only exists when the constitution provides it. */
+export function censureGovernment(state: SimulationState, countryId: string, actorPersonId: string): SimulationState {
+  const responsibility = state.constitution.countries[countryId]?.government.responsibility ?? 'unavailable';
+  if (!['government_censurable', 'leader_censurable'].includes(responsibility)) throw new Error('This Country\'s constitution does not provide for censure.');
+  const actor = requirePerson(state, actorPersonId);
+  if (!(actor.office?.countryId === countryId && actor.office.role === 'legislator')) throw new Error('Only a legislator may move a censure motion.');
+  const entry = state.elections.countries[countryId];
+  if (!entry) throw new Error('No parliamentary seat record for this Country.');
+  const seats: Record<string, number> = {};
+  let totalSeats = 0;
+  for (const chamber of Object.values(entry.chambers)) {
+    totalSeats += chamber.totalSeats;
+    for (const [partyId, count] of Object.entries(chamber.seatsByParty)) seats[partyId] = (seats[partyId] ?? 0) + count;
+  }
+  const confidenceSeats = entry.government.coalitionPartyIds.reduce((sum, partyId) => sum + (seats[partyId] ?? 0), 0);
+  if ((totalSeats - confidenceSeats) * 2 <= totalSeats) throw new Error('The censure motion fails without a parliamentary majority.');
+  let next = state;
+  const head = Object.values(next.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
+  if (head) next = revokePoliticalOffice(next, head.id);
+  const kind = responsibility === 'government_censurable' ? 'government' : 'leader';
+  if (responsibility === 'government_censurable') {
+    const cabinet = next.governance.cabinets[countryId];
+    if (cabinet) {
+      let persons = next.governance.persons;
+      for (const portfolio of Object.values(cabinet.portfolios)) {
+        if (portfolio.ministerPersonId) persons = { ...persons, [portfolio.ministerPersonId]: { ...persons[portfolio.ministerPersonId], office: undefined } };
+      }
+      next = { ...next, governance: { ...next.governance, persons, cabinets: { ...next.governance.cabinets, [countryId]: { ...cabinet, viceLeaderPersonId: undefined, portfolios: Object.fromEntries(Object.entries(cabinet.portfolios).map(([id, portfolio]) => [id, { ...portfolio, ministerPersonId: undefined }])) } } } };
+    }
+  }
+  const cabinet = next.governance.cabinets[countryId] ?? { countryId, portfolios: {} };
+  next = { ...next, governance: { ...next.governance, cabinets: { ...next.governance.cabinets, [countryId]: { ...cabinet, censureEvents: [...(cabinet.censureEvents ?? []), { on: state.date, byPersonId: actorPersonId, kind }] } } } };
+  return next;
 }
 
 export function resolveProposalVote(state: SimulationState, proposalIdValue: string, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}): SimulationState {
@@ -608,14 +705,15 @@ const isHeadOfGovernment = (state: SimulationState, personId: string, countryId:
   return Boolean(person?.status === 'active' && person.office?.countryId === countryId && person.office.role === 'head_of_government');
 };
 
-const cabinetFor = (state: SimulationState, countryId: string): GovernmentCabinet => state.governance.cabinets[countryId] ?? { countryId, portfolios: {} };
+const cabinetFor = (state: SimulationState, countryId: string): GovernmentCabinet => state.governance.cabinets?.[countryId] ?? { countryId, portfolios: {}, censureEvents: [] };
 
-/** Appoint a minister to a portfolio. Requires the head-of-government office. */
+/** Appoint a minister to a portfolio. Requires the head-of-government office. A person holding any
+ *  other office is never silently overwritten: they must be removed from their current office first. */
 export function appointMinister(state: SimulationState, countryId: string, actorPersonId: string, ministerPersonId: string, portfolioId: string, portfolioName: string): SimulationState {
   if (!isHeadOfGovernment(state, actorPersonId, countryId)) throw new Error('Only the head of government may appoint ministers.');
   const minister = state.governance.persons[ministerPersonId];
   if (!minister || minister.countryId !== countryId) throw new Error('Minister is not a person of this Country.');
-  if (minister.office?.role === 'minister' && minister.office.countryId === countryId) throw new Error('This person already holds a ministerial office.');
+  if (minister.office) throw new Error('This person already holds a political office; remove that office before appointing them as minister.');
   const cabinet = cabinetFor(state, countryId);
   if (Object.values(cabinet.portfolios).some(p => p.ministerPersonId === ministerPersonId)) throw new Error('This person already holds a portfolio.');
   const portfolio: Portfolio = { id: portfolioId, name: portfolioName, ministerPersonId };
@@ -644,26 +742,46 @@ export function appointViceLeader(state: SimulationState, countryId: string, act
 }
 
 /** Monthly succession: when the head of government is inactive, the deputy takes over according to
- *  the constitution's vacancy-succession rule. */
+ *  the constitution's vacancy-succession rule. Temporary succession records the predecessor so they
+ *  may resume the office when active again. */
 export function runGovernmentSuccession(state: SimulationState): SimulationState {
   let next = state;
   for (const [countryId, cabinet] of Object.entries(state.governance.cabinets ?? {})) {
+    // Temporary succession return: the recorded predecessor resumes once active again.
+    const acting = cabinet.actingHead;
+    if (acting?.kind === 'deputy_temporary') {
+      const predecessor = next.governance.persons[acting.predecessorPersonId];
+      const actingPerson = next.governance.persons[acting.personId];
+      if (predecessor && predecessor.status === 'active' && predecessor.id !== acting.personId) {
+        next = revokePoliticalOffice(next, acting.personId);
+        next = assignPoliticalOffice(next, predecessor.id, { role: 'head_of_government', countryId });
+        continue;
+      }
+      if (!actingPerson || actingPerson.status !== 'active' || actingPerson.office?.role !== 'head_of_government') {
+        // The acting arrangement lapsed; clear it.
+        next = { ...next, governance: { ...next.governance, cabinets: { ...next.governance.cabinets, [countryId]: { ...cabinet, actingHead: undefined } } } };
+      }
+    }
     if (!cabinet.viceLeaderPersonId) continue;
-    const head = Object.values(state.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
+    const head = Object.values(next.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
     if (head) continue;
     const vacancy = state.constitution.countries[countryId]?.government.vacancySuccession ?? 'unavailable';
     if (vacancy === 'unavailable') continue;
-    const vice = state.governance.persons[cabinet.viceLeaderPersonId];
+    const vice = next.governance.persons[cabinet.viceLeaderPersonId];
     if (!vice || vice.status !== 'active') continue;
-    // Material divergence: permanent succession revokes the predecessor's office; temporary
-    // succession leaves the predecessor's office in place so they may resume.
+    const predecessorId = cabinet.lastHeadPersonId;
     if (vacancy === 'deputy_permanent') {
-      const predecessor = Object.values(next.governance.persons).find(p => p.id !== vice.id && p.office?.countryId === countryId && p.office.role === 'head_of_government');
+      const predecessor = predecessorId ? next.governance.persons[predecessorId] : Object.values(next.governance.persons).find(p => p.id !== vice.id && p.office?.countryId === countryId && p.office.role === 'head_of_government');
       if (predecessor) next = revokePoliticalOffice(next, predecessor.id);
     }
     const title = vacancy === 'deputy_permanent' ? 'Head of government' : 'Head of government (acting)';
     const office = { role: 'head_of_government' as const, countryId, title, appointedOn: state.date, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities: capabilitiesFor('head_of_government'), limitation: 'Derived from constitutional succession.' } };
     next = { ...next, governance: { ...next.governance, persons: { ...next.governance.persons, [vice.id]: { ...vice, office } } } };
+    if (vacancy === 'deputy_temporary' && predecessorId && predecessorId !== vice.id) {
+      next = { ...next, governance: { ...next.governance, cabinets: { ...next.governance.cabinets, [countryId]: { ...cabinet, actingHead: { personId: vice.id, predecessorPersonId: predecessorId, since: state.date, kind: 'deputy_temporary' } } } } };
+    } else if (vacancy === 'deputy_permanent') {
+      next = { ...next, governance: { ...next.governance, cabinets: { ...next.governance.cabinets, [countryId]: { ...cabinet, lastHeadPersonId: vice.id, actingHead: undefined } } } };
+    }
   }
   return next;
 }

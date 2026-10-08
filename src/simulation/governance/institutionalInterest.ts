@@ -42,27 +42,67 @@ export function institutionalTransferKey(effect: InstitutionalPowerTransfer): st
   return `${effect.lever}|${effect.from}|${effect.to}`;
 }
 
-function chamberStake(registry: PoliticalRegistry, countryId: string, partyId: string, chamberId: string): PartyInstitutionalStake {
+function chamberStake(registry: PoliticalRegistry, countryId: string, partyId: string, chamberId: string, state?: SimulationState): PartyInstitutionalStake {
   const country = registry.countries[countryId], institution = registry.institutions[country?.institutionId];
   const chamber = institution?.chambers.find(item => item.id === chamberId), party = registry.parties[partyId];
   if (!country || !institution || institution.countryId !== countryId || !chamber || chamber.countryId !== countryId
-    || !party || party.countryId !== countryId || !country.partyIds.includes(partyId)
-    || chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined || chamber.totalSeats <= 0) {
+    || !party || party.countryId !== countryId || !country.partyIds.includes(partyId)) {
     return { holder: `chamber:${chamberId}`, coverage: 'unavailable', limitation: 'Complete sourced chamber seat allocation is unavailable.' };
   }
-  const partySeats = chamber.seatsByParty[partyId] ?? 0;
-  const governingSeats = institution.governingPartyIds.reduce((sum, id) => sum + (chamber.seatsByParty[id] ?? 0), 0);
+  const dynamicChamber = state?.elections?.countries?.[countryId]?.chambers?.[chamberId];
+  const dynamicSeats = dynamicChamber?.seatsByParty;
+  const hasDynamic = Boolean(dynamicSeats && Object.values(dynamicSeats).some(seats => seats > 0));
+  if (!hasDynamic && (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined || chamber.totalSeats <= 0)) {
+    return { holder: `chamber:${chamberId}`, coverage: 'unavailable', limitation: 'Complete sourced chamber seat allocation is unavailable.' };
+  }
+  const seatsByParty = hasDynamic ? dynamicSeats! : chamber.seatsByParty;
+  const totalSeats = hasDynamic && dynamicChamber && dynamicChamber.totalSeats !== undefined ? dynamicChamber.totalSeats : chamber.totalSeats;
+  if (totalSeats === undefined || totalSeats <= 0) {
+    return { holder: `chamber:${chamberId}`, coverage: 'unavailable', limitation: 'Complete sourced chamber seat allocation is unavailable.' };
+  }
+  const partySeats = seatsByParty[partyId] ?? 0;
+  const governingPartyIds = hasDynamic
+    ? state!.elections!.countries[countryId].government.coalitionPartyIds
+    : institution.governingPartyIds;
+  const governingSeats = governingPartyIds.reduce((sum, id) => sum + (seatsByParty[id] ?? 0), 0);
   return {
-    holder: `chamber:${chamberId}`, stakeBps: ratio(partySeats, 10_000, chamber.totalSeats), coverage: 'complete', partySeats, totalSeats: chamber.totalSeats,
-    governingBlocStakeBps: ratio(governingSeats, 10_000, chamber.totalSeats),
-    limitation: 'Stake is sourced seat share: institutional leverage, not ideological support.',
+    holder: `chamber:${chamberId}`, stakeBps: ratio(partySeats, 10_000, totalSeats), coverage: 'complete', partySeats, totalSeats,
+    governingBlocStakeBps: ratio(governingSeats, 10_000, totalSeats),
+    limitation: hasDynamic ? 'Stake is the current elected seat share: institutional leverage, not ideological support.' : 'Stake is sourced seat share: institutional leverage, not ideological support.',
   };
 }
 
-function executiveStake(registry: PoliticalRegistry, countryId: string, partyId: string): PartyInstitutionalStake {
+function executiveStake(registry: PoliticalRegistry, countryId: string, partyId: string, state?: SimulationState): PartyInstitutionalStake {
   const country = registry.countries[countryId], institution = registry.institutions[country?.institutionId], party = registry.parties[partyId];
   if (!country || !institution || institution.countryId !== countryId || !party || party.countryId !== countryId || !country.partyIds.includes(partyId)) {
     return { holder: 'executive', coverage: 'unavailable', limitation: 'Executive-control evidence is unavailable.' };
+  }
+  const dynamicCoalition = state?.elections?.countries?.[countryId]?.government.coalitionPartyIds;
+  if (dynamicCoalition && dynamicCoalition.length) {
+    const governingPartyIds = [...new Set(dynamicCoalition)].filter(id => country.partyIds.includes(id));
+    if (!governingPartyIds.length) {
+      return { holder: 'executive', coverage: 'unavailable', limitation: 'No elected governing bloc; opposition is not inferred from absence.' };
+    }
+    if (!governingPartyIds.includes(partyId)) {
+      return { holder: 'executive', stakeBps: 0, coverage: 'complete', limitation: 'Party is outside the elected governing bloc. Zero executive stake is structural, not an opposition penalty.' };
+    }
+    if (governingPartyIds.length === 1) {
+      return { holder: 'executive', stakeBps: 10_000, coverage: 'complete', limitation: 'Sole elected governing party receives full executive stake.' };
+    }
+    const shares: number[] = [];
+    for (const chamber of Object.values(state!.elections!.countries[countryId].chambers)) {
+      if (chamber.totalSeats <= 0) continue;
+      const governingSeats = governingPartyIds.reduce((sum, id) => sum + (chamber.seatsByParty[id] ?? 0), 0);
+      if (!governingSeats) continue;
+      shares.push(ratio(chamber.seatsByParty[partyId] ?? 0, 10_000, governingSeats));
+    }
+    if (!shares.length) {
+      return { holder: 'executive', coverage: 'unavailable', limitation: 'Multi-party elected bloc exists, but no chamber allocation supports a power-balance estimate.' };
+    }
+    return {
+      holder: 'executive', stakeBps: ratio(shares.reduce((sum, value) => sum + value, 0), 1, shares.length), coverage: 'complete',
+      limitation: 'Coalition executive stake is a modelled proxy: equal-chamber average of the party share inside the elected governing bloc.',
+    };
   }
   const governingPartyIds = [...new Set(institution.governingPartyIds)].filter(id => country.partyIds.includes(id));
   if (!governingPartyIds.length) {
@@ -99,10 +139,10 @@ function executiveStake(registry: PoliticalRegistry, countryId: string, partyId:
   };
 }
 
-export function derivePartyInstitutionalStake(registry: PoliticalRegistry, countryId: string, partyId: string, holder: InstitutionalPowerHolder): PartyInstitutionalStake {
+export function derivePartyInstitutionalStake(registry: PoliticalRegistry, countryId: string, partyId: string, holder: InstitutionalPowerHolder, state?: SimulationState): PartyInstitutionalStake {
   if (holder === 'none') return { holder, stakeBps: 0, coverage: 'complete', limitation: 'Null holder has no institutional leverage.' };
-  if (holder === 'executive') return executiveStake(registry, countryId, partyId);
-  if (isInstitutionalPowerHolder(holder) && holder.startsWith('chamber:')) return chamberStake(registry, countryId, partyId, holder.slice(8));
+  if (holder === 'executive') return executiveStake(registry, countryId, partyId, state);
+  if (isInstitutionalPowerHolder(holder) && holder.startsWith('chamber:')) return chamberStake(registry, countryId, partyId, holder.slice(8), state);
   return { holder, coverage: 'unavailable', limitation: `Unknown institutional holder: ${holder}` };
 }
 
@@ -147,7 +187,7 @@ export function evaluatePartyInstitutionalInterest(
     };
   }
   const evaluated: PartyInstitutionalInterestEvaluation['effects'] = effects.map(effect => {
-    const from = derivePartyInstitutionalStake(registry, countryId, partyId, effect.from), to = derivePartyInstitutionalStake(registry, countryId, partyId, effect.to);
+    const from = derivePartyInstitutionalStake(registry, countryId, partyId, effect.from, state), to = derivePartyInstitutionalStake(registry, countryId, partyId, effect.to, state);
     const effectCoverage = weakestCoverage(effect.coverage, from.coverage, to.coverage);
     const known = effectCoverage !== 'unavailable' && from.stakeBps !== undefined && to.stakeBps !== undefined;
     const confidenceBps = known ? Math.min(effect.confidenceBps, coverageConfidence(effectCoverage)) : 0;

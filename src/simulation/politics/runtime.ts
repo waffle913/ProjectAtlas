@@ -3,9 +3,10 @@ import { clearDirty } from '../dirty';
 import type { SimulationScheduler } from '../scheduler';
 import { allocate, ratio } from '../socioeconomy/model';
 import { aggregateNationalSupport } from './aggregation';
-import { cohortTraits, initialPreferences, organizationStateFor, politicalExperienceFor, supportFor } from './initialization';
-import { POLITICAL_ISSUES, POLITICS_MODEL as M, type CohortPoliticalOpinion, type PoliticalIssue, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
+import { cohortTraits, initialPreferences, organizationStateFor, partyOrganizationStateFor, politicalExperienceFor, supportFor } from './initialization';
+import { POLITICAL_ISSUES, POLITICS_MODEL as M, type CohortPoliticalOpinion, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
 import { politicalRegistry } from './registry';
+import { deterministicFingerprint } from '../fingerprint';
 
 const clamp = (value: number) => Math.max(0, Math.min(10_000, Math.round(value)));
 const blend = (prior: number, target: number, inertia: number) => clamp((prior * inertia + target * (10_000 - inertia)) / 10_000);
@@ -51,7 +52,17 @@ export function runPoliticalOpinionWeek(state: SimulationState): SimulationState
     const drivers = [...new Set(opinions.flatMap(item => item[6]))].sort((a, b) => a - b);
     countries[countryId] = { ...countries[countryId], regionIds, nationalSupportBps: aggregateNationalSupport(state, regionIds, regionalOpinion, partyCount), recentOpinionDrivers: [...countries[countryId].recentOpinionDrivers, { date: state.date, drivers }].slice(-M.historyLimit) };
   }
-  const organizations = Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date, politics.organizations[item.id])]));
+  const organizations: Record<string, OrganizationPoliticalState> = {};
+  for (const item of Object.values(politicalRegistry.organizations)) {
+    if (countries[item.countryId]) organizations[item.id] = organizationStateFor(state, item, regionalOpinion, state.date, politics.organizations[item.id]);
+  }
+  for (const party of Object.values(politicalRegistry.parties)) {
+    if (countries[party.countryId]) organizations[party.id] = partyOrganizationStateFor(party, state.date, politics.organizations[party.id]);
+  }
+  // Dynamically registered organizations are preserved: a weekly opinion pass never wipes mutable state.
+  for (const [id, organization] of Object.entries(politics.organizations)) {
+    if (organization.source === 'dynamic') organizations[id] = organization;
+  }
   return clearDirty({ ...state, politics: { ...politics, countries, regionalOpinion, organizations, lastOpinionUpdate: state.date, weeklyEvaluations: politics.weeklyEvaluations + Object.keys(regionalOpinion).length } }, 'politics');
 }
 export const registerPoliticalTasks = (scheduler: SimulationScheduler) => scheduler.register({ id: 'politics.opinion-weekly', cadence: 'weekly', priority: M.schedulerPriority, run: runPoliticalOpinionWeek });
@@ -87,38 +98,113 @@ export function dissolveOrganization(state: SimulationState, organizationId: str
   return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'dissolved' } } } };
 }
 
-/** Procedurally ban an organization with an accountable, authorized actor, motive and evidence. */
+/** Procedurally ban an organization with an accountable, authorized actor, motive and evidence. An
+ *  executive may only ban an organization in their own Country. */
 export function banOrganization(state: SimulationState, organizationId: string, actorPersonId: string, motive: string, evidence: string): SimulationState {
   const organization = activeOrganization(state, organizationId);
   const actor = state.governance.persons[actorPersonId];
   if (!actor || !['head_of_government', 'head_of_state'].includes(actor.office?.role ?? '')) throw new Error('Only the executive head may ban an organization.');
+  const countryId = politicalRegistry.organizations[organizationId]?.countryId ?? organization.countryId;
+  if (!countryId || actor.office!.countryId !== countryId) throw new Error('An executive may only ban an organization in their own Country.');
   if (!motive?.trim() || !evidence?.trim()) throw new Error('A ban requires an explicit motive and evidence.');
   const banEvents = [...organization.banEvents, { date: state.date, actorPersonId, motive, evidence }];
   return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'banned', banEvents } } } };
 }
 
-/** Appeal a ban: a recorded appeal restores the organization to active. */
+/** Appeal a ban: records the appeal but never automatically restores the organization. */
 export function appealBan(state: SimulationState, organizationId: string): SimulationState {
   const organization = activeOrganization(state, organizationId);
   if (organization.status !== 'banned') throw new Error('Only a banned organization may appeal.');
   const banEvents = [...organization.banEvents]; const last = banEvents.at(-1);
-  if (last) banEvents[banEvents.length - 1] = { ...last, appealedOn: state.date };
-  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'active', banEvents } } } };
+  if (!last || last.appealedOn) throw new Error('This ban has no pending appeal.');
+  banEvents[banEvents.length - 1] = { ...last, appealedOn: state.date };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, banEvents } } } };
 }
 
-/** Donate to an organization from a real donor; funds are never created ex nihilo. */
+/** Resolve a pending ban appeal: a real decision by an authorized executive in the organization's
+ *  own Country. The appeal restores the organization only when the decision says so. */
+export function resolveBanAppeal(state: SimulationState, organizationId: string, actorPersonId: string, decision: 'restore' | 'uphold'): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  if (organization.status !== 'banned') throw new Error('Only a banned organization has an appeal to resolve.');
+  const banEvents = [...organization.banEvents]; const last = banEvents.at(-1);
+  if (!last?.appealedOn) throw new Error('This ban has no pending appeal.');
+  const actor = state.governance.persons[actorPersonId];
+  if (!actor || !['head_of_government', 'head_of_state'].includes(actor.office?.role ?? '')) throw new Error('Only the executive head may resolve a ban appeal.');
+  const countryId = politicalRegistry.organizations[organizationId]?.countryId ?? organization.countryId;
+  if (!countryId || actor.office!.countryId !== countryId) throw new Error('An executive may only resolve an appeal in their own Country.');
+  banEvents[banEvents.length - 1] = { ...last, appealByPersonId: actorPersonId, appealDecision: decision, appealResolvedOn: state.date };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: decision === 'restore' ? 'active' : 'banned', banEvents } } } };
+}
+
+/** Donate to an organization from a real donor: the amount is deducted from the donor's personal
+ *  treasury, never created ex nihilo, and unavailable funds are never treated as zero. */
 export function donateToOrganization(state: SimulationState, organizationId: string, donorPersonId: string, amountUsd: number): SimulationState {
   const organization = activeOrganization(state, organizationId);
   const donor = state.governance.persons[donorPersonId];
   if (!donor) throw new Error('Unknown donor person.');
-  if (!Number.isSafeInteger(amountUsd) || amountUsd < 0) throw new Error('Donation must be a non-negative integer.');
-  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, fundsUsd: (organization.fundsUsd ?? 0) + amountUsd } } } };
+  if (!Number.isSafeInteger(amountUsd) || amountUsd <= 0) throw new Error('Donation must be a positive integer.');
+  if (organization.fundsUsd === undefined) throw new Error('This organization has no tracked treasury; a donation cannot be added to unavailable funds.');
+  if (donor.personalFundsUsd === undefined) throw new Error('The donor has no personal treasury; unavailable funds are not zero.');
+  if (donor.personalFundsUsd < amountUsd) throw new Error('The donor has insufficient personal funds.');
+  return {
+    ...state,
+    governance: { ...state.governance, persons: { ...state.governance.persons, [donor.id]: { ...donor, personalFundsUsd: donor.personalFundsUsd - amountUsd } } },
+    politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, fundsUsd: organization.fundsUsd + amountUsd } } },
+  };
 }
 
 /** Register an internal current (a modelled faction; not an observed faction share). */
 export function addInternalCurrent(state: SimulationState, organizationId: string, currentId: string, name: string, salienceBps: number): SimulationState {
   const organization = activeOrganization(state, organizationId);
   return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, internalCurrents: { ...organization.internalCurrents, [currentId]: { id: currentId, name, salienceBps } } } } } };
+}
+
+/** Register a new mutable organization (pluralism). Its identity is deterministic and it starts with
+ *  a known-empty treasury; positions are modelled-neutral, never a fabricated sourced ideology. */
+export function registerOrganization(state: SimulationState, input: { countryId: string; type: 'union' | 'association' | 'party'; displayName: string; representedInterests?: string[]; representedCohorts?: Array<'low' | 'middle' | 'high'>; issuePriorities?: PoliticalIssue[] }): SimulationState {
+  if (!state.politics.countries[input.countryId]) throw new Error('Unknown Country for organization registration.');
+  if (!input.displayName.trim()) throw new Error('An organization requires a display name.');
+  const id = `organization.dynamic.${deterministicFingerprint({ countryId: input.countryId, type: input.type, displayName: input.displayName.trim(), registeredOn: state.date })}`;
+  if (state.politics.organizations[id]) throw new Error('This organization is already registered.');
+  const currentPositions = Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, 5_000])) as Record<PoliticalIssue, number>;
+  const entry: OrganizationPoliticalState = { organizationId: id, currentPositions, lastUpdatedOn: state.date, recentDrivers: [], status: 'active', members: {}, fundsUsd: 0, internalCurrents: {}, banEvents: [], countryId: input.countryId, type: input.type, displayName: input.displayName.trim(), source: 'dynamic' };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [id]: entry } } };
+}
+
+/** Merge two active organizations of the same Country: members, funds and internal currents transfer
+ *  to the target; the absorbed organization is dissolved. Unavailable funds stay unavailable. */
+export function mergeOrganizations(state: SimulationState, targetId: string, absorbedId: string): SimulationState {
+  const target = activeOrganization(state, targetId);
+  const absorbed = activeOrganization(state, absorbedId);
+  if (target.organizationId === absorbed.organizationId) throw new Error('An organization cannot merge into itself.');
+  if (target.status !== 'active' || absorbed.status !== 'active') throw new Error('Only active organizations may merge.');
+  if (target.countryId && absorbed.countryId && target.countryId !== absorbed.countryId) throw new Error('Merging organizations must belong to the same Country.');
+  const fundsUsd = target.fundsUsd === undefined || absorbed.fundsUsd === undefined ? undefined : target.fundsUsd + absorbed.fundsUsd;
+  const members = { ...absorbed.members };
+  for (const [personId, membership] of Object.entries(target.members)) members[personId] = membership;
+  const internalCurrents = { ...absorbed.internalCurrents, ...target.internalCurrents };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [targetId]: { ...target, fundsUsd, members, internalCurrents }, [absorbedId]: { ...absorbed, status: 'dissolved' } } } };
+}
+
+/** Split an active organization: a deterministic portion of members and funds forms a new dynamic
+ *  organization; the original keeps the remainder. Unavailable funds stay unavailable. */
+export function splitOrganization(state: SimulationState, organizationId: string, newDisplayName: string): SimulationState {
+  const organization = activeOrganization(state, organizationId);
+  if (organization.status !== 'active') throw new Error('Only an active organization may split.');
+  if (!newDisplayName.trim()) throw new Error('A split organization requires a display name.');
+  const countryId = organization.countryId;
+  if (!countryId) throw new Error('The organization has no Country.');
+  const newId = `organization.dynamic.${deterministicFingerprint({ countryId, type: organization.type, displayName: newDisplayName.trim(), splitFrom: organizationId, on: state.date })}`;
+  const funds = organization.fundsUsd;
+  const half = funds === undefined ? undefined : Math.floor(funds / 2);
+  const remaining = funds === undefined ? undefined : funds - Math.floor(funds / 2);
+  const memberIds = Object.keys(organization.members).sort();
+  const splitCount = Math.floor(memberIds.length / 2);
+  const splitMemberIds = new Set(memberIds.slice(0, splitCount));
+  const members = Object.fromEntries(Object.entries(organization.members).filter(([personId]) => !splitMemberIds.has(personId)));
+  const newMembers = Object.fromEntries([...splitMemberIds].map(personId => [personId, organization.members[personId]]));
+  const newEntry: OrganizationPoliticalState = { ...organization, organizationId: newId, displayName: newDisplayName.trim(), members: newMembers, fundsUsd: half, recentDrivers: [], lastUpdatedOn: state.date, source: 'dynamic' };
+  return { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, members, fundsUsd: remaining }, [newId]: newEntry } } };
 }
 
 /** A public action (sit-in / demonstration / strike) is gated by the organization type, the

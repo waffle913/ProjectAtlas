@@ -318,7 +318,8 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     const context = { regions, countryIds: new Set(Object.keys(schema14.state.engine.fidelityByCountry)), regionIds: new Set(regions.map(r => r.id)) };
     const state = restoreSimulationState(JSON.stringify(schema14.state), regions, {}, {}, context);
     expect(state.date).toBe('2028-04-05'); expect(state.engine.tick).toBe(825); expect(state.trade.initializedOn).toBe(state.date);
-    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'governance', 'politics', 'crisis'] as const) expect(state[field]).toEqual(schema14.state[field]);
+    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'politics', 'crisis'] as const) expect(state[field]).toEqual(schema14.state[field]);
+    expect(state.governance).toEqual({ ...schema14.state.governance, cabinets: {} });
     const continued = advanceSimulationDays(state, 90);
     for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'governance', 'politics', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
     expect(continued.date).toBe('2028-07-04'); expect(continued.trade.flows).toEqual([]);

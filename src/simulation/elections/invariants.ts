@@ -22,7 +22,11 @@ export const electionsInvariant: SimulationInvariant = {
       for (const party of Object.values(entry.parties)) {
         if (!Number.isSafeInteger(party.currentSeats) || party.currentSeats < 0) errors.push(`Elections ${countryId} party ${party.partyId} has invalid current seats.`);
         if (party.credibilityBps !== undefined && (party.credibilityBps < 0 || party.credibilityBps > 10000)) errors.push(`Elections ${countryId} party ${party.partyId} has invalid credibility.`);
-        for (const promise of party.promises) if (!validDate(promise.madeOn) || promise.madeOn > state.date) errors.push(`Elections ${countryId} party ${party.partyId} has a malformed promise date.`);
+        for (const promise of party.promises) {
+          if (!validDate(promise.madeOn) || promise.madeOn > state.date) errors.push(`Elections ${countryId} party ${party.partyId} has a malformed promise date.`);
+          if (!['fiscal_reform', 'constitutional_amendment'].includes(promise.promisedKind) || !['pending', 'fulfilled', 'partially_fulfilled', 'broken', 'unavailable'].includes(promise.status)) errors.push(`Elections ${countryId} party ${party.partyId} has an invalid campaign promise.`);
+          if (promise.credibilityBps !== undefined && (promise.credibilityBps < 0 || promise.credibilityBps > 10000)) errors.push(`Elections ${countryId} party ${party.partyId} has an invalid promise credibility.`);
+        }
       }
       if (!['majority', 'minority', 'coalition', 'unavailable'].includes(entry.government.confidence)) errors.push(`Elections ${countryId} has an invalid government confidence.`);
       for (const coalitionPartyId of entry.government.coalitionPartyIds) {

@@ -41,6 +41,8 @@ export interface PoliticalPersonState {
   isPartyLeader: boolean;
   office?: PoliticalOfficeState;
   status: 'active' | 'inactive';
+  /** Modelled personal treasury in USD. `undefined` means unavailable, never zero. */
+  personalFundsUsd?: number;
   leaderProfile?: Record<string, { valueBps: number; confidenceBps: number; status: 'derived' | 'modelled'; limitation: string }>;
   leaderProvenance?: {
     basis: 'sourced_analogue' | 'derived_analogue' | 'modelled_fallback';
@@ -307,6 +309,12 @@ export interface GovernmentCabinet {
   countryId: string;
   viceLeaderPersonId?: string;
   portfolios: Record<string, Portfolio>;
+  /** Dated trace of censure motions actually adopted; a censure is a real procedure, not an office edit. */
+  censureEvents?: Array<{ on: string; byPersonId: string; kind: 'government' | 'leader' }>;
+  /** Most recent holder of the head-of-government office, used for temporary succession return. */
+  lastHeadPersonId?: string;
+  /** A temporary acting head, with the predecessor recorded so they may resume when active again. */
+  actingHead?: { personId: string; predecessorPersonId: string; since: string; kind: 'deputy_temporary' };
 }
 
 export interface Portfolio {

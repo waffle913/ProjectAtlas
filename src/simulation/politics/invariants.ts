@@ -58,8 +58,16 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
   for (const [organizationId, organization] of Object.entries(politics.organizations)) {
     if (!['active', 'dissolved', 'banned'].includes(organization.status)) errors.push(`Organization ${organizationId} has an invalid status.`);
     if (organization.fundsUsd !== undefined && (!Number.isSafeInteger(organization.fundsUsd) || organization.fundsUsd < 0)) errors.push(`Organization ${organizationId} has invalid funds.`);
+    if (organization.countryId !== undefined && !context.countryIds.has(organization.countryId)) errors.push(`Organization ${organizationId} has an invalid Country.`);
+    if (organization.type !== undefined && !['union', 'association', 'party'].includes(organization.type)) errors.push(`Organization ${organizationId} has an invalid type.`);
+    if (organization.source !== undefined && !['registry', 'dynamic'].includes(organization.source)) errors.push(`Organization ${organizationId} has an invalid source.`);
     for (const [personId, membership] of Object.entries(organization.members ?? {})) if (membership.personId !== personId || !['member', 'leader'].includes(membership.role)) errors.push(`Organization ${organizationId} has an invalid membership ${personId}.`);
-    for (const banEvent of organization.banEvents ?? []) if (!validDate(banEvent.date) || banEvent.date > state.date || !banEvent.actorPersonId?.trim() || !banEvent.motive?.trim() || !banEvent.evidence?.trim()) errors.push(`Organization ${organizationId} has an invalid ban event.`);
+    for (const banEvent of organization.banEvents ?? []) {
+      if (!validDate(banEvent.date) || banEvent.date > state.date || !banEvent.actorPersonId?.trim() || !banEvent.motive?.trim() || !banEvent.evidence?.trim()) errors.push(`Organization ${organizationId} has an invalid ban event.`);
+      if (banEvent.appealedOn && !validDate(banEvent.appealedOn)) errors.push(`Organization ${organizationId} has an invalid appeal date.`);
+      if (banEvent.appealDecision !== undefined && !['restore', 'uphold'].includes(banEvent.appealDecision)) errors.push(`Organization ${organizationId} has an invalid appeal decision.`);
+      if (banEvent.appealResolvedOn && !validDate(banEvent.appealResolvedOn)) errors.push(`Organization ${organizationId} has an invalid appeal resolution date.`);
+    }
     for (const current of Object.values(organization.internalCurrents ?? {})) if (!current.id?.trim() || !current.name?.trim() || !Number.isSafeInteger(current.salienceBps)) errors.push(`Organization ${organizationId} has an invalid internal current.`);
   }
   return errors;

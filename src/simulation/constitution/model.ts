@@ -84,6 +84,9 @@ export interface GovernmentConstitution {
 export interface AmendmentConstitution {
   parliamentaryThresholdBps?: number; // 0..10000
   referendum: ReferendumRule;
+  /** Provenance of the procedure itself: an observed rule, or a modelled bootstrap default so the
+   *  revision procedure is usable (never a sourced claim). `undefined` means unavailable. */
+  procedureStatus?: 'sourced' | 'modelled';
 }
 
 export interface ElectionConstitution {
@@ -107,7 +110,13 @@ export interface JudicialReviewConstitution {
 
 export interface EmergencyConstitution {
   status: EmergencyStatus;
-  justificationCrisisIds: string[];
+  /** Permanent crisis episode identities, never crisis types: a new episode of the same type does
+   *  not silently re-justify an emergency declared for a previous episode. */
+  justificationEpisodeIds: string[];
+  /** Set when the justification episodes ceased to be active; the emergency stays unjustified until ended. */
+  unjustifiedSince?: string;
+  /** Progressive discontent counter incremented each month the restrictions are maintained unjustified. */
+  discontentDriversApplied?: number;
   restrictions: { assembliesBanned: boolean; strikesBanned: boolean; policePowersEnhanced: boolean; bordersClosed: boolean };
 }
 
@@ -138,6 +147,28 @@ export interface ConstitutionStateEntry {
   bindingEvents: ConstitutionalBindingEvent[];
 }
 
+/** The lifecycle of a scheduled amendment. `scheduled` and `referred` are open states; the rest are
+ *  terminal and are never processed again by the monthly task. */
+export type AmendmentStatus = 'scheduled' | 'referred' | 'promulgated' | 'blocked' | 'annulled' | 'incompatible';
+/** The constitutional court's verdict, distinct from the constitutional `effect` (its available power). */
+export type JudicialVerdict = 'clear' | 'annulled' | 'incompatible' | 'advisory';
+
+export interface AmendmentReferral {
+  /** Date of the referral (saisine). */
+  on: string;
+  /** Set for an explicit saisine; absent for the obligatory a priori review the constitution triggers itself. */
+  byPersonId?: string;
+  timing: 'before_promulgation' | 'after_promulgation';
+}
+
+export interface AmendmentDecision {
+  outcome: JudicialVerdict;
+  /** The power actually exercised; it must be one the court's constitution grants (judicialReview.effect). */
+  effect: JudicialEffect;
+  on: string;
+  byPersonId?: string;
+}
+
 export interface PendingAmendment {
   instrumentId: string;
   countryId: string;
@@ -153,10 +184,29 @@ export interface PendingAmendment {
     territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] }>;
     amendmentChanges?: Partial<AmendmentConstitution>;
   };
+  status: AmendmentStatus;
+  /** The court's constitutional powers (timing of control + available effects). Never the verdict itself. */
   judicialReview: { timing: JudicialTiming; effect: JudicialEffect };
-  /** Set when a constitutional court blocks the amendment; it is never silently dropped. */
-  blockedOn?: string;
-  decision?: { timing: JudicialTiming; effect: JudicialEffect; outcome: 'promulgated' | 'blocked' | 'annulled'; on: string };
+  /** A recorded referral (saisine) to the constitutional court. */
+  referral?: AmendmentReferral;
+  /** The court's actual verdict. Distinct from `judicialReview.effect`, which only limits what it may decide. */
+  decision?: AmendmentDecision;
+  /** Set once the amendment was actually applied; exactly-once application never repeats it. */
+  appliedOn?: string;
+  /** Reversible pre-application snapshot captured only for a posteriori annulment/incompatibility. */
+  appliedPrior?: {
+    protectedMaterialKeys: string[];
+    rights: ConstitutionalRights;
+    parliament: ParliamentConstitution;
+    headOfState: HeadOfStateConstitution;
+    government: GovernmentConstitution;
+    election: ElectionConstitution;
+    judicialReview: JudicialReviewConstitution;
+    territory: { organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] };
+    amendment: AmendmentConstitution;
+  };
+  /** Procedural block reason; never a court verdict. */
+  blockReason?: 'not_enacted' | 'judicial_review_unavailable';
 }
 
 export interface ConstitutionState {
@@ -235,12 +285,15 @@ export function initializeConstitution(state: SimulationState, countryIds?: read
       parliament: { power: parliamentPowerFromRegistry(institution), termYears: termFromChamber, dissolutionHolder: 'unavailable', chambers: institution?.chambers.length ?? 0 },
       headOfState: headOfStateFromRegistry(institution),
       government: { appointmentMode: 'unavailable', responsibility: institution?.executiveSystem === 'parliamentary' || institution?.executiveSystem === 'monarchy_parliamentary' ? 'government_censurable' : 'unavailable', vacancySuccession: 'unavailable' },
-      amendment: { referendum: 'unavailable' },
+      // Bootstrap: no sourced amendment threshold/referendum rule exists in the 0.13 registry. A usable
+      // modelled procedure (two-thirds supermajority, no referendum) keeps the revision procedure reachable;
+      // it is marked `modelled`, never relabelled sourced. Countries without an institution stay unavailable.
+      amendment: hasInstitution ? { parliamentaryThresholdBps: 6_667, referendum: 'never', procedureStatus: 'modelled' } : { referendum: 'unavailable' },
       election: electionFromRegistry(institution),
       rights: unavailableRights(),
       judicialReview: { courtExists: 'unavailable', appointment: 'unavailable', term: 'unavailable', timing: 'unavailable', effect: 'unavailable', accessors: [] },
       territory: { organization: 'unavailable', regionalAutonomy: 'unavailable', delegatedCompetences: [] },
-      emergency: { status: 'none', justificationCrisisIds: [], restrictions: { assembliesBanned: false, strikesBanned: false, policePowersEnhanced: false, bordersClosed: false } },
+      emergency: { status: 'none', justificationEpisodeIds: [], restrictions: { assembliesBanned: false, strikesBanned: false, policePowersEnhanced: false, bordersClosed: false } },
       protectedMaterialKeys: [],
       bindingEvents: [],
     };

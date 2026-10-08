@@ -170,6 +170,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
   };
   for (const [id, person] of Object.entries(g.persons)) {
     if (person.id !== id || !id.match(/^person\.\d{8}$/) || Number(id.slice(7)) >= g.nextPersonSequence || !person.displayName.trim() || !context.countryIds.has(person.countryId) || !dateValid(person.createdOn) || person.createdOn < g.initializedOn || person.createdOn > state.date || !['active', 'inactive'].includes(person.status)) errors.push(`Malformed political person ${id}.`);
+    if (person.personalFundsUsd !== undefined && (!Number.isSafeInteger(person.personalFundsUsd) || person.personalFundsUsd < 0)) errors.push(`Political person ${id} has invalid personal funds.`);
     if (person.isPartyLeader && person.status === 'active' && person.createdOn === politicalRegistry.referenceDate) {
       if (activeInitialLeaderNames.has(person.displayName)) errors.push(`Initial active party leader name is duplicated: ${person.displayName}.`);
       activeInitialLeaderNames.add(person.displayName);
@@ -205,7 +206,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
       ? ((!proposal.payload.policy && !proposal.payload.annualBudget) || (proposal.payload.policy && safe(() => validatePolicy(proposal.payload.policy!, proposal.countryId, proposal.effectiveDate))) || (proposal.payload.annualBudget && safe(() => validateBudget(proposal.payload.annualBudget!))))
       : false;
     const amendmentPayloadInvalid = proposal.kind === 'constitutional_amendment'
-      ? !proposal.constitutionalDisposition || !['principal', 'secondary'].includes(proposal.constitutionalDisposition) || (!proposal.payload.materialKeysToProtect?.length && !proposal.payload.materialKeysToUnprotect?.length && !proposal.payload.rightsChanges && !proposal.payload.parliamentChanges && !proposal.payload.executiveChanges && !proposal.payload.electionChanges && !proposal.payload.judicialChanges && !proposal.payload.territoryChanges)
+      ? !proposal.constitutionalDisposition || !['principal', 'secondary'].includes(proposal.constitutionalDisposition) || (!proposal.payload.materialKeysToProtect?.length && !proposal.payload.materialKeysToUnprotect?.length && !proposal.payload.rightsChanges && !proposal.payload.parliamentChanges && !proposal.payload.executiveChanges && !proposal.payload.electionChanges && !proposal.payload.judicialChanges && !proposal.payload.territoryChanges && !proposal.payload.amendmentChanges)
       : false;
     if (fiscalPayloadInvalid || amendmentPayloadInvalid) errors.push(`Invalid payload for ${id}.`);
     if (proposal.status === 'draft' && (proposal.submittedOn || proposal.submittedPayloadFingerprint || proposal.resolvedOn || proposal.voteResult)) errors.push(`Draft ${id} contains lifecycle residue.`);
@@ -249,8 +250,10 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
         const { outcome: _outcome, resolvedOn: _resolvedOn, reason: _reason, ...recordedEstimate } = proposal.voteResult;
         if (!proposal.parliamentaryEstimate || canonicalJson(recordedEstimate) !== canonicalJson(proposal.parliamentaryEstimate)) errors.push(`Plurality estimate/result mismatch for ${id}.`);
       }
-      if (proposal.voteResult.outcome === 'adopted' && (proposal.voteResult.coverage !== 'complete' || !proposal.voteResult.chambers.length || !proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Adopted vote ${id} is not supported by every complete chamber.`);
+      const executiveOverride = proposal.voteResult.reason === 'executive_override';
+      if (proposal.voteResult.outcome === 'adopted' && !executiveOverride && (proposal.voteResult.coverage !== 'complete' || !proposal.voteResult.chambers.length || !proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Adopted vote ${id} is not supported by every complete chamber.`);
       if (proposal.voteResult.outcome === 'rejected' && (proposal.voteResult.coverage !== 'complete' || proposal.voteResult.chambers.every(chamber => chamber.adopted === true))) errors.push(`Rejected vote ${id} is inconsistent with its chambers.`);
+      if (executiveOverride && proposal.voteResult.chambers.every(chamber => chamber.adopted === true)) errors.push(`Executive override ${id} does not follow a parliamentary rejection.`);
       if (proposal.voteResult.outcome === 'unavailable' && !proposal.voteResult.reason) errors.push(`Unavailable vote ${id} has no reason.`);
       if (proposal.voteResult.reason === 'institutional_data_unavailable' && proposal.voteResult.coverage === 'complete') errors.push(`Unavailable vote ${id} falsely reports complete institutional coverage.`);
       if (proposal.voteResult.reason === 'effective_date_expired' && state.date <= proposal.effectiveDate) errors.push(`Proposal ${id} is falsely marked expired.`);
@@ -272,9 +275,14 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
   for (const [countryId, cabinet] of Object.entries(g.cabinets ?? {})) {
     if (cabinet.countryId !== countryId || !context.countryIds.has(countryId)) errors.push(`Cabinet ${countryId} has an invalid identity.`);
     if (cabinet.viceLeaderPersonId !== undefined && (!g.persons[cabinet.viceLeaderPersonId] || g.persons[cabinet.viceLeaderPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} has an invalid deputy reference.`);
+    if (cabinet.lastHeadPersonId !== undefined && (!g.persons[cabinet.lastHeadPersonId] || g.persons[cabinet.lastHeadPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} has an invalid last head reference.`);
+    if (cabinet.actingHead && (cabinet.actingHead.kind !== 'deputy_temporary' || !dateValid(cabinet.actingHead.since) || cabinet.actingHead.since > state.date || !g.persons[cabinet.actingHead.personId] || !g.persons[cabinet.actingHead.predecessorPersonId] || cabinet.actingHead.personId === cabinet.actingHead.predecessorPersonId)) errors.push(`Cabinet ${countryId} has an invalid acting-head record.`);
     for (const [portfolioId, portfolio] of Object.entries(cabinet.portfolios)) {
       if (!portfolio || portfolio.id !== portfolioId || !portfolio.name?.trim()) errors.push(`Cabinet ${countryId} has an invalid portfolio ${portfolioId}.`);
       if (portfolio.ministerPersonId !== undefined && (!g.persons[portfolio.ministerPersonId] || g.persons[portfolio.ministerPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} portfolio ${portfolioId} has an invalid minister reference.`);
+    }
+    for (const event of cabinet.censureEvents ?? []) {
+      if (!dateValid(event.on) || event.on > state.date || !event.byPersonId?.trim() || !['government', 'leader'].includes(event.kind)) errors.push(`Cabinet ${countryId} has an invalid censure event.`);
     }
   }
   return errors;

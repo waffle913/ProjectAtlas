@@ -5,8 +5,10 @@ import { roundHalfAwayFromZero, scaledRatioSigned } from '../integerMath';
 import { sum } from '../fiscal/math';
 import { availableNeedsCoverage } from '../trade/runtime';
 import { POLITICAL_ISSUES, type PoliticalParty, type PoliticalRegistry } from '../politics/model';
+import { politicalRegistry } from '../politics/registry';
+import type { ConstitutionalRights, ParliamentPower } from '../constitution/model';
 import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest } from './institutionalInterest';
-import type { CoveredMetric, DirectPolicyChange, EvaluationCoverage, ExpectedConsequence, FiscalProposalPayload, GovernanceGoal, PartyGoalProfile, PartyIssueEvaluation, PartyIssuePreference, PartyProposalEvaluation, PoliticalProposal, ProposalAnalysis, ProposalMaterialContext, UnsupportedProposalChange } from './model';
+import type { CoveredMetric, DirectPolicyChange, EvaluationCoverage, ExpectedConsequence, FiscalProposalPayload, GovernanceGoal, InstitutionalPowerHolder, InstitutionalPowerTransfer, PartyGoalProfile, PartyIssueEvaluation, PartyIssuePreference, PartyProposalEvaluation, PoliticalProposal, ProposalAnalysis, ProposalMaterialContext, UnsupportedProposalChange } from './model';
 
 export const GOVERNANCE_GOALS = [...POLITICAL_ISSUES, 'fiscal_sustainability'] as const satisfies readonly GovernanceGoal[];
 export const GOVERNANCE_VOTE_THRESHOLDS = Object.freeze({ yesAgreementBps: 6_000, noAgreementBps: 4_000, minimumConfidenceBps: 3_000 });
@@ -56,9 +58,133 @@ const budgetDirection = (delta: number, baseline: number, severityBps: number) =
 export const aggregateIssueEffects = (consequences: readonly ExpectedConsequence[]): Record<GovernanceGoal, number> =>
   Object.fromEntries(GOVERNANCE_GOALS.map(goal => [goal, signed(sum(consequences.filter(item => item.goal === goal && item.coverage !== 'unavailable').map(item => item.directionBps)))])) as Record<GovernanceGoal, number>;
 
+const rightStrength = (value: string | undefined): number | undefined => {
+  switch (value) {
+    case 'guaranteed': case 'strong': case 'constitutional_right': case 'constitutional': return 10_000;
+    case 'guaranteed_with_restrictions': case 'guaranteed_with_legal_expropriation': case 'limited': return 7_000;
+    case 'official_plus_tolerance': case 'authorization_required': case 'state_objective_not_justiciable': case 'ordinary_law_only': return 6_000;
+    case 'strongly_restricted': case 'official_plus_restrictions': case 'weak': return 3_000;
+    case 'not_guaranteed': case 'not_constitutionalized': return 0;
+    default: return undefined;
+  }
+};
+
+const rightGoal = (field: keyof ConstitutionalRights): GovernanceGoal | undefined => {
+  if (field === 'strike' || field === 'union') return 'labour_protection';
+  if (field === 'health' || field === 'education' || field === 'socialProtection') return 'public_services';
+  if (field === 'privateProperty') return 'fiscal_distribution';
+  return undefined;
+};
+
+const materialKeyGoal = (key: string): GovernanceGoal | undefined => {
+  if (key === 'fiscal.annualBudget.health' || key === 'fiscal.annualBudget.education') return 'public_services';
+  if (key === 'fiscal.annualBudget.pensions' || key === 'fiscal.annualBudget.incomeSupport') return 'income_security';
+  if (key === 'fiscal.annualBudget.infrastructure') return 'infrastructure';
+  if (key.startsWith('fiscal.')) return 'fiscal_sustainability';
+  return undefined;
+};
+
+const holderForParliamentPower = (power: ParliamentPower | undefined, chamberId: string | undefined): InstitutionalPowerHolder => {
+  if (power === 'none' || power === 'consultative') return 'none';
+  if (power === 'weak_legislative') return 'executive';
+  if (chamberId && ['legislative', 'legislative_and_censure', 'decisive'].includes(power as string)) return `chamber:${chamberId}`;
+  return 'none';
+};
+
+const holderForDissolution = (holder: string | undefined, chamberId: string | undefined): InstitutionalPowerHolder =>
+  holder === 'executive' ? 'executive' : holder === 'parliament' && chamberId ? `chamber:${chamberId}` : 'none';
+
+/** Content analysis of a constitutional amendment: explicit constitutional changes, institutional
+ *  power transfers and the modelled material consequences that parties, parliament and the
+ *  referendum can actually evaluate. Every mapping is documented and marked partial, never a bonus. */
+function analyzeConstitutionalAmendment(state: SimulationState, proposal: PoliticalProposal): {
+  directPolicyChanges: DirectPolicyChange[];
+  expectedConsequences: ExpectedConsequence[];
+  unsupportedChanges: UnsupportedProposalChange[];
+  limitations: string[];
+  institutionalEffects: InstitutionalPowerTransfer[];
+} {
+  const payload = proposal.kind === 'constitutional_amendment' ? proposal.payload : null;
+  if (!payload) return { directPolicyChanges: [], expectedConsequences: [], unsupportedChanges: [], limitations: [], institutionalEffects: [] };
+  const country = politicalRegistry.countries[proposal.countryId];
+  const institution = politicalRegistry.institutions[country?.institutionId];
+  const chamberId = institution?.chambers[0]?.id;
+  const entry = state.constitution.countries[proposal.countryId];
+  const directPolicyChanges: DirectPolicyChange[] = [];
+  const expectedConsequences: ExpectedConsequence[] = [];
+  const unsupportedChanges: UnsupportedProposalChange[] = [];
+  const limitations: string[] = [];
+  const institutionalEffects: InstitutionalPowerTransfer[] = [];
+  let effectIndex = 0;
+  const powerTransfer = (lever: InstitutionalPowerTransfer['lever'], from: InstitutionalPowerHolder, to: InstitutionalPowerHolder, source: string, explanation: string): void => {
+    if (from === to) return;
+    institutionalEffects.push({ id: `constitutional.${proposal.id}.${effectIndex++}`, lever, from, to, confidenceBps: 10_000, coverage: 'complete', source, explanation });
+  };
+  if (payload.materialKeysToProtect?.length) {
+    for (const key of payload.materialKeysToProtect) directPolicyChanges.push({ path: `protectedMaterialKeys.${key}`, after: key, coverage: 'complete', explanation: 'Material key becomes constitutionally protected against ordinary-law modification.' });
+    for (const key of payload.materialKeysToProtect) { const goal = materialKeyGoal(key); if (goal) expectedConsequences.push(consequence(goal, 2_000, 6_000, 'partial', `constitutional.material_key.${key}`, `Entrenching ${key} protects it from ordinary law (modelled institutional consequence, not a fiscal forecast).`)); }
+  }
+  if (payload.materialKeysToUnprotect?.length) {
+    for (const key of payload.materialKeysToUnprotect) directPolicyChanges.push({ path: `protectedMaterialKeys.${key}`, before: key, coverage: 'complete', explanation: 'Material key loses constitutional protection and returns to ordinary law.' });
+    for (const key of payload.materialKeysToUnprotect) { const goal = materialKeyGoal(key); if (goal) expectedConsequences.push(consequence(goal, -2_000, 6_000, 'partial', `constitutional.material_key.${key}`, `Removing constitutional protection of ${key} reopens it to ordinary law (modelled institutional consequence).`)); }
+  }
+  if (payload.rightsChanges) {
+    for (const [field, afterValue] of Object.entries(payload.rightsChanges) as Array<[keyof ConstitutionalRights, string]>) {
+      const beforeValue = entry?.rights[field] as string | undefined;
+      if (JSON.stringify(beforeValue) === JSON.stringify(afterValue)) continue;
+      directPolicyChanges.push({ path: `rights.${field}`, before: beforeValue as string | null, after: afterValue, coverage: 'complete', explanation: `Constitutional right ${field} is revised.` });
+      const beforeStrength = rightStrength(beforeValue), afterStrength = rightStrength(afterValue);
+      const goal = rightGoal(field);
+      if (goal && beforeStrength !== undefined && afterStrength !== undefined) {
+        const direction = field === 'privateProperty' ? beforeStrength - afterStrength : afterStrength - beforeStrength;
+        if (direction) expectedConsequences.push(consequence(goal, direction, 6_000, 'partial', `constitutional.right.${field}`, `Modelled mapping of the ${field} guarantee onto ${goal}; not an observed behavioral coefficient.`));
+      } else if (!goal) {
+        unsupportedChanges.push({ path: `rights.${field}`, coverage: 'partial', reason: `Constitutional right ${field} has no reducible mapping onto the six material issue dimensions; its content is recorded as an explicit change and evaluated institutionally.` });
+      } else {
+        unsupportedChanges.push({ path: `rights.${field}`, coverage: 'unavailable', reason: `The before/after guarantee level of ${field} is unavailable; no direction is inferred.` });
+      }
+    }
+  }
+  if (payload.parliamentChanges?.power !== undefined && payload.parliamentChanges.power !== entry?.parliament.power) {
+    powerTransfer('legislative_initiative', holderForParliamentPower(entry?.parliament.power, chamberId), holderForParliamentPower(payload.parliamentChanges.power, chamberId), 'constitutional.parliament.power', `Parliamentary legislative power moves from ${entry?.parliament.power} to ${payload.parliamentChanges.power}.`);
+  }
+  if (payload.parliamentChanges?.dissolutionHolder !== undefined && payload.parliamentChanges.dissolutionHolder !== entry?.parliament.dissolutionHolder) {
+    powerTransfer('dissolution_power', holderForDissolution(entry?.parliament.dissolutionHolder, chamberId), holderForDissolution(payload.parliamentChanges.dissolutionHolder, chamberId), 'constitutional.parliament.dissolutionHolder', `The constitutional power to dissolve parliament moves from ${entry?.parliament.dissolutionHolder} to ${payload.parliamentChanges.dissolutionHolder}.`);
+  }
+  for (const [path, before, after] of [
+    ['parliament.termYears', entry?.parliament.termYears, payload.parliamentChanges?.termYears],
+    ['headOfState.selectionMethod', entry?.headOfState.selectionMethod, payload.executiveChanges?.headOfState?.selectionMethod],
+    ['government.appointmentMode', entry?.government.appointmentMode, payload.executiveChanges?.government?.appointmentMode],
+    ['government.responsibility', entry?.government.responsibility, payload.executiveChanges?.government?.responsibility],
+    ['government.vacancySuccession', entry?.government.vacancySuccession, payload.executiveChanges?.government?.vacancySuccession],
+    ['election.parliamentarySystem', entry?.election.parliamentarySystem, payload.electionChanges?.parliamentarySystem],
+    ['election.rounds', entry?.election.rounds, payload.electionChanges?.rounds],
+    ['judicialReview.timing', entry?.judicialReview.timing, payload.judicialChanges?.timing],
+    ['judicialReview.effect', entry?.judicialReview.effect, payload.judicialChanges?.effect],
+    ['territory.organization', entry?.territory.organization, payload.territoryChanges?.organization],
+    ['territory.regionalAutonomy', entry?.territory.regionalAutonomy, payload.territoryChanges?.regionalAutonomy],
+    ['amendment.parliamentaryThresholdBps', entry?.amendment.parliamentaryThresholdBps, payload.amendmentChanges?.parliamentaryThresholdBps],
+    ['amendment.referendum', entry?.amendment.referendum, payload.amendmentChanges?.referendum],
+  ] as const) {
+    if (after !== undefined && JSON.stringify(before) !== JSON.stringify(after)) directPolicyChanges.push({ path, before: before as number | string | null, after: after as number | string, coverage: 'complete', explanation: `Constitutional field ${path} is revised.` });
+  }
+  if (payload.judicialChanges && (payload.judicialChanges.timing !== undefined || payload.judicialChanges.effect !== undefined)) {
+    limitations.push('Judicial-review changes are recorded as explicit constitutional revisions; the court is an institution, not one of the modelled power holders, so no chamber/executive power transfer is inferred.');
+  }
+  if (payload.electionChanges && (payload.electionChanges.suffrage !== undefined || payload.electionChanges.mandatoryVoting !== undefined || payload.electionChanges.votingAge !== undefined || payload.electionChanges.thresholdBps !== undefined)) {
+    limitations.push('Suffrage, voting age, mandatory voting and electoral threshold changes are recorded as explicit revisions; their material consequences are not forecast.');
+  }
+  if (payload.territoryChanges && payload.territoryChanges.delegatedCompetences) {
+    limitations.push('Delegated-competence changes are recorded as explicit revisions; no fiscal or policy consequence is inferred.');
+  }
+  limitations.push('Constitutional amendment consequences are modelled mappings of institutional content onto material goals; they are not observations and never fabricate a sourced constitutional rule.');
+  return { directPolicyChanges, expectedConsequences, unsupportedChanges, limitations, institutionalEffects };
+}
+
+
 export function analyzeProposal(state: SimulationState, proposal: PoliticalProposal): ProposalAnalysis {
   const country = state.fiscal.countries[proposal.countryId]; if (!country) throw new Error('Proposal Country has no fiscal state.');
-  const materialContext = materialContextForProposal(state, proposal), directPolicyChanges: DirectPolicyChange[] = [], unsupportedChanges: UnsupportedProposalChange[] = [], expectedConsequences: ExpectedConsequence[] = [], limitations: string[] = [];
+  const materialContext = materialContextForProposal(state, proposal), directPolicyChanges: DirectPolicyChange[] = [], unsupportedChanges: UnsupportedProposalChange[] = [], expectedConsequences: ExpectedConsequence[] = [], limitations: string[] = [], institutionalEffects: InstitutionalPowerTransfer[] = [];
   const fiscalPayload: FiscalProposalPayload = proposal.kind === 'fiscal_reform' ? proposal.payload : { policy: undefined, annualBudget: undefined };
   if (fiscalPayload.annualBudget) for (const category of CATEGORIES) { const before = country.annualBudget[category], after = fiscalPayload.annualBudget[category]; if (before !== after) directPolicyChanges.push({ path: `annualBudget.${category}`, before, after, delta: after - before, coverage: 'complete', explanation: 'Explicit annual appropriation change.' }); }
   const defenseDelta = fiscalPayload.annualBudget ? (fiscalPayload.annualBudget.defense ?? 0) - (country.annualBudget.defense ?? 0) : 0;
@@ -109,10 +235,18 @@ export function analyzeProposal(state: SimulationState, proposal: PoliticalPropo
   }
   if (unsupportedChanges.length) limitations.push(...unsupportedChanges.map(item => `${item.path}: ${item.reason}`));
   limitations.push('Only immediate fiscal consequences available from 0.11 are evaluated; no GDP, growth, inflation or future unemployment forecast is invented.');
+  if (proposal.kind === 'constitutional_amendment') {
+    const constitutional = analyzeConstitutionalAmendment(state, proposal);
+    directPolicyChanges.push(...constitutional.directPolicyChanges);
+    expectedConsequences.push(...constitutional.expectedConsequences);
+    unsupportedChanges.push(...constitutional.unsupportedChanges);
+    limitations.push(...constitutional.limitations);
+    institutionalEffects.push(...constitutional.institutionalEffects);
+  }
   const issueEffects = aggregateIssueEffects(expectedConsequences);
   const genuinelyNeutral = directPolicyChanges.length === 0 && unsupportedChanges.length === 0;
   const coverage: EvaluationCoverage = genuinelyNeutral ? 'complete' : !expectedConsequences.some(item => item.coverage !== 'unavailable') ? 'unavailable' : unsupportedChanges.length || expectedConsequences.some(item => item.coverage !== 'complete') ? 'partial' : 'complete';
-  return { version: 'proposal-analysis-0.14-v2', directPolicyChanges, materialContext, expectedConsequences, issueEffects, coverage, unsupportedChanges, limitations, genuinelyNeutral, institutionalEffects: [] };
+  return { version: 'proposal-analysis-0.14-v2', directPolicyChanges, materialContext, expectedConsequences, issueEffects, coverage, unsupportedChanges, limitations, genuinelyNeutral, institutionalEffects };
 }
 
 function totalRevenueFor(state: SimulationState, countryId: string) { const country = state.fiscal.countries[countryId], account = country?.account; return account?.totalRevenue ?? (country ? country.revenueCalibration.monthlyAmount + sum(Object.values(state.fiscal.regions).filter(region => region.owner === countryId).flatMap(region => TAXES.map(category => region.taxes[category].collected))) : 0); }
