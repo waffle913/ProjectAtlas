@@ -39,7 +39,7 @@ function validTreaty(overrides: Partial<Treaty> = {}): Treaty {
 describe('0.20 multilateral canonical model and schema-18 migration', () => {
   it('initializes an empty multilateral domain with no fabricated treaties, organizations or memberships', () => {
     const state = baseState();
-    expect(state.schemaVersion).toBe(18);
+    expect(state.schemaVersion).toBe(19);
     expect(state.multilateral.version).toBe(MULTILATERAL_VERSION);
     expect(state.multilateral.initializedOn).toBe(state.date);
     expect(state.multilateral.treaties).toEqual({});
@@ -54,7 +54,7 @@ describe('0.20 multilateral canonical model and schema-18 migration', () => {
     saved.schemaVersion = 17;
     delete saved.multilateral;
     const restored = restoreSimulationState(JSON.stringify(saved), worldRegions, {}, {}, worldContext);
-    expect(restored.schemaVersion).toBe(18);
+    expect(restored.schemaVersion).toBe(19);
     expect(restored.multilateral.initializedOn).toBe(state.date);
     expect(restored.multilateral.treaties).toEqual({});
     expect(restored.multilateral.organizations).toEqual({});

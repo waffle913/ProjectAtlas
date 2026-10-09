@@ -26,7 +26,7 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
       </section>
       <section>
         <h2>Regional public information</h2>
-        <p>Regional economic and service reports are not yet published through the 0.15 information system.</p>
+        <p>Regional economic and service reports are not available to this role through the government information system.</p>
         <p>Internal employment, production, household and service simulation values are intentionally not shown here.</p>
       </section>
       <section>

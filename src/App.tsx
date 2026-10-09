@@ -1,6 +1,8 @@
 import { emptyOperations } from './simulation/operations/model';
 import { emptyInternational } from './simulation/international/model';
 import { emptyMultilateral } from './simulation/multilateral/model';
+import { emptyConstitution } from './simulation/constitution/model';
+import { emptyElections } from './simulation/elections/model';
 import { emptyTrade } from './simulation/trade/model';
 import { emptyMilitary } from './simulation/military/model';
 import { StartGame } from './components/StartGame';
@@ -37,10 +39,17 @@ import { setControlledPerson } from "./simulation/governance/runtime";
 import { hasGovernmentInformationAccess, inspectGovernmentReports } from "./simulation/information/runtime";
 import { politicalRegistry } from "./simulation/politics/registry";
 import { initializeNewGame } from "./simulation/initialization";
+import { serializeSimulationState, restoreSimulationState } from "./simulation/save";
+import { MainMenu, type MenuScreen } from "./components/MainMenu";
+import { SettingsMenu } from "./components/SettingsMenu";
+import { SaveManager } from "./components/SaveManager";
+import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
+import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
+import { initDesktopBackends, exitApplication, applyNativeDisplayMode } from "./app/desktop";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
-  schemaVersion: 18, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
+  schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
   date: "2026-01-01",
   paused: true,
   speed: 1,
@@ -95,6 +104,15 @@ export default function App() {
   const [sim, setSim] = useState(initialState);
   const [loadError, setLoadError] = useState<string>();
   const [activePage, setActivePage] = useState('overview');
+  const [screen, setScreen] = useState<MenuScreen>('menu');
+  const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
+  const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
+  const [pauseOpen, setPauseOpen] = useState(false);
+  const [saves, setSaves] = useState(() => listSaves());
+  useEffect(() => { applyUiScale(settings); }, [settings]);
+  useEffect(() => { void initDesktopBackends(); }, []);
+  useEffect(() => { void applyNativeDisplayMode(settings.graphics.displayMode); }, [settings.graphics.displayMode]);
+  const persistSettings = (next: AppSettings) => { setSettings(next); saveSettings(next); };
   const clock = useRef(new SimulationClock(initialState));
   useEffect(() => {
     let active = true;
@@ -237,6 +255,51 @@ export default function App() {
     clock.current.setSpeed(next.speed);
     setSim(clock.current.snapshot());
   };
+  const registryContext = countryData && regionData && world ? {
+    countryIds: new Set(countryData.registry.countries.map(c => c.id)),
+    regionIds: new Set(regionData.registry.regions.map(r => r.id)),
+    regions: regionData.registry.regions,
+  } : undefined;
+  const applyState = (next: SimulationState) => { clock.current = new SimulationClock(next); setSim(clock.current.snapshot()); };
+  const ctrlPersonId = sim.governance.player.controlledPersonId;
+  const ctrlPerson = ctrlPersonId ? sim.governance.persons[ctrlPersonId] : undefined;
+  const loadSlot = (id: string) => {
+    if (!registryContext) return;
+    const json = loadSave(id);
+    if (!json) { setLoadError('The selected save could not be read.'); return; }
+    try {
+      applyState(restoreSimulationState(json, registryContext.regions, {}, {}, registryContext));
+      setScreen('game');
+    } catch (error) {
+      setLoadError(error instanceof Error ? `Could not load save: ${error.message}` : 'Could not load save.');
+    }
+  };
+  const continueGame = () => { const recent = mostRecentSave(); if (recent) loadSlot(recent.id); };
+  const saveCurrent = (name: string) => {
+    if (!registryContext) return;
+    const country = ctrlPerson?.countryId ? world?.countries.get(ctrlPerson.countryId) : undefined;
+    const json = serializeSimulationState(sim, registryContext);
+    saveGame(saveIdFor(name), name, json, {
+      countryId: ctrlPerson?.countryId ?? '',
+      countryName: country?.commonName ?? '—',
+      controlledPersonName: ctrlPerson?.displayName ?? '—',
+      office: ctrlPerson?.office?.role ?? null,
+      simulationDate: sim.date,
+      schemaVersion: sim.schemaVersion,
+    });
+    setSaves(listSaves());
+  };
+  const exitApp = () => { void exitApplication(); };
+  if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
+  if (screen === 'load') return <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
+  if (screen === 'credits') return (
+    <main className="load-state credits">
+      <h1>ProjectAtlas</h1>
+      <p>ProjectAtlas is built on audited, provenance-carrying datasets (Natural Earth, IPU Parline, and other attributed sources). Detailed source, licence and attribution records live in the in-game provenance details and repository data audit.</p>
+      <button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button>
+    </main>
+  );
+  if (screen === 'menu') return <MainMenu hasSave={Boolean(mostRecentSave())} onContinue={continueGame} onNewGame={() => setScreen('new-game')} onLoad={() => setScreen('load')} onSettings={() => setScreen('settings')} onCredits={() => setScreen('credits')} onExit={exitApp} settings={settings} />;
   if (loadError)
     return (
       <main className="load-state">
@@ -282,10 +345,11 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>MILESTONE 0.17 · WORLD TRADE · CANDIDATE</small>
+          <small>Version {import.meta.env.VITE_APP_VERSION ?? '1.0.0'}</small>
         </div>
         <div className="header-tools">
           <Clock state={sim} onChange={changeClock} />
+          <button className="menu-button" onClick={() => setPauseOpen(true)} aria-label="Menu">☰</button>
           {controlledPerson && <BriefingTablet state={sim} onStateChange={commitCommand} onNavigate={setActivePage} />}
         </div>
       </header>
@@ -445,8 +509,32 @@ export default function App() {
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
           />
-        ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is unavailable in milestone 0.15. ProjectAtlas does not generate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <p>Current recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}. Further diplomacy decisions are not implemented.</p>}</aside>}
+        ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <p>Current recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}. Further diplomacy decisions are not implemented.</p>}</aside>}
       </div>
+      {pauseOpen && (
+        <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Pause menu">
+          <div className="pause-menu">
+            <h1>Paused</h1>
+            <button onClick={() => setPauseOpen(false)}>Resume</button>
+            <button onClick={() => setSavePrompt({ mode: 'save', name: ctrlPerson?.displayName ?? 'ProjectAtlas' })}>Save</button>
+            <button onClick={() => setSavePrompt({ mode: 'saveAs', name: '' })}>Save As</button>
+            <button onClick={() => { setPauseOpen(false); setScreen('load'); }}>Load Game</button>
+            <button onClick={() => { setPauseOpen(false); setScreen('settings'); }}>Settings</button>
+            <button onClick={() => { setPauseOpen(false); setScreen('menu'); }}>Return to Main Menu</button>
+            <button className="danger" onClick={exitApp}>Exit Game</button>
+          </div>
+        </div>
+      )}
+      {savePrompt && (
+        <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Save game">
+          <div className="pause-menu">
+            <h1>{savePrompt.mode === 'saveAs' ? 'Save As' : 'Save Game'}</h1>
+            <input value={savePrompt.name} onChange={e => setSavePrompt({ ...savePrompt, name: e.target.value })} placeholder="Save name" autoFocus />
+            <button onClick={() => { saveCurrent(savePrompt.name || 'ProjectAtlas'); setSavePrompt(null); setPauseOpen(false); }}>Save</button>
+            <button onClick={() => setSavePrompt(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
       {!controlledPerson && <StartGame countries={countryData.registry.countries} persons={Object.values(sim.governance.persons)} onPlay={startAs} />}
     </main>
   );

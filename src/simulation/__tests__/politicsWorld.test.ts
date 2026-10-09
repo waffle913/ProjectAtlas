@@ -15,7 +15,7 @@ describe('full-world corrected politics 0.13', () => {
   it('covers all Countries with real chambers, reconciled seats and variable fictional party counts', () => {
     const state = fullWorld(), definitions = Object.values(politicalRegistry.countries), chambers = Object.values(politicalRegistry.institutions).flatMap(item => item.chambers);
     expect(Object.keys(state.politics.countries)).toHaveLength(252); expect(Object.keys(state.politics.regionalOpinion)).toHaveLength(4_574); expect(chambers.length).toBe(281);
-    expect(Object.keys(state.politics.organizations)).toHaveLength(Object.keys(politicalRegistry.organizations).length); expect(Object.keys(state.politics.organizations)).toHaveLength(20);
+    expect(Object.keys(state.politics.organizations)).toHaveLength(Object.keys(politicalRegistry.organizations).length + Object.keys(politicalRegistry.parties).length);
     expect(chambers.filter(item => item.seatAllocationStatus === 'sourced').length).toBe(182);
     expect(new Set(definitions.map(item => item.partyIds.length)).size).toBeGreaterThan(10);
     expect(Object.isFrozen(politicalRegistry)).toBe(true); expect(Object.isFrozen(politicalRegistry.parties[Object.keys(politicalRegistry.parties)[0]])).toBe(true);

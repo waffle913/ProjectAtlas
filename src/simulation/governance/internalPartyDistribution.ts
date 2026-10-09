@@ -3,7 +3,7 @@ import { deterministicFingerprint } from '../fingerprint';
 import { scaledRatioSigned } from '../integerMath';
 import { evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
 import { applyInstitutionalAgreement, institutionalSensitivityBps } from './institutionalInterest';
-import type { GovernanceGoal, PartyGoalProfile, PartyInternalVoteDistribution, PartyIssuePreference, PartyProposalEvaluation, PartySeatAllocation, ProposalAnalysis } from './model';
+import type { EvaluationCoverage, GovernanceGoal, PartyGoalProfile, PartyInternalVoteDistribution, PartyIssuePreference, PartyProposalEvaluation, PartySeatAllocation, ProposalAnalysis } from './model';
 
 export const INTERNAL_PARTY_DISTRIBUTION_MODEL = Object.freeze({
   method: 'continuous_issue_distribution_v1' as const,
@@ -139,4 +139,43 @@ export function allocatePartySeats(seats: number, distribution: PartyInternalVot
   }
   const [yesSeats, noSeats, abstainSeats, unknownSeats] = allocated;
   return { yesSeats, noSeats, abstainSeats, unknownSeats };
+}
+
+const shareDistribution = (agreementMeanBps: number, agreementHalfSpreadBps: number, coverage: EvaluationCoverage, limitation: string): PartyInternalVoteDistribution => {
+  const yesBps = agreementHalfSpreadBps === 0
+    ? agreementMeanBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 10_000 : 0
+    : 10_000 - triangularCdfBps(GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps, agreementMeanBps, agreementHalfSpreadBps);
+  const noBps = agreementHalfSpreadBps === 0
+    ? agreementMeanBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 10_000 : 0
+    : triangularCdfBps(GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps, agreementMeanBps, agreementHalfSpreadBps);
+  return {
+    method: INTERNAL_PARTY_DISTRIBUTION_MODEL.method, yesBps, noBps, abstainBps: 10_000 - yesBps - noBps, unknownBps: 0,
+    agreementMeanBps, agreementHalfSpreadBps, coverage, status: 'modelled_common_prior', limitation,
+  };
+};
+
+/** A party whip instruction moves the modelled internal mean a bounded step toward the instructed
+ *  line; the internal distribution (and its defections) still decides how far the parliamentarians
+ *  actually follow — a whip never converts every seat. `free` leaves the distribution unchanged. */
+export function applyWhipInstruction(distribution: PartyInternalVoteDistribution, instruction: 'yes' | 'no' | 'abstain' | 'free'): PartyInternalVoteDistribution {
+  if (distribution.status === 'unavailable' || instruction === 'free') return distribution;
+  const WHIP_SHIFT_BPS = 2_000;
+  const target = instruction === 'yes' ? 10_000 : instruction === 'no' ? 0 : 5_000;
+  const mean = clampBps(distribution.agreementMeanBps + Math.sign(target - distribution.agreementMeanBps) * Math.min(WHIP_SHIFT_BPS, Math.abs(target - distribution.agreementMeanBps)));
+  if (mean === distribution.agreementMeanBps) return distribution;
+  return shareDistribution(mean, distribution.agreementHalfSpreadBps, distribution.coverage,
+    `${distribution.limitation} A party whip instruction (${instruction}) shifts the modelled internal mean by at most ${WHIP_SHIFT_BPS} basis points; defections remain bounded by the internal distribution.`);
+}
+
+/** Build a party's internal vote distribution directly from a central agreement/confidence pair
+ *  (used by institutional votes such as censure that have no policy analysis): the spread widens
+ *  as confidence falls, so low-confidence parties defect into abstention/opposition instead of
+ *  voting as a single block. */
+export function partyVoteDistributionFromAgreement(agreementBps: number, confidenceBps: number, coverage: EvaluationCoverage, limitation: string): PartyInternalVoteDistribution {
+  if (coverage === 'unavailable' || confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps) {
+    return unavailableDistribution('Party evaluation evidence is unavailable or below the minimum confidence threshold; uncertainty is not converted into abstention.');
+  }
+  const agreement = clampBps(agreementBps);
+  const halfSpread = clampBps(INTERNAL_PARTY_DISTRIBUTION_MODEL.maxAggregateAgreementHalfSpreadBps - Math.floor((clampBps(confidenceBps) - GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps) / 3));
+  return shareDistribution(agreement, halfSpread, coverage, limitation);
 }

@@ -75,7 +75,7 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
         rateBps: Math.round(Number(rate) * 100),
         status: 'modelled',
         source: 'player-authored governance proposal',
-        document: 'ProjectAtlas 0.15 fiscal proposal',
+        document: 'ProjectAtlas fiscal proposal',
         effectiveDate: nextDate(state.date),
         referenceDate: state.date,
         retrievedAt: state.date,
@@ -93,8 +93,8 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
   };
 
   const canSubmitDraft = Boolean(draft && canLegislate
-    && (!draft.payload.policy || canProposeTax)
-    && (!draft.payload.annualBudget || canProposeBudget));
+    && (!(draft.kind === 'fiscal_reform' && draft.payload.policy) || canProposeTax)
+    && (!(draft.kind === 'fiscal_reform' && draft.payload.annualBudget) || canProposeBudget));
 
   return <section className="cockpit-section">
     <h2>Fiscal policy</h2>

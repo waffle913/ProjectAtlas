@@ -1,11 +1,12 @@
 import type { Budget, Policy } from '../fiscal/model';
 import type { PoliticalIssue } from '../politics/model';
+import type { ConstitutionalRights, ParliamentConstitution, HeadOfStateConstitution, GovernmentConstitution, ElectionConstitution, JudicialReviewConstitution, TerritorialOrganization, RegionalAutonomy, AmendmentConstitution } from '../constitution/model';
 import { deterministicFingerprint } from '../fingerprint';
 
 export const GOVERNANCE_VERSION = 'governance-0.14-v1' as const;
 export const AUTHORITY_CAPABILITIES = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations'] as const;
 export type AuthorityCapability = typeof AUTHORITY_CAPABILITIES[number];
-export type PoliticalOfficeRole = 'head_of_government' | 'head_of_state' | 'legislator';
+export type PoliticalOfficeRole = 'head_of_government' | 'head_of_state' | 'legislator' | 'minister';
 export const INITIAL_LEADER_PROVENANCE_METHODS = ['reviewed_primary_party_source_v1', 'reviewed_global_party_chair_snapshot_v1', 'reviewed_party_leadership_evidence_v1', 'party_platform_initial_v2'] as const;
 export const LEADER_PROVENANCE_METHODS = [...INITIAL_LEADER_PROVENANCE_METHODS, 'bounded_party_platform_succession_v2', 'internal_party_balance_succession_v3'] as const;
 
@@ -40,6 +41,8 @@ export interface PoliticalPersonState {
   isPartyLeader: boolean;
   office?: PoliticalOfficeState;
   status: 'active' | 'inactive';
+  /** Modelled personal treasury in USD. `undefined` means unavailable, never zero. */
+  personalFundsUsd?: number;
   leaderProfile?: Record<string, { valueBps: number; confidenceBps: number; status: 'derived' | 'modelled'; limitation: string }>;
   leaderProvenance?: {
     basis: 'sourced_analogue' | 'derived_analogue' | 'modelled_fallback';
@@ -98,7 +101,7 @@ export interface FiscalProposalPayload { policy?: Policy; annualBudget?: Budget 
 // 0.22 generic decision/policy/law framework. `kind` is the machine category; `fiscal_reform`
 // is the first member. Future milestones add new categories with their own typed payloads and
 // effects — none are implemented here.
-export const PROPOSAL_KINDS = ['fiscal_reform'] as const;
+export const PROPOSAL_KINDS = ['fiscal_reform', 'constitutional_amendment'] as const;
 export type ProposalKind = typeof PROPOSAL_KINDS[number];
 
 // Distinguishes what sort of public decision a proposal is. A fiscal reform adopted through
@@ -115,8 +118,8 @@ export type ConstitutionalDisposition = 'principal' | 'secondary';
 
 // Typed per-kind payload and effect mappings. Only `fiscal_reform` has a concrete
 // implementation in 0.22; the union collapses to it today and grows per future milestone.
-export interface ProposalPayloadByKind { fiscal_reform: FiscalProposalPayload }
-export interface ProposalEffectByKind { fiscal_reform: FiscalReformEnactment }
+export interface ProposalPayloadByKind { fiscal_reform: FiscalProposalPayload; constitutional_amendment: ConstitutionalAmendmentPayload }
+export interface ProposalEffectByKind { fiscal_reform: FiscalReformEnactment; constitutional_amendment: ConstitutionalAmendmentEnactment }
 export type ProposalPayload = ProposalPayloadByKind[ProposalKind];
 export type ProposalEffect = ProposalEffectByKind[ProposalKind];
 
@@ -127,6 +130,27 @@ export interface FiscalReformEnactment {
   category: 'fiscal_reform';
   fiscalReformSequence: number;
   reformFingerprint: string;
+}
+
+/** Payload of a constitutional amendment: it may protect/unprotect canonical material keys and
+ *  change the constitution's rights record. It never applies an arbitrary effect itself. */
+export interface ConstitutionalAmendmentPayload {
+  materialKeysToProtect?: string[];
+  materialKeysToUnprotect?: string[];
+  rightsChanges?: Partial<ConstitutionalRights>;
+  parliamentChanges?: Partial<ParliamentConstitution>;
+  executiveChanges?: { headOfState?: Partial<HeadOfStateConstitution>; government?: Partial<GovernmentConstitution> };
+  electionChanges?: Partial<ElectionConstitution>;
+  judicialChanges?: Partial<JudicialReviewConstitution>;
+  territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[]; regionIds: string[]; sovereigntyTransfer: { regionIds: string[]; toCountryId: string } }>;
+  amendmentChanges?: Partial<AmendmentConstitution>;
+}
+
+export interface ConstitutionalAmendmentEnactment {
+  category: 'constitutional_amendment';
+  disposition: ConstitutionalDisposition;
+  protectedMaterialKeys: string[];
+  unprotectedMaterialKeys: string[];
 }
 
 // Static, pedagogical description of a proposal category. This is documentation, not a
@@ -161,7 +185,19 @@ export const PROPOSAL_CONTRACTS: { [K in ProposalKind]: ProposalContract<K> } = 
       tradeoffs: 'A tax change redistributes disposable income and public revenue; a budget reallocation shifts spending between public services and defence.',
     },
     defaultInstrumentClass: 'law',
-    allowedInstrumentClasses: ['law', 'constitutional_amendment'],
+    allowedInstrumentClasses: ['law'],
+  },
+  constitutional_amendment: {
+    kind: 'constitutional_amendment',
+    descriptor: {
+      kind: 'constitutional_amendment',
+      title: 'Constitutional amendment',
+      summary: 'Amends the constitution as a principal or secondary disposition: protects or removes canonical material keys, or changes the constitution\'s rights record.',
+      usage: 'Entrench a material policy at constitutional level so an ordinary law can no longer modify it, or revise the rights record. Requires the constitutional procedure (threshold, referendum, judicial review).',
+      context: 'Constitutional dispositions bind the legislature; they are created and removed only through this procedure, with a dated, traceable binding record.',
+    },
+    defaultInstrumentClass: 'constitutional_amendment',
+    allowedInstrumentClasses: ['constitutional_amendment'],
   },
 };
 
@@ -203,6 +239,9 @@ export interface PartyInstitutionalInterestEvaluation {
   materialBaselineFingerprint: string;
   adjustmentBps: number; effects: PartyInstitutionalEffectEvaluation[];
   positiveDrivers: string[]; negativeDrivers: string[]; limitation: string;
+  /** Versioned proof of the branch stakes actually used at vote time, so a later election never
+   *  invalidates a historically saved evaluation. */
+  stakesFingerprint?: string;
 }
 export interface ProposalMaterialContext {
   unemployment: CoveredMetric; fiscalSustainability: CoveredMetric; incomeSecurity: CoveredMetric;
@@ -238,17 +277,17 @@ export interface PartyChamberEvaluation extends PartyProposalEvaluation { seats:
 export interface PublicSupportEstimate { supportBps: number; opposeBps: number; neutralBps: number; unknownBps: number; confidenceBps: number; coverage: EvaluationCoverage; representedPersons: number; knownPersons: number; unknownPersons: number; drivers: ProposalImpactDriver[] }
 export interface ChamberSupportEstimate { chamberId: string; yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats?: number; coverage: EvaluationCoverage; adopted?: boolean; partyEvaluations?: PartyChamberEvaluation[] }
 export interface ParliamentarySupportEstimate { yesSeats: number; noSeats: number; abstainSeats: number; unavailableSeats: number; totalSeats: number; chambers: ChamberSupportEstimate[]; coverage: 'complete' | 'partial' | 'unavailable'; confidenceBps: number; procedure: 'modelled_procedure_v1' | 'internal_party_distribution_v1'; seatApportionment?: 'identity_hash_v1' }
-export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' }
-export type PoliticalProposalStatus = 'draft' | 'submitted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
-export interface PoliticalProposal {
+export interface LegislativeVoteResult extends ParliamentarySupportEstimate { outcome: 'adopted' | 'rejected' | 'unavailable'; resolvedOn: string; reason?: 'effective_date_expired' | 'institutional_data_unavailable' | 'constitutionally_protected' | 'constitutional_threshold' | 'referendum_failed' | 'referendum_pending' | 'constitutional_procedure_unavailable' | 'parliament_has_no_legislative_power' | 'parliamentary_opinion_non_binding' | 'executive_override' | 'no_parliamentary_vote_required' | 'executive_decision' }
+export type PoliticalProposalStatus = 'draft' | 'submitted' | 'consulted' | 'enacted' | 'rejected' | 'withdrawn' | 'unavailable';
+export interface PoliticalProposalFor<K extends ProposalKind = ProposalKind> {
   id: string;
   countryId: string;
   proposerPersonId: string;
   createdOn: string;
-  kind: ProposalKind;
+  kind: K;
   instrumentClass: ProposalInstrumentClass;
   constitutionalDisposition?: ConstitutionalDisposition;
-  payload: ProposalPayload;
+  payload: ProposalPayloadByKind[K];
   status: PoliticalProposalStatus;
   effectiveDate: string;
   submittedOn?: string;
@@ -259,9 +298,90 @@ export interface PoliticalProposal {
   voteResult?: LegislativeVoteResult;
   scheduledFiscalReformSequence?: number;
   enactmentReference?: { fiscalReformSequence: number; reformFingerprint: string };
-  effects: ProposalEffect[];
+  /** A real constitutional referendum outcome, recorded by holdReferendum and required by the
+   *  amendment procedure whenever the constitution demands a referendum. Participation, abstention
+   *  and the suffrage rules in force are represented — the outcome is never a bare
+   *  supportBps > opposeBps comparison. */
+  referendumResult?: {
+    heldOn: string;
+    adopted: boolean;
+    supportBps: number;
+    opposeBps: number;
+    abstainBps: number;
+    /** Weighted turnout of the represented population; undefined for legacy records (unknown). */
+    participationBps?: number;
+    coverage: 'complete' | 'partial' | 'unavailable';
+    limitation: string;
+  };
+  effects: ProposalEffectByKind[K][];
   analysis?: ProposalAnalysis;
   evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1' | 'situational-plurality-0.15-v2';
+  /** Dated pre-vote negotiations with party leaders (support conditions, voluntary text changes). */
+  negotiations?: PreVoteNegotiation[];
+  /** Dated party whip instructions issued by party leaders for this proposal. */
+  whipInstructions?: PartyWhipInstruction[];
+}
+
+/** The canonical stored proposal type: a discriminated union linking kind -> payload -> effects,
+ *  so the compiler guarantees kind A carries payload A and effects A even once several kinds exist. */
+export type AnyPoliticalProposal = { [K in ProposalKind]: PoliticalProposalFor<K> }[ProposalKind];
+export type PoliticalProposal = AnyPoliticalProposal;
+
+export interface GovernmentCabinet {
+  countryId: string;
+  viceLeaderPersonId?: string;
+  portfolios: Record<string, Portfolio>;
+  /** Dated trace of censure motions actually adopted; a censure is a real procedure, not an office edit. */
+  censureEvents?: Array<{ on: string; byPersonId: string; kind: 'government' | 'leader' }>;
+  /** Most recent holder of the head-of-government office, used for temporary succession return. */
+  lastHeadPersonId?: string;
+  /** A temporary acting head, with the predecessor recorded so they may resume when active again. */
+  actingHead?: { personId: string; predecessorPersonId: string; since: string; kind: 'deputy_temporary' };
+}
+
+export interface Portfolio {
+  id: string;
+  name: string;
+  ministerPersonId?: string;
+}
+
+/** A dated pre-vote negotiation between the government and a party leader: support conditions are
+ *  recorded, and the government may voluntarily modify the (draft) text afterwards. The opposition
+ *  negotiates and sets conditions; it never edits the government's draft directly. */
+export interface PreVoteNegotiation {
+  on: string;
+  proposalId: string;
+  byPersonId: string;
+  partyId: string;
+  conditions: string[];
+  supportCommitment?: 'support' | 'oppose' | 'conditional';
+}
+
+/** A dated party whip instruction for a proposal: the party line the leader gives parliamentarians.
+ *  The internal distribution and defections then determine how far members follow it. */
+export interface PartyWhipInstruction {
+  on: string;
+  proposalId: string;
+  byPersonId: string;
+  partyId: string;
+  instruction: 'yes' | 'no' | 'abstain' | 'free';
+}
+
+/** An internal ministerial suggestion: a minister proposes a policy to the head of government
+ *  without ever holding the legislative initiative. Only the head of government can turn an
+ *  accepted suggestion into a real draft proposal. */
+export interface MinisterialSuggestion {
+  id: string;
+  on: string;
+  countryId: string;
+  byPersonId: string;
+  portfolioId: string;
+  kind: ProposalKind;
+  subject: string;
+  suggestedPayload?: ProposalPayloadByKind[ProposalKind];
+  status: 'pending' | 'accepted' | 'declined';
+  acceptedIntoProposalId?: string;
+  resolvedOn?: string;
 }
 
 export interface GovernanceState {
@@ -277,6 +397,14 @@ export interface GovernanceState {
   successions: Record<string, LeadershipSuccession>;
   successionOrder: string[];
   nextSuccessionSequence: number;
+  /** National cabinets: ministers are PoliticalPersonState with offices; portfolios are a coordination structure, not a second engine. */
+  cabinets: Record<string, GovernmentCabinet>;
+  /** Global toggle of spontaneous ministerial proposal generation; suggestions stay a separate
+   *  internal system that never grants the ministers the legislative initiative. */
+  settings: { spontaneousMinisterialProposalsEnabled: boolean };
+  /** Internal ministerial suggestions; only the head of government can accept one into a draft. */
+  ministerialSuggestions: MinisterialSuggestion[];
+  nextSuggestionSequence: number;
 }
 
 export const emptyGovernance = (initializedOn?: string): GovernanceState => ({
@@ -292,6 +420,10 @@ export const emptyGovernance = (initializedOn?: string): GovernanceState => ({
   successions: {},
   successionOrder: [],
   nextSuccessionSequence: 0,
+  cabinets: {},
+  settings: { spontaneousMinisterialProposalsEnabled: true },
+  ministerialSuggestions: [],
+  nextSuggestionSequence: 0,
 });
 
 export const governanceFingerprint = deterministicFingerprint;

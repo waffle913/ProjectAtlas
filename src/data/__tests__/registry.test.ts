@@ -1,6 +1,8 @@
 import { emptyOperations } from '../../simulation/operations/model';
 import { emptyInternational } from '../../simulation/international/model';
 import { emptyMultilateral } from '../../simulation/multilateral/model';
+import { emptyConstitution } from '../../simulation/constitution/model';
+import { emptyElections } from '../../simulation/elections/model';
 import { emptyTrade } from '../../simulation/trade/model';
 import { emptyMilitary } from '../../simulation/military/model';
 import { emptyFiscal } from '../../simulation/fiscal/model';
@@ -57,7 +59,7 @@ describe('persistent entity registry', () => {
     const territory = original.territories[0];
     const target = original.territories[1].ownerCountryId!;
     const save = transferTerritory({
-      schemaVersion: 18, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
+      schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: true, speed: 1,
       territoryOwnership: Object.fromEntries(original.territories.map(t => [t.id, t.ownerCountryId])),
       regionOwnership: {},
       populationByRegion: {},

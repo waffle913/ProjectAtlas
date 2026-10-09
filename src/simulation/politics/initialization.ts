@@ -4,7 +4,7 @@ import { allocate, INCOMES, ratio, type SocioRegion } from '../socioeconomy/mode
 import { aggregateNationalSupport } from './aggregation';
 import { availableNeedsCoverage } from '../trade/runtime';
 import type { RegionFiscal } from '../fiscal/model';
-import { emptyPolitics, POLITICAL_ISSUES, POLITICS_MODEL, type CohortPoliticalOpinion, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalOrganization, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
+import { emptyPolitics, POLITICAL_ISSUES, POLITICS_MODEL, type CohortPoliticalOpinion, type InternalCurrent, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalOrganization, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
 import { politicalRegistry } from './registry';
 
 // Retained for call-site compatibility. Static politics now comes from the pinned registry.
@@ -29,6 +29,20 @@ export function supportFor(preferences: number[], salience: number[], engagement
   const weights = parties.map(party => { let affinity = 0; for (let index = 0; index < POLITICAL_ISSUES.length; index++) affinity += (10_000 - Math.abs(preferences[index] - party.issuePositions[POLITICAL_ISSUES[index]].preferenceBps)) * Math.max(1, salience[index]); return Math.max(1, Math.floor(affinity / 10_000)); });
   const undecided = Math.max(1, Math.floor(weights.reduce((a, b) => a + b, 0) * (10_000 - engagement) / 20_000));
   return allocate(10_000, [...weights, undecided]);
+}
+
+/** The party profile the voters actually respond to: the mutable organizational party line
+ *  (moved progressively by the party's internal currents) branches onto the static 0.13 registry
+ *  profile. The evolved line influences the electorate — never the frozen static positions. */
+export function effectivePartyProfile(state: SimulationState, party: PoliticalParty): PoliticalParty {
+  const organization = state.politics.organizations[party.id];
+  if (!organization?.currentPositions) return party;
+  const issuePositions = { ...party.issuePositions };
+  for (const issue of POLITICAL_ISSUES) {
+    const position = organization.currentPositions[issue];
+    if (position !== undefined) issuePositions[issue] = { ...issuePositions[issue], preferenceBps: position };
+  }
+  return { ...party, issuePositions };
 }
 const publicServiceCoverage = (state: SimulationState, countryId: string) => {
   const services = state.fiscal.countries[countryId]?.services; if (!services) return null;
@@ -55,7 +69,59 @@ export function organizationStateFor(state: SimulationState, organization: Polit
   else { target[POLITICAL_ISSUES.indexOf('fiscal_distribution')] = clamp(target[0] - tax / 4 - distress / 5); target[POLITICAL_ISSUES.indexOf('infrastructure')] = clamp(target[4] + infrastructureGap / 3); target[POLITICAL_ISSUES.indexOf('public_order')] = clamp(target[5] + unemployment / 5); }
   const currentPositions = Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, prior ? blend(prior.currentPositions[issue], target[index], POLITICS_MODEL.organizationInertiaBps) : target[index]])) as Record<PoliticalIssue, number>;
   const issues = organization.issuePriorities.filter(issue => Math.abs(target[POLITICAL_ISSUES.indexOf(issue)] - base[POLITICAL_ISSUES.indexOf(issue)]) >= 250);
-  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit) };
+  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit), status: prior?.status ?? 'active', members: prior?.members ?? {}, fundsUsd: prior?.fundsUsd, internalCurrents: prior?.internalCurrents ?? {}, banEvents: prior?.banEvents ?? [], fundingEvents: prior?.fundingEvents ?? [], strikeFundUsd: prior?.strikeFundUsd, claims: prior?.claims ?? [], cyberSecurityBps: prior?.cyberSecurityBps, dissolutionEvents: prior?.dissolutionEvents ?? [], activeStrikes: prior?.activeStrikes ?? [], countryId: organization.countryId, type: organization.type, displayName: organization.displayName, source: 'registry' };
+}
+
+/** A party's mutable organizational state, derived from the 0.13 registry party (positions) while
+ *  keeping membership, funding, currents, status and ban history mutable. Never fabricates ideology. */
+export function partyOrganizationStateFor(party: PoliticalParty, date: string, prior?: OrganizationPoliticalState): OrganizationPoliticalState {
+  // The mutable party line is never reset from the static registry: current positions carry over
+  // with inertia so internal currents and evolutions can move them progressively.
+  const registryPositions = Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, party.issuePositions[issue].preferenceBps])) as Record<PoliticalIssue, number>;
+  let currentPositions = prior
+    ? Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, blend(prior.currentPositions[issue], registryPositions[issue], POLITICS_MODEL.organizationInertiaBps)])) as Record<PoliticalIssue, number>
+    : registryPositions;
+  if (prior) currentPositions = evolvePositionsWithCurrents(currentPositions, Object.values(prior.internalCurrents ?? {}));
+  return {
+    organizationId: party.id,
+    currentPositions,
+    lastUpdatedOn: date,
+    recentDrivers: prior?.recentDrivers ?? [],
+    status: prior?.status ?? 'active',
+    members: prior?.members ?? {},
+    fundsUsd: prior?.fundsUsd,
+    internalCurrents: prior?.internalCurrents ?? {},
+    banEvents: prior?.banEvents ?? [],
+    fundingEvents: prior?.fundingEvents ?? [],
+    strikeFundUsd: prior?.strikeFundUsd,
+    claims: prior?.claims ?? [],
+    cyberSecurityBps: prior?.cyberSecurityBps,
+    dissolutionEvents: prior?.dissolutionEvents ?? [],
+    activeStrikes: prior?.activeStrikes ?? [],
+    countryId: party.countryId,
+    type: 'party',
+    displayName: party.displayName,
+    source: 'registry',
+  };
+}
+
+/** Internal currents move the mutable party line a bounded, progressive step each week toward the
+ *  salience-weighted average of their modelled positions. Issues without any current position are
+ *  untouched; currents with no positions change nothing. Never observed faction data. */
+export function evolvePositionsWithCurrents(currentPositions: Record<PoliticalIssue, number>, currents: readonly InternalCurrent[]): Record<PoliticalIssue, number> {
+  const weighted = POLITICAL_ISSUES.map(() => 0), weights = POLITICAL_ISSUES.map(() => 0);
+  for (const current of currents) {
+    if (!current.issuePositions) continue;
+    const weight = Math.max(1, current.salienceBps);
+    for (const issue of POLITICAL_ISSUES) {
+      const position = current.issuePositions[issue];
+      if (position === undefined) continue;
+      const index = POLITICAL_ISSUES.indexOf(issue);
+      weighted[index] += position * weight;
+      weights[index] += weight;
+    }
+  }
+  return Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, weights[index] > 0 ? blend(currentPositions[issue], Math.round(weighted[index] / weights[index]), POLITICS_MODEL.currentEvolutionBps) : currentPositions[issue]])) as Record<PoliticalIssue, number>;
 }
 
 export function initializePolitics(state: SimulationState, countryIds: Iterable<string>, regions: readonly RegionEntity[], _data?: PoliticalInitializationData): SimulationState['politics'] {
@@ -76,7 +142,10 @@ export function initializePolitics(state: SimulationState, countryIds: Iterable<
     }
     countries[countryId] = { countryId, regionIds, nationalSupportBps: aggregateNationalSupport(state, regionIds, regionalOpinion, partyIds.length), recentOpinionDrivers: [] };
   }
-  const organizations = Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date)]));
+  const organizations = {
+    ...Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date)])),
+    ...Object.fromEntries(Object.values(politicalRegistry.parties).filter(party => countries[party.countryId]).map(party => [party.id, partyOrganizationStateFor(party, state.date)])),
+  };
   return { ...politics, initializedOn: state.date, opinionProvenance: { status: 'modelled', method: 'cohort_interests_plus_orientation_prior', initializedOn: state.date, limitation: 'No polling anchor: fictional party support is initialized from socioeconomic cohort preferences.' }, countries, regionalOpinion, organizations };
 }
 
@@ -88,6 +157,9 @@ export function rebasePoliticsRegistry(state: SimulationState): SimulationState[
     regionalOpinion[regionId] = { ...regional, cohorts: Object.fromEntries(Object.entries(regional.cohorts).sort(([a], [b]) => a.localeCompare(b)).map(([cohortId, opinion]) => [cohortId, [opinion[0], opinion[1], supportFor(opinion[0], opinion[1], opinion[3], parties), opinion[3], opinion[4], opinion[5], opinion[6]] satisfies CohortPoliticalOpinion])) };
   }
   const countries = Object.fromEntries(Object.entries(state.politics.countries).sort(([a], [b]) => a.localeCompare(b)).map(([countryId, country]) => [countryId, { ...country, nationalSupportBps: aggregateNationalSupport(state, country.regionIds, regionalOpinion, politicalRegistry.countries[countryId]?.partyIds.length ?? 0) }]));
-  const organizations = Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date)]));
+  const organizations = {
+    ...Object.fromEntries(Object.values(politicalRegistry.organizations).filter(item => countries[item.countryId]).map(item => [item.id, organizationStateFor(state, item, regionalOpinion, state.date)])),
+    ...Object.fromEntries(Object.values(politicalRegistry.parties).filter(party => countries[party.countryId]).map(party => [party.id, partyOrganizationStateFor(party, state.date)])),
+  };
   return { ...state.politics, registryVersion: POLITICS_MODEL.registryVersion, countries, regionalOpinion, organizations };
 }

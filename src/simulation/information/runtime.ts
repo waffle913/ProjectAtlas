@@ -27,7 +27,15 @@ function retainBriefingReports(
 
 export function hasGovernmentInformationAccess(state: SimulationState, personId: string, countryId: string): boolean {
   const person = state.governance.persons[personId];
-  return Boolean(person?.status === 'active' && person.office?.countryId === countryId && person.office.authorityProfile.capabilities.includes('access_government_information'));
+  if (!person || person.status !== 'active' || person.office?.countryId !== countryId) return false;
+  if (person.office.authorityProfile.capabilities.includes('access_government_information')) return true;
+  // A minister holding a real portfolio has government access scoped to their portfolio — without
+  // ever receiving legislative powers.
+  if (person.office.role === 'minister') {
+    const cabinet = state.governance.cabinets?.[countryId];
+    return Boolean(cabinet && Object.values(cabinet.portfolios).some(portfolio => portfolio.ministerPersonId === personId));
+  }
+  return false;
 }
 
 export function inspectGovernmentReports(state: SimulationState, countryId: string, personId: string): GovernmentReport[] {
@@ -155,7 +163,7 @@ export function produceGovernmentProposalEstimate(state: SimulationState, propos
   if (!hasGovernmentInformationAccess(state, personId, proposal.countryId)) throw new Error('Government office access is required to estimate proposal reactions.');
   if (!['draft', 'submitted'].includes(proposal.status)) throw new Error('Only an unresolved proposal can receive a Government Information estimate.');
 
-  const analyzedContent = structuredClone({ effectiveDate: proposal.effectiveDate, payload: proposal.payload });
+  const analyzedContent = structuredClone({ effectiveDate: proposal.effectiveDate, payload: proposal.payload as never });
   const proposalContentFingerprint = governanceFingerprint(analyzedContent);
   const institution = politicalRegistry.institutions[politicalRegistry.countries[proposal.countryId]?.institutionId];
   const chambers: ChamberBriefingResult[] = (institution?.chambers ?? []).map(chamber => ({
@@ -219,7 +227,7 @@ export function produceGovernmentProposalEstimate(state: SimulationState, propos
 
 function inspectEstimate(state: SimulationState, report: GovernmentProposalEstimate): GovernmentProposalEstimateInspection {
   const proposal = state.governance.proposals[report.proposalId];
-  return { ...structuredClone(report), stale: !proposal || report.proposalContentFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload }) };
+  return { ...structuredClone(report), stale: !proposal || report.proposalContentFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload as never }) };
 }
 
 export function inspectGovernmentProposalEstimates(state: SimulationState, countryId: string, personId: string): GovernmentProposalEstimateInspection[] {

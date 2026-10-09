@@ -12,7 +12,7 @@ import type { EntityRegistry } from '../../data/registry';
 import type { Country, SimulationState } from '../../types';
 import type { GovernmentReport, MinisterialBriefing } from '../information/model';
 import type { GovernanceGoal, PartyGoalProfile, PoliticalProposal } from '../governance/model';
-import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, inspectProposalSupport, replaceDraftProposal, resolveProposalVote, setControlledPerson, submitProposal, withdrawProposal } from '../governance/runtime';
+import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, inspectProposalSupport, replaceDraftProposalForActor, resolveProposalVote, setControlledPerson, submitProposal, withdrawProposal } from '../governance/runtime';
 import { derivePartyGoalProfile } from '../governance/analysis';
 import type { PoliticalRegistry } from '../politics/model';
 import { advanceSimulationDays } from '../engine';
@@ -525,7 +525,7 @@ describe('government information and player briefings 0.15', () => {
     state = produceGovernmentProposalEstimate(state, proposalId, executive.id);
     const old = state.information.proposalEstimates[0];
     expect(old.proposalContentFingerprint).toBe(governanceFingerprint(old.analyzedContent));
-    state = replaceDraftProposal(state, proposalId, { payload: { annualBudget: { ...annualBudget, infrastructure: annualBudget.infrastructure + 1 } } });
+    state = replaceDraftProposalForActor(state, proposalId, executive.id, { payload: { annualBudget: { ...annualBudget, infrastructure: annualBudget.infrastructure + 1 } } });
     expect(inspectGovernmentProposalEstimates(state, countryId, executive.id)[0].stale).toBe(true);
     const staleMarkup = renderToStaticMarkup(createElement(FiscalPolicy, { state, countryId, personId: executive.id, onStateChange: () => undefined }));
     expect(staleMarkup).not.toContain('Last Government Information estimate');
@@ -539,7 +539,7 @@ describe('government information and player briefings 0.15', () => {
     const currentMarkup = renderToStaticMarkup(createElement(FiscalPolicy, { state, countryId, personId: executive.id, onStateChange: () => undefined }));
     expect(currentMarkup).toContain('responses UNKNOWN');
     expect(currentMarkup).not.toContain('0 yes, 0 no seats');
-    state = replaceDraftProposal(state, proposalId, { effectiveDate: '2026-03-01' });
+    state = replaceDraftProposalForActor(state, proposalId, executive.id, { effectiveDate: '2026-03-01' });
     expect(inspectGovernmentProposalEstimates(state, countryId, executive.id).every(item => item.stale)).toBe(true);
     state = produceGovernmentProposalEstimate(state, proposalId, executive.id);
     expect(state.information.proposalEstimates).toHaveLength(3);
@@ -1027,7 +1027,7 @@ describe('government information and player briefings 0.15', () => {
     });
     const migrated = restoreSimulationState(persistedSchema12, worldRegions, {}, {}, worldContext);
     expect(migrated).toMatchObject({
-      schemaVersion: 18,
+      schemaVersion: 19,
       date,
       engine: { tick: 4321, seed: 'schema-12-information-migration' },
       information: { initializedOn: date, latestGovernmentReports: {}, governmentReportsById: {}, briefings: [], proposalEstimates: [] },

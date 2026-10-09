@@ -1,7 +1,7 @@
 import type { SimulationState } from '../../types';
 import { fiscalReformFingerprint } from '../fiscal/runtime';
 import { GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
-import { governanceFingerprint, proposalContract, type ChamberSupportEstimate, type ParliamentarySupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type PublicSupportEstimate } from './model';
+import { governanceFingerprint, proposalContract, PROPOSAL_KINDS, type ChamberSupportEstimate, type ParliamentarySupportEstimate, type PartyProposalEvaluation, type PoliticalProposal, type PublicSupportEstimate } from './model';
 
 const correctedDecision = (evaluation: PartyProposalEvaluation): PartyProposalEvaluation['vote'] => evaluation.confidenceBps < GOVERNANCE_VOTE_THRESHOLDS.minimumConfidenceBps || evaluation.coverage === 'unavailable' ? 'unknown' : evaluation.agreementBps >= GOVERNANCE_VOTE_THRESHOLDS.yesAgreementBps ? 'yes' : evaluation.agreementBps <= GOVERNANCE_VOTE_THRESHOLDS.noAgreementBps ? 'no' : 'abstain';
 function upgradeChamber(original: ChamberSupportEstimate): ChamberSupportEstimate {
@@ -58,7 +58,7 @@ export function upgradeGovernanceSchema12(state: SimulationState): SimulationSta
   }
   const hasSuccessionState = Boolean(state.governance.successions && state.governance.successionOrder && Number.isSafeInteger(state.governance.nextSuccessionSequence));
   if (!changed && hasSuccessionState && state.fiscal.reforms.every((reform, index) => reform.origin === reforms[index].origin) && receipts.length === state.fiscal.reformReceipts.length) return state;
-  return { ...state, governance: { ...state.governance, proposals, successions: state.governance.successions ?? {}, successionOrder: state.governance.successionOrder ?? [], nextSuccessionSequence: state.governance.nextSuccessionSequence ?? 0 }, fiscal: { ...state.fiscal, reforms, reformReceipts: receipts.sort((a, b) => a.sequence - b.sequence) } };
+  return { ...state, governance: { ...state.governance, proposals, successions: state.governance.successions ?? {}, successionOrder: state.governance.successionOrder ?? [], nextSuccessionSequence: state.governance.nextSuccessionSequence ?? 0, cabinets: state.governance.cabinets ?? {} }, fiscal: { ...state.fiscal, reforms, reformReceipts: receipts.sort((a, b) => a.sequence - b.sequence) } };
 }
 
 /** Idempotent, derived backfill for the 0.22 generalized proposal model. Existing fiscal
@@ -69,19 +69,17 @@ export function upgradeGovernanceProposalModel(state: SimulationState): Simulati
   const proposals: Record<string, PoliticalProposal> = {};
   for (const [id, original] of Object.entries(state.governance.proposals)) {
     const proposal = structuredClone(original) as PoliticalProposal;
-    // Guard the contract lookup: an unknown kind is left untouched for the invariant to
-    // report "Unknown proposal kind" instead of crashing here on an undefined contract.
-    const contract = proposalContract(proposal.kind) as ReturnType<typeof proposalContract> | undefined;
-    if (contract) {
-      if (proposal.instrumentClass === undefined) { proposal.instrumentClass = contract.defaultInstrumentClass; changed = true; }
-      // Backfill only ABSENT fields. A present-but-inconsistent effects array is left untouched so
-      // the ordinary invariants can reject it rather than the migration silently repairing corruption.
-      if (proposal.effects === undefined) {
-        proposal.effects = proposal.enactmentReference
-          ? [{ category: 'fiscal_reform' as const, fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
-          : [];
-        changed = true;
-      }
+    // A save may carry unvalidated JSON: an unknown kind must fail explicitly, never dereference
+    // a missing contract and crash with a TypeError.
+    if (!(PROPOSAL_KINDS as readonly string[]).includes(proposal.kind)) throw new Error(`Cannot migrate proposal ${id}: unknown proposal kind ${String(proposal.kind)}.`);
+    if (proposal.instrumentClass === undefined) { proposal.instrumentClass = proposalContract(proposal.kind).defaultInstrumentClass; changed = true; }
+    // Backfill only ABSENT fields. A present-but-inconsistent effects array is left untouched so
+    // the ordinary invariants can reject it rather than the migration silently repairing corruption.
+    if (proposal.effects === undefined) {
+      proposal.effects = proposal.enactmentReference
+        ? [{ category: 'fiscal_reform' as const, fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
+        : [];
+      changed = true;
     }
     proposals[id] = changed ? proposal : original;
   }

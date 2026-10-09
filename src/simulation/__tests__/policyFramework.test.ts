@@ -62,7 +62,7 @@ describe('0.22 generic policy framework', () => {
     const migrated = restored.governance.proposals[fixture.proposalId];
     expect(migrated.instrumentClass).toBe('law');
     expect(migrated.effects).toHaveLength(1);
-    expect(migrated.effects[0].fiscalReformSequence).toBe(migrated.enactmentReference!.fiscalReformSequence);
+    expect((migrated.effects[0] as { fiscalReformSequence: number }).fiscalReformSequence).toBe(migrated.enactmentReference!.fiscalReformSequence);
     expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
   }, 60_000);
 
@@ -124,8 +124,8 @@ describe('0.22 generic policy framework', () => {
     expect(() => assertSimulationInvariants(forged as unknown as SimulationState, worldContext, 'save')).toThrow(/Unknown proposal kind/);
     const submitted = submitProposal(fixture.state, fixture.proposalId);
     const changed = structuredClone(submitted) as unknown as { governance: { proposals: Record<string, { instrumentClass: string }> } };
-    changed.governance.proposals[fixture.proposalId].instrumentClass = 'constitutional_amendment';
-    expect(() => assertSimulationInvariants(changed as unknown as SimulationState, worldContext, 'save')).toThrow(/not the 0.22 default/);
+    changed.governance.proposals[fixture.proposalId].instrumentClass = 'regulatory_policy';
+    expect(() => assertSimulationInvariants(changed as unknown as SimulationState, worldContext, 'save')).toThrow(/not allowed for fiscal_reform/);
   });
 
   it('rejects a forged typed effect at reload instead of repairing it', () => {
@@ -135,7 +135,7 @@ describe('0.22 generic policy framework', () => {
     expect(state.governance.proposals[fixture.proposalId].status).toBe('enacted');
     const forged = structuredClone(state) as unknown as { governance: { proposals: Record<string, { effects: Array<{ reformFingerprint: string }> }> } };
     forged.governance.proposals[fixture.proposalId].effects[0].reformFingerprint = 'forged-fingerprint';
-    expect(() => restoreSimulationState(JSON.stringify(forged), worldRegions, {}, {}, worldContext)).toThrow(/matching typed effect/);
+    expect(() => restoreSimulationState(JSON.stringify(forged), worldRegions, {}, {}, worldContext)).toThrow(/inconsistent with its enactment reference/);
   });
 
   it('rejects a null typed-effect element at save instead of crashing the invariant', () => {
@@ -158,7 +158,7 @@ describe('0.22 generic policy framework', () => {
     expect(() => assertSimulationInvariants(crossDomain as unknown as SimulationState, worldContext, 'save')).toThrow(/Invalid typed effects/);
     const disposition = structuredClone(state) as unknown as { governance: { proposals: Record<string, { constitutionalDisposition: string }> } };
     disposition.governance.proposals[fixture.proposalId].constitutionalDisposition = 'secondary';
-    expect(() => assertSimulationInvariants(disposition as unknown as SimulationState, worldContext, 'save')).toThrow(/not representable in 0.22/);
+    expect(() => assertSimulationInvariants(disposition as unknown as SimulationState, worldContext, 'save')).toThrow(/Constitutional disposition is invalid for fiscal_reform/);
   });
 
   it('lets a non-controlled authorized actor use the engine path while the player wrapper stays restricted', () => {
@@ -176,24 +176,44 @@ describe('0.22 generic policy framework', () => {
     expect(state.governance.proposals[proposalId].status).toBe('submitted');
   });
 
-  it('pins the engine authority split: office-gated submit/resolve, proposer-only withdraw', () => {
-    const countryId = resolvable();
-    const proposer = executive(initial, countryId);
-    let state = budgetDraft(proposer.state, proposer.id, countryId);
-    const proposalId = state.governance.proposalOrder[0];
-    // A backbench legislator holds sponsor_legislation + vote_legislation but not the fiscal sponsor powers.
-    const legislator = createPoliticalPerson(state, { displayName: 'Backbench legislator', countryId });
-    const legislatorId = Object.keys(legislator.governance.persons).at(-1)!;
-    state = assignPoliticalOffice(legislator, legislatorId, { role: 'legislator', countryId });
-    // Submit is office-gated: without sponsor_budget_reform the legislator cannot submit a budget reform.
-    expect(() => submitProposalForActor(state, proposalId, legislatorId)).toThrow(/lacks authority to submit/);
-    // Withdraw is proposer-only on the engine path, independent of office powers.
-    expect(() => withdrawProposalForActor(state, proposalId, legislatorId)).toThrow(/Only the proposer can withdraw/);
-    // The proposer submits through the engine path.
-    state = submitProposalForActor(state, proposalId, proposer.id);
-    expect(state.governance.proposals[proposalId].status).toBe('submitted');
-    // Vote resolution is office-gated: a non-proposer with vote_legislation may resolve the vote.
-    state = resolveProposalVoteForActor(state, proposalId, legislatorId);
-    expect(['enacted', 'rejected', 'unavailable']).toContain(state.governance.proposals[proposalId].status);
+  it('keeps the resolution trigger with the proposer and refuses a non-proposer or authority-less actor', () => {
+    const fixture = resolvableFixture(true);
+    let state = submitProposal(fixture.state, fixture.proposalId);
+    const actor = createPoliticalPerson(state, { displayName: 'Second authorized minister', countryId: fixture.countryId });
+    const actorId = Object.keys(actor.governance.persons).at(-1)!;
+    state = assignPoliticalOffice(actor, actorId, { role: 'head_of_government', countryId: fixture.countryId });
+    // Only the authority that presented the bill may trigger its parliamentary resolution: a second
+    // authorized office holder cannot resolve another proposer's text.
+    expect(() => resolveProposalVoteForActor(state, fixture.proposalId, actorId, fixture.registry, fixture.profiles)).toThrow(/proposer/);
+    // The proposer's own resolution proceeds through the same engine command.
+    state = resolveProposalVoteForActor(state, fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles);
+    expect(state.governance.proposals[fixture.proposalId].status).toBe('enacted');
+    // A non-proposer, even authorized, may not submit another proposer's draft.
+    const outsider = createPoliticalPerson(fixture.state, { displayName: 'Non-proposer person', countryId: fixture.countryId });
+    const outsiderId = Object.keys(outsider.governance.persons).at(-1)!;
+    expect(() => submitProposalForActor(outsider, fixture.proposalId, outsiderId)).toThrow(/proposer may submit/);
+    // A proposer who lost office lacks authority.
+    const draft = createFiscalProposal(outsider, { proposerPersonId: outsiderId, countryId: fixture.countryId, effectiveDate: '2026-02-01', payload: { annualBudget: { ...outsider.fiscal.countries[fixture.countryId].annualBudget, infrastructure: 1 } } });
+    const draftId = draft.governance.proposalOrder.at(-1)!;
+    expect(() => submitProposalForActor(draft, draftId, outsiderId)).toThrow(/lacks authority/);
+  });
+
+  it('restricts withdrawal to the original proposer only', () => {
+    const fixture = resolvableFixture(true);
+    const actor = createPoliticalPerson(fixture.state, { displayName: 'Non-proposer minister', countryId: fixture.countryId });
+    const actorId = Object.keys(actor.governance.persons).at(-1)!;
+    const state = assignPoliticalOffice(actor, actorId, { role: 'head_of_government', countryId: fixture.countryId });
+    expect(() => withdrawProposalForActor(state, fixture.proposalId, actorId)).toThrow(/Only the proposer/);
+    const withdrawn = withdrawProposalForActor(state, fixture.proposalId, fixture.personId);
+    expect(withdrawn.governance.proposals[fixture.proposalId].status).toBe('withdrawn');
+  });
+
+  it('rejects a pre-0.22 save with an unknown kind explicitly rather than a TypeError', () => {
+    const fixture = resolvableFixture(true);
+    const forged = structuredClone(fixture.state) as unknown as { governance: { proposals: Record<string, Record<string, unknown>> } };
+    const raw = forged.governance.proposals[fixture.proposalId] as Record<string, unknown>;
+    raw.kind = 'naval_expansion';
+    delete raw.instrumentClass; delete raw.effects;
+    expect(() => restoreSimulationState(JSON.stringify(forged), worldRegions, {}, {}, worldContext)).toThrow(/unknown proposal kind/);
   });
 });

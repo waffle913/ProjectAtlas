@@ -25,7 +25,7 @@ export function TradeInspection({ state, countryId, personId, onStateChange }: {
   };
   return <section className="cockpit-section">
     <h2>World trade and strategic dependencies</h2>
-    <p>Development inspection cockpit, not the final UI. No sanctions, embargoes, treaties, military operations or territorial changes.</p>
+    <p>Trade inspection. Physical trade follows production, needs, prices and represented capacity; dependencies emerge from actual flows.</p>
     {!report ? <p>No accessible dated trade report. An active office with government-information access is required. The first administrative report arrives at the shared monthly boundary.</p> : <>
       <p>Government report as of {report.asOfDate}; produced {report.producedOn}; {report.status}, {report.coverage} coverage;
         confidence {report.confidenceBps} bps{report.stale ? '; stale, not live Reality' : ''}.</p>

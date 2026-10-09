@@ -1,6 +1,8 @@
 import { scaledRatioSigned } from '../integerMath';
 import { ratio } from '../socioeconomy/model';
 import type { PoliticalCoverage, PoliticalRegistry } from '../politics/model';
+import { politicalRegistry } from '../politics/registry';
+import type { SimulationState } from '../../types';
 import { governanceFingerprint, INSTITUTIONAL_POWER_LEVERS, type EvaluationCoverage, type InstitutionalPowerHolder, type InstitutionalPowerTransfer, type PartyInstitutionalInterestEvaluation, type PartyInstitutionalStake, type PartyProposalEvaluation } from './model';
 
 export const INSTITUTIONAL_INTEREST_MODEL = Object.freeze({
@@ -10,6 +12,18 @@ export const INSTITUTIONAL_INTEREST_MODEL = Object.freeze({
   sensitivityMinBps: 5_000,
   sensitivityMaxBps: 15_000,
 });
+
+/** Versioned proof of an institutional-interest record: everything the record contains except the
+ *  material baseline (which has its own fingerprint) and the derived drivers. Computed from the
+ *  recorded fields only, so a saved evaluation validates intrinsically — a later election never
+ *  invalidates it — while any tampered field (method, governmentStatus, source, stakes, adjustment,
+ *  confidence, …) breaks the fingerprint. */
+export const institutionalStakesFingerprint = (interest: Pick<PartyInstitutionalInterestEvaluation, 'method' | 'status' | 'coverage' | 'confidenceBps' | 'adjustmentBps' | 'governmentStatus' | 'effects'> & { countryId: string; partyId: string }): string =>
+  governanceFingerprint({
+    method: interest.method, countryId: interest.countryId, partyId: interest.partyId,
+    status: interest.status, coverage: interest.coverage, confidenceBps: interest.confidenceBps, adjustmentBps: interest.adjustmentBps, governmentStatus: interest.governmentStatus,
+    effects: interest.effects.map(item => [item.id, item.lever, item.from, item.to, item.source, item.explanation, item.fromStakeBps, item.toStakeBps, item.rawInterestBps, item.effectiveInterestBps, item.confidenceBps, item.coverage]),
+  });
 
 const clampBps = (value: number) => Math.max(0, Math.min(10_000, Math.round(value)));
 const clampSignedBps = (value: number) => Math.max(-10_000, Math.min(10_000, Math.round(value)));
@@ -40,27 +54,67 @@ export function institutionalTransferKey(effect: InstitutionalPowerTransfer): st
   return `${effect.lever}|${effect.from}|${effect.to}`;
 }
 
-function chamberStake(registry: PoliticalRegistry, countryId: string, partyId: string, chamberId: string): PartyInstitutionalStake {
+function chamberStake(registry: PoliticalRegistry, countryId: string, partyId: string, chamberId: string, state?: SimulationState): PartyInstitutionalStake {
   const country = registry.countries[countryId], institution = registry.institutions[country?.institutionId];
   const chamber = institution?.chambers.find(item => item.id === chamberId), party = registry.parties[partyId];
   if (!country || !institution || institution.countryId !== countryId || !chamber || chamber.countryId !== countryId
-    || !party || party.countryId !== countryId || !country.partyIds.includes(partyId)
-    || chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined || chamber.totalSeats <= 0) {
+    || !party || party.countryId !== countryId || !country.partyIds.includes(partyId)) {
     return { holder: `chamber:${chamberId}`, coverage: 'unavailable', limitation: 'Complete sourced chamber seat allocation is unavailable.' };
   }
-  const partySeats = chamber.seatsByParty[partyId] ?? 0;
-  const governingSeats = institution.governingPartyIds.reduce((sum, id) => sum + (chamber.seatsByParty[id] ?? 0), 0);
+  const dynamicChamber = state?.elections?.countries?.[countryId]?.chambers?.[chamberId];
+  const dynamicSeats = dynamicChamber?.seatsByParty;
+  const hasDynamic = Boolean(dynamicSeats && Object.values(dynamicSeats).some(seats => seats > 0));
+  if (!hasDynamic && (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined || chamber.totalSeats <= 0)) {
+    return { holder: `chamber:${chamberId}`, coverage: 'unavailable', limitation: 'Complete sourced chamber seat allocation is unavailable.' };
+  }
+  const seatsByParty = hasDynamic ? dynamicSeats! : chamber.seatsByParty;
+  const totalSeats = hasDynamic && dynamicChamber && dynamicChamber.totalSeats !== undefined ? dynamicChamber.totalSeats : chamber.totalSeats;
+  if (totalSeats === undefined || totalSeats <= 0) {
+    return { holder: `chamber:${chamberId}`, coverage: 'unavailable', limitation: 'Complete sourced chamber seat allocation is unavailable.' };
+  }
+  const partySeats = seatsByParty[partyId] ?? 0;
+  const governingPartyIds = hasDynamic
+    ? state!.elections!.countries[countryId].government.coalitionPartyIds
+    : institution.governingPartyIds;
+  const governingSeats = governingPartyIds.reduce((sum, id) => sum + (seatsByParty[id] ?? 0), 0);
   return {
-    holder: `chamber:${chamberId}`, stakeBps: ratio(partySeats, 10_000, chamber.totalSeats), coverage: 'complete', partySeats, totalSeats: chamber.totalSeats,
-    governingBlocStakeBps: ratio(governingSeats, 10_000, chamber.totalSeats),
-    limitation: 'Stake is sourced seat share: institutional leverage, not ideological support.',
+    holder: `chamber:${chamberId}`, stakeBps: ratio(partySeats, 10_000, totalSeats), coverage: 'complete', partySeats, totalSeats,
+    governingBlocStakeBps: ratio(governingSeats, 10_000, totalSeats),
+    limitation: hasDynamic ? 'Stake is the current elected seat share: institutional leverage, not ideological support.' : 'Stake is sourced seat share: institutional leverage, not ideological support.',
   };
 }
 
-function executiveStake(registry: PoliticalRegistry, countryId: string, partyId: string): PartyInstitutionalStake {
+function executiveStake(registry: PoliticalRegistry, countryId: string, partyId: string, state?: SimulationState): PartyInstitutionalStake {
   const country = registry.countries[countryId], institution = registry.institutions[country?.institutionId], party = registry.parties[partyId];
   if (!country || !institution || institution.countryId !== countryId || !party || party.countryId !== countryId || !country.partyIds.includes(partyId)) {
     return { holder: 'executive', coverage: 'unavailable', limitation: 'Executive-control evidence is unavailable.' };
+  }
+  const dynamicCoalition = state?.elections?.countries?.[countryId]?.government.coalitionPartyIds;
+  if (dynamicCoalition && dynamicCoalition.length) {
+    const governingPartyIds = [...new Set(dynamicCoalition)].filter(id => country.partyIds.includes(id));
+    if (!governingPartyIds.length) {
+      return { holder: 'executive', coverage: 'unavailable', limitation: 'No elected governing bloc; opposition is not inferred from absence.' };
+    }
+    if (!governingPartyIds.includes(partyId)) {
+      return { holder: 'executive', stakeBps: 0, coverage: 'complete', limitation: 'Party is outside the elected governing bloc. Zero executive stake is structural, not an opposition penalty.' };
+    }
+    if (governingPartyIds.length === 1) {
+      return { holder: 'executive', stakeBps: 10_000, coverage: 'complete', limitation: 'Sole elected governing party receives full executive stake.' };
+    }
+    const shares: number[] = [];
+    for (const chamber of Object.values(state!.elections!.countries[countryId].chambers)) {
+      if (chamber.totalSeats <= 0) continue;
+      const governingSeats = governingPartyIds.reduce((sum, id) => sum + (chamber.seatsByParty[id] ?? 0), 0);
+      if (!governingSeats) continue;
+      shares.push(ratio(chamber.seatsByParty[partyId] ?? 0, 10_000, governingSeats));
+    }
+    if (!shares.length) {
+      return { holder: 'executive', coverage: 'unavailable', limitation: 'Multi-party elected bloc exists, but no chamber allocation supports a power-balance estimate.' };
+    }
+    return {
+      holder: 'executive', stakeBps: ratio(shares.reduce((sum, value) => sum + value, 0), 1, shares.length), coverage: 'complete',
+      limitation: 'Coalition executive stake is a modelled proxy: equal-chamber average of the party share inside the elected governing bloc.',
+    };
   }
   const governingPartyIds = [...new Set(institution.governingPartyIds)].filter(id => country.partyIds.includes(id));
   if (!governingPartyIds.length) {
@@ -97,14 +151,16 @@ function executiveStake(registry: PoliticalRegistry, countryId: string, partyId:
   };
 }
 
-export function derivePartyInstitutionalStake(registry: PoliticalRegistry, countryId: string, partyId: string, holder: InstitutionalPowerHolder): PartyInstitutionalStake {
+export function derivePartyInstitutionalStake(registry: PoliticalRegistry, countryId: string, partyId: string, holder: InstitutionalPowerHolder, state?: SimulationState): PartyInstitutionalStake {
   if (holder === 'none') return { holder, stakeBps: 0, coverage: 'complete', limitation: 'Null holder has no institutional leverage.' };
-  if (holder === 'executive') return executiveStake(registry, countryId, partyId);
-  if (isInstitutionalPowerHolder(holder) && holder.startsWith('chamber:')) return chamberStake(registry, countryId, partyId, holder.slice(8));
+  if (holder === 'executive') return executiveStake(registry, countryId, partyId, state);
+  if (isInstitutionalPowerHolder(holder) && holder.startsWith('chamber:')) return chamberStake(registry, countryId, partyId, holder.slice(8), state);
   return { holder, coverage: 'unavailable', limitation: `Unknown institutional holder: ${holder}` };
 }
 
-function currentGovernmentStatus(registry: PoliticalRegistry, countryId: string, partyId: string): PartyInstitutionalInterestEvaluation['governmentStatus'] {
+function currentGovernmentStatus(state: SimulationState, countryId: string, partyId: string, registry: PoliticalRegistry): PartyInstitutionalInterestEvaluation['governmentStatus'] {
+  const dynamic = state.elections?.countries[countryId]?.government.coalitionPartyIds;
+  if (dynamic && dynamic.length) return dynamic.includes(partyId) ? 'government' : 'opposition';
   const country = registry.countries[countryId], institution = registry.institutions[country?.institutionId], party = registry.parties[partyId];
   if (!country || !institution || !party) return 'unavailable';
   const governing = [...new Set(institution.governingPartyIds)].filter(id => country.partyIds.includes(id));
@@ -120,30 +176,39 @@ export function applyInstitutionalAgreement(materialAgreementBps: number, adjust
 }
 
 export function evaluatePartyInstitutionalInterest(
-  countryId: string, partyId: string, registry: PoliticalRegistry, effects: readonly InstitutionalPowerTransfer[],
+  state: SimulationState, countryId: string, partyId: string, registry: PoliticalRegistry, effects: readonly InstitutionalPowerTransfer[],
   material: Pick<PartyProposalEvaluation, 'agreementBps' | 'confidenceBps' | 'coverage'>,
 ): PartyInstitutionalInterestEvaluation {
   const baseline = {
-    method: INSTITUTIONAL_INTEREST_MODEL.method, governmentStatus: currentGovernmentStatus(registry, countryId, partyId),
+    method: INSTITUTIONAL_INTEREST_MODEL.method, governmentStatus: currentGovernmentStatus(state, countryId, partyId, registry),
     materialAgreementBps: material.agreementBps, materialConfidenceBps: material.confidenceBps, materialCoverage: material.coverage,
     materialBaselineFingerprint: governanceFingerprint({ agreementBps: material.agreementBps, confidenceBps: material.confidenceBps, coverage: material.coverage }),
   };
+  // Versioned proof of the branch stakes actually used, recorded for every evaluation (including
+  // not_applicable and unavailable) so a saved evaluation validates intrinsically even after a later
+  // election changes the parliament it was computed against — without breaking corruption detection.
+  const stamp = (record: Pick<PartyInstitutionalInterestEvaluation, 'status' | 'coverage' | 'confidenceBps' | 'adjustmentBps' | 'effects'>) =>
+    institutionalStakesFingerprint({ method: baseline.method, countryId, partyId, governmentStatus: baseline.governmentStatus, ...record });
   if (!Array.isArray(effects) || effects.some(item => !isInstitutionalPowerTransfer(item)) || new Set(effects.map(item => item.id)).size !== effects.length
     || new Set(effects.map(institutionalTransferKey)).size !== effects.length) {
+    const record = { status: 'unavailable' as const, coverage: 'unavailable' as const, confidenceBps: 0, adjustmentBps: 0, effects: [] };
     return {
-      ...baseline, status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0, effects: [], positiveDrivers: [],
+      ...baseline, ...record, positiveDrivers: [],
       negativeDrivers: ['Institutional evidence is malformed or duplicated.'],
       limitation: 'Malformed institutional effects are never converted into strategic assumptions.',
+      stakesFingerprint: stamp(record),
     };
   }
   if (!effects.length) {
+    const record = { status: 'not_applicable' as const, coverage: 'complete' as const, confidenceBps: 10_000, adjustmentBps: 0, effects: [] };
     return {
-      ...baseline, status: 'not_applicable', coverage: 'complete', confidenceBps: 10_000, adjustmentBps: 0, effects: [], positiveDrivers: [], negativeDrivers: [],
+      ...baseline, ...record, positiveDrivers: [], negativeDrivers: [],
       limitation: 'No explicit institutional power transfer. Government/opposition status alone never changes the vote.',
+      stakesFingerprint: stamp(record),
     };
   }
   const evaluated: PartyInstitutionalInterestEvaluation['effects'] = effects.map(effect => {
-    const from = derivePartyInstitutionalStake(registry, countryId, partyId, effect.from), to = derivePartyInstitutionalStake(registry, countryId, partyId, effect.to);
+    const from = derivePartyInstitutionalStake(registry, countryId, partyId, effect.from, state), to = derivePartyInstitutionalStake(registry, countryId, partyId, effect.to, state);
     const effectCoverage = weakestCoverage(effect.coverage, from.coverage, to.coverage);
     const known = effectCoverage !== 'unavailable' && from.stakeBps !== undefined && to.stakeBps !== undefined;
     const confidenceBps = known ? Math.min(effect.confidenceBps, coverageConfidence(effectCoverage)) : 0;
@@ -154,21 +219,27 @@ export function evaluatePartyInstitutionalInterest(
   });
   const known = evaluated.filter(item => item.coverage !== 'unavailable');
   if (known.length !== evaluated.length) {
+    const record = { status: 'unavailable' as const, coverage: 'unavailable' as const, confidenceBps: 0, adjustmentBps: 0, effects: evaluated };
     return {
-      ...baseline, status: 'unavailable', coverage: 'unavailable', confidenceBps: 0, adjustmentBps: 0, effects: evaluated, positiveDrivers: [],
+      ...baseline, ...record, positiveDrivers: [],
       negativeDrivers: ['Institutional effects exist, but current branch leverage is unavailable.'],
       limitation: 'Unknown institutional control remains UNKNOWN; no opposition assumption is substituted.',
+      stakesFingerprint: stamp(record),
     };
   }
   const meanInterestBps = scaledRatioSigned(known.reduce((sum, item) => sum + item.effectiveInterestBps, 0), 1, known.length);
-  return {
-    ...baseline, status: 'modelled',
-    coverage: evaluated.some(item => item.coverage !== 'complete') ? 'partial' : 'complete',
+  const record = {
+    status: 'modelled' as const,
+    coverage: (evaluated.some(item => item.coverage !== 'complete') ? 'partial' : 'complete') as 'partial' | 'complete',
     confidenceBps: ratio(known.reduce((sum, item) => sum + item.confidenceBps, 0), 1, known.length),
     adjustmentBps: clampSignedBps(scaledRatioSigned(meanInterestBps, INSTITUTIONAL_INTEREST_MODEL.maxAgreementAdjustmentBps, 10_000)), effects: evaluated,
+  };
+  return {
+    ...baseline, ...record,
     positiveDrivers: known.filter(item => item.effectiveInterestBps > 0).map(item => `${item.lever}: ${item.from} -> ${item.to} increases current institutional leverage.`),
     negativeDrivers: known.filter(item => item.effectiveInterestBps < 0).map(item => `${item.lever}: ${item.from} -> ${item.to} reduces current institutional leverage.`),
     limitation: 'Institutional self-interest uses explicit power transfers and current branch leverage. The scaling is a modelled V1 prior, not an observed behavioral coefficient.',
+    stakesFingerprint: stamp(record),
   };
 }
 

@@ -24,7 +24,39 @@ export type CohortPoliticalOpinion = [number[], number[], number[], number, numb
 export const COHORT = Object.freeze({ preferences: 0, salience: 1, support: 2, engagement: 3, sentiment: 4, baselineIncome: 5, drivers: 6 } as const);
 export interface RegionalPoliticalOpinion { regionId: string; countryId: string; cohorts: Record<string, CohortPoliticalOpinion> }
 export interface PoliticalCountryState { countryId: string; regionIds: string[]; nationalSupportBps: number[]; recentOpinionDrivers: Array<{ date: string; drivers: number[] }> }
-export interface OrganizationPoliticalState { organizationId: string; currentPositions: Record<PoliticalIssue, number>; lastUpdatedOn: string; recentDrivers: Array<{ date: string; issues: PoliticalIssue[] }> }
-export interface PoliticalState { version: 'politics-0.13-v1'; registryVersion: 'political-registry-0.13-v4'; initializedOn?: string; lastOpinionUpdate?: string; weeklyEvaluations: number; opinionProvenance?: { status: Quality; method: string; initializedOn: string; limitation: string }; countries: Record<string, PoliticalCountryState>; regionalOpinion: Record<string, RegionalPoliticalOpinion>; organizations: Record<string, OrganizationPoliticalState> }
-export const POLITICS_MODEL = Object.freeze({ version: 'politics-0.13-v1' as const, registryVersion: 'political-registry-0.13-v4' as const, schedulerPriority: 400, opinionInertiaBps: 8_000, organizationInertiaBps: 8_000, preferenceInertiaBps: 9_000, salienceInertiaBps: 8_500, sentimentInertiaBps: 8_000, historyLimit: 12, baseEngagementBps: { left: 6_200, centre: 5_500, right: 6_200 }, incomeSensitivityBps: { low: 12_000, middle: 10_000, high: 7_000 }, baseUndecidedBps: { left: 500, centre: 1_000, right: 500 } });
-export const emptyPolitics = (): PoliticalState => ({ version: POLITICS_MODEL.version, registryVersion: POLITICS_MODEL.registryVersion, weeklyEvaluations: 0, countries: {}, regionalOpinion: {}, organizations: {} });
+/** The four locked organization families. The 0.13 registry supplies parties, unions and
+ *  associations; religious organizations have no registry type, so their coverage stays unavailable. */
+export type OrganizationFamily = 'party' | 'union' | 'association' | 'religious';
+export interface OrganizationPoliticalState { organizationId: string; currentPositions: Record<PoliticalIssue, number>; lastUpdatedOn: string; recentDrivers: Array<{ date: string; issues: PoliticalIssue[] }>; status: 'active' | 'dissolved' | 'banned'; members: Record<string, OrganizationMembership>; fundsUsd?: number; internalCurrents: Record<string, InternalCurrent>; banEvents: OrganizationBanEvent[]; /** Country the organization belongs to (for authority scoping). */ countryId?: string; /** The organization family. Registry unions/associations; parties and dynamic registrations are modelled; religious organizations are representable with unavailable coverage. */ type?: 'union' | 'association' | 'party' | 'religious'; displayName?: string; /** 'registry' for 0.13-sourced organizations, 'dynamic' for ones created at runtime. */ source?: 'registry' | 'dynamic';
+  /** Dated, signed funding ledger: every dollar of the tracked treasury (fundsUsd + strikeFundUsd)
+   *  is exactly the replay of these events — funding is conserved, never created ex nihilo. */
+  fundingEvents: OrganizationFundingEvent[];
+  /** Reserved treasury for strikes, moved from fundsUsd by allocateStrikeFund. */
+  strikeFundUsd?: number;
+  /** A union's dated labour claims; a strike requires a pending claim (it never creates its own cause). */
+  claims: UnionClaim[];
+  /** Modelled cybersecurity posture: the share of the organization's financial base spent on
+   *  cybersecurity (0 when nothing is spent, 10_000 when the whole base is spent). Never observed. */
+  cyberSecurityBps?: number;
+  /** Procedural dissolution trace (actor, authority, motive). */
+  dissolutionEvents: OrganizationDissolutionEvent[];
+  /** Ongoing strikes with their real represented participants; the strike's economic consequence
+   *  (labour withdrawal of the represented workers) is applied from this record, never invented
+   *  per action. */
+  activeStrikes: Array<{ on: string; issue: PoliticalIssue; participantPersons: number; status: 'ongoing' | 'ended' }>;
+  /** Dynamic organizations really use their represented cohorts/interests/priorities for their
+   *  weekly position evolution — never stored decoration. */
+  representedCohorts?: Array<'low' | 'middle' | 'high'>;
+  representedInterests?: string[];
+  issuePriorities?: PoliticalIssue[]; }
+export interface OrganizationMembership { personId: string; role: 'member' | 'leader'; joinedOn: string }
+export interface InternalCurrent { id: string; name: string; salienceBps: number; /** The current's modelled policy line (never observed faction data): each week it pulls the mutable
+ *  party line a bounded step toward the salience-weighted average of the currents' positions. */
+  issuePositions?: Partial<Record<PoliticalIssue, number>>; }
+export interface OrganizationBanEvent { date: string; actorPersonId: string; motive: string; evidence: string; /** The constitutional rights basis and legal foundation the ban rests on. */ legalBasis: { basis: 'constitutional_guarantee' | 'ordinary_law' | 'unavailable'; limitation: string }; appealedOn?: string; appealByPersonId?: string; appealDecision?: 'restore' | 'uphold'; appealResolvedOn?: string }
+export interface OrganizationDissolutionEvent { date: string; actorPersonId: string; motive: string; legalBasis: { basis: 'constitutional_guarantee' | 'ordinary_law' | 'unavailable'; limitation: string } }
+export interface UnionClaim { id: string; madeOn: string; issue: PoliticalIssue; targetBps: number; rationale: string; status: 'pending' | 'settled'; settlement?: { on: string; byPersonId: string; outcome: 'accepted' | 'rejected'; agreedBps?: number; /** Accepted claim → real government lever: the draft proposal it was turned into, or a recorded pending response when the negotiator cannot hold the initiative. */ acceptedIntoProposalId?: string; pendingGovernmentResponse?: boolean } }
+export interface OrganizationFundingEvent { on: string; amountUsd: number; kind: 'seed' | 'donation' | 'strike_cost' | 'cybersecurity_spending' | 'cyber_attack_cost' | 'cyber_theft' | 'split_transfer'; /** Donor person for donations; never an attacker. */ actorPersonId?: string; /** Attacker organization for a cyber theft (target side). */ counterpartOrganizationId?: string; /** Provenance of the funding source; never discarded. */ source?: string }
+export interface PoliticalState { version: 'politics-0.13-v1'; registryVersion: 'political-registry-0.13-v4'; initializedOn?: string; lastOpinionUpdate?: string; weeklyEvaluations: number; opinionProvenance?: { status: Quality; method: string; initializedOn: string; limitation: string }; countries: Record<string, PoliticalCountryState>; regionalOpinion: Record<string, RegionalPoliticalOpinion>; organizations: Record<string, OrganizationPoliticalState>; /** Religious support as a real system family: no sourced religious organization exists in the 0.13 registry, so the coverage stays unavailable — never fabricated organizations. */ religiousOrganizationsCoverage: { status: 'unavailable' | 'modelled'; limitation: string } }
+export const POLITICS_MODEL = Object.freeze({ version: 'politics-0.13-v1' as const, registryVersion: 'political-registry-0.13-v4' as const, schedulerPriority: 400, opinionInertiaBps: 8_000, organizationInertiaBps: 8_000, currentEvolutionBps: 8_000, preferenceInertiaBps: 9_000, salienceInertiaBps: 8_500, sentimentInertiaBps: 8_000, historyLimit: 12, baseEngagementBps: { left: 6_200, centre: 5_500, right: 6_200 }, incomeSensitivityBps: { low: 12_000, middle: 10_000, high: 7_000 }, baseUndecidedBps: { left: 500, centre: 1_000, right: 500 } });
+export const emptyPolitics = (): PoliticalState => ({ version: POLITICS_MODEL.version, registryVersion: POLITICS_MODEL.registryVersion, weeklyEvaluations: 0, countries: {}, regionalOpinion: {}, organizations: {}, religiousOrganizationsCoverage: { status: 'unavailable', limitation: 'No sourced religious organization exists in the 0.13 political registry; religious support is not fabricated.' } });

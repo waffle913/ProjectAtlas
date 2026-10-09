@@ -2,8 +2,8 @@ import type { SimulationState } from '../../types';
 import { allocate } from '../socioeconomy/model';
 import { COHORT, POLITICAL_ISSUES, type PoliticalRegistry } from '../politics/model';
 import { politicalRegistry } from '../politics/registry';
-import { analyzeProposal, derivePartyGoalProfile, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
-import { allocatePartySeats, evaluatePartyInternalVoteDistribution } from './internalPartyDistribution';
+import { analyzeProposal, dynamicPartyGoalProfile, evaluatePartyProposal, evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
+import { allocatePartySeats, applyWhipInstruction, evaluatePartyInternalVoteDistribution } from './internalPartyDistribution';
 import type {
   ChamberSupportEstimate,
   PartyGoalProfile,
@@ -97,16 +97,30 @@ export function estimateParliamentarySupport(
     return { yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 0, totalSeats: 0, chambers: [], coverage: 'unavailable', confidenceBps: 0, procedure: 'internal_party_distribution_v1', seatApportionment: 'identity_hash_v1' };
   }
   const analysis = analysisOverride ?? analyzeProposal(state, proposal);
+  const electionsCountry = state.elections?.countries[proposal.countryId];
   const chambers: ChamberSupportEstimate[] = institution.chambers.map(chamber => {
-    if (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined) {
+    // The dynamic post-election snapshot is the same reality the vote is decided against: when a
+    // future election produced an allocation, it is usable here even if the 2026 sourced
+    // allocation was unavailable.
+    const dynamicChamber = electionsCountry?.chambers[chamber.id];
+    const dynamicSeats = dynamicChamber?.seatsByParty;
+    const dynamicAllocated = dynamicSeats && Object.values(dynamicSeats).some(seats => seats > 0) ? Object.values(dynamicSeats).reduce((a, b) => a + b, 0) : 0;
+    const useDynamic = Boolean(dynamicSeats && dynamicAllocated > 0);
+    if (!useDynamic && (chamber.seatAllocationStatus !== 'sourced' || chamber.totalSeats === undefined)) {
       return { chamberId: chamber.id, yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: chamber.totalSeats ?? 0, totalSeats: chamber.totalSeats, coverage: 'unavailable', partyEvaluations: [] };
     }
     let yesSeats = 0, noSeats = 0, abstainSeats = 0, unknownSeats = 0;
     const partyEvaluations: NonNullable<ChamberSupportEstimate['partyEvaluations']> = [];
-    for (const [partyId, seats] of Object.entries(chamber.seatsByParty).sort(([a], [b]) => a.localeCompare(b))) {
-      const party = registry.parties[partyId], profile = profiles[partyId] ?? (party ? derivePartyGoalProfile(party) : undefined);
+    const seatSource = useDynamic ? dynamicSeats! : chamber.seatsByParty;
+    const totalSeats = useDynamic ? (dynamicChamber!.totalSeats > 0 ? dynamicChamber!.totalSeats : chamber.totalSeats ?? 0) : chamber.totalSeats!;
+    for (const [partyId, seats] of Object.entries(seatSource).sort(([a], [b]) => a.localeCompare(b))) {
+      const party = registry.parties[partyId], profile = profiles[partyId] ?? (party ? dynamicPartyGoalProfile(state, party) : undefined);
       const evaluation = evaluatePartyProposal(state, proposal, partyId, registry, profile, analysis);
-      const internalDistribution = evaluatePartyInternalVoteDistribution(analysis, profile, evaluation);
+      const internal = evaluatePartyInternalVoteDistribution(analysis, profile, evaluation);
+      // A party whip instruction shifts the modelled internal line a bounded step; the internal
+      // distribution and defections then decide how far the parliamentarians actually follow it.
+      const instruction = proposal.whipInstructions?.find(whip => whip.partyId === partyId);
+      const internalDistribution = instruction ? applyWhipInstruction(internal, instruction.instruction) : internal;
       const seatAllocation = allocatePartySeats(seats, internalDistribution, { proposalId: proposal.id, chamberId: chamber.id, partyId });
       partyEvaluations.push({ ...evaluation, decisionModel: 'internal_distribution_v1', internalDistribution, seats, seatAllocation });
       yesSeats += seatAllocation.yesSeats;
@@ -114,18 +128,20 @@ export function estimateParliamentarySupport(
       abstainSeats += seatAllocation.abstainSeats;
       unknownSeats += seatAllocation.unknownSeats;
     }
-    let unavailableSeats = unknownSeats + (chamber.independentOtherSeats ?? 0);
+    let unavailableSeats = unknownSeats + (useDynamic
+      ? (dynamicChamber?.independentOtherSeats ?? 0) + (dynamicChamber?.unallocatedSeats ?? 0)
+      : (chamber.independentOtherSeats ?? 0));
     const allocated = yesSeats + noSeats + abstainSeats + unavailableSeats;
-    if (allocated !== chamber.totalSeats) unavailableSeats = Math.max(unavailableSeats, chamber.totalSeats - yesSeats - noSeats - abstainSeats);
+    if (allocated !== totalSeats) unavailableSeats = Math.max(unavailableSeats, totalSeats - yesSeats - noSeats - abstainSeats);
     const knownSeats = yesSeats + noSeats + abstainSeats;
-    const coverage = allocated !== chamber.totalSeats ? 'unavailable' : unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
+    const coverage = allocated !== totalSeats ? 'unavailable' : unavailableSeats === 0 ? 'complete' : knownSeats ? 'partial' : 'unavailable';
     return {
       chamberId: chamber.id,
       yesSeats,
       noSeats,
       abstainSeats,
       unavailableSeats,
-      totalSeats: chamber.totalSeats,
+      totalSeats,
       coverage,
       adopted: coverage === 'complete' ? yesSeats > noSeats : undefined,
       partyEvaluations,
