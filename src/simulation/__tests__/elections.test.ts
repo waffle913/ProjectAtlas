@@ -230,7 +230,7 @@ describe('0.23 elections engine', () => {
     const leader = partyLeader(initial, countryId, partyId);
     const initialBudget = initial.fiscal.countries[countryId].annualBudget;
     // A fiscal promise with a real payload (a coherent subject): doubling the infrastructure budget.
-    let state = makeCampaignPromise(leader.state, partyId, countryId, 'Double the infrastructure budget', 'fiscal_reform', { annualBudget: { infrastructure: initialBudget.infrastructure * 2 } }, leader.personId);
+    let state = makeCampaignPromise(leader.state, partyId, countryId, 'Double the infrastructure budget', 'fiscal_reform', { annualBudget: { ...initialBudget, infrastructure: initialBudget.infrastructure * 2 } }, leader.personId);
     const promiseId = state.elections.countries[countryId].parties[partyId].promises[0].id;
     // The promise is a typed record, never an applied policy: making it mutates nothing.
     expect(state.fiscal.countries[countryId].annualBudget).toEqual(initialBudget);
