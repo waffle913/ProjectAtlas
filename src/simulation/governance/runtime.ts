@@ -1276,7 +1276,7 @@ export function censureGovernment(state: SimulationState, countryId: string, act
     if (!confidenceChamberIds.includes(chamber.chamberId)) continue;
     // Independents and explicitly unallocated seats never produce a vote in the model, so neither
     // enters the censure denominator.
-    votingSeats += Math.max(0, chamber.totalSeats - chamber.independentOtherSeats - chamber.unallocatedSeats);
+    votingSeats += Math.max(0, chamber.totalSeats - chamber.independentOtherSeats - (chamber.unallocatedSeats ?? 0));
     for (const [partyId, count] of Object.entries(chamber.seatsByParty)) seats[partyId] = (seats[partyId] ?? 0) + count;
   }
   const censureEffect: InstitutionalPowerTransfer = {
