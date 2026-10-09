@@ -1927,10 +1927,14 @@ describe('governance 0.14 player and political decisions', () => {
     const inspected = inspectGovernance(fixture.state); inspected.proposalOrder.length = 0; expect(fixture.state.governance.proposalOrder).toHaveLength(1); expect(inspectPlayer(fixture.state)?.id).toBe(fixture.personId);
   });
 
-  it('validates governance invariants and prevents unimplemented political systems or non-deterministic RNG', () => {
+  it('validates governance invariants, forbids non-deterministic RNG and keeps deferred political systems absent', () => {
     const fixture = findResolvable(true); expect(assertSimulationInvariants(fixture.state, worldContext, 'tick')).toBe(true);
     const malformed = structuredClone(fixture.state); malformed.governance.player.controlledPersonId = 'person.unknown'; expect(() => assertSimulationInvariants(malformed, worldContext, 'tick')).toThrow(/Controlled person/);
-    const source = readFileSync('src/simulation/governance/runtime.ts', 'utf8'); expect(source).not.toContain('Math.random'); expect(source).not.toMatch(/\belection\b|\bcampaign\b|\bmedia\b|\bprotest\b|\bstrike\b|\bcoup\b|\blobby\b|\bcoalition negotiation\b|\bparty AI\b|\bgovernment AI\b/i);
+    // Non-deterministic RNG stays forbidden and the political systems still deferred by 0.23
+    // (media, coups, lobbying, party/government AI) stay absent from the runtime; elections,
+    // campaigns, protests, strikes and coalition mechanics are now implemented, so those terms
+    // are no longer banned.
+    const source = readFileSync('src/simulation/governance/runtime.ts', 'utf8'); expect(source).not.toContain('Math.random'); expect(source).not.toMatch(/\bmedia\b|\bcoup\b|\blobby\b|\bparty AI\b|\bgovernment AI\b/i);
   });
 });
 
