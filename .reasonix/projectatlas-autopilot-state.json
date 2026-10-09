@@ -7,7 +7,7 @@
   "current_milestone": "0.23",
   "current_block": null,
   "last_safe_milestone": "0.22",
-  "last_safe_sha": "bb3aa649f6232f53299c224d2dd99f4560419404",
+  "last_safe_sha": "1715290e631ff7ffc29103cbe5614ea25dbc1b80",
   "last_safe_branch": "main",
   "last_safe_ci_status": "green (verify ubuntu-latest + windows-latest success)",
   "current_branch": null,
@@ -19,5 +19,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-09",
-  "notes": "0.22 (generic decision/policy/law framework) merged to main as bb3aa64 (merge of reviewed branch waffle913-policy-framework-022 onto main 21970a7). Independent review verdict: no CERTAIN BUGS, no blocking PROBABLE RISKS; optional improvements only (structuredClone on every proposal during backfill; migration would TypeError on a corrupted unknown kind rather than a clean invariant error). Required CI green on both platforms. Next: 0.23 (branch waffle913-constitution-institutions-elections-023 @ 8951d46) — ubuntu green, windows red; 0.24 branched from 433633f and is missing the final 0.23 fix 8951d46."
+  "notes": "0.22 merged to main and independently reviewed twice. Review 1 (bb3aa64) found 2 PROBABLE RISKS; corrective pass (5e59242, 1715290) fixed the invariant effects-array/null-element dereference and the migration unknown-kind guard, and pinned the intentional engine/player authority split with tests. Review 2 verdict: no CERTAIN BUGS, no blocking PROBABLE RISKS (ship as-is). Main CI green at 1715290. Next: 0.23 (branch waffle913-constitution-institutions-elections-023 @ 8951d46) — ubuntu green, windows red on a test timeout (multilateral.test.ts:295 'Test timed out in 5000ms'); 0.24 branched from 433633f and is missing the final 0.23 fix 8951d46."
 }
