@@ -94,6 +94,82 @@ export interface LeadershipSuccession {
 }
 
 export interface FiscalProposalPayload { policy?: Policy; annualBudget?: Budget }
+
+// 0.22 generic decision/policy/law framework. `kind` is the machine category; `fiscal_reform`
+// is the first member. Future milestones add new categories with their own typed payloads and
+// effects — none are implemented here.
+export const PROPOSAL_KINDS = ['fiscal_reform'] as const;
+export type ProposalKind = typeof PROPOSAL_KINDS[number];
+
+// Distinguishes what sort of public decision a proposal is. A fiscal reform adopted through
+// the ordinary legislative proposal lifecycle defaults to a law, but the same material policy
+// may later be constitutionally entrenched as a secondary disposition (see 0.23) — the
+// effective class is stored on the proposal, never hard-bound to the category.
+export const PROPOSAL_INSTRUMENT_CLASSES = ['administrative_action', 'regulatory_policy', 'law', 'constitutional_amendment'] as const;
+export type ProposalInstrumentClass = typeof PROPOSAL_INSTRUMENT_CLASSES[number];
+
+// Future constitutional disposition. `undefined` means an ordinary instrument; a proposal with
+// this set must be a `constitutional_amendment`. No constitutional procedure is implemented in
+// 0.22 — the field only makes the future distinction representable and validatable.
+export type ConstitutionalDisposition = 'principal' | 'secondary';
+
+// Typed per-kind payload and effect mappings. Only `fiscal_reform` has a concrete
+// implementation in 0.22; the union collapses to it today and grows per future milestone.
+export interface ProposalPayloadByKind { fiscal_reform: FiscalProposalPayload }
+export interface ProposalEffectByKind { fiscal_reform: FiscalReformEnactment }
+export type ProposalPayload = ProposalPayloadByKind[ProposalKind];
+export type ProposalEffect = ProposalEffectByKind[ProposalKind];
+
+// A typed, immutable record of the effect a proposal produced once it became effective. The
+// owning subsystem applies the effect through its own runtime; the proposal only records the
+// typed reference.
+export interface FiscalReformEnactment {
+  category: 'fiscal_reform';
+  fiscalReformSequence: number;
+  reformFingerprint: string;
+}
+
+// Static, pedagogical description of a proposal category. This is documentation, not a
+// mechanic: it produces no effect and is never serialized into a save. The default/allowed
+// instrument classes live on the typed contract, not here, so a category is never irreversibly
+// bound to a single class.
+export interface PolicyCategoryDescriptor {
+  kind: ProposalKind;
+  title: string;
+  summary: string;
+  usage: string;
+  context?: string;
+  tradeoffs?: string;
+}
+
+export interface ProposalContract<K extends ProposalKind> {
+  kind: K;
+  descriptor: PolicyCategoryDescriptor;
+  defaultInstrumentClass: ProposalInstrumentClass;
+  allowedInstrumentClasses: readonly ProposalInstrumentClass[];
+}
+
+export const PROPOSAL_CONTRACTS: { [K in ProposalKind]: ProposalContract<K> } = {
+  fiscal_reform: {
+    kind: 'fiscal_reform',
+    descriptor: {
+      kind: 'fiscal_reform',
+      title: 'Fiscal reform',
+      summary: 'Changes the legal tax rules and/or the annual budget through the ordinary legislative process.',
+      usage: 'Raise or lower an explicit tax value or reallocate the annual budget; the change becomes effective on its effective date only after parliamentary adoption.',
+      context: 'Fiscal rules are the legal basis for tax liability, collection, revenue and public services. They do not grant new spending powers by themselves.',
+      tradeoffs: 'A tax change redistributes disposable income and public revenue; a budget reallocation shifts spending between public services and defence.',
+    },
+    defaultInstrumentClass: 'law',
+    allowedInstrumentClasses: ['law', 'constitutional_amendment'],
+  },
+};
+
+export const POLICY_CATEGORY_REGISTRY: Readonly<Record<ProposalKind, PolicyCategoryDescriptor>> = Object.fromEntries(
+  (Object.entries(PROPOSAL_CONTRACTS) as Array<[ProposalKind, ProposalContract<ProposalKind>]>).map(([kind, contract]) => [kind, contract.descriptor]),
+) as Readonly<Record<ProposalKind, PolicyCategoryDescriptor>>;
+
+export const proposalContract = (kind: ProposalKind): ProposalContract<ProposalKind> => PROPOSAL_CONTRACTS[kind];
 export interface ProposalImpactDriver { issue: PoliticalIssue; directionBps: number; source: string; explanation: string }
 export interface ProposalImpact { issueDirectionsBps: Record<PoliticalIssue, number>; drivers: ProposalImpactDriver[]; method: 'fiscal_delta_v1'; limitation: string }
 export type EvaluationCoverage = 'complete' | 'partial' | 'unavailable';
@@ -169,8 +245,10 @@ export interface PoliticalProposal {
   countryId: string;
   proposerPersonId: string;
   createdOn: string;
-  kind: 'fiscal_reform';
-  payload: FiscalProposalPayload;
+  kind: ProposalKind;
+  instrumentClass: ProposalInstrumentClass;
+  constitutionalDisposition?: ConstitutionalDisposition;
+  payload: ProposalPayload;
   status: PoliticalProposalStatus;
   effectiveDate: string;
   submittedOn?: string;
@@ -181,6 +259,7 @@ export interface PoliticalProposal {
   voteResult?: LegislativeVoteResult;
   scheduledFiscalReformSequence?: number;
   enactmentReference?: { fiscalReformSequence: number; reformFingerprint: string };
+  effects: ProposalEffect[];
   analysis?: ProposalAnalysis;
   evaluationVersion?: 'legacy-0.14-v1' | 'situational-0.14-v2' | 'plurality-0.15-v1' | 'situational-plurality-0.15-v2';
 }

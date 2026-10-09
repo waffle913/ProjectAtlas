@@ -25,6 +25,7 @@ Key subsystem references:
 - [0.20 multilateral contract, independent review pending](multilateral-0.20.md)
 - [0.21 V1 validation record, independent review pending](v1-validation-0.21.md)
 - [Sub-milestone roadmap and locked direction](roadmap-submilestones.md)
+- [0.22 policy framework contract, independent review pending](policy-framework-0.22.md)
 - Corresponding final validation records: `milestone-0.10-validation.md`, `milestone-0.10-corrective-validation.md`, `milestone-0.11-validation.md`, `milestone-0.12-validation.md`, `milestone-0.13-validation.md` and `milestone-0.14-validation.md`
 
 ## Project purpose and decision rule
