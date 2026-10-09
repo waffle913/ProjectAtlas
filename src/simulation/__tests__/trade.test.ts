@@ -318,10 +318,36 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     const context = { regions, countryIds: new Set(Object.keys(schema14.state.engine.fidelityByCountry)), regionIds: new Set(regions.map(r => r.id)) };
     const state = restoreSimulationState(JSON.stringify(schema14.state), regions, {}, {}, context);
     expect(state.date).toBe('2028-04-05'); expect(state.engine.tick).toBe(825); expect(state.trade.initializedOn).toBe(state.date);
-    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'politics', 'crisis'] as const) expect(state[field]).toEqual(schema14.state[field]);
-    expect(state.governance).toEqual({ ...schema14.state.governance, cabinets: {} });
+    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(state[field]).toEqual(schema14.state[field]);
+    // The only politics deviation is the honest 0.23 religious-coverage backfill: no religious
+    // organization is fabricated, the absence of sourced coverage is stated explicitly.
+    const { religiousOrganizationsCoverage, ...politicsPreserved } = state.politics;
+    expect(religiousOrganizationsCoverage.status).toBe('unavailable');
+    expect(typeof religiousOrganizationsCoverage.limitation).toBe('string');
+    expect(religiousOrganizationsCoverage.limitation.length).toBeGreaterThan(0);
+    expect(politicsPreserved).toEqual(schema14.state.politics);
+    // The only governance deviations are the structural 0.23 backfills: the cabinet map and the
+    // ministerial suggestion system initialized empty/default on the migration date.
+    const { cabinets, ministerialSuggestions, nextSuggestionSequence, settings, ...governancePreserved } = state.governance;
+    expect(cabinets).toEqual({});
+    expect(ministerialSuggestions).toEqual([]);
+    expect(nextSuggestionSequence).toBe(0);
+    expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
+    expect(governancePreserved).toEqual(schema14.state.governance);
     const continued = advanceSimulationDays(state, 90);
-    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'governance', 'politics', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
+    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
+    // The 90-day continuation is still the pre-0.23 oracle for every historical field; only the
+    // same structural 0.23 backfills are allowed on top.
+    const { religiousOrganizationsCoverage: continuedReligiousCoverage, ...continuedPoliticsPreserved } = continued.politics;
+    expect(continuedReligiousCoverage.status).toBe('unavailable');
+    expect(typeof continuedReligiousCoverage.limitation).toBe('string');
+    expect(continuedReligiousCoverage.limitation.length).toBeGreaterThan(0);
+    expect(continuedPoliticsPreserved).toEqual(oracle.state.politics);
+    const { ministerialSuggestions: continuedSuggestions, nextSuggestionSequence: continuedNextSuggestionSequence, settings: continuedSettings, ...continuedGovernancePreserved } = continued.governance;
+    expect(continuedSuggestions).toEqual([]);
+    expect(continuedNextSuggestionSequence).toBe(0);
+    expect(continuedSettings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
+    expect(continuedGovernancePreserved).toEqual(oracle.state.governance);
     expect(continued.date).toBe('2028-07-04'); expect(continued.trade.flows).toEqual([]);
     const { tradeReports: _newReporting, internationalReports: _newInternational, operationsReports: _newOperations, multilateralReports: _newMultilateral, ...oldInformation } = continued.information;
     expect(oldInformation).toEqual(oracle.state.information);
