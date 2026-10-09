@@ -467,7 +467,22 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     const { schemaVersion, military, trade, international, operations, multilateral, constitution, elections, ...preserved } = restored;
     expect(schemaVersion).toBe(19); expect(military.initializedOn).toBe('2028-03-11');
     expect(trade.initializedOn).toBe('2028-03-11'); expect(trade.flows).toEqual([]);
-    expect(preserved).toEqual({ ...schema13Fixture.state, schemaVersion: undefined, governance: { ...schema13Fixture.state.governance, cabinets: {} } });
+    // Historical data stays identical; the only admitted deviations are the structural 0.23
+    // backfills in governance and politics, each verified explicitly below.
+    const { schemaVersion: _legacySchemaVersion, governance: legacyGovernance, politics: legacyPolitics, ...legacyPreserved } = schema13Fixture.state;
+    const { governance: restoredGovernance, politics: restoredPolitics, ...preservedRest } = preserved;
+    expect(preservedRest).toEqual(legacyPreserved);
+    const { cabinets, ministerialSuggestions, nextSuggestionSequence, settings, ...restoredGovernanceRest } = restoredGovernance;
+    expect(cabinets).toEqual({});
+    expect(ministerialSuggestions).toEqual([]);
+    expect(nextSuggestionSequence).toBe(0);
+    expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
+    expect(restoredGovernanceRest).toEqual(legacyGovernance);
+    const { religiousOrganizationsCoverage, ...restoredPoliticsRest } = restoredPolitics;
+    expect(religiousOrganizationsCoverage.status).toBe('unavailable');
+    expect(typeof religiousOrganizationsCoverage.limitation).toBe('string');
+    expect(religiousOrganizationsCoverage.limitation.length).toBeGreaterThan(0);
+    expect(restoredPoliticsRest).toEqual(legacyPolitics);
     expect(Object.values(military.countries).every(c => c.status === 'unavailable' && !c.capability)).toBe(true);
     expect(restoreSimulationState(serializeSimulationState(restored), militaryRegions, {}, {}, militaryContext)).toEqual(restored);
   });
