@@ -69,17 +69,19 @@ export function upgradeGovernanceProposalModel(state: SimulationState): Simulati
   const proposals: Record<string, PoliticalProposal> = {};
   for (const [id, original] of Object.entries(state.governance.proposals)) {
     const proposal = structuredClone(original) as PoliticalProposal;
-    // Guard the contract lookup: an unknown kind must be left untouched for the invariant to
+    // Guard the contract lookup: an unknown kind is left untouched for the invariant to
     // report "Unknown proposal kind" instead of crashing here on an undefined contract.
     const contract = proposalContract(proposal.kind) as ReturnType<typeof proposalContract> | undefined;
-    if (proposal.instrumentClass === undefined && contract) { proposal.instrumentClass = contract.defaultInstrumentClass; changed = true; }
-    // Backfill only ABSENT fields. A present-but-inconsistent effects array is left untouched so
-    // the ordinary invariants can reject it rather than the migration silently repairing corruption.
-    if (proposal.effects === undefined) {
-      proposal.effects = proposal.enactmentReference
-        ? [{ category: 'fiscal_reform' as const, fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
-        : [];
-      changed = true;
+    if (contract) {
+      if (proposal.instrumentClass === undefined) { proposal.instrumentClass = contract.defaultInstrumentClass; changed = true; }
+      // Backfill only ABSENT fields. A present-but-inconsistent effects array is left untouched so
+      // the ordinary invariants can reject it rather than the migration silently repairing corruption.
+      if (proposal.effects === undefined) {
+        proposal.effects = proposal.enactmentReference
+          ? [{ category: 'fiscal_reform' as const, fiscalReformSequence: proposal.enactmentReference.fiscalReformSequence, reformFingerprint: proposal.enactmentReference.reformFingerprint }]
+          : [];
+        changed = true;
+      }
     }
     proposals[id] = changed ? proposal : original;
   }

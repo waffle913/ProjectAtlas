@@ -138,6 +138,17 @@ describe('0.22 generic policy framework', () => {
     expect(() => restoreSimulationState(JSON.stringify(forged), worldRegions, {}, {}, worldContext)).toThrow(/matching typed effect/);
   });
 
+  it('rejects a null typed-effect element at save instead of crashing the invariant', () => {
+    const fixture = resolvableFixture(true);
+    let state = submitProposal(fixture.state, fixture.proposalId);
+    state = resolveProposalVoteForActor(state, fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles);
+    expect(state.governance.proposals[fixture.proposalId].status).toBe('enacted');
+    const forged = structuredClone(state) as unknown as { governance: { proposals: Record<string, { effects: Array<unknown> }> } };
+    forged.governance.proposals[fixture.proposalId].effects[0] = null;
+    // The invariant must report a clean violation, never throw a TypeError dereferencing a null effect.
+    expect(() => assertSimulationInvariants(forged as unknown as SimulationState, worldContext, 'save')).toThrow(/Invalid typed effects/);
+  });
+
   it('rejects a cross-domain effect category and a constitutional disposition in 0.22', () => {
     const fixture = resolvableFixture(true);
     let state = submitProposal(fixture.state, fixture.proposalId);
