@@ -164,4 +164,25 @@ describe('0.22 generic policy framework', () => {
     state = submitProposalForActor(state, proposalId, actorId);
     expect(state.governance.proposals[proposalId].status).toBe('submitted');
   });
+
+  it('pins the engine authority split: office-gated submit/resolve, proposer-only withdraw', () => {
+    const countryId = resolvable();
+    const proposer = executive(initial, countryId);
+    let state = budgetDraft(proposer.state, proposer.id, countryId);
+    const proposalId = state.governance.proposalOrder[0];
+    // A backbench legislator holds sponsor_legislation + vote_legislation but not the fiscal sponsor powers.
+    const legislator = createPoliticalPerson(state, { displayName: 'Backbench legislator', countryId });
+    const legislatorId = Object.keys(legislator.governance.persons).at(-1)!;
+    state = assignPoliticalOffice(legislator, legislatorId, { role: 'legislator', countryId });
+    // Submit is office-gated: without sponsor_budget_reform the legislator cannot submit a budget reform.
+    expect(() => submitProposalForActor(state, proposalId, legislatorId)).toThrow(/lacks authority to submit/);
+    // Withdraw is proposer-only on the engine path, independent of office powers.
+    expect(() => withdrawProposalForActor(state, proposalId, legislatorId)).toThrow(/Only the proposer can withdraw/);
+    // The proposer submits through the engine path.
+    state = submitProposalForActor(state, proposalId, proposer.id);
+    expect(state.governance.proposals[proposalId].status).toBe('submitted');
+    // Vote resolution is office-gated: a non-proposer with vote_legislation may resolve the vote.
+    state = resolveProposalVoteForActor(state, proposalId, legislatorId);
+    expect(['enacted', 'rejected', 'unavailable']).toContain(state.governance.proposals[proposalId].status);
+  });
 });

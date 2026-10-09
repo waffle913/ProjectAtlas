@@ -91,6 +91,11 @@ disposition rejected in 0.22, and the engine-vs-player authority split.
   `withdrawProposalForActor` and `resolveProposalVoteForActor` check real office
   powers for an explicit `actorPersonId`; the player wrappers (`submitProposal`,
   `withdrawProposal`, `resolveProposalVote`) still require the controlled person.
+  Exact engine semantics (intentional, no new officeholder powers): **submit** is
+  gated on the proposal kind's required capabilities (`sponsor_legislation` plus
+  `sponsor_fiscal_reform`/`sponsor_budget_reform` as the payload requires);
+  **vote resolution** is gated on `vote_legislation` (a chamber resolves the vote,
+  not the proposer); **withdraw** is proposer-only.
 - **Migration never repairs corruption.** `upgradeGovernanceProposalModel`
   backfills only absent `instrumentClass`/`effects`; a present-but-inconsistent
   `effects` array is left for the invariant to reject.
