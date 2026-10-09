@@ -397,7 +397,10 @@ function regionalMajoritarianSeats(state: SimulationState, countryId: string, pa
  *  spatial, not socioeconomic: the Region is the only sourced spatial structure, so each district
  *  is a deterministic population slice of the Region and votes with the Region's aggregate ballot —
  *  stable (depends only on the Region and its seat count) and consistent with regions and
- *  population. */
+ *  population. Explicit modelled limit: no intra-Region spatial data exists, so the districts of
+ *  one Region are identical slices and elect the same winner; real differentiation exists only
+ *  ACROSS Regions (sourced spatial structure). Intra-region geographic preferences are never
+ *  invented. */
 function stableDistrictWinners(state: SimulationState, countryId: string, regionId: string, seats: number, rounds: 1 | 2, partyIds: string[]): Array<string | null> {
   const socio = state.socioeconomy.regions[regionId];
   const opinion = state.politics.regionalOpinion[regionId];
@@ -884,7 +887,7 @@ function runDirectElectionPass(state: SimulationState, countryId: string): Simul
   if (!leader) {
     // The election produced a winning party but no valid leader can receive the office: the
     // government record is not rewritten, so the state never claims a government that no person holds.
-    return { ...state, elections: { ...state.elections, countries: { ...state.elections.countries, [countryId]: { ...entry, directElection: { on: state.date, winnerPartyId: winner[0], actorPersonId: '' }, nextDirectElectionDate: nextDirectDeadlineFor(state, countryId, state.date) } } } };
+    return { ...state, elections: { ...state.elections, countries: { ...state.elections.countries, [countryId]: { ...entry, directElection: { on: state.date, winnerPartyId: winner[0] }, nextDirectElectionDate: nextDirectDeadlineFor(state, countryId, state.date) } } } };
   }
   const winnerSeats = Object.values(entry.chambers).reduce((sum, chamber) => sum + (chamber.seatsByParty[winner[0]] ?? 0), 0);
   const totalSeats = Object.values(entry.chambers).reduce((sum, chamber) => sum + chamber.totalSeats, 0);
@@ -892,7 +895,7 @@ function runDirectElectionPass(state: SimulationState, countryId: string): Simul
   const government = { coalitionPartyIds: [winner[0]], confidence };
   const parties: ElectionCountryState['parties'] = {};
   for (const [partyId, previous] of Object.entries(entry.parties)) parties[partyId] = { ...previous, governmentStatus: partyId === winner[0] ? 'government' : 'opposition', promises: previous.promises };
-  let next: SimulationState = { ...state, elections: { ...state.elections, countries: { ...state.elections.countries, [countryId]: { ...entry, government, parties, directElection: { on: state.date, winnerPartyId: winner[0], actorPersonId: '' }, nextDirectElectionDate: nextDirectDeadlineFor(state, countryId, state.date) } } } };
+  let next: SimulationState = { ...state, elections: { ...state.elections, countries: { ...state.elections.countries, [countryId]: { ...entry, government, parties, directElection: { on: state.date, winnerPartyId: winner[0] }, nextDirectElectionDate: nextDirectDeadlineFor(state, countryId, state.date) } } } };
   const currentHead = Object.values(next.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
   if (currentHead && currentHead.id !== leader.id) next = revokePoliticalOffice(next, currentHead.id);
   if (currentHead?.id !== leader.id) next = transferPoliticalOffice(next, leader.id, { role: 'head_of_government', countryId });

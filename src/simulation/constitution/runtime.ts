@@ -200,15 +200,25 @@ function institutionalVerdict(state: SimulationState, amendment: PendingAmendmen
   const entry = state.constitution.countries[amendment.countryId];
   const proposal = state.governance.proposals[amendment.instrumentId];
   const referral = amendment.referral;
+  // A posteriori review judges the text against the constitutional standard that existed BEFORE
+  // this amendment was applied — the canonical appliedInverse (the pre-amendment values of exactly
+  // the fields this payload changed). An amendment that weakened a right can therefore never be
+  // compared against its own new value and appear conforming. A priori review compares against the
+  // constitution currently in force (nothing has been applied yet).
+  const applied = amendment.appliedOn !== undefined;
+  const prior = applied ? amendment.appliedInverse : undefined;
+  const amendmentRule = { ...entry?.amendment, ...(prior?.amendment ?? {}) };
+  const parliamentRule = { ...entry?.parliament, ...(prior?.parliament ?? {}) };
+  const judicialRule = { ...entry?.judicialReview, ...(prior?.judicialReview ?? {}) };
+  const rightsRule = { ...entry?.rights, ...(prior?.rights ?? {}) };
   const grounds: string[] = [
     `Saisine: ${referral?.timing ?? 'unknown'} control${referral ? ` recorded on ${referral.on}${referral.byPersonId ? ` by ${referral.byPersonId}` : ' (no actor fabricated)'}` : ' (not recorded)'}.`,
     `Text reviewed: amendment instrument ${amendment.instrumentId} of ${amendment.countryId}, effective ${amendment.applyOn}.`,
   ];
   const findings: string[] = [];
   // 1. Procedural review of the recorded adoption evidence.
-  const amendmentRule = entry?.amendment;
-  const parliamentPower = entry?.parliament.power;
-  if (amendmentRule?.parliamentaryThresholdBps !== undefined) {
+  const parliamentPower = parliamentRule.power;
+  if (amendmentRule.parliamentaryThresholdBps !== undefined) {
     const bindingVote = parliamentPower !== undefined && !['none', 'consultative'].includes(parliamentPower);
     const yes = proposal?.voteResult?.yesSeats, total = proposal?.voteResult?.totalSeats;
     if (bindingVote && yes !== undefined && total !== undefined && total > 0 && yes * 10_000 < amendmentRule.parliamentaryThresholdBps * total) {
@@ -220,33 +230,34 @@ function institutionalVerdict(state: SimulationState, amendment: PendingAmendmen
     if (!proposal?.referendumResult) findings.push('The constitution in force requires a referendum; no referendum outcome is recorded.');
     else if (!proposal.referendumResult.adopted) findings.push('The recorded referendum rejected the amendment.');
   }
-  // 2. Substantive review of the text against the norms currently in force.
+  // 2. Substantive review of the text against the norms in force before this amendment (a
+  // posteriori) or currently in force (a priori) — never against the amendment's own new values.
   const payload = amendment.payload;
   if (payload.rightsChanges && entry) {
     for (const [fieldValue, afterValue] of Object.entries(payload.rightsChanges)) {
       const field = fieldValue as keyof ConstitutionalRights;
-      const before: string | undefined = entry.rights[field];
+      const before: string | undefined = rightsRule[field];
       const after: string | undefined = typeof afterValue === 'string' ? afterValue : undefined;
       const beforeStrength = rightStrength(before), afterStrength = rightStrength(after);
       if (beforeStrength !== undefined && afterStrength !== undefined && afterStrength < beforeStrength) {
-        findings.push(`The text weakens the constitutional right ${field} (${before} -> ${after}); the constitution in force guarantees ${field} at ${before}.`);
+        findings.push(`The text weakens the constitutional right ${field} (${before} -> ${after}); the constitutional standard in force before this amendment guarantees ${field} at ${before}.`);
       }
     }
   }
-  if (payload.amendmentChanges && amendmentRule) {
+  if (payload.amendmentChanges && entry) {
     if (payload.amendmentChanges.parliamentaryThresholdBps !== undefined && amendmentRule.parliamentaryThresholdBps !== undefined
       && payload.amendmentChanges.parliamentaryThresholdBps < amendmentRule.parliamentaryThresholdBps) {
-      findings.push('The text lowers the amendment\'s own parliamentary threshold below the threshold in force.');
+      findings.push('The text lowers the amendment\'s own parliamentary threshold below the threshold in force before this amendment.');
     }
     if (payload.amendmentChanges.referendum !== undefined && amendmentRule.referendum !== 'never' && payload.amendmentChanges.referendum === 'never') {
-      findings.push('The text removes the referendum requirement in force.');
+      findings.push('The text removes the referendum requirement in force before this amendment.');
     }
   }
   if (payload.judicialChanges?.timing !== undefined && entry) {
-    const beforeTiming = entry.judicialReview.timing;
+    const beforeTiming = judicialRule.timing;
     const afterTiming = payload.judicialChanges.timing;
     if ((beforeTiming === 'before_promulgation' || beforeTiming === 'both') && (afterTiming === 'none' || afterTiming === 'after_promulgation' || afterTiming === 'unavailable')) {
-      findings.push('The text withdraws the constitutional court\'s own a priori control in force.');
+      findings.push('The text withdraws the constitutional court\'s own a priori control in force before this amendment.');
     }
   }
   if (!findings.length) {
@@ -302,9 +313,10 @@ export function decideAmendmentJudicialReview(state: SimulationState, instrument
 }
 
 /** Apply amendments whose effective date has arrived, exactly once. Terminal amendments are never
- *  reprocessed. A priori control is never auto-triggered: `before_promulgation` waits for a real
- *  saisine and a real verdict (no actor is fabricated), and a `both` control only waits when a real
- *  prior saisine is already pending. */
+ *  reprocessed. A priori control never auto-triggers and never blocks forever: application waits
+ *  only on a real prior saisine (no actor is fabricated). Without a saisine the amendment applies
+ *  at its date; a real saisine waits for the court's verdict — clear/advisory resumes the
+ *  procedure, a blocking verdict has already left a terminal status. */
 export function applyDueAmendments(state: SimulationState): SimulationState {
   const due = state.constitution.pendingAmendments.filter(amendment => amendment.applyOn <= state.date && amendment.status === 'scheduled');
   if (!due.length) return state;
@@ -319,12 +331,16 @@ export function applyDueAmendments(state: SimulationState): SimulationState {
     const decision = amendment.decision;
     if (decision && (decision.outcome === 'annulled' || decision.outcome === 'incompatible')) continue; // terminal status already set by the decision
     const timing: JudicialTiming = amendment.judicialReview.timing;
-    if (timing === 'before_promulgation') {
-      // Mandatory a priori control: application waits for a real saisine and a clear/advisory verdict.
+    // A real prior saisine (recorded with a real actor) is the only thing that holds the
+    // application: no saisine means no auto-referral and no eternal block.
+    const priorSaisinePending = (timing === 'before_promulgation' || timing === 'both')
+      && amendment.referral?.timing === 'before_promulgation'
+      && !decision;
+    if (priorSaisinePending) {
+      // The saisine can only be resolved by the court; without one the application is refused
+      // instead of waiting forever on a decision that can never come.
       if (!courtExists(next, amendment.countryId)) { terminal('blocked', { blockReason: 'judicial_review_unavailable' }); continue; }
-      if (!decision || (decision.outcome !== 'clear' && decision.outcome !== 'advisory')) continue;
-    } else if (timing === 'both' && amendment.referral?.timing === 'before_promulgation' && !decision) {
-      continue; // a real prior saisine is pending; the application waits for its verdict
+      continue;
     }
     const appliedInverse = timing === 'after_promulgation' || timing === 'both' ? captureAppliedInverse(next, amendment.countryId, amendment.payload) : undefined;
     try {

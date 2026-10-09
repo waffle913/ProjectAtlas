@@ -125,8 +125,27 @@ function backfillSchema19(state: SimulationState): SimulationState {
     }
     return changed ? updated : amendment;
   });
-  if (constitutionChanged || state.constitution.pendingAmendments === undefined || pendingAmendments.some((amendment, index) => amendment !== state.constitution.pendingAmendments![index])) {
-    next = { ...next, constitution: { ...next.constitution, pendingAmendments, countries: constitutionChanged ? constitutionCountries : next.constitution.countries } };
+  // Conservative orphan handling: a pending whose canonical instrument does not exist (no proposal
+  // with the matching Country, effective date and payload) is removed from the executable flow.
+  // A migration never fabricates a historical proposal for it, and a PendingAmendment without its
+  // canonical instrument could never act — keeping it would only violate the canonical-binding
+  // invariant. Payloads are compared after the rightChanges→rightsChanges rename so a legacy-shaped
+  // proposal is not mistaken for a mismatch.
+  const canonicalPayload = (payloadValue: unknown): Record<string, unknown> => {
+    const record = (payloadValue ?? {}) as Record<string, unknown> & { rightChanges?: unknown; rightsChanges?: unknown };
+    if (record.rightsChanges === undefined && record.rightChanges !== undefined) {
+      const { rightChanges: _legacyRename, ...rest } = record;
+      return { ...rest, rightsChanges: record.rightChanges };
+    }
+    return record;
+  };
+  const survivingAmendments = pendingAmendments.filter(amendment => {
+    const proposal = state.governance.proposals[amendment.instrumentId];
+    if (!proposal || proposal.kind !== 'constitutional_amendment' || proposal.countryId !== amendment.countryId || proposal.effectiveDate !== amendment.applyOn) return false;
+    return JSON.stringify(canonicalPayload(proposal.payload)) === JSON.stringify(canonicalPayload(amendment.payload));
+  });
+  if (constitutionChanged || state.constitution.pendingAmendments === undefined || survivingAmendments.some((amendment, index) => amendment !== state.constitution.pendingAmendments![index])) {
+    next = { ...next, constitution: { ...next.constitution, pendingAmendments: survivingAmendments, countries: constitutionChanged ? constitutionCountries : next.constitution.countries } };
   }
   const electionsCountries: Record<string, SimulationState['elections']['countries'][string]> = {};
   let electionsChanged = false;
@@ -137,16 +156,19 @@ function backfillSchema19(state: SimulationState): SimulationState {
     if (legacy.chambers === undefined && legacy.seatsByParty) {
       const institution = politicalRegistry.institutions[politicalRegistry.countries[countryId]?.institutionId];
       const chamberId = institution?.chambers[0]?.id ?? `chamber.${countryId}`;
-      updated = { countryId, chambers: { [chamberId]: { chamberId, seatsByParty: legacy.seatsByParty, totalSeats: legacy.totalSeats ?? 0, independentOtherSeats: legacy.independentOtherSeats ?? 0, unallocatedSeats: 0, lastElectionDate: legacy.lastElectionDate, nextElectionDate: legacy.nextElectionDate } }, government: updated.government, parties: updated.parties, headOfStateElections: updated.headOfStateElections ?? [] };
+      const legacyAllocated = Object.values(legacy.seatsByParty).reduce((a, b) => a + b, 0);
+      const legacyTotal = legacy.totalSeats ?? 0;
+      updated = { countryId, chambers: { [chamberId]: { chamberId, seatsByParty: legacy.seatsByParty, totalSeats: legacyTotal, independentOtherSeats: legacy.independentOtherSeats ?? 0, unallocatedSeats: Math.max(0, legacyTotal - legacyAllocated - (legacy.independentOtherSeats ?? 0)), lastElectionDate: legacy.lastElectionDate, nextElectionDate: legacy.nextElectionDate } }, government: updated.government, parties: updated.parties, headOfStateElections: updated.headOfStateElections ?? [] };
       electionsChanged = true;
     } else {
       for (const [chamberId, chamber] of Object.entries(updated.chambers ?? {})) {
-        const legacyChamber = chamber as { unallocatedSeats?: number };
-        if (legacyChamber.unallocatedSeats === undefined) {
-          // Honest reconciliation: seats the legacy election silently lost become explicit unknown
-          // (totalSeats - party seats - independents), never an invented zero.
-          const allocated = Object.values(chamber.seatsByParty ?? {}).reduce((a: number, b: number) => a + b, 0);
-          const remainder = Math.max(0, (chamber.totalSeats ?? 0) - allocated - (chamber.independentOtherSeats ?? 0));
+        // Honest reconciliation: seats the legacy election silently lost — or a chamber whose
+        // unavailable initial allocation was once saved as zeros — become explicit unknown
+        // (totalSeats - party seats - independents), never an invented zero. Idempotent: a chamber
+        // that already reconciles exactly is never rewritten.
+        const allocated = Object.values(chamber.seatsByParty ?? {}).reduce((a: number, b: number) => a + b, 0);
+        const remainder = Math.max(0, (chamber.totalSeats ?? 0) - allocated - (chamber.independentOtherSeats ?? 0));
+        if (chamber.unallocatedSeats === undefined || allocated + (chamber.independentOtherSeats ?? 0) + chamber.unallocatedSeats !== (chamber.totalSeats ?? 0)) {
           updated = { ...updated, chambers: { ...updated.chambers, [chamberId]: { ...chamber, unallocatedSeats: remainder } } };
           electionsChanged = true;
         }
@@ -208,15 +230,25 @@ function backfillSchema19(state: SimulationState): SimulationState {
   {
     const cabinets: Record<string, SimulationState['governance']['cabinets'][string]> = {};
     let cabinetsChanged = false;
+    let persons = next.governance.persons;
+    let personsChanged = false;
     for (const [countryId, cabinet] of Object.entries(state.governance.cabinets ?? {})) {
       if (cabinet.portfolios === undefined || cabinet.censureEvents === undefined) {
         cabinets[countryId] = { ...cabinet, portfolios: cabinet.portfolios ?? {}, censureEvents: cabinet.censureEvents ?? [] };
         cabinetsChanged = true;
       } else cabinets[countryId] = cabinet;
+      // A recorded temporary succession whose office title predates the acting label is repaired to
+      // mark the temporary exercise — the arrangement was recorded, only the label was missing.
+      const actingPersonId = cabinet.actingHead?.personId;
+      if (actingPersonId && persons[actingPersonId]?.office?.role === 'head_of_government' && !persons[actingPersonId].office!.title.includes('acting')) {
+        persons = { ...persons, [actingPersonId]: { ...persons[actingPersonId], office: { ...persons[actingPersonId].office!, title: 'Head of Government (acting)' } } };
+        personsChanged = true;
+      }
     }
     if (state.governance.cabinets === undefined || cabinetsChanged) {
       next = { ...next, governance: { ...next.governance, cabinets: cabinetsChanged ? cabinets : (state.governance.cabinets ?? {}) } };
     }
+    if (personsChanged) next = { ...next, governance: { ...next.governance, persons } };
   }
   // The ministerial suggestion system and its global toggle: initialized empty/default on the
   // migration date; a minister never gains the legislative initiative from the backfill.

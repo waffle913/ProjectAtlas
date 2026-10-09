@@ -1222,8 +1222,13 @@ describe('governance 0.15 situational institutional interest', () => {
       }
     }
     const profiles = Object.fromEntries(fixture.registry.countries[fixture.countryId].partyIds.map(id => [id, institutionalProfile(id)]));
+    // 0.23 decides the vote against the state's dynamic post-election snapshot, never against a
+    // cloned registry's synthetic seats: the real dynamic chamber is the seat reality used, so the
+    // synthetic 100-seat registry allocation is not what the estimate reconciles. The unknown
+    // evidence still makes every dynamic seat UNKNOWN — conservation and unknown != abstention hold.
+    const dynamicChamber = initial.elections.countries[fixture.countryId].chambers[fixture.chamber.id];
     expect(estimateParliamentarySupport(initial, historicalPlurality.proposal, fixture.registry, profiles, analysis)).toMatchObject({
-      yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: 100, totalSeats: 100, coverage: 'unavailable',
+      yesSeats: 0, noSeats: 0, abstainSeats: 0, unavailableSeats: dynamicChamber.totalSeats, totalSeats: dynamicChamber.totalSeats, coverage: 'unavailable',
     });
   });
 
@@ -2258,9 +2263,14 @@ describe('governance 0.14 situational corrective contracts', () => {
       reordered.parties = Object.fromEntries(Object.entries(reordered.parties).reverse());
       for (const institution of Object.values(reordered.institutions)) for (const chamber of institution.chambers) chamber.seatsByParty = Object.fromEntries(Object.entries(chamber.seatsByParty).reverse());
       expect(estimateParliamentarySupport(initial, proposal, reordered, Object.fromEntries(Object.entries(profiles).reverse()), analysis)).toEqual(estimate);
-      const withIndependent = structuredClone(politicalRegistry), institution = withIndependent.institutions[withIndependent.countries[countryId].institutionId];
-      institution.chambers[0].independentOtherSeats = 1; institution.chambers[0].totalSeats! += 1;
-      const partial = estimateParliamentarySupport(initial, proposal, withIndependent, profiles, analysis);
+      const withIndependent = structuredClone(initial);
+      // 0.23 decides the vote against the dynamic post-election snapshot: the independent seat is
+      // placed on the dynamic chamber, which is the reality the estimate reconciles — never on a
+      // cloned static registry that the vote no longer reads.
+      const firstChamberId = politicalRegistry.institutions[politicalRegistry.countries[countryId].institutionId].chambers[0].id;
+      const dynamicChamber = withIndependent.elections.countries[countryId].chambers[firstChamberId];
+      dynamicChamber.independentOtherSeats = 1; dynamicChamber.totalSeats += 1;
+      const partial = estimateParliamentarySupport(withIndependent, proposal, politicalRegistry, profiles, analysis);
       expect(partial.unavailableSeats).toBe(1); expect(partial.coverage).toBe('partial');
       expect(partial.yesSeats + partial.noSeats + partial.abstainSeats + partial.unavailableSeats).toBe(partial.totalSeats);
     });

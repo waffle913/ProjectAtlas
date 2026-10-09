@@ -105,6 +105,15 @@ function reconcilesParliamentaryRegistry(state: SimulationState, estimate: NonNu
       if (!snapshots.some(snapshot => snapshot.total === chamber.totalSeats)) return false;
       continue;
     }
+    // A chamber whose seats are genuinely unknown (no sourced 2026 allocation and no dynamic
+    // allocation) has no snapshot to reconcile against: the honest record reports every seat
+    // unavailable with no party evidence. It is validated intrinsically — never compared against a
+    // later election and never rewritten — and a snapshot-backed record cannot hide behind it.
+    if (evaluations.length === 0) {
+      if (snapshots.length !== 0) return false;
+      if (chamber.totalSeats === undefined) return chamber.coverage === 'unavailable' && chamber.adopted === undefined && chamber.yesSeats + chamber.noSeats + chamber.abstainSeats + chamber.unavailableSeats === 0;
+      return chamber.coverage === 'unavailable' && chamber.adopted === undefined && chamber.yesSeats === 0 && chamber.noSeats === 0 && chamber.abstainSeats === 0 && chamber.unavailableSeats === chamber.totalSeats;
+    }
     for (const evaluation of evaluations) {
       const registryParty = politicalRegistry.parties[evaluation.partyId];
       const dynamicParty = state.politics.organizations[evaluation.partyId];
@@ -322,17 +331,21 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (cabinet.lastHeadPersonId !== undefined && (!g.persons[cabinet.lastHeadPersonId] || g.persons[cabinet.lastHeadPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} has an invalid last head reference.`);
     if (cabinet.actingHead && (cabinet.actingHead.kind !== 'deputy_temporary' || !dateValid(cabinet.actingHead.since) || cabinet.actingHead.since > state.date || !g.persons[cabinet.actingHead.personId] || !g.persons[cabinet.actingHead.predecessorPersonId] || cabinet.actingHead.personId === cabinet.actingHead.predecessorPersonId)) errors.push(`Cabinet ${countryId} has an invalid acting-head record.`);
     // The acting arrangement and the offices must reconcile: the acting person really holds the
-    // head-of-government office while the record exists, and the predecessor does not.
+    // head-of-government office while the record exists, the office marks the temporary exercise,
+    // and the predecessor does not hold it.
     if (cabinet.actingHead) {
       const actingPerson = g.persons[cabinet.actingHead.personId];
       const predecessor = g.persons[cabinet.actingHead.predecessorPersonId];
       if (actingPerson?.office?.role !== 'head_of_government' || actingPerson.office.countryId !== countryId) errors.push(`Cabinet ${countryId} acting head does not hold the head-of-government office.`);
+      if (actingPerson?.office && !actingPerson.office.title.includes('acting')) errors.push(`Cabinet ${countryId} acting head office does not mark the temporary exercise.`);
       if (predecessor?.office?.role === 'head_of_government' && predecessor.office.countryId === countryId) errors.push(`Cabinet ${countryId} predecessor still holds the office while an acting head is recorded.`);
     }
-    // The deputy (vice-leader) must never simultaneously hold the head-of-government office.
+    // The deputy (vice-leader) must never simultaneously hold the head-of-government office unless
+    // the recorded temporary succession is exactly that arrangement.
     if (cabinet.viceLeaderPersonId !== undefined) {
       const vice = g.persons[cabinet.viceLeaderPersonId];
-      if (vice?.office?.role === 'head_of_government' && vice.office.countryId === countryId) errors.push(`Cabinet ${countryId} deputy holds the head-of-government office without a recorded succession.`);
+      const isRecordedActingHead = cabinet.actingHead?.personId === cabinet.viceLeaderPersonId;
+      if (vice?.office?.role === 'head_of_government' && vice.office.countryId === countryId && !isRecordedActingHead) errors.push(`Cabinet ${countryId} deputy holds the head-of-government office without a recorded succession.`);
     }
     for (const [portfolioId, portfolio] of Object.entries(cabinet.portfolios)) {
       if (!portfolio || portfolio.id !== portfolioId || !portfolio.name?.trim()) errors.push(`Cabinet ${countryId} has an invalid portfolio ${portfolioId}.`);

@@ -165,13 +165,17 @@ describe('0.22 generic policy framework', () => {
     expect(state.governance.proposals[proposalId].status).toBe('submitted');
   });
 
-  it('lets a non-controlled authorized actor resolve a vote and refuses a non-proposer or authority-less actor', () => {
+  it('keeps the resolution trigger with the proposer and refuses a non-proposer or authority-less actor', () => {
     const fixture = resolvableFixture(true);
     let state = submitProposal(fixture.state, fixture.proposalId);
     const actor = createPoliticalPerson(state, { displayName: 'Second authorized minister', countryId: fixture.countryId });
     const actorId = Object.keys(actor.governance.persons).at(-1)!;
     state = assignPoliticalOffice(actor, actorId, { role: 'head_of_government', countryId: fixture.countryId });
-    state = resolveProposalVoteForActor(state, fixture.proposalId, actorId, fixture.registry, fixture.profiles);
+    // Only the authority that presented the bill may trigger its parliamentary resolution: a second
+    // authorized office holder cannot resolve another proposer's text.
+    expect(() => resolveProposalVoteForActor(state, fixture.proposalId, actorId, fixture.registry, fixture.profiles)).toThrow(/proposer/);
+    // The proposer's own resolution proceeds through the same engine command.
+    state = resolveProposalVoteForActor(state, fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles);
     expect(state.governance.proposals[fixture.proposalId].status).toBe('enacted');
     // A non-proposer, even authorized, may not submit another proposer's draft.
     const outsider = createPoliticalPerson(fixture.state, { displayName: 'Non-proposer person', countryId: fixture.countryId });

@@ -80,8 +80,10 @@ export interface ElectionCountryState {
   government: { coalitionPartyIds: string[]; confidence: GovernmentConfidence };
   parties: Record<string, PartyElectionState>;
   /** Dated trace of a direct executive election (appointmentMode elected_directly); a parliamentary
-   *  election never writes this. */
-  directElection?: { on: string; winnerPartyId: string; actorPersonId: string };
+   *  election never writes this. The direct election is an institutional recurring procedure at its
+   *  own deadline, never triggered by a human actor: `actorPersonId` is absent unless a real actor
+   *  exists — an empty-string actor is never persisted. */
+  directElection?: { on: string; winnerPartyId: string; actorPersonId?: string };
   /** Recurring direct executive election deadline (appointmentMode elected_directly). */
   nextDirectElectionDate?: string;
   /** Dated head-of-state selection records (popular_direct / popular_indirect / parliamentary). */
@@ -121,12 +123,16 @@ export function initializeElections(state: SimulationState, countryIds?: readonl
     for (const chamber of sourcedChambers) {
       // Every chamber keeps its identity in the dynamic state — including chambers whose 2026
       // allocation is unavailable — so a future election can produce a real dynamic allocation.
-      const seatsByParty = chamber.seatAllocationStatus === 'sourced' ? { ...chamber.seatsByParty } : {};
+      // A chamber whose initial allocation is unavailable knows its seats exist but cannot
+      // attribute them: they are explicit unknown (unallocatedSeats = totalSeats), never an
+      // invented zero and never fabricated party/independent seats.
+      const allocationSourced = chamber.seatAllocationStatus === 'sourced';
+      const seatsByParty = allocationSourced ? { ...chamber.seatsByParty } : {};
       for (const partyId of Object.keys(seatsByParty)) allPartyIds.add(partyId);
       chambers[chamber.id] = {
         chamberId: chamber.id, seatsByParty, totalSeats: chamber.totalSeats ?? 0,
-        independentOtherSeats: chamber.seatAllocationStatus === 'sourced' ? (chamber.independentOtherSeats ?? 0) : 0,
-        unallocatedSeats: 0,
+        independentOtherSeats: allocationSourced ? (chamber.independentOtherSeats ?? 0) : 0,
+        unallocatedSeats: allocationSourced ? 0 : (chamber.totalSeats ?? 0),
         lastElectionDate: chamber.electionDate, nextElectionDate: chamber.termEnd,
       };
     }

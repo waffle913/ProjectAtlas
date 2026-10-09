@@ -13,6 +13,9 @@ function withOrganization(): { state: SimulationState; organizationId: string } 
   state = createPoliticalPerson(state, { displayName: 'Organization-test executive', countryId: worldCountryIds[0] });
   const executiveId = Object.keys(state.governance.persons).at(-1)!;
   state = setControlledPerson(assignPoliticalOffice(state, executiveId, { role: 'head_of_government', countryId: worldCountryIds[0] }), executiveId);
+  // Ban/dissolution require a known constitutional rights basis: an unavailable basis is never
+  // silently turned into an authorization, so the fixture makes the basis explicit.
+  state = { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [worldCountryIds[0]]: { ...state.constitution.countries[worldCountryIds[0]], rights: { ...state.constitution.countries[worldCountryIds[0]].rights, association: 'guaranteed' } } } } };
   const organizationId = 'organization.synthetic-test';
   const entry: OrganizationPoliticalState = {
     organizationId, currentPositions: {} as Record<PoliticalIssue, number>, lastUpdatedOn: state.date, recentDrivers: [],
@@ -136,7 +139,7 @@ describe('0.23 organizations', () => {
     expect(religiousId).toBeDefined();
     expect(state.politics.organizations[religiousId].source).toBe('dynamic');
     // A religious organization has no sourced action power beyond lawful assembly.
-    expect(() => runOrganizationAction(state, religiousId, 'strike')).toThrow(/Only a union may strike/);
+    expect(() => runOrganizationAction(state, religiousId, 'strike')).toThrow(/reserved for the union family/);
     const next = runOrganizationAction(state, religiousId, 'demonstration');
     expect(next.politics.organizations[religiousId].recentDrivers.at(-1)!.issues).toContain('public_order');
   });
@@ -190,10 +193,10 @@ describe('0.23 organizations', () => {
     const associationId = Object.keys(state.politics.organizations).find(id => state.politics.organizations[id].source === 'dynamic' && state.politics.organizations[id].type === 'association')!;
     state = registerOrganization(state, { countryId, type: 'party', displayName: 'Rally party' });
     const partyId = Object.keys(state.politics.organizations).find(id => state.politics.organizations[id].source === 'dynamic' && state.politics.organizations[id].type === 'party')!;
-    expect(() => runOrganizationAction(state, partyId, 'petition')).toThrow(/Only an association may petition/);
-    expect(() => runOrganizationAction(state, associationId, 'rally')).toThrow(/Only a party may hold a campaign rally/);
+    expect(() => runOrganizationAction(state, partyId, 'petition')).toThrow(/reserved for the association family/);
+    expect(() => runOrganizationAction(state, associationId, 'rally')).toThrow(/reserved for the party family/);
     const petitioned = runOrganizationAction(state, associationId, 'petition');
-    expect(petitioned.politics.organizations[associationId].recentDrivers.at(-1)!.issues).toContain('public_order');
+    expect(petitioned.politics.organizations[associationId].recentDrivers.at(-1)!.issues).toContain('public_services');
     const rallied = runOrganizationAction(state, partyId, 'rally');
     expect(rallied.politics.organizations[partyId].recentDrivers.at(-1)!.issues).toContain('public_order');
   });

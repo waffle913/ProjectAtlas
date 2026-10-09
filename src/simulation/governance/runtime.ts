@@ -13,7 +13,7 @@ import entityRegistry from '../../data/entity-registry.json';
 import { capabilitiesForReconciledAuthority, executiveAuthorityBasis } from './officeEvidence';
 export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal, dynamicPartyGoalProfile, materialContextForProposal } from './analysis';
-import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest } from './institutionalInterest';
+import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, INSTITUTIONAL_INTEREST_MODEL } from './institutionalInterest';
 import { allocatePartySeats, partyVoteDistributionFromAgreement } from './internalPartyDistribution';
 import { buildLeadershipSuccessionEvidence, leadershipProfileFromEvidence } from './leadershipSuccession';
 import { classifyProposalImpact, estimateParliamentarySupport, estimatePublicSupport } from './estimates';
@@ -498,7 +498,7 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
   return initializeSourceOfficeholders(next, registry);
 }
 
-export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[] }): SimulationState {
+export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[]; /** Marks a temporary acting exercise of the office (temporary succession): the title says so; the role and capabilities are unchanged. */ acting?: boolean }): SimulationState {
   const person = requirePerson(state, personIdValue); requireCountry(state, input.countryId);
   if (person.status !== 'active') throw new Error('Only an active person may receive a political office.');
   if (input.role === 'minister') throw new Error('A ministerial appointment goes through the canonical cabinet/portfolio (appointMinister), never through the generic office path.');
@@ -510,7 +510,8 @@ export function assignPoliticalOffice(state: SimulationState, personIdValue: str
   if (input.capabilities !== undefined && input.capabilities.some(item => !roleCapabilities.includes(item))) throw new Error('Injected capabilities must be a subset of the role-derived authority.');
   const capabilities = [...new Set(input.capabilities ?? roleCapabilities)].sort();
   if (capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item))) throw new Error('Unknown authority capability.');
-  const title = input.role === 'head_of_government' ? 'Head of Government' : input.role === 'head_of_state' ? 'Head of State' : 'Legislator';
+  if (input.acting && input.role !== 'head_of_government') throw new Error('Only a head-of-government exercise can be temporary/acting.');
+  const title = input.role === 'head_of_government' ? (input.acting ? 'Head of Government (acting)' : 'Head of Government') : input.role === 'head_of_state' ? 'Head of State' : 'Legislator';
   const office = { role: input.role, countryId: input.countryId, title, appointedOn, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities, limitation: authorityLimitation } };
   const governance: GovernanceState = { ...state.governance, persons: { ...state.governance.persons, [person.id]: { ...person, office } } };
   if (input.role === 'head_of_government') {
@@ -523,7 +524,7 @@ export function assignPoliticalOffice(state: SimulationState, personIdValue: str
 /** Transfer a person into a political office: any office they currently hold is revoked first
  *  (a minister's portfolio reference is cleared), so a person is never simultaneously a portfolio
  *  minister and the head of government, and no office is ever silently overwritten. */
-export function transferPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[] }): SimulationState {
+export function transferPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[]; acting?: boolean }): SimulationState {
   const person = requirePerson(state, personIdValue);
   let next = state;
   if (person.office) {
@@ -732,18 +733,28 @@ export function createFiscalProposal(state: SimulationState, input: { proposerPe
   return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [id]: proposal }, proposalOrder: [...state.governance.proposalOrder, id], nextProposalSequence: state.governance.nextProposalSequence + 1 });
 }
 
-export function replaceDraftProposal<K extends ProposalKind>(state: SimulationState, proposalIdValue: string, input: { effectiveDate?: string; payload?: ProposalPayloadByKind[K] }, actorPersonId?: string): SimulationState {
+/** Engine path: an explicit actor modifies their own draft. The actor must be the proposal's true
+ *  proposer — the drafting authority — and active; the opposition never edits the government's
+ *  draft. An AI/non-controlled leader can therefore modify its own draft through this path. */
+export function replaceDraftProposalForActor<K extends ProposalKind>(state: SimulationState, proposalIdValue: string, actorPersonId: string, input: { effectiveDate?: string; payload?: ProposalPayloadByKind[K] }): SimulationState {
   const proposal = state.governance.proposals[proposalIdValue]; if (!proposal) throw new Error('Unknown political proposal.');
   if (proposal.status !== 'draft') throw new Error('Submitted proposal content is immutable.');
-  // Only the actor authorized to draft the text may modify it: the proposal's own proposer (or the
-  // controlled person acting as them). The opposition negotiates and sets conditions; it never
-  // edits the government's draft directly.
-  if (actorPersonId !== undefined) {
-    const actor = requirePerson(state, actorPersonId);
-    if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposal\'s proposer may modify this draft.');
-  } else {
-    requireControlled(state, proposal.proposerPersonId);
-  }
+  const actor = requirePerson(state, actorPersonId);
+  if (actor.status !== 'active') throw new Error('Only an active proposer may modify this draft.');
+  if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposal\'s proposer may modify this draft.');
+  return replaceDraftContent(state, proposal, input);
+}
+
+/** Player wrapper: only the controlled person may modify a draft, and only a draft of their own. */
+export function replaceDraftProposal<K extends ProposalKind>(state: SimulationState, proposalIdValue: string, input: { effectiveDate?: string; payload?: ProposalPayloadByKind[K] }): SimulationState {
+  const proposal = state.governance.proposals[proposalIdValue]; if (!proposal) throw new Error('Unknown political proposal.');
+  if (proposal.status !== 'draft') throw new Error('Submitted proposal content is immutable.');
+  requireControlled(state, proposal.proposerPersonId);
+  return replaceDraftContent(state, proposal, input);
+}
+
+/** Shared draft replacement: validate the new effective date and re-validate the payload by kind. */
+function replaceDraftContent<K extends ProposalKind>(state: SimulationState, proposal: PoliticalProposal, input: { effectiveDate?: string; payload?: ProposalPayloadByKind[K] }): SimulationState {
   const effectiveDate = input.effectiveDate ?? proposal.effectiveDate;
   if (!dateValid(effectiveDate) || effectiveDate < proposal.createdOn) throw new Error('The effective date must be a valid simulation date not before the proposal was created.');
   const payload = (input.payload ?? proposal.payload) as ProposalPayloadByKind[K];
@@ -1105,7 +1116,21 @@ export function decideExecutiveProposal(state: SimulationState, proposalIdValue:
   }
   if (proposal.kind === 'constitutional_amendment') {
     const amendmentReason = amendmentProcedureReason(state, proposal, parliamentaryEstimate, publicEstimate);
-    if (amendmentReason) throw new Error(`The constitutional amendment procedure blocks the decision: ${amendmentReason}.`);
+    // A required referendum that has not been held yet is never a failure: the estimates are
+    // recorded and the proposal stays submitted so the referendum can be held next. The absence
+    // of a parliamentary vote never triggers a fake vote either.
+    if (amendmentReason === 'referendum_pending') {
+      const awaiting = { ...proposal, analysis, publicEstimate, parliamentaryEstimate } as PoliticalProposal;
+      return cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: awaiting } });
+    }
+    if (amendmentReason) {
+      // A held referendum that said no (or an unavailable constitutional procedure) blocks the
+      // enactment: the executive decision is recorded as a rejection with the real procedure
+      // reason — the amendment is never enacted.
+      const voteResult: LegislativeVoteResult = { ...parliamentaryEstimate, outcome: 'rejected', resolvedOn: state.date, reason: amendmentReason };
+      const resolved = { ...proposal, status: 'rejected' as const, resolvedOn: state.date, analysis, evaluationVersion: 'situational-plurality-0.15-v2' as const, publicEstimate, parliamentaryEstimate, voteResult } as PoliticalProposal;
+      return addProposalResultBriefing(cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: resolved } }), resolved);
+    }
   }
   const enacted = proposalEnactFor(cloneGovernance(state, { ...state.governance, proposals: { ...state.governance.proposals, [proposal.id]: { ...proposal, status: 'enacted' as const } } }), proposal);
   const scheduledFiscalReformSequence = enacted.fiscalReformSequence;
@@ -1196,13 +1221,16 @@ const materialOutcomeFor = (context: ProposalMaterialContext, goal: GovernanceGo
 
 /** Each party's evaluation of the government's material record, from its own positions — never
  *  one common baseline shared by all parties. Used by censure and by the parliamentary
- *  dissolution motion. */
+ *  dissolution motion. The party's own platform is self-known (a party always knows its own
+ *  positions), so the evaluation confidence is the confidence of the government-record evidence
+ *  the platform is evaluated against — never the sourcing confidence of the party's positions,
+ *  which would turn every institutional vote into UNKNOWN. */
 export const governmentRecordPartyEvaluation = (state: SimulationState, countryId: string, partyId: string): Pick<PartyProposalEvaluation, 'agreementBps' | 'confidenceBps' | 'coverage' | 'positiveDrivers' | 'negativeDrivers' | 'tradeoffs'> => {
   const party = politicalRegistry.parties[partyId];
   const profile = party ? dynamicPartyGoalProfile(state, party) : undefined;
   const context = materialContextForProposal(state, { countryId } as PoliticalProposal);
   if (!profile) return { agreementBps: 5_000, confidenceBps: 0, coverage: 'unavailable', positiveDrivers: [], negativeDrivers: ['Unknown party profile.'], tradeoffs: [] };
-  let weighted = 0, weights = 0, confidenceWeighted = 0, evaluable = 0;
+  let weighted = 0, weights = 0, evaluable = 0;
   const positiveDrivers: string[] = [];
   for (const issue of POLITICAL_ISSUES) {
     const preference = profile.goals[issue];
@@ -1213,13 +1241,15 @@ export const governmentRecordPartyEvaluation = (state: SimulationState, countryI
     const weight = Math.max(1, preference.importanceBps);
     weighted += (clampAgreement(5_000 + (dissatisfaction - 2_500)) - 5_000) * weight;
     weights += weight;
-    confidenceWeighted += preference.confidenceBps * weight;
     if (dissatisfaction >= 5_000) positiveDrivers.push(`${issue}: the government's record (${outcome} bps) is far from the party's position (${preference.idealPointBps} bps).`);
   }
   const coverage: PartyProposalEvaluation['coverage'] = evaluable === 0 ? 'unavailable' : evaluable === POLITICAL_ISSUES.length ? 'complete' : 'partial';
   return {
     agreementBps: weights ? clampAgreement(5_000 + Math.round(weighted / weights)) : 5_000,
-    confidenceBps: weights ? clampAgreement(Math.round(confidenceWeighted / weights)) : 0,
+    // The party evaluates the government's observable record against its own self-known platform:
+    // the evaluation confidence is the record's coverage confidence, not the sourcing confidence
+    // of the party's modelled positions.
+    confidenceBps: coverage === 'complete' ? 10_000 : coverage === 'partial' ? INSTITUTIONAL_INTEREST_MODEL.partialEvidenceConfidenceBps : 0,
     coverage, positiveDrivers, negativeDrivers: [], tradeoffs: [],
   };
 };
@@ -1390,8 +1420,9 @@ export function runGovernmentSuccession(state: SimulationState): SimulationState
     }
     // The deputy takes over the head-of-government office through a real transfer: a deputy who was
     // a portfolio minister leaves the portfolio, so a head of government is never simultaneously
-    // referenced as a minister.
-    next = transferPoliticalOffice(next, vice.id, { role: 'head_of_government', countryId });
+    // referenced as a minister. A temporary exercise is marked on the office itself, so the acting
+    // character is inspectable without a second office engine.
+    next = transferPoliticalOffice(next, vice.id, { role: 'head_of_government', countryId, acting: vacancy === 'deputy_temporary' });
     if (vacancy === 'deputy_temporary' && predecessorId && predecessorId !== vice.id) {
       next = { ...next, governance: { ...next.governance, cabinets: { ...next.governance.cabinets, [countryId]: { ...cabinet, actingHead: { personId: vice.id, predecessorPersonId: predecessorId, since: state.date, kind: 'deputy_temporary' } } } } };
     } else if (vacancy === 'deputy_permanent') {

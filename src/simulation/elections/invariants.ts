@@ -70,6 +70,7 @@ export const electionsInvariant: SimulationInvariant = {
         }
       }
       if (entry.directElection !== undefined && (!validDate(entry.directElection.on) || entry.directElection.on > state.date || !entry.directElection.winnerPartyId.trim() || !entry.parties[entry.directElection.winnerPartyId])) errors.push(`Elections ${countryId} has an invalid direct-election record.`);
+      if (entry.directElection?.actorPersonId !== undefined && (!entry.directElection.actorPersonId.trim() || !state.governance.persons[entry.directElection.actorPersonId])) errors.push(`Elections ${countryId} has a direct-election record with an invalid actor.`);
       if (entry.nextDirectElectionDate !== undefined && !validDate(entry.nextDirectElectionDate)) errors.push(`Elections ${countryId} has an invalid direct-election deadline.`);
       if (entry.nextHeadOfStateElectionDate !== undefined && !validDate(entry.nextHeadOfStateElectionDate)) errors.push(`Elections ${countryId} has an invalid head-of-state election deadline.`);
       if (!Array.isArray(entry.headOfStateElections)) errors.push(`Elections ${countryId} has an invalid head-of-state election history.`);

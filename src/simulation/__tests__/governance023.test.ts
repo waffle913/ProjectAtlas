@@ -2,15 +2,15 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { politicalRegistry } from '../politics/registry';
-import type { PoliticalRegistry } from '../politics/model';
-import type { GovernanceGoal, PartyGoalProfile } from '../governance/model';
-import { derivePartyGoalProfile, analyzeProposal } from '../governance/analysis';
+import type { PoliticalIssue, PoliticalRegistry } from '../politics/model';
+import type { GovernanceGoal, PartyGoalProfile, PoliticalProposal } from '../governance/model';
+import { derivePartyGoalProfile, analyzeProposal, materialContextForProposal } from '../governance/analysis';
 import { derivePartyInstitutionalStake } from '../governance/institutionalInterest';
 import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { runElection } from '../elections/runtime';
 import { evaluatePartyInstitutionalInterest } from '../governance/institutionalInterest';
-import { createFiscalProposal, createPoliticalPerson, assignPoliticalOffice, setControlledPerson, submitProposalForActor, resolveProposalVoteForActor, overrideParliamentaryRejection, decideConsultativeProposal, censureGovernment, appointMinister, runGovernmentSuccession, revokePoliticalOffice, estimateParliamentarySupport, inspectProposalSupport, createConstitutionalAmendmentProposal, holdReferendum } from '../governance/runtime';
+import { createFiscalProposal, createPoliticalPerson, assignPoliticalOffice, setControlledPerson, submitProposalForActor, resolveProposalVoteForActor, overrideParliamentaryRejection, decideConsultativeProposal, decideExecutiveProposal, censureGovernment, appointMinister, runGovernmentSuccession, revokePoliticalOffice, estimateParliamentarySupport, inspectProposalSupport, createConstitutionalAmendmentProposal, holdReferendum } from '../governance/runtime';
 
 let initial: ReturnType<typeof initializeNewGame>;
 beforeAll(() => { initial = initializeNewGame(worldBase(), worldRegions, worldCountryIds, worldInputs, worldPoliticalInputs); }, 30_000);
@@ -68,7 +68,10 @@ describe('0.23 governance procedures', () => {
   it('lets a none-power parliament proceed without a vote and a consultative parliament record a non-binding opinion', () => {
     const fixture = findFixture(true);
     const withPower = (power: 'none' | 'consultative') => ({ ...fixture.state, constitution: { ...fixture.state.constitution, countries: { ...fixture.state.constitution.countries, [fixture.countryId]: { ...fixture.state.constitution.countries[fixture.countryId], parliament: { ...fixture.state.constitution.countries[fixture.countryId].parliament, power } } } } });
-    const noneResolved = resolveProposalVoteForActor(withPower('none'), fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles);
+    // A no-power parliament never turns a legislator's vote call into an adoption: the resolution
+    // is refused and the explicit executive decision is the canonical procedure.
+    expect(() => resolveProposalVoteForActor(withPower('none'), fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles)).toThrow(/no parliamentary vote to resolve/);
+    const noneResolved = decideExecutiveProposal(withPower('none'), fixture.proposalId, fixture.personId, 'enact');
     expect(noneResolved.governance.proposals[fixture.proposalId].status).toBe('enacted');
     expect(noneResolved.governance.proposals[fixture.proposalId].voteResult?.reason).toBe('no_parliamentary_vote_required');
     const consulted = resolveProposalVoteForActor(withPower('consultative'), fixture.proposalId, fixture.personId, fixture.registry, fixture.profiles);
@@ -102,10 +105,38 @@ describe('0.23 governance procedures', () => {
     const headBefore = Object.values(legislated.governance.persons).find(p => p.office?.countryId === countryId && p.office.role === 'head_of_government')!;
     const partyIds = politicalRegistry.countries[countryId].partyIds;
     const [govParty, oppParty] = partyIds;
+    const institution = politicalRegistry.institutions[politicalRegistry.countries[countryId].institutionId];
+    const confidenceChamberId = institution?.chambers[0]?.id ?? Object.keys(legislated.elections.countries[countryId].chambers)[0];
     const dynamicElections = structuredClone(legislated.elections);
-    for (const chamber of Object.values(dynamicElections.countries[countryId].chambers)) if (oppParty) chamber.seatsByParty = { [oppParty]: chamber.totalSeats };
+    const chambers = dynamicElections.countries[countryId].chambers;
+    const confidenceChamber = chambers[confidenceChamberId];
+    // Explicit censure situation: the opposition holds every seat of the chamber responsible for
+    // confidence (never a blind sum of all chambers), the governing bloc is the other party, and
+    // the opposition's modelled party line is opposed to the government's material record on every
+    // evaluated issue — so the chamber majority really votes censure through its own evaluation.
+    if (oppParty) {
+      chambers[confidenceChamberId] = { ...confidenceChamber, seatsByParty: { [oppParty]: confidenceChamber.totalSeats }, independentOtherSeats: 0, unallocatedSeats: 0 };
+    }
     dynamicElections.countries[countryId].government.coalitionPartyIds = govParty ? [govParty] : [];
-    const withResponsibility = { ...legislated, fiscal: { ...legislated.fiscal, countries: { ...legislated.fiscal.countries, [countryId]: { ...legislated.fiscal.countries[countryId], debt: 1_000_000, debtLimit: 1_000_000 } } }, elections: { ...legislated.elections, countries: { ...legislated.elections.countries, [countryId]: { ...dynamicElections.countries[countryId] } } }, constitution: { ...legislated.constitution, countries: { ...legislated.constitution.countries, [countryId]: { ...legislated.constitution.countries[countryId], government: { ...legislated.constitution.countries[countryId].government, responsibility: 'government_censurable' as const } } } } };
+    const oppositionOrganization = oppParty ? legislated.politics.organizations[oppParty] : undefined;
+    const context = materialContextForProposal(legislated, { countryId } as PoliticalProposal);
+    const outcomes: Array<[string, number | undefined]> = [
+      ['fiscal_distribution', context.fiscalDistribution.valueBps],
+      ['public_services', context.publicServices.valueBps],
+      ['labour_protection', context.unemployment.valueBps],
+      ['income_security', context.incomeSecurity.valueBps],
+      ['infrastructure', context.infrastructure.valueBps],
+    ];
+    const positions = { ...(oppositionOrganization?.currentPositions ?? {}) };
+    for (const [issue, outcome] of outcomes) if (outcome !== undefined) positions[issue as PoliticalIssue] = outcome >= 5_000 ? 0 : 10_000;
+    const withResponsibility = {
+      ...legislated,
+      elections: { ...legislated.elections, countries: { ...legislated.elections.countries, [countryId]: { ...dynamicElections.countries[countryId] } } },
+      politics: oppParty && oppositionOrganization
+        ? { ...legislated.politics, organizations: { ...legislated.politics.organizations, [oppParty]: { ...oppositionOrganization, currentPositions: positions } } }
+        : legislated.politics,
+      constitution: { ...legislated.constitution, countries: { ...legislated.constitution.countries, [countryId]: { ...legislated.constitution.countries[countryId], government: { ...legislated.constitution.countries[countryId].government, responsibility: 'government_censurable' as const } } } },
+    };
     const censured = censureGovernment(withResponsibility, countryId, legislatorId);
     expect(censured.governance.persons[headBefore.id].office).toBeUndefined();
     expect(censured.governance.cabinets[countryId].censureEvents).toHaveLength(1);
@@ -144,29 +175,29 @@ describe('0.23 governance procedures', () => {
     expect(next.governance.proposals[proposalId].voteResult?.reason).not.toBe('constitutional_procedure_unavailable');
   });
 
-  it('holds a real constitutional referendum and never enacts a required-but-unheld one', () => {
+  it('holds a real constitutional referendum and never treats a pending referendum as a failure', () => {
     const countryId = worldCountryIds[0];
     let base = executive(initial, countryId);
     const personId = base.governance.player.controlledPersonId!;
-    // A principal amendment under a constitution that requires a referendum for every amendment.
+    // A constitution that requires a referendum for every amendment, with a parliament that has
+    // no vote at all: the explicit executive decision is the procedure, never a fake vote.
     base = { ...base, constitution: { ...base.constitution, countries: { ...base.constitution.countries, [countryId]: { ...base.constitution.countries[countryId], parliament: { ...base.constitution.countries[countryId].parliament, power: 'none' }, amendment: { ...base.constitution.countries[countryId].amendment, referendum: 'always' } } } } };
     let next = createConstitutionalAmendmentProposal(base, { proposerPersonId: personId, countryId, effectiveDate: '2026-02-01', payload: { rightsChanges: { strike: 'guaranteed' } } });
     const proposalId = next.governance.proposalOrder.at(-1)!;
     next = submitProposalForActor(next, proposalId, personId);
-    // Without a held referendum the amendment procedure blocks even a no-vote parliament.
-    next = resolveProposalVoteForActor(next, proposalId, personId);
-    expect(next.governance.proposals[proposalId].status).toBe('rejected');
-    expect(next.governance.proposals[proposalId].voteResult?.reason).toBe('referendum_failed');
-    // A second, held referendum records a real outcome.
-    next = createConstitutionalAmendmentProposal(base, { proposerPersonId: personId, countryId, effectiveDate: '2026-02-01', payload: { rightsChanges: { strike: 'guaranteed' } } });
-    const secondId = next.governance.proposalOrder.at(-1)!;
-    next = submitProposalForActor(next, secondId, personId);
-    next = holdReferendum(next, secondId, personId);
-    const referendum = next.governance.proposals[secondId].referendumResult;
+    // Without a parliamentary vote the resolution call is refused; the executive decision keeps a
+    // required-but-unheld referendum pending — referendum_pending is never a failure.
+    expect(() => resolveProposalVoteForActor(next, proposalId, personId)).toThrow(/no parliamentary vote to resolve/);
+    next = decideExecutiveProposal(next, proposalId, personId, 'enact');
+    expect(next.governance.proposals[proposalId].status).toBe('submitted');
+    expect(next.governance.proposals[proposalId].voteResult).toBeUndefined();
+    // A real referendum records a real outcome; the executive decision then follows it.
+    next = holdReferendum(next, proposalId, personId);
+    const referendum = next.governance.proposals[proposalId].referendumResult;
     expect(referendum).toBeDefined();
     expect(referendum!.adopted).toBe(referendum!.supportBps > referendum!.opposeBps);
-    next = resolveProposalVoteForActor(next, secondId, personId);
-    const resolved = next.governance.proposals[secondId];
+    next = decideExecutiveProposal(next, proposalId, personId, 'enact');
+    const resolved = next.governance.proposals[proposalId];
     expect(resolved.status).toBe(referendum!.adopted ? 'enacted' : 'rejected');
     if (!referendum!.adopted) expect(resolved.voteResult?.reason).toBe('referendum_failed');
     expect(assertSimulationInvariants(next, worldContext, 'save')).toBe(true);

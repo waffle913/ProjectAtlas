@@ -444,13 +444,15 @@ const cyberSecurityBpsFor = (totalTreasuryUsd: number | undefined, cyberSpentUsd
 const totalTreasuryFor = (organization: OrganizationPoliticalState): number | undefined =>
   organization.fundsUsd === undefined ? undefined : organization.fundsUsd + (organization.strikeFundUsd ?? 0);
 
-/** The family-locked public actions. Parties: sit-in, general/capital demonstrations, rallies.
- *  Unions: strikes and boycotts (claims and negotiations are their own commands). Associations:
- *  petitions, campaigns, lobbying, boycotts. Religions: declarations, reform support, government
- *  meetings, social works and boycotts — the authorized public actions of each family, no more. */
+/** The family-locked public actions. Sit-ins and demonstrations are lawful assembly: every family
+ *  may hold them (they are never reserved to parties). Parties additionally hold general/capital
+ *  demonstrations and rallies. Unions: strikes and boycotts (claims and negotiations are their own
+ *  commands). Associations: petitions, campaigns, lobbying, boycotts. Religions: declarations,
+ *  reform support, government meetings, social works and boycotts — the authorized public actions
+ *  of each family, no more. */
 export const ORGANIZATION_ACTION_FAMILIES: Record<string, readonly string[]> = {
-  sit_in: ['party'],
-  demonstration: ['party'],
+  sit_in: ['party', 'union', 'association', 'religious'],
+  demonstration: ['party', 'union', 'association', 'religious'],
   general_demonstration: ['party'],
   capital_demonstration: ['party'],
   rally: ['party'],
