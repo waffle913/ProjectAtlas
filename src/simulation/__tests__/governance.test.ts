@@ -521,7 +521,10 @@ describe('governance 0.15 contextual leadership succession', () => {
     const restored = restoreSimulationState(serialized, worldRegions, {}, {}, worldContext);
     expect(restored).toEqual(switched); expect(serializeSimulationState(restored, worldContext)).toBe(serialized);
     expect([restored.engine.seed, restored.engine.tick, restored.date]).toEqual([switched.engine.seed, switched.engine.tick, switched.date]);
-    const later = { ...switched, politics: initial.politics };
+    // Revert only the current political opinion (regional cohorts and their aggregated national
+    // support) to the initial data, keeping the canonical organizations — including the party
+    // membership synchronized by the succession — from switched.
+    const later = { ...switched, politics: { ...switched.politics, regionalOpinion: initial.politics.regionalOpinion, countries: initial.politics.countries } };
     expect(informationInvariant.check(later, worldContext, 'save')).toEqual([]);
     expect(later.governance.successions[record.id].contextEvidence).toEqual(record.contextEvidence);
     expect(restoreSimulationState(serializeSimulationState(later, worldContext), worldRegions, {}, {}, worldContext)).toEqual(later);
