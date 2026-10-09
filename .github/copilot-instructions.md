@@ -112,6 +112,12 @@ Follow [the trade contract](../docs/trade-0.17.md): schema 15 / `trade-0.17-v1`,
 - Trade follows production -> needs -> aggregate flows -> prices -> dependencies -> consequences. Do not invent dependencies before flows.
 - Never begin the next milestone without explicit instruction or broadly refactor a validated milestone. Any validated-system change must be minimal, necessary, tested, and reported. If 0.15 work surfaces a bug in an already-validated 0.8-0.14 contract, apply only the minimal necessary fix with a regression test, reported separately. A docs update describing 0.15 contracts is not itself acceptance; acceptance follows independent review.
 
+## Roadmap and work decomposition
+
+- Consult [the sub-milestone roadmap](../docs/roadmap-submilestones.md) before planning work; it complements this file, `AGENTS.md`, and the handoff.
+- Work in small sub-milestones/micro-blocks; implement only the authorized unit and do not anticipate the next unit or the next main milestone.
+- Presence in the roadmap is not authorization to implement; each main milestone requires explicit user authorization and acceptance.
+
 ## Mandatory agent workflow
 
 - For changes touching canonical state, migration/save, the political model, multiple domains, or performance: before editing, establish and record a no-code plan covering affected contracts, dependencies, migrations, invariants, tests and risks. If the task is unambiguous and within the authorized scope, continue directly with implementation without waiting for user approval. Stop only for a material design ambiguity or an out-of-scope decision.

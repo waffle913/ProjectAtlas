@@ -14,7 +14,9 @@ long-duration validation V1 is implemented for independent review, not
 accepted**; save schema remains 18. The V1 core now runs as one coherent
 simulation. Current contracts, rationale, known limits and the locked roadmap
 are consolidated in the [canonical agent handoff](docs/agent-handoff.md) and the
-[V1 validation record](docs/v1-validation-0.21.md).
+[V1 validation record](docs/v1-validation-0.21.md). Post-V1 planning (0.22–0.25
+and the unnumbered V2 backlog beyond) is consolidated in the
+[sub-milestone roadmap](docs/roadmap-submilestones.md).
 
 Milestone **0.15 is accepted/validated**. Its Government Information, briefing, fictional leadership, succession, playable interface and explicit-power-transfer institutional evaluation contracts are described in [the 0.15 implementation document](docs/information-0.15.md), with historical measured validation retained in [the development validation report](docs/milestone-0.15-candidate-validation.md). Current fiscal proposals have no institutional transfer and retain their material scores.
 

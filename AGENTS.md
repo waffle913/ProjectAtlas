@@ -183,6 +183,10 @@ political model, multiple domains, or performance:
 
 Never start the next milestone without explicit instruction. If the task is 0.15, do not implement 0.16. Prepare extension points when necessary, but do not implement out-of-scope systems. Do not use a scoped change as an excuse for broad refactoring of validated systems. If 0.15 work surfaces a bug in an already-validated 0.8-0.14 contract, apply only the minimal necessary fix with a regression test, and report it separately from 0.15 work. A docs update describing 0.15 contracts is not itself acceptance of 0.15; acceptance follows independent review.
 
+## Roadmap and work decomposition
+
+Consult [the sub-milestone roadmap](docs/roadmap-submilestones.md) before planning any work; it is the planning reference and complements this file, the subsystem contracts and [the canonical handoff](docs/agent-handoff.md). Work in small sub-milestones and micro-blocks: implement exactly the authorized unit, do not anticipate the next one, and never start the next main milestone without explicit user authorization. Respect the canonical engine boundaries (one `SimulationState`, scheduler, clock, RNG, fiscal/economic/politics engines). Presence in the roadmap is not authorization to implement; a main milestone is accepted only after its independent review and the user's explicit acceptance.
+
 ## Completion and review
 
 Before declaring work complete:
