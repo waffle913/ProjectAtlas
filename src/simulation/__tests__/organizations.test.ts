@@ -63,14 +63,26 @@ describe('0.23 organizations', () => {
 
   it('appeals a ban without auto-restoring, then resolves the appeal as a real decision', () => {
     const { state, organizationId } = withOrganization();
-    const actorId = state.governance.player.controlledPersonId!;
-    let next = banOrganization(state, organizationId, actorId, 'Procedural ban', 'Documented evidence.');
-    next = appealBan(next, organizationId, actorId);
+    // A real member joins while the organization is still active: only an active member may appeal.
+    let next = createPoliticalPerson(state, { displayName: 'Ban appeal member', countryId: worldCountryIds[0] });
+    const appellantId = Object.keys(next.governance.persons).at(-1)!;
+    next = joinOrganization(next, appellantId, organizationId);
+    expect(next.politics.organizations[organizationId].members[appellantId]).toBeDefined();
+    // The existing executive pronounces the ban; the member files the appeal afterwards.
+    const banningActorId = state.governance.player.controlledPersonId!;
+    next = banOrganization(next, organizationId, banningActorId, 'Procedural ban', 'Documented evidence.');
+    next = appealBan(next, organizationId, appellantId);
     expect(next.politics.organizations[organizationId].status).toBe('banned');
     expect(next.politics.organizations[organizationId].banEvents.at(-1)!.appealedOn).toBe(state.date);
-    next = resolveBanAppeal(next, organizationId, actorId, 'restore');
+    expect(next.politics.organizations[organizationId].banEvents.at(-1)!.appealByPersonId).toBe(appellantId);
+    // A distinct executive authority decides the appeal: the banning executive is never its own judge.
+    next = createPoliticalPerson(next, { displayName: 'Appeal authority', countryId: worldCountryIds[0] });
+    const authorityId = Object.keys(next.governance.persons).at(-1)!;
+    next = assignPoliticalOffice(next, authorityId, { role: 'head_of_state', countryId: worldCountryIds[0] });
+    next = resolveBanAppeal(next, organizationId, authorityId, 'restore');
     expect(next.politics.organizations[organizationId].status).toBe('active');
     expect(next.politics.organizations[organizationId].banEvents.at(-1)!.appealDecision).toBe('restore');
+    expect(next.politics.organizations[organizationId].banEvents.at(-1)!.appealResolvedOn).toBe(state.date);
   });
 
   it('donates from a real donor treasury and never treats unavailable funds as zero', () => {
