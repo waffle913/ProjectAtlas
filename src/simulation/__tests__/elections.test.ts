@@ -2,7 +2,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
 import { createPoliticalPerson, assignPoliticalOffice, setControlledPerson, setPartyMembership, setPartyLeadership } from '../governance/runtime';
-import { dissolveParliament, runElection, runElectionCycle, makeCampaignPromise, recordPromiseOutcome, runDirectElection, formCoalition } from '../elections/runtime';
+import { dissolveParliament, runElection, runElectionCycle, makeCampaignPromise, runDirectElection, formCoalition } from '../elections/runtime';
+import { scheduleFiscalReform } from '../fiscal/runtime';
 import { registerOrganization, splitOrganization, mergeOrganizations } from '../politics/runtime';
 import { proportionalSeats } from '../elections/model';
 import { politicalRegistry } from '../politics/registry';
@@ -227,13 +228,22 @@ describe('0.23 elections engine', () => {
     const partyId = Object.keys(initial.elections.countries[countryId].parties)[0];
     if (!partyId) return;
     const leader = partyLeader(initial, countryId, partyId);
-    let state = makeCampaignPromise(leader.state, partyId, countryId, 'Cut corporate tax', 'fiscal_reform', { annualBudget: { ...initial.fiscal.countries[countryId].annualBudget } }, leader.personId);
+    const initialBudget = initial.fiscal.countries[countryId].annualBudget;
+    // A fiscal promise with a real payload (a coherent subject): doubling the infrastructure budget.
+    let state = makeCampaignPromise(leader.state, partyId, countryId, 'Double the infrastructure budget', 'fiscal_reform', { annualBudget: { infrastructure: initialBudget.infrastructure * 2 } }, leader.personId);
     const promiseId = state.elections.countries[countryId].parties[partyId].promises[0].id;
-    state = recordPromiseOutcome(state, countryId, partyId, promiseId, 'broken');
+    // The promise is a typed record, never an applied policy: making it mutates nothing.
+    expect(state.fiscal.countries[countryId].annualBudget).toEqual(initialBudget);
+    // Advance past madeOn and take a real dated decision that does NOT satisfy the promise.
+    state = { ...state, date: '2026-01-02' };
+    const reformBudget = { ...initialBudget, infrastructure: initialBudget.infrastructure * 3 };
+    state = scheduleFiscalReform(state, { countryId, effectiveDate: '2026-01-02', annualBudget: reformBudget });
+    // The daily cycle derives the promise outcome automatically from the decision actually taken.
+    state = runElectionCycle(state);
+    expect(state.elections.countries[countryId].parties[partyId].promises.find(promise => promise.id === promiseId)).toMatchObject({ promisedKind: 'fiscal_reform', status: 'broken' });
     expect(state.elections.countries[countryId].parties[partyId].credibilityBps).toBe(0);
-    // The broken promise is a typed record, never an applied policy.
-    expect(state.elections.countries[countryId].parties[partyId].promises[0]).toMatchObject({ promisedKind: 'fiscal_reform', status: 'broken' });
-    expect(state.fiscal.countries[countryId].annualBudget).toEqual(initial.fiscal.countries[countryId].annualBudget);
+    // The only fiscal mutation is the real reform; the promise itself still applied nothing.
+    expect(state.fiscal.countries[countryId].annualBudget).toEqual(reformBudget);
   });
 
   it('never awards seats to a banned or dissolved party organization', () => {
