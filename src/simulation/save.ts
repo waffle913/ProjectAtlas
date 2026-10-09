@@ -9,7 +9,7 @@ import { initializeSocioeconomy } from './socioeconomy/initialization';
 import { emptyGovernance } from './governance/model';
 import { governanceFingerprint } from './governance/model';
 import { upgradeGovernanceSchema12, upgradeGovernanceProposalModel } from './governance/migration';
-import { initializePartyLeaders } from './governance/runtime';
+import { initializePartyLeaders, syncPartyMembershipRecords } from './governance/runtime';
 import { emptyInformation, INFORMATION_VERSION } from './information/model';
 import { initializeInformationState } from './information/runtime';
 import { upgradeInformationState } from './information/migration';
@@ -40,15 +40,24 @@ function backfillSchema19(state: SimulationState): SimulationState {
     let updated = { ...entry };
     let changed = false;
     if (entry.bindingEvents === undefined) { updated.bindingEvents = []; changed = true; }
+    if (entry.revisionEvents === undefined) { updated.revisionEvents = []; changed = true; }
+    if (entry.courtMembers === undefined) { updated.courtMembers = []; changed = true; }
+    if (entry.territory?.devolvedPowers === undefined) { updated.territory = { ...entry.territory, devolvedPowers: [] }; changed = true; }
     if (entry.rights === undefined || rightsKeys.some(key => entry.rights[key] === undefined)) {
       updated.rights = { ...entry.rights, ...Object.fromEntries(rightsKeys.filter(key => entry.rights?.[key] === undefined).map(key => [key, 'unavailable' as const])) };
       changed = true;
     }
     const legacyEmergency = entry.emergency as unknown as { justificationCrisisIds?: string[]; justificationEpisodeIds?: string[] };
     if (legacyEmergency.justificationEpisodeIds === undefined && Array.isArray(legacyEmergency.justificationCrisisIds)) {
-      const currentByType = state.crisis.countries[countryId]?.currentByType ?? {};
-      const episodeIds = legacyEmergency.justificationCrisisIds.map(type => (currentByType as Record<string, { id: string } | undefined>)[type]?.id).filter((id): id is string => Boolean(id));
-      updated.emergency = { ...entry.emergency, justificationEpisodeIds: episodeIds };
+      // A type-only historical emergency can never be silently attached to the CURRENT episode of
+      // the same type (that episode may be a new one). The historical episode identity cannot be
+      // determined, so the uncertainty is preserved: no episode is claimed as the justification and
+      // the emergency is dated unjustified from the migration date.
+      updated.emergency = { ...entry.emergency, justificationEpisodeIds: [], unjustifiedSince: entry.emergency.status === 'none' ? undefined : state.date };
+      changed = true;
+    }
+    if (!Array.isArray((entry.emergency as { ministerialRecommendations?: unknown }).ministerialRecommendations)) {
+      updated.emergency = { ...updated.emergency, ministerialRecommendations: [] };
       changed = true;
     }
     if (changed) { constitutionCountries[countryId] = updated; constitutionChanged = true; }
@@ -78,6 +87,17 @@ function backfillSchema19(state: SimulationState): SimulationState {
       } else {
         updated = { ...updated, status: 'scheduled' };
       }
+      changed = true;
+    }
+    // The pending is strictly bound to its canonical instrument through the payload fingerprint.
+    if (typeof updated.payloadFingerprint !== 'string' || !updated.payloadFingerprint.trim()) {
+      updated = { ...updated, payloadFingerprint: governanceFingerprint({ effectiveDate: updated.applyOn, payload: updated.payload }) };
+      changed = true;
+    }
+    // Legacy decisions were recorded without traceable grounds; the backfill states that honestly
+    // instead of fabricating a retroactive reasoning.
+    if (updated.decision && (!Array.isArray((updated.decision as { grounds?: unknown }).grounds) || ((updated.decision as { grounds?: unknown[] }).grounds?.length ?? 0) === 0)) {
+      updated = { ...updated, decision: { ...updated.decision, grounds: ['Recorded under the pre-traceability decision model; the institutional grounds were not persisted.'] } };
       changed = true;
     }
     // Legacy full pre-application snapshots are converted to the limited inverse: only the fields
@@ -111,30 +131,78 @@ function backfillSchema19(state: SimulationState): SimulationState {
   const electionsCountries: Record<string, SimulationState['elections']['countries'][string]> = {};
   let electionsChanged = false;
   for (const [countryId, entry] of Object.entries(state.elections.countries)) {
-    const legacy = entry as unknown as { chambers?: unknown; seatsByParty?: Record<string, number>; totalSeats?: number; independentOtherSeats?: number; lastElectionDate?: string; nextElectionDate?: string };
+    let updated = entry;
+    if (updated.headOfStateElections === undefined) { updated = { ...updated, headOfStateElections: [] }; electionsChanged = true; }
+    const legacy = updated as unknown as { chambers?: unknown; seatsByParty?: Record<string, number>; totalSeats?: number; independentOtherSeats?: number; lastElectionDate?: string; nextElectionDate?: string };
     if (legacy.chambers === undefined && legacy.seatsByParty) {
       const institution = politicalRegistry.institutions[politicalRegistry.countries[countryId]?.institutionId];
       const chamberId = institution?.chambers[0]?.id ?? `chamber.${countryId}`;
-      electionsCountries[countryId] = { countryId, chambers: { [chamberId]: { chamberId, seatsByParty: legacy.seatsByParty, totalSeats: legacy.totalSeats ?? 0, independentOtherSeats: legacy.independentOtherSeats ?? 0, lastElectionDate: legacy.lastElectionDate, nextElectionDate: legacy.nextElectionDate } }, government: entry.government, parties: entry.parties };
+      updated = { countryId, chambers: { [chamberId]: { chamberId, seatsByParty: legacy.seatsByParty, totalSeats: legacy.totalSeats ?? 0, independentOtherSeats: legacy.independentOtherSeats ?? 0, unallocatedSeats: 0, lastElectionDate: legacy.lastElectionDate, nextElectionDate: legacy.nextElectionDate } }, government: updated.government, parties: updated.parties, headOfStateElections: updated.headOfStateElections ?? [] };
       electionsChanged = true;
-    } else electionsCountries[countryId] = entry;
+    } else {
+      for (const [chamberId, chamber] of Object.entries(updated.chambers ?? {})) {
+        const legacyChamber = chamber as { unallocatedSeats?: number };
+        if (legacyChamber.unallocatedSeats === undefined) {
+          // Honest reconciliation: seats the legacy election silently lost become explicit unknown
+          // (totalSeats - party seats - independents), never an invented zero.
+          const allocated = Object.values(chamber.seatsByParty ?? {}).reduce((a: number, b: number) => a + b, 0);
+          const remainder = Math.max(0, (chamber.totalSeats ?? 0) - allocated - (chamber.independentOtherSeats ?? 0));
+          updated = { ...updated, chambers: { ...updated.chambers, [chamberId]: { ...chamber, unallocatedSeats: remainder } } };
+          electionsChanged = true;
+        }
+      }
+    }
+    electionsCountries[countryId] = updated;
   }
   if (electionsChanged) next = { ...next, elections: { ...next.elections, countries: electionsCountries } };
   const organizations: Record<string, SimulationState['politics']['organizations'][string]> = {};
   let orgChanged = false;
   for (const [organizationId, organization] of Object.entries(state.politics.organizations)) {
     const needsBackfill = organization.banEvents === undefined || organization.status === undefined || organization.members === undefined || organization.internalCurrents === undefined
-      || organization.fundingEvents === undefined || organization.claims === undefined || organization.dissolutionEvents === undefined;
+      || organization.fundingEvents === undefined || organization.claims === undefined || organization.dissolutionEvents === undefined || organization.activeStrikes === undefined;
     if (needsBackfill) {
-      const backfilled = { ...organization, status: organization.status ?? 'active', members: organization.members ?? {}, fundsUsd: organization.fundsUsd, internalCurrents: organization.internalCurrents ?? {}, banEvents: organization.banEvents ?? [], claims: organization.claims ?? [], dissolutionEvents: organization.dissolutionEvents ?? [] };
+      const backfilled = { ...organization, status: organization.status ?? 'active', members: organization.members ?? {}, fundsUsd: organization.fundsUsd, internalCurrents: organization.internalCurrents ?? {}, banEvents: organization.banEvents ?? [], claims: organization.claims ?? [], dissolutionEvents: organization.dissolutionEvents ?? [], activeStrikes: organization.activeStrikes ?? [] };
+      // Progressively introduced canonical fields are completed from the sourced registry — never
+      // invented: a registry organization gains its sourced country/type/name; strikeFundUsd and
+      // cyberSecurityBps stay unknown (the ledger alone reconciles; unknown is never a zero).
+      const registryOrganization = politicalRegistry.organizations[organizationId];
+      if (registryOrganization) {
+        if (backfilled.countryId === undefined) backfilled.countryId = registryOrganization.countryId;
+        if (backfilled.type === undefined) backfilled.type = registryOrganization.type;
+        if (backfilled.displayName === undefined) backfilled.displayName = registryOrganization.displayName;
+        if (backfilled.source === undefined) backfilled.source = 'registry';
+      }
       // A tracked treasury written before the funding ledger gets a migration-date seed event, so
       // the ledger replays exactly the saved funds without inventing prior funding history.
-      backfilled.fundingEvents = organization.fundingEvents ?? (organization.fundsUsd !== undefined ? [{ on: state.date, amountUsd: organization.fundsUsd, kind: 'seed' as const }] : []);
+      backfilled.fundingEvents = organization.fundingEvents ?? (organization.fundsUsd !== undefined ? [{ on: state.date, amountUsd: organization.fundsUsd, kind: 'seed' as const, source: 'schema19_backfill' }] : []);
+      // Legacy ban/dissolution events gain their recorded rights basis (honest provenance: the
+      // basis used at the time was not persisted).
+      backfilled.banEvents = backfilled.banEvents.map(event => event.legalBasis ? event : { ...event, legalBasis: { basis: 'unavailable' as const, limitation: 'Recorded before the constitutional rights-basis model; the basis used at the time was not persisted.' } });
+      backfilled.dissolutionEvents = backfilled.dissolutionEvents.map(event => event.legalBasis ? event : { ...event, legalBasis: { basis: 'unavailable' as const, limitation: 'Recorded before the constitutional rights-basis model; the basis used at the time was not persisted.' } });
       organizations[organizationId] = backfilled;
       orgChanged = true;
     } else organizations[organizationId] = organization;
   }
   if (orgChanged) next = { ...next, politics: { ...next.politics, organizations } };
+  // Religious support is a real system family with unavailable coverage when no sourced religious
+  // organization exists — the field is backfilled honestly, never with fabricated organizations.
+  if (state.politics.religiousOrganizationsCoverage === undefined) {
+    next = { ...next, politics: { ...next.politics, religiousOrganizationsCoverage: { status: 'unavailable', limitation: 'No sourced religious organization exists in the 0.13 political registry; religious support is not fabricated.' } } };
+  }
+  // The canonical party membership is one reality: PoliticalPersonState.partyId/leadership and the
+  // party organization's members are reconciled so they never tell two different memberships.
+  {
+    let membershipChanged = false;
+    let synced = next;
+    for (const [organizationId, organization] of Object.entries(next.politics.organizations)) {
+      if (organization.type !== 'party') continue;
+      const before = JSON.stringify(organization.members ?? {});
+      synced = syncPartyMembershipRecords(synced, organizationId);
+      const after = JSON.stringify(synced.politics.organizations[organizationId]?.members ?? {});
+      if (before !== after) membershipChanged = true;
+    }
+    if (membershipChanged) next = synced;
+  }
   // Cabinets and their trace/coordination fields: a newly-introduced 0.23 system is initialized
   //  empty on the migration date, never replayed. Idempotent: present fields are never rewritten.
   {
@@ -150,23 +218,59 @@ function backfillSchema19(state: SimulationState): SimulationState {
       next = { ...next, governance: { ...next.governance, cabinets: cabinetsChanged ? cabinets : (state.governance.cabinets ?? {}) } };
     }
   }
+  // The ministerial suggestion system and its global toggle: initialized empty/default on the
+  // migration date; a minister never gains the legislative initiative from the backfill.
+  if (state.governance.settings === undefined || state.governance.ministerialSuggestions === undefined || state.governance.nextSuggestionSequence === undefined) {
+    next = {
+      ...next,
+      governance: {
+        ...next.governance,
+        settings: state.governance.settings ?? { spontaneousMinisterialProposalsEnabled: true },
+        ministerialSuggestions: state.governance.ministerialSuggestions ?? [],
+        nextSuggestionSequence: state.governance.nextSuggestionSequence ?? 0,
+      },
+    };
+  }
   // Legacy singular `rightChanges` field on governance proposal payloads, and versioned proof
   // stamping for institutional-interest evaluations written before the stakes snapshot existed.
   // Stamping derives from the recorded fields only, so a legacy evaluation becomes intrinsically
   // validatable (and stays valid after a later election) without inventing evidence.
   const proposals: Record<string, SimulationState['governance']['proposals'][string]> = {};
   let proposalsChanged = false;
-  for (const [id, proposal] of Object.entries(state.governance.proposals)) {
-    if (proposal.kind === 'constitutional_amendment') {
-      const payload = proposal.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown };
+  for (const [id, original] of Object.entries(state.governance.proposals)) {
+    let current = original;
+    if (current.kind === 'constitutional_amendment') {
+      const payload = current.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown };
       if (payload.rightsChanges === undefined && payload.rightChanges !== undefined) {
-        const renamed = { ...proposal.payload, rightsChanges: payload.rightChanges } as typeof proposal.payload;
-        proposals[id] = { ...proposal, payload: renamed, ...(proposal.submittedPayloadFingerprint ? { submittedPayloadFingerprint: governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: renamed }) } : {}) } as typeof proposal;
+        const renamed = { ...current.payload, rightsChanges: payload.rightChanges } as typeof current.payload;
+        current = { ...current, payload: renamed, ...(current.submittedPayloadFingerprint ? { submittedPayloadFingerprint: governanceFingerprint({ effectiveDate: current.effectiveDate, payload: renamed }) } : {}) } as typeof current;
         proposalsChanged = true;
-        continue;
+        // No early exit: a proposal that needed the field rename may ALSO need the institutional
+        // stamping below — both migrations apply.
       }
     }
-    const stampEvaluation = (estimate: typeof proposal.parliamentaryEstimate | typeof proposal.voteResult): void => {
+    // Legacy referendum records (support/oppose only) gain abstention, coverage and an honest
+    // limitation: participation is unknown and is never invented.
+    if (current.referendumResult) {
+      const recorded = current.referendumResult as Partial<typeof current.referendumResult> & { heldOn: string; adopted: boolean; supportBps: number; opposeBps: number };
+      if (recorded.abstainBps === undefined || recorded.coverage === undefined || typeof recorded.limitation !== 'string' || !recorded.limitation.trim()) {
+        current = {
+          ...current,
+          referendumResult: {
+            heldOn: recorded.heldOn,
+            adopted: recorded.adopted,
+            supportBps: recorded.supportBps,
+            opposeBps: recorded.opposeBps,
+            abstainBps: recorded.abstainBps ?? Math.max(0, Math.min(10_000, 10_000 - recorded.supportBps - recorded.opposeBps)),
+            participationBps: recorded.participationBps,
+            coverage: recorded.coverage ?? 'partial',
+            limitation: typeof recorded.limitation === 'string' && recorded.limitation.trim() ? recorded.limitation : 'Recorded before the participation/abstention referendum model; participation is unknown.',
+          },
+        } as typeof current;
+        proposalsChanged = true;
+      }
+    }
+    const stampEvaluation = (estimate: typeof current.parliamentaryEstimate | typeof current.voteResult): void => {
       if (!estimate || !Array.isArray(estimate.chambers)) return;
       for (const chamber of estimate.chambers) {
         if (!Array.isArray(chamber.partyEvaluations)) continue;
@@ -175,7 +279,7 @@ function backfillSchema19(state: SimulationState): SimulationState {
           if (!interest || interest.stakesFingerprint !== undefined) continue;
           if (interest.method === undefined || interest.status === undefined || interest.coverage === undefined || interest.confidenceBps === undefined || interest.adjustmentBps === undefined || interest.governmentStatus === undefined || !Array.isArray(interest.effects)) continue;
           interest.stakesFingerprint = institutionalStakesFingerprint({
-            method: interest.method as 'situational_institutional_interest_v1', countryId: proposal.countryId, partyId: evaluation.partyId,
+            method: interest.method as 'situational_institutional_interest_v1', countryId: current.countryId, partyId: evaluation.partyId,
             status: interest.status as 'not_applicable' | 'modelled' | 'unavailable', coverage: interest.coverage as 'unavailable' | 'partial' | 'complete',
             confidenceBps: interest.confidenceBps, adjustmentBps: interest.adjustmentBps,
             governmentStatus: interest.governmentStatus as 'government' | 'opposition' | 'unavailable',
@@ -185,9 +289,9 @@ function backfillSchema19(state: SimulationState): SimulationState {
         }
       }
     };
-    stampEvaluation(proposal.parliamentaryEstimate);
-    stampEvaluation(proposal.voteResult);
-    proposals[id] = proposal;
+    stampEvaluation(current.parliamentaryEstimate);
+    stampEvaluation(current.voteResult);
+    proposals[id] = current;
   }
   if (proposalsChanged) next = { ...next, governance: { ...next.governance, proposals } };
   return next;

@@ -78,33 +78,57 @@ function validateChamber(chamber: ChamberSupportEstimate, legacyAggregateOnly: b
   return true;
 }
 
-function reconcilesParliamentaryRegistry(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, countryId: string, plurality: boolean): boolean {
+function reconcilesParliamentaryRegistry(state: SimulationState, estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, countryId: string, plurality: boolean): boolean {
   const country = politicalRegistry.countries[countryId], institution = politicalRegistry.institutions[country?.institutionId];
   const expectedChambers = !institution || ['none', 'unavailable'].includes(institution.legislatureKind) ? [] : institution.chambers;
   if (estimate.chambers.length !== expectedChambers.length || new Set(estimate.chambers.map(chamber => chamber.chamberId)).size !== estimate.chambers.length) return false;
   for (const chamber of estimate.chambers) {
     const registered = expectedChambers.find(item => item.id === chamber.chamberId);
-    if (!registered || registered.countryId !== countryId || chamber.totalSeats !== registered.totalSeats) return false;
-    const evaluations = chamber.partyEvaluations;
-    const expectedParties = registered.seatAllocationStatus === 'sourced' && registered.totalSeats !== undefined ? Object.keys(registered.seatsByParty) : [];
-    if (!evaluations || evaluations.length !== expectedParties.length || new Set(evaluations.map(item => item.partyId)).size !== evaluations.length) return false;
-    for (const evaluation of evaluations) {
-      if (!expectedParties.includes(evaluation.partyId) || !country.partyIds.includes(evaluation.partyId)
-        || politicalRegistry.parties[evaluation.partyId]?.countryId !== countryId || evaluation.seats !== registered.seatsByParty[evaluation.partyId]) return false;
-    }
+    if (!registered || registered.countryId !== countryId) return false;
+    // The estimate must reconcile with the snapshot it was actually decided against: the sourced
+    // 2026 static allocation, or the dynamic post-election snapshot — never a blind registry check
+    // that a later election would invalidate.
+    const dynamic = state.elections?.countries?.[countryId]?.chambers?.[chamber.chamberId];
+    const dynamicSeats = dynamic?.seatsByParty;
+    const dynamicAllocated = Boolean(dynamicSeats && Object.values(dynamicSeats).some(seats => seats > 0));
+    const snapshots: Array<{ seatsByParty: Record<string, number>; total: number; independentOther: number; unallocated: number }> = [];
     if (registered.seatAllocationStatus === 'sourced' && registered.totalSeats !== undefined) {
-      const unknownPartySeats = evaluations.reduce((sum, evaluation) => sum + (plurality ? evaluation.seatAllocation!.unknownSeats : evaluation.vote === 'unknown' ? evaluation.seats : 0), 0);
-      if (chamber.unavailableSeats - unknownPartySeats !== (registered.independentOtherSeats ?? 0)) return false;
+      snapshots.push({ seatsByParty: registered.seatsByParty, total: registered.totalSeats, independentOther: registered.independentOtherSeats ?? 0, unallocated: 0 });
     }
+    if (dynamicAllocated && dynamic) {
+      snapshots.push({ seatsByParty: dynamicSeats!, total: dynamic.totalSeats > 0 ? dynamic.totalSeats : registered.totalSeats ?? 0, independentOther: dynamic.independentOtherSeats ?? 0, unallocated: dynamic.unallocatedSeats ?? 0 });
+    }
+    const evaluations = chamber.partyEvaluations;
+    if (!evaluations) {
+      // Legacy aggregate-only chambers are validated by validateChamber; nothing to reconcile here.
+      if (chamber.totalSeats === undefined) return false;
+      if (!snapshots.some(snapshot => snapshot.total === chamber.totalSeats)) return false;
+      continue;
+    }
+    for (const evaluation of evaluations) {
+      const registryParty = politicalRegistry.parties[evaluation.partyId];
+      const dynamicParty = state.politics.organizations[evaluation.partyId];
+      const knownParty = (registryParty?.countryId === countryId) || (dynamicParty?.type === 'party' && dynamicParty.countryId === countryId);
+      if (!knownParty || (registryParty && !country.partyIds.includes(evaluation.partyId))) return false;
+    }
+    const matched = snapshots.some(snapshot => {
+      if (chamber.totalSeats !== snapshot.total) return false;
+      if (evaluations.some(item => (snapshot.seatsByParty[item.partyId] ?? -1) !== item.seats)) return false;
+      const evaluated = new Set(evaluations.map(item => item.partyId));
+      if (Object.keys(snapshot.seatsByParty).some(partyId => (snapshot.seatsByParty[partyId] ?? 0) > 0 && !evaluated.has(partyId))) return false;
+      const unknownPartySeats = evaluations.reduce((sum, evaluation) => sum + (plurality ? evaluation.seatAllocation!.unknownSeats : evaluation.vote === 'unknown' ? evaluation.seats : 0), 0);
+      return chamber.unavailableSeats - unknownPartySeats === snapshot.independentOther + snapshot.unallocated;
+    });
+    if (!matched) return false;
   }
   return true;
 }
 
-function validateParliamentary(estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, legacyAggregateOnly: boolean, plurality: boolean, proposalId: string, countryId: string): boolean {
+function validateParliamentary(state: SimulationState, estimate: NonNullable<PoliticalProposal['parliamentaryEstimate']>, legacyAggregateOnly: boolean, plurality: boolean, proposalId: string, countryId: string): boolean {
   const procedure = plurality ? 'internal_party_distribution_v1' : 'modelled_procedure_v1';
   if (estimate.seatApportionment !== undefined && (!plurality || estimate.seatApportionment !== 'identity_hash_v1')) return false;
   if (![estimate.yesSeats, estimate.noSeats, estimate.abstainSeats, estimate.unavailableSeats, estimate.totalSeats].every(nonNegative) || !bps(estimate.confidenceBps) || !coverage(estimate.coverage) || estimate.procedure !== procedure || !Array.isArray(estimate.chambers) || !estimate.chambers.every(chamber => validateChamber(chamber, legacyAggregateOnly, plurality, proposalId, estimate.seatApportionment === 'identity_hash_v1'))) return false;
-  if (!legacyAggregateOnly && !reconcilesParliamentaryRegistry(estimate, countryId, plurality)) return false;
+  if (!legacyAggregateOnly && !reconcilesParliamentaryRegistry(state, estimate, countryId, plurality)) return false;
   const sum = (field: 'yesSeats' | 'noSeats' | 'abstainSeats' | 'unavailableSeats') => estimate.chambers.reduce((total, chamber) => total + chamber[field], 0);
   const expectedCoverage = estimate.chambers.length > 0 && estimate.chambers.every(item => item.coverage === 'complete') ? 'complete' : estimate.chambers.some(item => item.coverage !== 'unavailable') ? 'partial' : 'unavailable';
   return estimate.coverage === expectedCoverage && estimate.yesSeats === sum('yesSeats') && estimate.noSeats === sum('noSeats') && estimate.abstainSeats === sum('abstainSeats') && estimate.unavailableSeats === sum('unavailableSeats') && estimate.totalSeats === estimate.chambers.reduce((total, chamber) => total + (chamber.totalSeats ?? 0), 0);
@@ -230,7 +254,7 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (proposal.submittedOn && proposal.submittedPayloadFingerprint !== governanceFingerprint({ effectiveDate: proposal.effectiveDate, payload: proposal.payload })) errors.push(`Submitted proposal ${id} payload was modified.`);
     if (['enacted', 'rejected', 'unavailable'].includes(proposal.status) && (!proposal.resolvedOn || !proposal.voteResult || proposal.voteResult.outcome !== (proposal.status === 'enacted' ? 'adopted' : proposal.status))) errors.push(`Invalid resolution lifecycle for ${id}.`);
     if (proposal.resolvedOn && (!dateValid(proposal.resolvedOn) || proposal.resolvedOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.resolvedOn > state.date)) errors.push(`Invalid resolution date for ${id}.`);
-    if (proposal.referendumResult && (!dateValid(proposal.referendumResult.heldOn) || proposal.referendumResult.heldOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.referendumResult.heldOn > state.date || typeof proposal.referendumResult.adopted !== 'boolean' || !Number.isSafeInteger(proposal.referendumResult.supportBps) || !Number.isSafeInteger(proposal.referendumResult.opposeBps) || proposal.referendumResult.supportBps < 0 || proposal.referendumResult.supportBps > 10_000 || proposal.referendumResult.opposeBps < 0 || proposal.referendumResult.opposeBps > 10_000 || proposal.referendumResult.supportBps + proposal.referendumResult.opposeBps > 10_000)) errors.push(`Invalid referendum record for ${id}.`);
+    if (proposal.referendumResult && (!dateValid(proposal.referendumResult.heldOn) || proposal.referendumResult.heldOn < (proposal.submittedOn ?? proposal.createdOn) || proposal.referendumResult.heldOn > state.date || typeof proposal.referendumResult.adopted !== 'boolean' || !Number.isSafeInteger(proposal.referendumResult.supportBps) || !Number.isSafeInteger(proposal.referendumResult.opposeBps) || !Number.isSafeInteger(proposal.referendumResult.abstainBps) || proposal.referendumResult.supportBps < 0 || proposal.referendumResult.supportBps > 10_000 || proposal.referendumResult.opposeBps < 0 || proposal.referendumResult.opposeBps > 10_000 || proposal.referendumResult.abstainBps < 0 || proposal.referendumResult.abstainBps > 10_000 || proposal.referendumResult.supportBps + proposal.referendumResult.opposeBps + proposal.referendumResult.abstainBps !== 10_000 || !['complete', 'partial', 'unavailable'].includes(proposal.referendumResult.coverage) || !proposal.referendumResult.limitation?.trim() || proposal.referendumResult.participationBps !== undefined && (!Number.isSafeInteger(proposal.referendumResult.participationBps) || proposal.referendumResult.participationBps < 0 || proposal.referendumResult.participationBps > 10_000))) errors.push(`Invalid referendum record for ${id}.`);
     if (proposal.referendumResult && proposal.status === 'draft') errors.push(`Draft proposal ${id} carries a referendum record.`);
     if (!(PROPOSAL_KINDS as readonly string[]).includes(proposal.kind)) errors.push(`Unknown proposal kind for ${id}.`);
     if (!PROPOSAL_INSTRUMENT_CLASSES.includes(proposal.instrumentClass)) errors.push(`Invalid instrument class for ${id}.`);
@@ -258,10 +282,10 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (proposal.evaluationVersion !== undefined && !['legacy-0.14-v1', 'situational-0.14-v2', 'plurality-0.15-v1', 'situational-plurality-0.15-v2'].includes(proposal.evaluationVersion)) errors.push(`Invalid evaluation version for ${id}.`);
     if (institutional ? !validateInstitutionalEvidence(state, proposal)
       : proposal.analysis?.institutionalEffects !== undefined || [proposal.parliamentaryEstimate, proposal.voteResult].some(estimate => Array.isArray(estimate?.chambers) && estimate.chambers.some(chamber => Array.isArray(chamber.partyEvaluations) && chamber.partyEvaluations.some(item => item.institutionalInterest !== undefined)))) errors.push(`Invalid institutional evidence for ${id}.`);
-    if (proposal.parliamentaryEstimate && !validateParliamentary(proposal.parliamentaryEstimate, legacyAggregateOnly, plurality, id, proposal.countryId)) errors.push(`Invalid parliamentary estimate for ${id}.`);
+    if (proposal.parliamentaryEstimate && !validateParliamentary(state, proposal.parliamentaryEstimate, legacyAggregateOnly, plurality, id, proposal.countryId)) errors.push(`Invalid parliamentary estimate for ${id}.`);
     if (proposal.analysis && !validateAnalysis(proposal.analysis)) errors.push(`Invalid proposal analysis for ${id}.`);
     if (proposal.voteResult) {
-      if (!validateParliamentary(proposal.voteResult, legacyAggregateOnly, plurality, id, proposal.countryId) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
+      if (!validateParliamentary(state, proposal.voteResult, legacyAggregateOnly, plurality, id, proposal.countryId) || !dateValid(proposal.voteResult.resolvedOn) || proposal.voteResult.resolvedOn !== proposal.resolvedOn) errors.push(`Invalid vote result for ${id}.`);
       if (plurality) {
         const { outcome: _outcome, resolvedOn: _resolvedOn, reason: _reason, ...recordedEstimate } = proposal.voteResult;
         if (!proposal.parliamentaryEstimate || canonicalJson(recordedEstimate) !== canonicalJson(proposal.parliamentaryEstimate)) errors.push(`Plurality estimate/result mismatch for ${id}.`);
@@ -297,13 +321,63 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
     if (cabinet.viceLeaderPersonId !== undefined && (!g.persons[cabinet.viceLeaderPersonId] || g.persons[cabinet.viceLeaderPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} has an invalid deputy reference.`);
     if (cabinet.lastHeadPersonId !== undefined && (!g.persons[cabinet.lastHeadPersonId] || g.persons[cabinet.lastHeadPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} has an invalid last head reference.`);
     if (cabinet.actingHead && (cabinet.actingHead.kind !== 'deputy_temporary' || !dateValid(cabinet.actingHead.since) || cabinet.actingHead.since > state.date || !g.persons[cabinet.actingHead.personId] || !g.persons[cabinet.actingHead.predecessorPersonId] || cabinet.actingHead.personId === cabinet.actingHead.predecessorPersonId)) errors.push(`Cabinet ${countryId} has an invalid acting-head record.`);
+    // The acting arrangement and the offices must reconcile: the acting person really holds the
+    // head-of-government office while the record exists, and the predecessor does not.
+    if (cabinet.actingHead) {
+      const actingPerson = g.persons[cabinet.actingHead.personId];
+      const predecessor = g.persons[cabinet.actingHead.predecessorPersonId];
+      if (actingPerson?.office?.role !== 'head_of_government' || actingPerson.office.countryId !== countryId) errors.push(`Cabinet ${countryId} acting head does not hold the head-of-government office.`);
+      if (predecessor?.office?.role === 'head_of_government' && predecessor.office.countryId === countryId) errors.push(`Cabinet ${countryId} predecessor still holds the office while an acting head is recorded.`);
+    }
+    // The deputy (vice-leader) must never simultaneously hold the head-of-government office.
+    if (cabinet.viceLeaderPersonId !== undefined) {
+      const vice = g.persons[cabinet.viceLeaderPersonId];
+      if (vice?.office?.role === 'head_of_government' && vice.office.countryId === countryId) errors.push(`Cabinet ${countryId} deputy holds the head-of-government office without a recorded succession.`);
+    }
     for (const [portfolioId, portfolio] of Object.entries(cabinet.portfolios)) {
       if (!portfolio || portfolio.id !== portfolioId || !portfolio.name?.trim()) errors.push(`Cabinet ${countryId} has an invalid portfolio ${portfolioId}.`);
-      if (portfolio.ministerPersonId !== undefined && (!g.persons[portfolio.ministerPersonId] || g.persons[portfolio.ministerPersonId].countryId !== countryId)) errors.push(`Cabinet ${countryId} portfolio ${portfolioId} has an invalid minister reference.`);
+      if (portfolio.ministerPersonId !== undefined) {
+        const minister = g.persons[portfolio.ministerPersonId];
+        // A portfolio minister must really be an active person holding the corresponding ministerial
+        // office — never an orphan reference, and never the current head of government.
+        if (!minister || minister.countryId !== countryId || minister.status !== 'active' || minister.office?.role !== 'minister' || minister.office.countryId !== countryId) {
+          errors.push(`Cabinet ${countryId} portfolio ${portfolioId} references a person without the corresponding ministerial office.`);
+        }
+      }
     }
     for (const event of cabinet.censureEvents ?? []) {
       if (!dateValid(event.on) || event.on > state.date || !event.byPersonId?.trim() || !['government', 'leader'].includes(event.kind)) errors.push(`Cabinet ${countryId} has an invalid censure event.`);
     }
+  }
+  // Pre-vote negotiations and party whip instructions are validated records.
+  for (const [id, proposal] of Object.entries(g.proposals)) {
+    for (const negotiation of proposal.negotiations ?? []) {
+      const person = g.persons[negotiation.byPersonId];
+      if (!dateValid(negotiation.on) || negotiation.on > state.date || negotiation.on < proposal.createdOn || negotiation.proposalId !== id
+        || !negotiation.byPersonId?.trim() || !person || person.countryId !== proposal.countryId || !negotiation.partyId?.trim()
+        || !Array.isArray(negotiation.conditions) || negotiation.conditions.length === 0 || negotiation.conditions.some(condition => typeof condition !== 'string' || !condition.trim())
+        || (negotiation.supportCommitment !== undefined && !['support', 'oppose', 'conditional'].includes(negotiation.supportCommitment))) errors.push(`Invalid pre-vote negotiation record for ${id}.`);
+    }
+    for (const whip of proposal.whipInstructions ?? []) {
+      const person = g.persons[whip.byPersonId];
+      if (!dateValid(whip.on) || whip.on > state.date || whip.on < (proposal.submittedOn ?? proposal.createdOn) || whip.proposalId !== id
+        || !whip.byPersonId?.trim() || !person || person.partyId !== whip.partyId || !person.isPartyLeader || person.countryId !== proposal.countryId
+        || !['yes', 'no', 'abstain', 'free'].includes(whip.instruction)) errors.push(`Invalid party whip instruction for ${id}.`);
+    }
+  }
+  // The ministerial suggestion system and its global toggle.
+  if (typeof g.settings?.spontaneousMinisterialProposalsEnabled !== 'boolean') errors.push('Invalid ministerial proposal settings.');
+  if (!Number.isSafeInteger(g.nextSuggestionSequence) || g.nextSuggestionSequence < 0) errors.push('Invalid ministerial suggestion sequence.');
+  const suggestionIds = new Set<string>();
+  for (const suggestion of g.ministerialSuggestions ?? []) {
+    if (!suggestion || suggestionIds.has(suggestion.id) || !suggestion.id?.match(/^suggestion\.\d{8}$/) || Number(suggestion.id.slice(11)) >= g.nextSuggestionSequence
+      || !dateValid(suggestion.on) || suggestion.on > state.date || !suggestion.byPersonId?.trim() || !suggestion.portfolioId?.trim()
+      || !['fiscal_reform', 'constitutional_amendment'].includes(suggestion.kind) || !suggestion.subject?.trim()
+      || !['pending', 'accepted', 'declined'].includes(suggestion.status)
+      || (suggestion.status === 'accepted' && !suggestion.acceptedIntoProposalId)
+      || (suggestion.status !== 'pending' && !suggestion.resolvedOn)
+      || (suggestion.resolvedOn !== undefined && (!dateValid(suggestion.resolvedOn) || suggestion.resolvedOn > state.date))) errors.push('Invalid ministerial suggestion.');
+    suggestionIds.add(suggestion.id);
   }
   return errors;
 } };

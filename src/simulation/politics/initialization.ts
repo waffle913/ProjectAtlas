@@ -30,6 +30,20 @@ export function supportFor(preferences: number[], salience: number[], engagement
   const undecided = Math.max(1, Math.floor(weights.reduce((a, b) => a + b, 0) * (10_000 - engagement) / 20_000));
   return allocate(10_000, [...weights, undecided]);
 }
+
+/** The party profile the voters actually respond to: the mutable organizational party line
+ *  (moved progressively by the party's internal currents) branches onto the static 0.13 registry
+ *  profile. The evolved line influences the electorate — never the frozen static positions. */
+export function effectivePartyProfile(state: SimulationState, party: PoliticalParty): PoliticalParty {
+  const organization = state.politics.organizations[party.id];
+  if (!organization?.currentPositions) return party;
+  const issuePositions = { ...party.issuePositions };
+  for (const issue of POLITICAL_ISSUES) {
+    const position = organization.currentPositions[issue];
+    if (position !== undefined) issuePositions[issue] = { ...issuePositions[issue], preferenceBps: position };
+  }
+  return { ...party, issuePositions };
+}
 const publicServiceCoverage = (state: SimulationState, countryId: string) => {
   const services = state.fiscal.countries[countryId]?.services; if (!services) return null;
   const values = [services.health.coverageBps, services.education.coverageBps].filter((value): value is number => value !== null);
@@ -55,7 +69,7 @@ export function organizationStateFor(state: SimulationState, organization: Polit
   else { target[POLITICAL_ISSUES.indexOf('fiscal_distribution')] = clamp(target[0] - tax / 4 - distress / 5); target[POLITICAL_ISSUES.indexOf('infrastructure')] = clamp(target[4] + infrastructureGap / 3); target[POLITICAL_ISSUES.indexOf('public_order')] = clamp(target[5] + unemployment / 5); }
   const currentPositions = Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => [issue, prior ? blend(prior.currentPositions[issue], target[index], POLITICS_MODEL.organizationInertiaBps) : target[index]])) as Record<PoliticalIssue, number>;
   const issues = organization.issuePriorities.filter(issue => Math.abs(target[POLITICAL_ISSUES.indexOf(issue)] - base[POLITICAL_ISSUES.indexOf(issue)]) >= 250);
-  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit), status: prior?.status ?? 'active', members: prior?.members ?? {}, fundsUsd: prior?.fundsUsd, internalCurrents: prior?.internalCurrents ?? {}, banEvents: prior?.banEvents ?? [], fundingEvents: prior?.fundingEvents ?? [], strikeFundUsd: prior?.strikeFundUsd, claims: prior?.claims ?? [], cyberSecurityBps: prior?.cyberSecurityBps, dissolutionEvents: prior?.dissolutionEvents ?? [], countryId: organization.countryId, type: organization.type, displayName: organization.displayName, source: 'registry' };
+  return { organizationId: organization.id, currentPositions, lastUpdatedOn: date, recentDrivers: [...(prior?.recentDrivers ?? []), { date, issues }].slice(-POLITICS_MODEL.historyLimit), status: prior?.status ?? 'active', members: prior?.members ?? {}, fundsUsd: prior?.fundsUsd, internalCurrents: prior?.internalCurrents ?? {}, banEvents: prior?.banEvents ?? [], fundingEvents: prior?.fundingEvents ?? [], strikeFundUsd: prior?.strikeFundUsd, claims: prior?.claims ?? [], cyberSecurityBps: prior?.cyberSecurityBps, dissolutionEvents: prior?.dissolutionEvents ?? [], activeStrikes: prior?.activeStrikes ?? [], countryId: organization.countryId, type: organization.type, displayName: organization.displayName, source: 'registry' };
 }
 
 /** A party's mutable organizational state, derived from the 0.13 registry party (positions) while
@@ -83,6 +97,7 @@ export function partyOrganizationStateFor(party: PoliticalParty, date: string, p
     claims: prior?.claims ?? [],
     cyberSecurityBps: prior?.cyberSecurityBps,
     dissolutionEvents: prior?.dissolutionEvents ?? [],
+    activeStrikes: prior?.activeStrikes ?? [],
     countryId: party.countryId,
     type: 'party',
     displayName: party.displayName,

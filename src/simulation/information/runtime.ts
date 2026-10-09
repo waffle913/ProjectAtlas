@@ -27,7 +27,15 @@ function retainBriefingReports(
 
 export function hasGovernmentInformationAccess(state: SimulationState, personId: string, countryId: string): boolean {
   const person = state.governance.persons[personId];
-  return Boolean(person?.status === 'active' && person.office?.countryId === countryId && person.office.authorityProfile.capabilities.includes('access_government_information'));
+  if (!person || person.status !== 'active' || person.office?.countryId !== countryId) return false;
+  if (person.office.authorityProfile.capabilities.includes('access_government_information')) return true;
+  // A minister holding a real portfolio has government access scoped to their portfolio — without
+  // ever receiving legislative powers.
+  if (person.office.role === 'minister') {
+    const cabinet = state.governance.cabinets?.[countryId];
+    return Boolean(cabinet && Object.values(cabinet.portfolios).some(portfolio => portfolio.ministerPersonId === personId));
+  }
+  return false;
 }
 
 export function inspectGovernmentReports(state: SimulationState, countryId: string, personId: string): GovernmentReport[] {

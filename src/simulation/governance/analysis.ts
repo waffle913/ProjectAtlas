@@ -259,6 +259,21 @@ export function derivePartyGoalProfile(party: PoliticalParty, overrides: Partial
   return { partyId: party.id, goals };
 }
 
+/** The party goal profile actually used by parliamentary behavior: the mutable organizational
+ *  party line (OrganizationPoliticalState.currentPositions, moved by internal currents) branches
+ *  onto the static registry profile. After the party line evolves, parliamentarians evaluate
+ *  against the evolved line — never exclusively against the static 0.13 issue positions. */
+export function dynamicPartyGoalProfile(state: SimulationState, party: PoliticalParty): PartyGoalProfile {
+  const base = derivePartyGoalProfile(party);
+  const organization = state.politics.organizations[party.id];
+  if (!organization?.currentPositions) return base;
+  for (const issue of POLITICAL_ISSUES) {
+    const position = organization.currentPositions[issue];
+    if (position !== undefined) base.goals[issue] = { ...base.goals[issue], idealPointBps: position };
+  }
+  return base;
+}
+
 const severityFor = (analysis: ProposalAnalysis, goal: GovernanceGoal) => { const metricValue = contextOutcome(analysis.materialContext, goal); return metricValue?.valueBps === undefined ? 0 : 10_000 - metricValue.valueBps; };
 function evaluateProfile(analysis: ProposalAnalysis, profile: PartyGoalProfile): Omit<PartyProposalEvaluation, 'partyId' | 'vote'> {
   const issueEvaluations: PartyIssueEvaluation[] = [], positiveDrivers: string[] = [], negativeDrivers: string[] = [], tradeoffs: string[] = []; let weighted = 0, weights = 0, confidenceWeight = 0, compromiseWeighted = 0;

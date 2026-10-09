@@ -30,6 +30,7 @@ const registryInvariantErrors = validatePoliticalRegistry();
 export const politicsInvariant: SimulationInvariant = { id: 'national-politics', check: (state, context) => {
   const politics = state.politics, errors: string[] = [...registryInvariantErrors];
   if (!politics || politics.version !== POLITICS_MODEL.version || politics.registryVersion !== politicalRegistry.version || !Number.isSafeInteger(politics.weeklyEvaluations) || politics.weeklyEvaluations < 0) return ['Malformed politics state.'];
+  if (!politics.religiousOrganizationsCoverage || !['unavailable', 'modelled'].includes(politics.religiousOrganizationsCoverage.status) || !politics.religiousOrganizationsCoverage.limitation?.trim()) errors.push('Religious organization coverage is malformed; religious support is a real system family with unavailable coverage when nothing is sourced.');
   if (!politics.initializedOn) return Object.keys(politics.countries).length ? ['Politics state lacks initialization date.'] : [];
   if (!validDate(politics.initializedOn) || politics.initializedOn > state.date || politics.lastOpinionUpdate && (!validDate(politics.lastOpinionUpdate) || politics.lastOpinionUpdate > state.date)) errors.push('Invalid politics state dates.');
   for (const [regionId, socio] of Object.entries(state.socioeconomy.regions)) {
@@ -57,14 +58,39 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
   for (const organization of expectedOrganizations) { const dynamic = politics.organizations[organization.id]; if (!dynamic || dynamic.organizationId !== organization.id || !validDate(dynamic.lastUpdatedOn) || dynamic.lastUpdatedOn > state.date || POLITICAL_ISSUES.some(issue => !bounded(dynamic.currentPositions[issue])) || dynamic.recentDrivers.length > POLITICS_MODEL.historyLimit || dynamic.recentDrivers.some(item => !validDate(item.date) || item.date > state.date || item.issues.some(issue => !POLITICAL_ISSUES.includes(issue)))) errors.push(`Invalid dynamic organization ${organization.id}.`); }
   for (const [organizationId, organization] of Object.entries(politics.organizations)) {
     if (!['active', 'dissolved', 'banned'].includes(organization.status)) errors.push(`Organization ${organizationId} has an invalid status.`);
+    // Status transitions reconcile with the recorded events: a dissolution trace implies the
+    // organization is dissolved, and a ban trace whose last judgment is not a restore implies it
+    // is banned — incoherent transitions are impossible by construction.
+    if ((organization.dissolutionEvents ?? []).length > 0 && organization.status !== 'dissolved') errors.push(`Organization ${organizationId} has a dissolution trace while its status is ${organization.status}.`);
+    if (organization.status !== 'banned' && (organization.banEvents ?? []).some(event => event.appealDecision === undefined)) errors.push(`Organization ${organizationId} has an unresolved ban event while its status is ${organization.status}.`);
+    if (organization.status === 'banned' && !(organization.banEvents ?? []).some(event => event.appealDecision === undefined)) errors.push(`Organization ${organizationId} is banned without a pending ban event.`);
+    if (organization.status === 'banned' && (organization.dissolutionEvents ?? []).length > 0) errors.push(`Organization ${organizationId} is banned and dissolved at once; the transitions are incoherent.`);
     if (organization.fundsUsd !== undefined && (!Number.isSafeInteger(organization.fundsUsd) || organization.fundsUsd < 0)) errors.push(`Organization ${organizationId} has invalid funds.`);
     if (organization.countryId !== undefined && !context.countryIds.has(organization.countryId)) errors.push(`Organization ${organizationId} has an invalid Country.`);
     if (organization.type !== undefined && !['union', 'association', 'party', 'religious'].includes(organization.type)) errors.push(`Organization ${organizationId} has an invalid type.`);
     if (organization.source !== undefined && !['registry', 'dynamic'].includes(organization.source)) errors.push(`Organization ${organizationId} has an invalid source.`);
-    for (const [personId, membership] of Object.entries(organization.members ?? {})) if (membership.personId !== personId || !['member', 'leader'].includes(membership.role)) errors.push(`Organization ${organizationId} has an invalid membership ${personId}.`);
+    for (const [personId, membership] of Object.entries(organization.members ?? {})) {
+      if (membership.personId !== personId || !['member', 'leader'].includes(membership.role)) errors.push(`Organization ${organizationId} has an invalid membership ${personId}.`);
+      const person = state.governance.persons[personId];
+      if (!person) errors.push(`Organization ${organizationId} membership ${personId} references an unknown person.`);
+      // Party membership is one reality: person.partyId and the party's members never differ, and
+      // the leadership role is synchronized with isPartyLeader.
+      if (organization.type === 'party' && person) {
+        if (person.partyId !== organizationId) errors.push(`Organization ${organizationId} membership ${personId} contradicts the person's canonical party (${person.partyId ?? 'none'}).`);
+        if (membership.role === 'leader' && !person.isPartyLeader) errors.push(`Organization ${organizationId} leader ${personId} is not the canonical party leader.`);
+        if (membership.role === 'member' && person.isPartyLeader) errors.push(`Organization ${organizationId} member ${personId} is the canonical party leader but not recorded as leader.`);
+      }
+    }
+    if (organization.type === 'party') {
+      for (const person of Object.values(state.governance.persons)) {
+        if (person.partyId === organizationId && !organization.members?.[person.id]) errors.push(`Organization ${organizationId} misses the membership of canonical member ${person.id}.`);
+      }
+    }
     for (const banEvent of organization.banEvents ?? []) {
       if (!validDate(banEvent.date) || banEvent.date > state.date || !banEvent.actorPersonId?.trim() || !banEvent.motive?.trim() || !banEvent.evidence?.trim()) errors.push(`Organization ${organizationId} has an invalid ban event.`);
+      if (!banEvent.legalBasis || !['constitutional_guarantee', 'ordinary_law', 'unavailable'].includes(banEvent.legalBasis.basis) || !banEvent.legalBasis.limitation?.trim()) errors.push(`Organization ${organizationId} has a ban event without a recorded rights basis.`);
       if (banEvent.appealedOn && !validDate(banEvent.appealedOn)) errors.push(`Organization ${organizationId} has an invalid appeal date.`);
+      if (banEvent.appealedOn && !banEvent.appealByPersonId?.trim()) errors.push(`Organization ${organizationId} has an appeal without an identifiable appellant.`);
       if (banEvent.appealDecision !== undefined && !['restore', 'uphold'].includes(banEvent.appealDecision)) errors.push(`Organization ${organizationId} has an invalid appeal decision.`);
       if (banEvent.appealResolvedOn && !validDate(banEvent.appealResolvedOn)) errors.push(`Organization ${organizationId} has an invalid appeal resolution date.`);
     }
@@ -78,12 +104,19 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
     }
     for (const dissolution of organization.dissolutionEvents ?? []) {
       if (!validDate(dissolution.date) || dissolution.date > state.date || !dissolution.actorPersonId?.trim() || !dissolution.motive?.trim()) errors.push(`Organization ${organizationId} has an invalid dissolution event.`);
+      if (!dissolution.legalBasis || !['constitutional_guarantee', 'ordinary_law', 'unavailable'].includes(dissolution.legalBasis.basis) || !dissolution.legalBasis.limitation?.trim()) errors.push(`Organization ${organizationId} has a dissolution event without a recorded rights basis.`);
     }
+    if (!Array.isArray(organization.activeStrikes)) errors.push(`Organization ${organizationId} has an invalid strike record.`);
+    else for (const strike of organization.activeStrikes) {
+      if (!validDate(strike.on) || strike.on > state.date || !POLITICAL_ISSUES.includes(strike.issue) || !Number.isSafeInteger(strike.participantPersons) || strike.participantPersons < 0 || !['ongoing', 'ended'].includes(strike.status)) errors.push(`Organization ${organizationId} has an invalid active strike.`);
+    }
+    if (organization.representedCohorts !== undefined && (!Array.isArray(organization.representedCohorts) || organization.representedCohorts.some(item => !['low', 'middle', 'high'].includes(item)))) errors.push(`Organization ${organizationId} has invalid represented cohorts.`);
+    if (organization.issuePriorities !== undefined && (!Array.isArray(organization.issuePriorities) || organization.issuePriorities.some(item => !POLITICAL_ISSUES.includes(item)))) errors.push(`Organization ${organizationId} has invalid issue priorities.`);
     if (organization.fundsUsd !== undefined && (!Number.isSafeInteger(organization.fundsUsd) || organization.fundsUsd < 0)) errors.push(`Organization ${organizationId} has an invalid treasury.`);
     if (organization.strikeFundUsd !== undefined && (!Number.isSafeInteger(organization.strikeFundUsd) || organization.strikeFundUsd < 0)) errors.push(`Organization ${organizationId} has an invalid strike fund.`);
     if (organization.cyberSecurityBps !== undefined && (!Number.isSafeInteger(organization.cyberSecurityBps) || organization.cyberSecurityBps < 0 || organization.cyberSecurityBps > 10_000)) errors.push(`Organization ${organizationId} has an invalid cyber posture.`);
     if (organization.fundingEvents !== undefined) {
-      if (!Array.isArray(organization.fundingEvents) || organization.fundingEvents.some(event => !validDate(event.on) || event.on > state.date || !Number.isSafeInteger(event.amountUsd) || !['seed', 'donation', 'strike_cost', 'cybersecurity_spending', 'cyber_attack_cost', 'cyber_theft', 'split_transfer'].includes(event.kind))) errors.push(`Organization ${organizationId} has an invalid funding ledger.`);
+      if (!Array.isArray(organization.fundingEvents) || organization.fundingEvents.some(event => !validDate(event.on) || event.on > state.date || !Number.isSafeInteger(event.amountUsd) || !['seed', 'donation', 'strike_cost', 'cybersecurity_spending', 'cyber_attack_cost', 'cyber_theft', 'split_transfer'].includes(event.kind) || (event.source !== undefined && typeof event.source !== 'string'))) errors.push(`Organization ${organizationId} has an invalid funding ledger.`);
       else if (organization.fundsUsd !== undefined) {
         // Conservation: the tracked treasury is exactly the replay of the dated funding ledger.
         const replayed = organization.fundingEvents.reduce((sum, event) => sum + event.amountUsd, 0);

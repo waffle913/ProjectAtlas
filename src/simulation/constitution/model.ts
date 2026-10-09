@@ -1,6 +1,7 @@
 import type { PoliticalRegistry, NationalInstitutions } from '../politics/model';
 import type { SimulationState } from '../../types';
 import { politicalRegistry } from '../politics/registry';
+import { CATEGORIES, TAXES, type TaxKind } from '../fiscal/model';
 
 export const CONSTITUTION_VERSION = 'constitution-0.23-v1' as const;
 
@@ -17,14 +18,20 @@ export type ParliamentarySystem = 'majoritarian' | 'proportional' | 'mixed' | 'u
 export type ReferendumRule = 'never' | 'always' | 'principal_only' | 'unavailable';
 export type ConstitutionalDispositionKind = 'principal' | 'secondary';
 
+/** The policy kinds a fiscal rule belongs to (the canonical fiscal model's tax kinds). */
+const FISCAL_KINDS = ['personal', 'consumption', 'payroll', 'corporate'] as const satisfies readonly TaxKind[];
 /** Canonical registry of the material keys a constitutional secondary disposition may protect.
+ *  It is derived from the canonical fiscal model — tax kinds (`fiscal.*`), tax categories
+ *  (`fiscal.employee`, `fiscal.employer`) and budget categories (`fiscal.annualBudget.*`) — so any
+ *  canonical legal rule of the fiscal engine is protectable, never a hand-maintained whitelist.
  *  An amendment must reference keys from this registry; an unknown key is rejected, never invented. */
-export const MATERIAL_KEYS = Object.freeze([
-  'fiscal.personal', 'fiscal.consumption', 'fiscal.employee', 'fiscal.employer', 'fiscal.corporate', 'fiscal.payroll',
-  'fiscal.annualBudget.health', 'fiscal.annualBudget.education', 'fiscal.annualBudget.pensions',
-  'fiscal.annualBudget.incomeSupport', 'fiscal.annualBudget.infrastructure', 'fiscal.annualBudget.administration', 'fiscal.annualBudget.defense',
-] as const);
-export type MaterialKey = typeof MATERIAL_KEYS[number];
+export const MATERIAL_KEYS: readonly string[] = Object.freeze([...new Set([
+  ...FISCAL_KINDS.map(kind => `fiscal.${kind}`),
+  ...TAXES.map(category => `fiscal.${category}`),
+  ...CATEGORIES.map(category => `fiscal.annualBudget.${category}`),
+  'fiscal.annualBudget.defense',
+])]);
+export type MaterialKey = string;
 export type TerritorialOrganization = 'unitary' | 'federal' | 'unavailable';
 export type RegionalAutonomy = 'none' | 'autonomous_region_elected_leader' | 'unavailable';
 export type JudicialCourt = 'exists' | 'none' | 'unavailable';
@@ -118,6 +125,16 @@ export interface EmergencyConstitution {
   /** Progressive discontent counter incremented each month the restrictions are maintained unjustified. */
   discontentDriversApplied?: number;
   restrictions: { assembliesBanned: boolean; strikesBanned: boolean; policePowersEnhanced: boolean; bordersClosed: boolean };
+  /** Dated recommendations of the interior minister to end the emergency when the situation
+   *  improves. A recommendation is advisory only: it never lifts the emergency by itself. */
+  ministerialRecommendations: Array<{
+    on: string;
+    byPersonId: string;
+    portfolioId: string;
+    action: 'end_emergency';
+    reason: string;
+    status: 'pending' | 'acted_on';
+  }>;
 }
 
 export interface ConstitutionalBindingEvent {
@@ -126,6 +143,36 @@ export interface ConstitutionalBindingEvent {
   action: 'protected' | 'unprotected';
   instrumentId?: string;
   provenance: 'constitutional_amendment';
+}
+
+/** Dated, per-field trace of every constitutional revision of the non-material domains
+ *  (rights, parliament, headOfState, government, election, judicialReview, territory, amendment).
+ *  A posteriori annulment replays this trace without the annulled instrument, so annulling A after
+ *  B never erases B's value: ownership of every field is decided by the surviving trace, exactly
+ *  like the material-key binding trace. */
+export type ConstitutionalRevisionDomain = 'rights' | 'parliament' | 'headOfState' | 'government' | 'election' | 'judicialReview' | 'territory' | 'amendment';
+export interface ConstitutionalRevisionEvent {
+  date: string;
+  instrumentId: string;
+  domain: ConstitutionalRevisionDomain;
+  changes: Array<{ field: string; before: unknown; after: unknown }>;
+}
+
+/** A member of the constitutional court, seated through the constitutional appointment rule. */
+export interface ConstitutionalCourtMember {
+  personId: string;
+  appointedOn: string;
+  /** Derived from the constitutional term rule (`years` + termYears); absent for life tenure or unavailable terms. */
+  termEnd?: string;
+}
+
+/** A dated devolution of constitutional competences to a specific Region, created only by an
+ *  enacted constitutional amendment that grants autonomy (territoryChanges.regionIds). */
+export interface DevolvedPower {
+  regionId: string;
+  competences: string[];
+  instrumentId: string;
+  on: string;
 }
 
 export interface ConstitutionStateEntry {
@@ -139,12 +186,16 @@ export interface ConstitutionStateEntry {
   election: ElectionConstitution;
   rights: ConstitutionalRights;
   judicialReview: JudicialReviewConstitution;
-  territory: { organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] };
+  territory: { organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[]; devolvedPowers: DevolvedPower[] };
   emergency: EmergencyConstitution;
   /** Canonical material keys (e.g. 'fiscal.corporate.rate') protected by constitutional secondary dispositions. */
   protectedMaterialKeys: string[];
   /** Dated trace of every protection/removal, created only by a constitutional amendment. */
   bindingEvents: ConstitutionalBindingEvent[];
+  /** Dated per-field trace of every constitutional revision of the non-material domains. */
+  revisionEvents: ConstitutionalRevisionEvent[];
+  /** Seated constitutional court, populated through the constitutional appointment rule. */
+  courtMembers: ConstitutionalCourtMember[];
 }
 
 /** The lifecycle of a scheduled amendment. `scheduled` and `referred` are open states; the rest are
@@ -167,6 +218,9 @@ export interface AmendmentDecision {
   effect: JudicialEffect;
   on: string;
   byPersonId?: string;
+  /** Traceable institutional grounds: the saisine, the amendment text and the constitutional norms
+   *  the verdict applied. A verdict is never an arbitrary caller-injected result. */
+  grounds: string[];
 }
 
 export interface PendingAmendment {
@@ -181,9 +235,12 @@ export interface PendingAmendment {
     executiveChanges?: { headOfState?: Partial<HeadOfStateConstitution>; government?: Partial<GovernmentConstitution> };
     electionChanges?: Partial<ElectionConstitution>;
     judicialChanges?: Partial<JudicialReviewConstitution>;
-    territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[] }>;
+    territoryChanges?: Partial<{ organization: TerritorialOrganization; regionalAutonomy: RegionalAutonomy; delegatedCompetences: string[]; regionIds: string[]; sovereigntyTransfer: { regionIds: string[]; toCountryId: string } }>;
     amendmentChanges?: Partial<AmendmentConstitution>;
   };
+  /** Fingerprint of { effectiveDate, payload } of the canonical enacted instrument this pending
+   *  was adopted from. A pending can never drift from its instrument. */
+  payloadFingerprint: string;
   status: AmendmentStatus;
   /** The court's constitutional powers (timing of control + available effects). Never the verdict itself. */
   judicialReview: { timing: JudicialTiming; effect: JudicialEffect };
@@ -207,7 +264,7 @@ export interface PendingAmendment {
     amendment?: Partial<AmendmentConstitution>;
   };
   /** Procedural block reason; never a court verdict. */
-  blockReason?: 'not_enacted' | 'judicial_review_unavailable';
+  blockReason?: 'not_enacted' | 'judicial_review_unavailable' | 'payload_invalid';
 }
 
 export interface ConstitutionState {
@@ -229,12 +286,14 @@ export const emptyConstitution = (): ConstitutionState => ({ version: CONSTITUTI
 
 const headOfStateFromRegistry = (institution: NationalInstitutions | undefined): HeadOfStateConstitution => {
   switch (institution?.executiveSystem) {
-    // The executive system alone never proves popular direct election or universal suffrage.
+    // The executive system alone never proves a precise selection method. In particular, a
+    // `parliamentary` (or `collective`) system does not prove that parliament selects the head of
+    // state: the method stays unavailable without adequate evidence.
     case 'presidential': return { selectionMethod: 'unavailable', suffrageMode: 'unavailable' };
     case 'semi_presidential': return { selectionMethod: 'unavailable', suffrageMode: 'unavailable' };
-    case 'parliamentary': return { selectionMethod: 'parliamentary', suffrageMode: 'unavailable' };
+    case 'parliamentary': return { selectionMethod: 'unavailable', suffrageMode: 'unavailable' };
     case 'monarchy_parliamentary': return { selectionMethod: 'hereditary', suffrageMode: 'unavailable' };
-    case 'collective': return { selectionMethod: 'parliamentary', suffrageMode: 'unavailable' };
+    case 'collective': return { selectionMethod: 'unavailable', suffrageMode: 'unavailable' };
     case 'other': return { selectionMethod: 'other', suffrageMode: 'unavailable' };
     default: return { selectionMethod: 'unavailable', suffrageMode: 'unavailable' };
   }
@@ -293,10 +352,12 @@ export function initializeConstitution(state: SimulationState, countryIds?: read
       election: electionFromRegistry(institution),
       rights: unavailableRights(),
       judicialReview: { courtExists: 'unavailable', appointment: 'unavailable', term: 'unavailable', timing: 'unavailable', effect: 'unavailable', accessors: [] },
-      territory: { organization: 'unavailable', regionalAutonomy: 'unavailable', delegatedCompetences: [] },
-      emergency: { status: 'none', justificationEpisodeIds: [], restrictions: { assembliesBanned: false, strikesBanned: false, policePowersEnhanced: false, bordersClosed: false } },
+      territory: { organization: 'unavailable', regionalAutonomy: 'unavailable', delegatedCompetences: [], devolvedPowers: [] },
+      emergency: { status: 'none', justificationEpisodeIds: [], restrictions: { assembliesBanned: false, strikesBanned: false, policePowersEnhanced: false, bordersClosed: false }, ministerialRecommendations: [] },
       protectedMaterialKeys: [],
       bindingEvents: [],
+      revisionEvents: [],
+      courtMembers: [],
     };
   }
   return { ...state, constitution: { version: CONSTITUTION_VERSION, initializedOn: state.date, countries, pendingAmendments: [] } };

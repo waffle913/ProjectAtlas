@@ -2,6 +2,8 @@ import type { SimulationState } from '../../types';
 import type { ProposalKind, ProposalPayloadByKind } from '../governance/model';
 import { politicalRegistry } from '../politics/registry';
 import { allocate } from '../socioeconomy/model';
+import type { HeadOfStateSelection } from '../constitution/model';
+import type { NationalInstitutions } from '../politics/model';
 
 export const ELECTIONS_VERSION = 'elections-0.23-v1';
 
@@ -13,6 +15,8 @@ export interface CampaignPromiseBase {
   partyId: string;
   countryId: string;
   madeOn: string;
+  /** The authorized actor (the party leader) who bound the party to the promise. */
+  madeByPersonId?: string;
   subject: string;
   status: PromiseStatus;
   credibilityBps: number;
@@ -45,8 +49,29 @@ export interface ElectionChamberState {
   seatsByParty: Record<string, number>;
   totalSeats: number;
   independentOtherSeats: number;
+  /** Seats a real election could not allocate (missing regional data, no eligible candidate,
+   *  threshold exclusions). Explicitly unknown — never silently dropped or re-invented. The
+   *  initial 2026 independents are resolved by the first real election and never kept forever. */
+  unallocatedSeats: number;
   lastElectionDate?: string;
   nextElectionDate?: string;
+  /** Real participation effect of the suffrage rules in force on the last election day. */
+  lastElectionTurnout?: { participationBps: number; eligibilityCoverage: 'complete' | 'partial' | 'unavailable'; limitation: string };
+}
+
+/** A dated head-of-state selection record: the constitutional selection mode, the winner, the
+ *  mandate (term/maxTerms when the constitution provides them) and the real participation effect
+ *  of the suffrage rules in force. */
+export interface HeadOfStateElectionRecord {
+  on: string;
+  method: HeadOfStateSelection;
+  winnerPersonId: string;
+  winnerPartyId: string;
+  termStart: string;
+  termEnd?: string;
+  participationBps?: number;
+  eligibilityCoverage: 'complete' | 'partial' | 'unavailable';
+  limitation: string;
 }
 
 export interface ElectionCountryState {
@@ -57,6 +82,12 @@ export interface ElectionCountryState {
   /** Dated trace of a direct executive election (appointmentMode elected_directly); a parliamentary
    *  election never writes this. */
   directElection?: { on: string; winnerPartyId: string; actorPersonId: string };
+  /** Recurring direct executive election deadline (appointmentMode elected_directly). */
+  nextDirectElectionDate?: string;
+  /** Dated head-of-state selection records (popular_direct / popular_indirect / parliamentary). */
+  headOfStateElections: HeadOfStateElectionRecord[];
+  /** Recurring head-of-state selection deadline, derived from the mandate (termYears). */
+  nextHeadOfStateElectionDate?: string;
 }
 
 export interface ElectionsState {
@@ -67,6 +98,15 @@ export interface ElectionsState {
 
 export const emptyElections = (): ElectionsState => ({ version: ELECTIONS_VERSION, countries: {} });
 
+/** The initial governing arrangement comes from the real confidence evidence, never an automatic
+ *  'majority' from a governingPartyIds list: the sourced confidenceArrangement decides. */
+const governmentConfidenceFrom = (institution: NationalInstitutions | undefined): GovernmentConfidence => {
+  if (!institution || institution.governingPartyIds.length === 0) return 'unavailable';
+  if (institution.confidenceArrangement === 'majority') return 'majority';
+  if (institution.confidenceArrangement === 'minority' || institution.confidenceArrangement === 'confidence_and_supply') return 'minority';
+  return 'unavailable';
+};
+
 /** Derive the dynamic seat allocation from the 0.13 registry's sourced chamber allocations and
  *  governing-bloc matches. This is a baseline snapshot, never a rewrite of the static registry. */
 export function initializeElections(state: SimulationState, countryIds?: readonly string[]): SimulationState {
@@ -75,13 +115,20 @@ export function initializeElections(state: SimulationState, countryIds?: readonl
   for (const countryId of ids) {
     const country = politicalRegistry.countries[countryId];
     const institution = country ? politicalRegistry.institutions[country.institutionId] : undefined;
-    const sourcedChambers = institution?.chambers.filter(c => c.seatAllocationStatus === 'sourced') ?? [];
+    const sourcedChambers = institution?.chambers ?? [];
     const chambers: Record<string, ElectionChamberState> = {};
     const allPartyIds = new Set<string>();
     for (const chamber of sourcedChambers) {
-      const seatsByParty = { ...chamber.seatsByParty };
+      // Every chamber keeps its identity in the dynamic state — including chambers whose 2026
+      // allocation is unavailable — so a future election can produce a real dynamic allocation.
+      const seatsByParty = chamber.seatAllocationStatus === 'sourced' ? { ...chamber.seatsByParty } : {};
       for (const partyId of Object.keys(seatsByParty)) allPartyIds.add(partyId);
-      chambers[chamber.id] = { chamberId: chamber.id, seatsByParty, totalSeats: chamber.totalSeats ?? Object.values(seatsByParty).reduce((a, b) => a + b, 0), independentOtherSeats: chamber.independentOtherSeats ?? 0, lastElectionDate: chamber.electionDate, nextElectionDate: chamber.termEnd };
+      chambers[chamber.id] = {
+        chamberId: chamber.id, seatsByParty, totalSeats: chamber.totalSeats ?? 0,
+        independentOtherSeats: chamber.seatAllocationStatus === 'sourced' ? (chamber.independentOtherSeats ?? 0) : 0,
+        unallocatedSeats: 0,
+        lastElectionDate: chamber.electionDate, nextElectionDate: chamber.termEnd,
+      };
     }
     const parties: Record<string, PartyElectionState> = {};
     for (const partyId of politicalRegistry.countries[countryId]?.partyIds ?? []) {
@@ -90,8 +137,9 @@ export function initializeElections(state: SimulationState, countryIds?: readonl
     }
     countries[countryId] = {
       countryId, chambers,
-      government: { coalitionPartyIds: institution?.governingPartyIds ?? [], confidence: institution?.governingPartyIds.length ? 'majority' : 'unavailable' },
+      government: { coalitionPartyIds: institution?.governingPartyIds ?? [], confidence: governmentConfidenceFrom(institution) },
       parties,
+      headOfStateElections: [],
     };
   }
   return { ...state, elections: { version: ELECTIONS_VERSION, initializedOn: state.date, countries } };
