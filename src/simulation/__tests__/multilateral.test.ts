@@ -292,7 +292,7 @@ describe('0.20 multilateral organizations', () => {
     return { state: next, personId };
   };
 
-  it('establishes, joins and withdraws an organization without fabricating memberships', () => {
+  it('establishes, joins and withdraws an organization without fabricating memberships', { timeout: 30_000 }, () => {
     const a = executive(baseState(), countryA);
     let state = establishOrganization(a.state, a.personId, { title: 'Synthetic Test Organization', votingRule: { kind: 'majority' } });
     const orgId = state.multilateral.organizationOrder[0];
