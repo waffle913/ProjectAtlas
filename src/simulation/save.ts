@@ -30,7 +30,8 @@ import { institutionalStakesFingerprint } from './governance/institutionalIntere
 
 /** Idempotent intra-schema-19 backfill for saves written before pendingAmendments, per-chamber
  *  elections, cabinets, organization banEvents, episode-identity emergencies and the renamed
- *  `rightsChanges` amendment field were introduced. Present fields are never rewritten. */
+ *  `rightsChanges` amendment field were introduced. Present canonical fields are never rewritten;
+ *  the legacy singular `rightChanges` spelling is renamed away, never kept alongside it. */
 function backfillSchema19(state: SimulationState): SimulationState {
   let next = state;
   const rightsKeys = ['expression', 'press', 'assembly', 'association', 'religion', 'equalityBeforeLaw', 'antiDiscrimination', 'privateProperty', 'privacy', 'fairTrial', 'protectionFromArbitraryArrest', 'strike', 'union', 'vote', 'health', 'education', 'socialProtection'] as const;
@@ -66,11 +67,18 @@ function backfillSchema19(state: SimulationState): SimulationState {
   const pendingAmendments = (state.constitution.pendingAmendments ?? []).map(amendment => {
     let updated = { ...amendment };
     let changed = false;
-    const payload = updated.payload as unknown as { rightChanges?: unknown } & NonNullable<(typeof updated)['payload']>;
-    if (payload.rightsChanges === undefined && payload.rightChanges !== undefined) {
-      updated = { ...updated, payload: { ...updated.payload, rightsChanges: payload.rightChanges } as typeof updated.payload };
+    const legacyPayload = updated.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown } & NonNullable<(typeof updated)['payload']>;
+    if (legacyPayload.rightChanges !== undefined) {
+      // The legacy singular field is renamed, not copied: the migrated payload is canonical and
+      // never carries both spellings, even when a save written by the faulty copy migration holds
+      // both. The fingerprint is recomputed over the payload actually migrated.
+      const { rightChanges: _legacyRename, ...rest } = legacyPayload;
+      const renamedPayload = { ...rest, ...(legacyPayload.rightsChanges === undefined ? { rightsChanges: legacyPayload.rightChanges } : {}) } as typeof updated.payload;
+      updated = { ...updated, payload: renamedPayload, payloadFingerprint: governanceFingerprint({ effectiveDate: updated.applyOn, payload: renamedPayload }) };
       changed = true;
     }
+    // All downstream payload reads (appliedPrior→appliedInverse, fingerprint) use the migrated payload.
+    const payload = updated.payload as unknown as typeof legacyPayload;
     if (updated.status === undefined) {
       const legacyDecision = updated.decision as unknown as { timing?: unknown; outcome?: string; effect?: string; on?: string } | undefined;
       if (legacyDecision && 'timing' in legacyDecision) {
@@ -133,9 +141,9 @@ function backfillSchema19(state: SimulationState): SimulationState {
   // proposal is not mistaken for a mismatch.
   const canonicalPayload = (payloadValue: unknown): Record<string, unknown> => {
     const record = (payloadValue ?? {}) as Record<string, unknown> & { rightChanges?: unknown; rightsChanges?: unknown };
-    if (record.rightsChanges === undefined && record.rightChanges !== undefined) {
+    if (record.rightChanges !== undefined) {
       const { rightChanges: _legacyRename, ...rest } = record;
-      return { ...rest, rightsChanges: record.rightChanges };
+      return record.rightsChanges === undefined ? { ...rest, rightsChanges: record.rightChanges } : rest;
     }
     return record;
   };
@@ -272,9 +280,13 @@ function backfillSchema19(state: SimulationState): SimulationState {
   for (const [id, original] of Object.entries(state.governance.proposals)) {
     let current = original;
     if (current.kind === 'constitutional_amendment') {
-      const payload = current.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown };
-      if (payload.rightsChanges === undefined && payload.rightChanges !== undefined) {
-        const renamed = { ...current.payload, rightsChanges: payload.rightChanges } as typeof current.payload;
+      const legacyPayload = current.payload as unknown as { rightChanges?: unknown; rightsChanges?: unknown };
+      if (legacyPayload.rightChanges !== undefined) {
+        // The legacy singular field is renamed, not copied: the migrated payload never carries
+        // both spellings, even for saves written by the faulty copy migration. An existing
+        // submitted fingerprint is recomputed over the canonical cleaned payload.
+        const { rightChanges: _legacyRename, ...rest } = legacyPayload;
+        const renamed = { ...rest, ...(legacyPayload.rightsChanges === undefined ? { rightsChanges: legacyPayload.rightChanges } : {}) } as typeof current.payload;
         current = { ...current, payload: renamed, ...(current.submittedPayloadFingerprint ? { submittedPayloadFingerprint: governanceFingerprint({ effectiveDate: current.effectiveDate, payload: renamed }) } : {}) } as typeof current;
         proposalsChanged = true;
         // No early exit: a proposal that needed the field rename may ALSO need the institutional

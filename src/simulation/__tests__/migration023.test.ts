@@ -75,12 +75,14 @@ describe('0.23 migrations and discriminated drafting', () => {
     expect(restoredEntry.emergency.unjustifiedSince).toBe(restored.date);
     const restoredProposal = restored.governance.proposals[proposalId];
     expect((restoredProposal.payload as { rightsChanges?: unknown }).rightsChanges).toEqual({ strike: 'guaranteed' });
+    expect('rightChanges' in (restoredProposal.payload as { rightsChanges?: unknown; rightChanges?: unknown })).toBe(false);
     // The bound pending is migrated with its canonical relation intact; the orphan is gone.
     expect(restored.constitution.pendingAmendments).toHaveLength(1);
     expect(restored.constitution.pendingAmendments.map(pending => pending.instrumentId)).toEqual([proposalId]);
     const pending = restored.constitution.pendingAmendments[0];
     expect(pending.status).toBe('blocked');
     expect((pending.payload as { rightsChanges?: unknown }).rightsChanges).toEqual({ strike: 'guaranteed' });
+    expect('rightChanges' in (pending.payload as { rightsChanges?: unknown; rightChanges?: unknown })).toBe(false);
     expect((pending as { decision?: unknown }).decision).toBeUndefined();
   });
 
