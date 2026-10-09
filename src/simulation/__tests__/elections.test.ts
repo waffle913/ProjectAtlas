@@ -261,13 +261,13 @@ describe('0.23 elections engine', () => {
     const dynamicSeats = Object.values(next.elections.countries[countryId].chambers).reduce((sum, chamber) => sum + (chamber.seatsByParty[dynamicId] ?? 0), 0);
     expect(dynamicParty!.currentSeats).toBe(dynamicSeats);
     // A banned dynamic party leaves the ballot: it receives no seats and gains no party record.
-    const banned = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [dynamicId]: { ...state.politics.organizations[dynamicId], status: 'banned' } } } };
+    const banned = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [dynamicId]: { ...state.politics.organizations[dynamicId], status: 'banned' as const } } } };
     const bannedResult = runElection(banned, countryId);
     const bannedSeats = Object.values(bannedResult.elections.countries[countryId].chambers).reduce((sum, chamber) => sum + (chamber.seatsByParty[dynamicId] ?? 0), 0);
     expect(bannedSeats).toBe(0);
     expect(bannedResult.elections.countries[countryId].parties[dynamicId]).toBeUndefined();
     // A dissolved dynamic party leaves the ballot the same way.
-    const dissolved = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [dynamicId]: { ...state.politics.organizations[dynamicId], status: 'dissolved' } } } };
+    const dissolved = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [dynamicId]: { ...state.politics.organizations[dynamicId], status: 'dissolved' as const } } } };
     const dissolvedResult = runElection(dissolved, countryId);
     const dissolvedSeats = Object.values(dissolvedResult.elections.countries[countryId].chambers).reduce((sum, chamber) => sum + (chamber.seatsByParty[dynamicId] ?? 0), 0);
     expect(dissolvedSeats).toBe(0);

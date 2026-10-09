@@ -127,7 +127,10 @@ describe('0.23 governance procedures', () => {
       ['income_security', context.incomeSecurity.valueBps],
       ['infrastructure', context.infrastructure.valueBps],
     ];
-    const positions = { ...(oppositionOrganization?.currentPositions ?? {}) };
+    // The opposition's party line is built from the organization's canonical complete currentPositions
+    // (a true Record<PoliticalIssue, number>), then opposed to the government's record on every
+    // evaluated issue — absent positions are never arbitrarily filled with zeros.
+    const positions: Record<PoliticalIssue, number> = { ...(oppositionOrganization?.currentPositions ?? ({} as Record<PoliticalIssue, number>)) };
     for (const [issue, outcome] of outcomes) if (outcome !== undefined) positions[issue as PoliticalIssue] = outcome >= 5_000 ? 0 : 10_000;
     const withResponsibility = {
       ...legislated,
