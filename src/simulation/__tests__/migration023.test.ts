@@ -68,7 +68,11 @@ describe('0.23 migrations and discriminated drafting', () => {
     const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
     expect(restored.governance.cabinets).toEqual({});
     const restoredEntry = restored.constitution.countries[countryId];
-    expect(restoredEntry.emergency.justificationEpisodeIds.length).toBeGreaterThan(0);
+    // The legacy emergency recorded only the crisis TYPE; the historical episode identity cannot
+    // be reconstructed (the current episode of that type may be a new one), so the migration
+    // preserves the uncertainty instead of fabricating an episode link.
+    expect(restoredEntry.emergency.justificationEpisodeIds).toEqual([]);
+    expect(restoredEntry.emergency.unjustifiedSince).toBe(restored.date);
     const restoredProposal = restored.governance.proposals[proposalId];
     expect((restoredProposal.payload as { rightsChanges?: unknown }).rightsChanges).toEqual({ strike: 'guaranteed' });
     // The bound pending is migrated with its canonical relation intact; the orphan is gone.
