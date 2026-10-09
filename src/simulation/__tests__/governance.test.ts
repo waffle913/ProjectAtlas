@@ -115,6 +115,7 @@ describe('governance 0.15 contextual leadership succession', () => {
   it('resolves the same one-time tendency, identity, evidence and profile deterministically without persistent faction or scheduler state', () => {
     const repeated = replacePartyLeader(start, record.partyId);
     expect(repeated.governance).toEqual(generated.governance);
+    expect(repeated.politics).toEqual(generated.politics);
     expect(record.selection).toBe('modelled_internal_balance');
     expect(record.contextEvidence?.method).toBe('internal_party_balance_succession_v1');
     const successor = generated.governance.persons[record.newPersonId];
@@ -125,7 +126,24 @@ describe('governance 0.15 contextual leadership succession', () => {
     expect(record.contextEvidence!.profileFingerprint).toBe(governanceFingerprint(successor.leaderProfile));
     expect(Object.keys(generated)).toEqual(Object.keys(start));
     expect(Object.keys(generated.governance)).toEqual(Object.keys(start.governance));
-    for (const key of Object.keys(start) as Array<keyof SimulationState>) if (key !== 'governance') expect(generated[key]).toBe(start[key]);
+    // The succession mutates governance (persons and succession history) and the canonical party
+    // membership record alone; every other root domain keeps its exact start reference.
+    for (const key of Object.keys(start) as Array<keyof SimulationState>) if (key !== 'governance' && key !== 'politics') expect(generated[key]).toBe(start[key]);
+    // The canonical membership record mirrors the persons: the former leader stays a plain member
+    // and the generated successor holds the leader role.
+    const members = generated.politics.organizations[record.partyId].members;
+    expect(members[record.previousPersonId]).toMatchObject({ personId: record.previousPersonId, role: 'member' });
+    expect(members[record.newPersonId]).toMatchObject({ personId: record.newPersonId, role: 'leader' });
+    // The synchronization is not a general politics mutation: opinion, country political state and
+    // every other organization keep their exact references, and the concerned party only rebuilt
+    // its members record.
+    expect(generated.politics.countries).toBe(start.politics.countries);
+    expect(generated.politics.regionalOpinion).toBe(start.politics.regionalOpinion);
+    for (const organizationId of Object.keys(generated.politics.organizations)) if (organizationId !== record.partyId) expect(generated.politics.organizations[organizationId]).toBe(start.politics.organizations[organizationId]);
+    const startPartyOrganization = start.politics.organizations[record.partyId];
+    const generatedPartyOrganization = generated.politics.organizations[record.partyId];
+    expect(generatedPartyOrganization.currentPositions).toBe(startPartyOrganization.currentPositions);
+    expect(generatedPartyOrganization.members).not.toBe(startPartyOrganization.members);
     expect(Object.keys(generated.governance.persons)).toHaveLength(Object.keys(start.governance.persons).length + 1);
     expect(generated.governance.proposals).toBe(start.governance.proposals);
     expect(generated.governance.successionOrder).toEqual([record.id]);
