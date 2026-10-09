@@ -4,7 +4,8 @@ import type { SimulationScheduler } from '../scheduler';
 import { allocate, ratio } from '../socioeconomy/model';
 import { aggregateNationalSupport } from './aggregation';
 import { cohortTraits, effectivePartyProfile, evolvePositionsWithCurrents, initialPreferences, organizationStateFor, partyOrganizationStateFor, politicalExperienceFor, supportFor } from './initialization';
-import { POLITICAL_ISSUES, POLITICS_MODEL as M, type CohortPoliticalOpinion, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
+import { POLITICAL_ISSUES, POLITICS_MODEL as M, type CohortPoliticalOpinion, type OrganizationFundingEvent, type OrganizationPoliticalState, type PoliticalIssue, type PoliticalParty, type RegionalPoliticalOpinion } from './model';
+import type { ElectionCountryState } from '../elections/model';
 import { politicalRegistry } from './registry';
 import { deterministicFingerprint } from '../fingerprint';
 import { rightsBasisFor } from '../constitution/runtime';
@@ -37,7 +38,7 @@ const dynamicOrganizationPositionsFor = (state: SimulationState, organization: O
   return Object.fromEntries(POLITICAL_ISSUES.map((issue, index) => {
     const target = persons ? Math.round(weighted[index] / persons) : 5_000;
     const prior = organization.currentPositions[issue];
-    return [issue, blend(prior, target, POLITICS_MODEL.organizationInertiaBps)];
+    return [issue, blend(prior, target, M.organizationInertiaBps)];
   })) as Record<PoliticalIssue, number>;
 };
 const serviceCoverage = (state: SimulationState, countryId: string, infrastructure = false) => {
@@ -223,7 +224,8 @@ export function dissolveOrganization(state: SimulationState, organizationId: str
   const legalBasis = rightsBasisRecord(state, countryId);
   if (legalBasis.basis === 'unavailable') throw new Error('A dissolution requires a known constitutional rights basis; an unavailable basis cannot ground it.');
   const dissolutionEvents = [...(organization.dissolutionEvents ?? []), { date: state.date, actorPersonId, motive: motive.trim(), legalBasis }];
-  const dissolved = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'dissolved', dissolutionEvents } } } };
+  const dissolvedOrganization: OrganizationPoliticalState = { ...organization, status: 'dissolved', dissolutionEvents };
+  const dissolved: SimulationState = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: dissolvedOrganization } } };
   return reconcilePartyInstitutions(dissolved, organizationId);
 }
 
@@ -242,7 +244,8 @@ export function banOrganization(state: SimulationState, organizationId: string, 
   const legalBasis = rightsBasisRecord(state, countryId);
   if (legalBasis.basis === 'unavailable') throw new Error('A ban requires a known constitutional rights basis; an unavailable basis cannot ground it.');
   const banEvents = [...organization.banEvents, { date: state.date, actorPersonId, motive: motive.trim(), evidence: evidence.trim(), legalBasis }];
-  const banned = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: { ...organization, status: 'banned', banEvents } } } };
+  const bannedOrganization: OrganizationPoliticalState = { ...organization, status: 'banned', banEvents };
+  const banned: SimulationState = { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: bannedOrganization } } };
   return reconcilePartyInstitutions(banned, organizationId);
 }
 
@@ -640,10 +643,13 @@ export function negotiateUnionClaim(state: SimulationState, organizationId: stri
     // component moves to the agreed rate. Only the head of government holds the initiative; a
     // minister's acceptance is recorded as a pending government response.
     if (actor.office!.role === 'head_of_government' && claim.issue === 'labour_protection') {
-      const current = next.fiscal.countries[countryId]?.policy?.payroll;
-      if (current) {
+      const currentPolicy = next.fiscal.countries[countryId]?.policy;
+      if (currentPolicy?.payroll) {
         try {
-          const payload: FiscalProposalPayload = { policy: { payroll: { ...structuredClone(current), rateBps: undefined, bands: undefined, employee: [{ rateBps: agreedBps }] } } };
+          // The real payroll lever: the current legal policy (all tax kinds) with the payroll
+          // rule's employee component moved to the agreed rate — never a fabricated partial Policy.
+          const payroll = { ...structuredClone(currentPolicy.payroll), rateBps: undefined, bands: undefined, employee: [{ rateBps: agreedBps }] };
+          const payload: FiscalProposalPayload = { policy: { ...currentPolicy, payroll } };
           next = createFiscalProposal(next, { proposerPersonId: actorPersonId, countryId, effectiveDate: state.date, payload });
           acceptedIntoProposalId = next.governance.proposalOrder[next.governance.proposalOrder.length - 1];
         } catch {

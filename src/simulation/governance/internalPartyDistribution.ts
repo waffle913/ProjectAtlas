@@ -3,7 +3,7 @@ import { deterministicFingerprint } from '../fingerprint';
 import { scaledRatioSigned } from '../integerMath';
 import { evaluateProfileForPublic, GOVERNANCE_VOTE_THRESHOLDS } from './analysis';
 import { applyInstitutionalAgreement, institutionalSensitivityBps } from './institutionalInterest';
-import type { GovernanceGoal, PartyGoalProfile, PartyInternalVoteDistribution, PartyIssuePreference, PartyProposalEvaluation, PartySeatAllocation, ProposalAnalysis } from './model';
+import type { EvaluationCoverage, GovernanceGoal, PartyGoalProfile, PartyInternalVoteDistribution, PartyIssuePreference, PartyProposalEvaluation, PartySeatAllocation, ProposalAnalysis } from './model';
 
 export const INTERNAL_PARTY_DISTRIBUTION_MODEL = Object.freeze({
   method: 'continuous_issue_distribution_v1' as const,

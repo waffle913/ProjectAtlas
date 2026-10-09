@@ -1005,7 +1005,7 @@ export function holdReferendum(state: SimulationState, proposalIdValue: string, 
   const electionRules = state.constitution.countries[proposal.countryId]?.election;
   const eligibility = referendumEligibility(electionRules);
   const adopted = participation.participationBps > 0 && supportBps > opposeBps;
-  const coverage = publicEstimate.coverage === 'unavailable' ? 'unavailable' : (publicEstimate.coverage === 'complete' && eligibility.coverage === 'complete' ? 'complete' : 'partial');
+  const coverage: 'complete' | 'partial' | 'unavailable' = publicEstimate.coverage === 'unavailable' ? 'unavailable' : (publicEstimate.coverage === 'complete' && eligibility.coverage === 'complete' ? 'complete' : 'partial');
   const referendumResult = {
     heldOn: state.date,
     adopted,

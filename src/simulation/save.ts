@@ -76,7 +76,7 @@ function backfillSchema19(state: SimulationState): SimulationState {
       if (legacyDecision && 'timing' in legacyDecision) {
         // Old verdict shape { timing, effect, outcome } → translate to the new verdict shape.
         if (legacyDecision.outcome === 'annulled') {
-          updated = { ...updated, status: 'annulled', decision: { outcome: 'annulled', effect: (legacyDecision.effect ?? 'unavailable') as typeof updated.decision extends { effect: infer E } ? E : never, on: legacyDecision.on ?? state.date } };
+          updated = { ...updated, status: 'annulled', decision: { outcome: 'annulled', effect: (legacyDecision.effect ?? 'unavailable') as typeof updated.decision extends { effect: infer E } ? E : never, on: legacyDecision.on ?? state.date, grounds: ['Recorded under the pre-traceability decision model; the institutional grounds were not persisted.'] } };
         } else if (legacyDecision.outcome === 'promulgated') {
           const { decision: _decision, ...rest } = updated as unknown as { decision?: unknown };
           updated = { ...rest, status: 'promulgated' } as typeof updated;

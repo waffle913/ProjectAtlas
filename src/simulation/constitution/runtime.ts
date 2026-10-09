@@ -223,9 +223,11 @@ function institutionalVerdict(state: SimulationState, amendment: PendingAmendmen
   // 2. Substantive review of the text against the norms currently in force.
   const payload = amendment.payload;
   if (payload.rightsChanges && entry) {
-    for (const [field, after] of Object.entries(payload.rightsChanges)) {
-      const before = (entry.rights as Record<string, string | undefined>)[field];
-      const beforeStrength = rightStrength(before), afterStrength = rightStrength(after as string | undefined);
+    for (const [fieldValue, afterValue] of Object.entries(payload.rightsChanges)) {
+      const field = fieldValue as keyof ConstitutionalRights;
+      const before: string | undefined = entry.rights[field];
+      const after: string | undefined = typeof afterValue === 'string' ? afterValue : undefined;
+      const beforeStrength = rightStrength(before), afterStrength = rightStrength(after);
       if (beforeStrength !== undefined && afterStrength !== undefined && afterStrength < beforeStrength) {
         findings.push(`The text weakens the constitutional right ${field} (${before} -> ${after}); the constitution in force guarantees ${field} at ${before}.`);
       }

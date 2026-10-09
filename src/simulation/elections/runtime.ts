@@ -60,23 +60,25 @@ const registryIndexFor = (countryId: string, partyId: string): number => partyId
 const dynamicPartyProfile = (state: SimulationState, partyId: string): PoliticalParty | undefined => {
   const organization = state.politics.organizations[partyId];
   if (!organization?.currentPositions) return undefined;
-  return {
-    id: partyId,
-    countryId: organization.countryId ?? '',
-    displayName: organization.displayName ?? partyId,
-    fictional: true,
-    provenance: politicalRegistry.parties[partyId]?.provenance ?? politicalRegistry.countries[organization.countryId ?? '']?.coverage.partyBasis
-      ? { status: 'modelled', referenceDate: state.date, retrievedAt: state.date, source: 'dynamic_organization', limitation: 'Modelled ballot profile of a dynamically registered party.' }
-      : { status: 'modelled', referenceDate: state.date, retrievedAt: state.date, source: 'dynamic_organization', limitation: 'Modelled ballot profile of a dynamically registered party.' },
-    sourceBasis: { sourcePartyId: partyId, sourcePartyName: organization.displayName ?? partyId },
-    ideology: Object.fromEntries(IDEOLOGY_DIMENSIONS.map(dimension => [dimension, 5_000])) as Record<typeof IDEOLOGY_DIMENSIONS[number], number>,
-    issuePositions: Object.fromEntries(POLITICAL_ISSUES.map(issue => [issue, {
+  const issuePositions = {} as Record<PoliticalIssue, IssuePosition>;
+  for (const issue of POLITICAL_ISSUES) {
+    issuePositions[issue] = {
       preferenceBps: organization.currentPositions[issue],
       intensityBps: 5_000,
       confidenceBps: 5_000,
       materialInterests: [],
       ideologicalPrior: 'modelled_dynamic_party_line',
-    }])) as Record<PoliticalIssue, IssuePosition>,
+    };
+  }
+  return {
+    id: partyId,
+    countryId: organization.countryId ?? '',
+    displayName: organization.displayName ?? partyId,
+    fictional: true,
+    provenance: { status: 'modelled', referenceDate: state.date, retrievedAt: state.date, source: 'dynamic_organization', limitation: 'Modelled ballot profile of a dynamically registered party.' },
+    sourceBasis: { sourcePartyId: partyId, sourcePartyName: organization.displayName ?? partyId },
+    ideology: Object.fromEntries(IDEOLOGY_DIMENSIONS.map(dimension => [dimension, 5_000])) as Record<typeof IDEOLOGY_DIMENSIONS[number], number>,
+    issuePositions,
     constituencies: [],
     politicalFamily: { status: 'modelled' as const },
     ideologicalBasis: {
@@ -167,19 +169,33 @@ const promiseEvaluationNetBps = (state: SimulationState, countryId: string, prom
   return persons > 0 ? Math.round(net / persons) : 0;
 };
 
-/** A synthetic proposal for the promise content evaluation: the promised payload, never applied. */
-const promiseProposalFor = (state: SimulationState, countryId: string, promise: CampaignPromise): PoliticalProposal => ({
-  id: `promise.evaluation.${promise.id}`,
-  countryId,
-  proposerPersonId: '',
-  createdOn: state.date,
-  kind: promise.promisedKind,
-  instrumentClass: promise.promisedKind === 'fiscal_reform' ? 'law' : 'constitutional_amendment',
-  payload: structuredClone(promise.promisedPayload ?? {}) as ProposalPayloadByKind[typeof promise.promisedKind],
-  status: 'draft',
-  effectiveDate: state.date,
-  effects: [],
-});
+/** A synthetic proposal for the promise content evaluation: the promised payload, never applied.
+ *  The kind discriminates the branch, so each branch builds the exactly-typed payload. */
+const promiseProposalFor = (state: SimulationState, countryId: string, promise: CampaignPromise): PoliticalProposal => {
+  const base = {
+    id: `promise.evaluation.${promise.id}`,
+    countryId,
+    proposerPersonId: '',
+    createdOn: state.date,
+    status: 'draft' as const,
+    effectiveDate: state.date,
+    effects: [],
+  };
+  if (promise.promisedKind === 'fiscal_reform') {
+    return {
+      ...base,
+      kind: 'fiscal_reform',
+      instrumentClass: 'law',
+      payload: structuredClone(promise.promisedPayload ?? {}) as ProposalPayloadByKind['fiscal_reform'],
+    };
+  }
+  return {
+    ...base,
+    kind: 'constitutional_amendment',
+    instrumentClass: 'constitutional_amendment',
+    payload: structuredClone(promise.promisedPayload ?? {}) as ProposalPayloadByKind['constitutional_amendment'],
+  };
+};
 
 const adjustForCredibility = (state: SimulationState, countryId: string, votes: Record<string, number>, entry: ElectionCountryState): Record<string, number> => {
   const adjusted: Record<string, number> = {};

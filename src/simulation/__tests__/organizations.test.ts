@@ -16,7 +16,7 @@ function withOrganization(): { state: SimulationState; organizationId: string } 
   const organizationId = 'organization.synthetic-test';
   const entry: OrganizationPoliticalState = {
     organizationId, currentPositions: {} as Record<PoliticalIssue, number>, lastUpdatedOn: state.date, recentDrivers: [],
-    status: 'active', members: {}, fundsUsd: 0, internalCurrents: {}, banEvents: [], fundingEvents: [{ on: state.date, amountUsd: 0, kind: 'seed' }], strikeFundUsd: 0, claims: [], dissolutionEvents: [], countryId: worldCountryIds[0], type: 'association', displayName: 'Synthetic test organization', source: 'dynamic',
+    status: 'active', members: {}, fundsUsd: 0, internalCurrents: {}, banEvents: [], fundingEvents: [{ on: state.date, amountUsd: 0, kind: 'seed' }], strikeFundUsd: 0, claims: [], dissolutionEvents: [], activeStrikes: [], countryId: worldCountryIds[0], type: 'association', displayName: 'Synthetic test organization', source: 'dynamic',
   };
   return { state: { ...state, politics: { ...state.politics, organizations: { ...state.politics.organizations, [organizationId]: entry } } }, organizationId };
 }
@@ -62,7 +62,7 @@ describe('0.23 organizations', () => {
     const { state, organizationId } = withOrganization();
     const actorId = state.governance.player.controlledPersonId!;
     let next = banOrganization(state, organizationId, actorId, 'Procedural ban', 'Documented evidence.');
-    next = appealBan(next, organizationId);
+    next = appealBan(next, organizationId, actorId);
     expect(next.politics.organizations[organizationId].status).toBe('banned');
     expect(next.politics.organizations[organizationId].banEvents.at(-1)!.appealedOn).toBe(state.date);
     next = resolveBanAppeal(next, organizationId, actorId, 'restore');
@@ -121,7 +121,7 @@ describe('0.23 organizations', () => {
     // The strike drew down the reserved strike fund; the ledger reconciles exactly.
     expect(state.politics.organizations[unionId].strikeFundUsd).toBe(2_000);
     expect(state.politics.organizations[unionId].fundsUsd).toBe(2_000);
-    const withEmergency = { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], emergency: { status: 'active' as const, justificationEpisodeIds: [], restrictions: { assembliesBanned: false, strikesBanned: true, policePowersEnhanced: false, bordersClosed: false } } } } } };
+    const withEmergency = { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [countryId]: { ...state.constitution.countries[countryId], emergency: { status: 'active' as const, justificationEpisodeIds: [], ministerialRecommendations: [], restrictions: { assembliesBanned: false, strikesBanned: true, policePowersEnhanced: false, bordersClosed: false } } } } } };
     expect(() => runOrganizationAction(withEmergency, unionId, 'strike')).toThrow(/banned under the state of emergency/);
   });
 
