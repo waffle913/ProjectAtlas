@@ -86,7 +86,15 @@ describe('full-world governance and leadership 0.15 benchmark', () => {
     const succession = contextual.governance.successions[contextual.governance.successionOrder.at(-1)!];
     expect(succession.selection).toBe('modelled_internal_balance');
     expect(succession.contextEvidence?.profileFingerprint).toBeDefined();
-    expect(contextual.politics).toBe(state.politics); expect(contextual.engine).toBe(state.engine);
+    // The succession leaves the engine and the non-organizational political data untouched; only
+    // the concerned party's canonical membership record is synchronized with governance.persons.
+    expect(contextual.engine).toBe(state.engine);
+    expect(contextual.politics.countries).toBe(state.politics.countries);
+    expect(contextual.politics.regionalOpinion).toBe(state.politics.regionalOpinion);
+    const contextualMembers = contextual.politics.organizations[successionPartyId].members;
+    expect(contextualMembers[succession.previousPersonId]).toMatchObject({ role: 'member' });
+    expect(contextualMembers[succession.newPersonId]).toMatchObject({ role: 'leader' });
+    for (const organizationId of Object.keys(contextual.politics.organizations)) if (organizationId !== successionPartyId) expect(contextual.politics.organizations[organizationId]).toBe(state.politics.organizations[organizationId]);
     const contextualSuccessionSaveDeltaBytes = Buffer.byteLength(serializeSimulationState(contextual, worldContext)) - Buffer.byteLength(serialized);
     const contextualSuccessionEvidenceBytes = Buffer.byteLength(JSON.stringify(succession.contextEvidence));
     expect(snapshot.governance).toBe(cache(state).governance); expect(leaders).toHaveLength(parties.length);
