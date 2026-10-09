@@ -1274,7 +1274,9 @@ export function censureGovernment(state: SimulationState, countryId: string, act
   let votingSeats = 0;
   for (const chamber of Object.values(entry.chambers)) {
     if (!confidenceChamberIds.includes(chamber.chamberId)) continue;
-    votingSeats += Math.max(0, chamber.totalSeats - chamber.independentOtherSeats);
+    // Independents and explicitly unallocated seats never produce a vote in the model, so neither
+    // enters the censure denominator.
+    votingSeats += Math.max(0, chamber.totalSeats - chamber.independentOtherSeats - chamber.unallocatedSeats);
     for (const [partyId, count] of Object.entries(chamber.seatsByParty)) seats[partyId] = (seats[partyId] ?? 0) + count;
   }
   const censureEffect: InstitutionalPowerTransfer = {
@@ -1283,7 +1285,9 @@ export function censureGovernment(state: SimulationState, countryId: string, act
     explanation: 'A successful censure removes the current executive.',
   };
   let yesSeats = 0, noSeats = 0, abstainSeats = 0;
-  for (const partyId of politicalRegistry.countries[countryId]?.partyIds ?? []) {
+  // Every party holding seats in the confidence chamber votes — including dynamic parties. A party
+  // with no modelled profile evaluates as unavailable (unknown), never as a silent exclusion.
+  for (const partyId of Object.keys(seats)) {
     const partySeats = seats[partyId] ?? 0;
     if (partySeats <= 0) continue;
     const material = governmentRecordPartyEvaluation(state, countryId, partyId);
@@ -1324,7 +1328,17 @@ export function censureGovernment(state: SimulationState, countryId: string, act
       const leader = Object.values(next.governance.persons).find(p => p.status === 'active' && p.countryId === countryId && p.partyId === leading[0] && p.isPartyLeader);
       if (leader && leader.id !== head?.id) {
         next = transferPoliticalOffice(next, leader.id, { role: 'head_of_government', countryId });
-        next = { ...next, elections: { ...next.elections, countries: { ...next.elections.countries, [countryId]: { ...entry, government: { coalitionPartyIds: [leading[0]], confidence: leading[1] * 2 > votingSeats ? 'majority' : 'minority' } } } } };
+        const coalitionPartyIds = [leading[0]];
+        const confidence = leading[1] * 2 > votingSeats ? 'majority' as const : 'minority' as const;
+        // The new governing coalition must reconcile with every recorded party's government status,
+        // including a dynamic party that leads the confidence chamber.
+        const parties: typeof entry.parties = {};
+        for (const [partyId, previous] of Object.entries(entry.parties)) parties[partyId] = { ...previous, governmentStatus: coalitionPartyIds.includes(partyId) ? 'government' : 'opposition', promises: previous.promises };
+        for (const [partyId, organization] of Object.entries(next.politics.organizations)) {
+          if (parties[partyId] || organization.type !== 'party' || organization.source !== 'dynamic' || organization.countryId !== countryId || organization.status !== 'active') continue;
+          parties[partyId] = { partyId, currentSeats: seats[partyId] ?? 0, governmentStatus: coalitionPartyIds.includes(partyId) ? 'government' : 'opposition', promises: [] };
+        }
+        next = { ...next, elections: { ...next.elections, countries: { ...next.elections.countries, [countryId]: { ...entry, government: { coalitionPartyIds, confidence }, parties } } } };
       }
     }
   } else if (appointmentMode === 'elected_directly') {

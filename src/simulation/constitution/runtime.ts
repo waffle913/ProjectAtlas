@@ -598,6 +598,7 @@ function applyConstitutionalAmendment(state: SimulationState, proposal: { id: st
     // Regional autonomy is linked to real powers: the devolved competences are attached to the
     // Regions the amendment actually grants autonomy to, with dated provenance.
     if (regionIds?.length) {
+      if (!competences?.length) throw new Error('Regional autonomy devolution requires at least one delegated competence; none were supplied.');
       for (const regionId of regionIds) {
         if (next.regionOwnership[regionId] !== proposal.countryId) throw new Error(`Region ${regionId} is not owned by ${proposal.countryId}; autonomy cannot be devolved to it.`);
       }

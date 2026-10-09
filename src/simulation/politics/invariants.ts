@@ -62,8 +62,11 @@ export const politicsInvariant: SimulationInvariant = { id: 'national-politics',
     // organization is dissolved, and a ban trace whose last judgment is not a restore implies it
     // is banned — incoherent transitions are impossible by construction.
     if ((organization.dissolutionEvents ?? []).length > 0 && organization.status !== 'dissolved') errors.push(`Organization ${organizationId} has a dissolution trace while its status is ${organization.status}.`);
-    if (organization.status !== 'banned' && (organization.banEvents ?? []).some(event => event.appealDecision === undefined)) errors.push(`Organization ${organizationId} has an unresolved ban event while its status is ${organization.status}.`);
-    if (organization.status === 'banned' && !(organization.banEvents ?? []).some(event => event.appealDecision === undefined)) errors.push(`Organization ${organizationId} is banned without a pending ban event.`);
+    // A ban trace is coherent when its last judgment determines the status: a pending or upheld ban
+    // keeps the organization banned, while a restore returns it to active.
+    const lastBan = (organization.banEvents ?? []).at(-1);
+    if (lastBan && lastBan.appealDecision === undefined && organization.status !== 'banned') errors.push(`Organization ${organizationId} has a pending ban while its status is ${organization.status}.`);
+    if (organization.status === 'banned' && (!lastBan || lastBan.appealDecision === 'restore')) errors.push(`Organization ${organizationId} is banned without a pending or upheld ban event.`);
     if (organization.status === 'banned' && (organization.dissolutionEvents ?? []).length > 0) errors.push(`Organization ${organizationId} is banned and dissolved at once; the transitions are incoherent.`);
     if (organization.fundsUsd !== undefined && (!Number.isSafeInteger(organization.fundsUsd) || organization.fundsUsd < 0)) errors.push(`Organization ${organizationId} has invalid funds.`);
     if (organization.countryId !== undefined && !context.countryIds.has(organization.countryId)) errors.push(`Organization ${organizationId} has an invalid Country.`);

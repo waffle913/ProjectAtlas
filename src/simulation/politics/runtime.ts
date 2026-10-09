@@ -372,9 +372,10 @@ export function mergeOrganizations(state: SimulationState, targetId: string, abs
     persons = { ...persons };
     for (const person of Object.values(persons)) {
       if (person.partyId !== absorbedId) continue;
-      const role = absorbed.members[person.id]?.role === 'leader' || person.isPartyLeader ? 'leader' : 'member';
-      members[person.id] = { personId: person.id, role, joinedOn: absorbed.members[person.id]?.joinedOn ?? person.createdOn };
-      persons[person.id] = { ...person, partyId: targetId };
+      // The absorbed party's leader joins the target as a regular member: a party never has two
+      // leaders, and the canonical isPartyLeader flag follows the membership role.
+      members[person.id] = { personId: person.id, role: 'member', joinedOn: absorbed.members[person.id]?.joinedOn ?? person.createdOn };
+      persons[person.id] = { ...person, partyId: targetId, isPartyLeader: false };
     }
   }
   // The absorbed organization transfers its whole treasury: it keeps no funds, no strike fund and
@@ -705,7 +706,8 @@ export function runCyberAttack(state: SimulationState, sourceOrganizationId: str
   if (!sourceCountry || !targetCountry || sourceCountry !== targetCountry) throw new Error('A cyber attack only exists between organizations of the same Country.');
   if (source.fundsUsd === undefined) throw new Error('The attacker has no tracked treasury; a cyber attack cannot be financed from unavailable funds.');
   if (source.fundsUsd < CYBER_ATTACK_COST_USD) throw new Error('The attacker lacks the funds to finance a cyber attack.');
-  const targetDefence = target.cyberSecurityBps ?? 0;
+  if (target.cyberSecurityBps === undefined) throw new Error('The target\'s cyber defence posture is unavailable; a cyber attack cannot be resolved against an unknown defence.');
+  const targetDefence = target.cyberSecurityBps;
   const reachBps = 10_000 - targetDefence;
   const stolenUsd = target.fundsUsd === undefined ? 0 : Math.floor(target.fundsUsd * reachBps / 10_000);
   const sourceEvents = [...(source.fundingEvents ?? []), { on: state.date, amountUsd: -CYBER_ATTACK_COST_USD, kind: 'cyber_attack_cost' as const, counterpartOrganizationId: targetOrganizationId },

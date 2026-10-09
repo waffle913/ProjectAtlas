@@ -638,6 +638,10 @@ export function runElection(state: SimulationState, countryId: string, chamberId
 export function formGovernment(state: SimulationState, countryId: string, actorPersonId: string, personId: string): SimulationState {
   const actor = state.governance.persons[actorPersonId];
   if (!(actor?.status === 'active' && actor.office?.countryId === countryId && ['head_of_state', 'head_of_government'].includes(actor.office.role))) throw new Error('Only the head of state or the head of government may nominate a government.');
+  // The constitutional appointment mode decides who may form the government: a parliamentary or
+  // directly-elected mode runs its own procedure, so an executive nomination is not admitted there.
+  const appointmentMode = state.constitution.countries[countryId]?.government.appointmentMode ?? 'unavailable';
+  if (!['appointed_by_head_of_state', 'unavailable'].includes(appointmentMode)) throw new Error(`The government appointment mode (${appointmentMode}) does not vest nomination in the executive; the modelled procedure decides the office.`);
   const person = state.governance.persons[personId];
   if (!person || person.status !== 'active' || person.countryId !== countryId) throw new Error('The nominee must be an active person of the Country.');
   const entry = countryEntry(state, countryId);
@@ -653,6 +657,13 @@ export function formGovernment(state: SimulationState, countryId: string, actorP
   const parties: ElectionCountryState['parties'] = {};
   for (const [partyId, previous] of Object.entries(entry.parties)) {
     parties[partyId] = { ...previous, governmentStatus: confidence === 'unavailable' ? previous.governmentStatus : government.coalitionPartyIds.includes(partyId) ? 'government' : 'opposition', promises: previous.promises };
+  }
+  // A dynamic party that is nominated must enter the party records, so the government record
+  // always reconciles with elections.parties.
+  for (const partyId of activeDynamicPartyIds(state, countryId)) {
+    if (parties[partyId]) continue;
+    const dynamicSeats = Object.values(entry.chambers).reduce((sum, chamber) => sum + (chamber.seatsByParty[partyId] ?? 0), 0);
+    parties[partyId] = { partyId, currentSeats: dynamicSeats, governmentStatus: confidence === 'unavailable' ? 'unavailable' : government.coalitionPartyIds.includes(partyId) ? 'government' : 'opposition', promises: [] };
   }
   next = { ...next, elections: { ...next.elections, countries: { ...next.elections.countries, [countryId]: { ...entry, government, parties } } } };
   return next;
@@ -691,7 +702,9 @@ export function dissolveParliamentByParliament(state: SimulationState, countryId
   if (!chamber) throw new Error('No chamber can be dissolved.');
   const votingSeats = Math.max(0, chamber.totalSeats - chamber.independentOtherSeats - (chamber.unallocatedSeats ?? 0));
   let yesSeats = 0;
-  for (const partyId of partyIdsFor(countryId)) {
+  // Every party holding seats in the confidence chamber votes — including dynamic parties. A party
+  // with no modelled profile evaluates as unavailable (unknown), never as a silent exclusion.
+  for (const partyId of Object.keys(chamber.seatsByParty)) {
     const partySeats = chamber.seatsByParty[partyId] ?? 0;
     if (partySeats <= 0) continue;
     const material = governmentRecordPartyEvaluation(state, countryId, partyId);
@@ -720,9 +733,17 @@ export function runElectionCycle(state: SimulationState): SimulationState {
     if (entry.nextHeadOfStateElectionDate && entry.nextHeadOfStateElectionDate <= state.date) {
       const method = next.constitution.countries[countryId]?.headOfState.selectionMethod;
       if (['popular_direct', 'popular_indirect', 'parliamentary'].includes(method ?? '')) {
-        const selected = runHeadOfStateSelection(next, countryId);
-        country = selected.elections.countries[countryId] ?? country;
-        next = selected;
+        try {
+          const selected = runHeadOfStateSelection(next, countryId);
+          country = selected.elections.countries[countryId] ?? country;
+          next = selected;
+        } catch {
+          // A due deadline whose modelled procedure cannot produce a valid winner (no candidate
+          // party, no active leader, or the constitutional term maximum reached) clears the
+          // deadline instead of crashing the daily tick; the office is left unchanged.
+          next = { ...next, elections: { ...next.elections, countries: { ...next.elections.countries, [countryId]: { ...country, nextHeadOfStateElectionDate: undefined } } } };
+          country = next.elections.countries[countryId];
+        }
       } else {
         next = { ...next, elections: { ...next.elections, countries: { ...next.elections.countries, [countryId]: { ...country, nextHeadOfStateElectionDate: undefined } } } };
         country = next.elections.countries[countryId];
@@ -895,6 +916,13 @@ function runDirectElectionPass(state: SimulationState, countryId: string): Simul
   const government = { coalitionPartyIds: [winner[0]], confidence };
   const parties: ElectionCountryState['parties'] = {};
   for (const [partyId, previous] of Object.entries(entry.parties)) parties[partyId] = { ...previous, governmentStatus: partyId === winner[0] ? 'government' : 'opposition', promises: previous.promises };
+  // A dynamic party that won the direct election must enter the party records, so the recorded
+  // winner and coalition always reconcile with elections.parties.
+  for (const partyId of activeDynamicPartyIds(state, countryId)) {
+    if (parties[partyId]) continue;
+    const dynamicSeats = Object.values(entry.chambers).reduce((sum, chamber) => sum + (chamber.seatsByParty[partyId] ?? 0), 0);
+    parties[partyId] = { partyId, currentSeats: dynamicSeats, governmentStatus: partyId === winner[0] ? 'government' : 'opposition', promises: [] };
+  }
   let next: SimulationState = { ...state, elections: { ...state.elections, countries: { ...state.elections.countries, [countryId]: { ...entry, government, parties, directElection: { on: state.date, winnerPartyId: winner[0] }, nextDirectElectionDate: nextDirectDeadlineFor(state, countryId, state.date) } } } };
   const currentHead = Object.values(next.governance.persons).find(p => p.status === 'active' && p.office?.countryId === countryId && p.office.role === 'head_of_government');
   if (currentHead && currentHead.id !== leader.id) next = revokePoliticalOffice(next, currentHead.id);
