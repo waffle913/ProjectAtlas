@@ -15,7 +15,7 @@ import { upgradeGovernanceProposalModel } from '../governance/migration';
 import { politicalRegistry } from '../politics/registry';
 import type { PoliticalRegistry } from '../politics/model';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { assignPoliticalOffice, capabilitiesForReconciledAuthority, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, estimatePublicSupport, initializePartyLeaders, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, replacePartyLeader, resolvePlayerHandoff, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, withdrawProposal } from '../governance/runtime';
+import { assignPoliticalOffice, capabilitiesForReconciledAuthority, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, estimatePublicSupport, initializePartyLeaders, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, replacePartyLeader, resolvePlayerHandoff, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, syncPartyMembershipRecords, withdrawProposal } from '../governance/runtime';
 import { initializeNewGame } from '../initialization';
 import { emptyInformation } from '../information/model';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
@@ -560,11 +560,16 @@ describe('governance 0.15 contextual leadership succession', () => {
       succession: LeadershipSuccession; nextPersonSequence: number; nextSuccessionSequence: number; player: { controlledPersonId: string };
     };
     expect(fixture.referenceCommit).toBe('323d702a49ed15eef388841d12b3f54a8acbd466');
-    const state = { ...initial, date: fixture.date, engine: { ...initial.engine, seed: fixture.seed, tick: fixture.tick }, governance: {
+    const historicalState = { ...initial, date: fixture.date, engine: { ...initial.engine, seed: fixture.seed, tick: fixture.tick }, governance: {
       ...initial.governance, persons: { ...initial.governance.persons, [fixture.previous.id]: fixture.previous, [fixture.successor.id]: fixture.successor },
       successions: { [fixture.succession.id]: fixture.succession }, successionOrder: [fixture.succession.id],
       nextPersonSequence: fixture.nextPersonSequence, nextSuccessionSequence: fixture.nextSuccessionSequence, player: fixture.player,
     } };
+    // The only modern adaptation: synchronize the canonical party membership from the persons
+    // already present in the historical governance. The fixture itself is never touched.
+    const state = syncPartyMembershipRecords(historicalState, fixture.succession.partyId);
+    expect(state.politics.organizations[fixture.succession.partyId].members[fixture.previous.id]).toMatchObject({ role: 'member' });
+    expect(state.politics.organizations[fixture.succession.partyId].members[fixture.successor.id]).toMatchObject({ role: 'leader' });
     const serialized = serializeSimulationState(state, worldContext), loaded = restoreSimulationState(serialized, worldRegions, {}, {}, worldContext);
     expect(loaded).toEqual(state); expect(serializeSimulationState(loaded, worldContext)).toBe(serialized);
     expect(JSON.stringify(loaded.governance.persons[fixture.successor.id])).toBe(JSON.stringify(fixture.successor));
