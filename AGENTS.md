@@ -187,6 +187,20 @@ Never start the next milestone without explicit instruction. If the task is 0.15
 
 Consult [the sub-milestone roadmap](docs/roadmap-submilestones.md) before planning any work; it is the planning reference and complements this file, the subsystem contracts and [the canonical handoff](docs/agent-handoff.md). Work in small sub-milestones and micro-blocks: implement exactly the authorized unit, do not anticipate the next one, and never start the next main milestone without explicit user authorization. Respect the canonical engine boundaries (one `SimulationState`, scheduler, clock, RNG, fiscal/economic/politics engines). Presence in the roadmap is not authorization to implement; a main milestone is accepted only after its independent review and the user's explicit acceptance.
 
+## ProjectAtlas Roadmap Autopilot
+
+Autonomous execution of the authorized roadmap is governed by [the Autopilot protocol](docs/autopilot-protocol.md). It defines **how** Reasonix builds the roadmap; the roadmap itself defines **what** to build.
+
+- A single roadmap-wide Goal may authorize every currently authorized, numbered milestone in canonical order; no per-milestone or per-micro-block re-authorization.
+- Progression is autonomous: milestone -> micro-blocks -> review -> push -> GitHub CI -> corrections -> next milestone.
+- GitHub CI is the validation gate; do not run local npm suites by default.
+- Maintain `LAST_SAFE_ZONE`; advance it only after a complete, reviewed, corrected milestone is merged to `main` with required checks green and no known critical defect.
+- Two-repair loop breaker per root cause (`MAX_SAME_ROOT_CAUSE_REPAIR_CYCLES = 2`).
+- On a critical problem, budget/quota exhaustion, a design/contract/migration/external blocker, or a repeated root cause: `CRYO_MODE` — freeze at the Safe Zone, produce the CRYO report, STOP. Never advance past a known critical defect.
+- Never start a milestone outside the authorized roadmap, and never invent 0.26+.
+
+This section is a summary; the protocol is authoritative.
+
 ## Completion and review
 
 Before declaring work complete:

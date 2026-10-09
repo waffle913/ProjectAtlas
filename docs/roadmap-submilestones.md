@@ -7,6 +7,7 @@ This document is the detailed planning reference for ProjectAtlas. It complement
 - **Historical milestones are not re-cut retroactively.** 0.1–0.21 keep their original numbering and scope. They are preserved here as context, not as tasks to redo.
 - **New large milestones are split into small units.** 0.24 and 0.25 are decomposed into sub-milestones and micro-blocks to reduce the surface of each change and the cost of corrective loops.
 - **Presence in this roadmap is not authorization to implement.** Each main milestone still requires explicit user authorization, and no next main milestone starts automatically.
+- **Execution method.** How a Roadmap Goal builds this roadmap autonomously (authorization boundary, Planner/Executor/Reviewer roles, GitHub-CI gate, Safe Zones, repair loop breaker, Cryo Mode) is defined by the [Autopilot protocol](autopilot-protocol.md), not by this document.
 - Keep these statuses distinct — an agent's declaration, a commit actually present, a green CI run, an independent review, and user acceptance are five different things:
 
 | Status | Meaning |

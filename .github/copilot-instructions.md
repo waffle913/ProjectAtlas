@@ -118,6 +118,10 @@ Follow [the trade contract](../docs/trade-0.17.md): schema 15 / `trade-0.17-v1`,
 - Work in small sub-milestones/micro-blocks; implement only the authorized unit and do not anticipate the next unit or the next main milestone.
 - Presence in the roadmap is not authorization to implement; each main milestone requires explicit user authorization and acceptance.
 
+## ProjectAtlas Roadmap Autopilot
+
+Autonomous execution of the authorized roadmap is governed by [the Autopilot protocol](../docs/autopilot-protocol.md); the roadmap defines what to build, the protocol defines how Reasonix builds it. In a roadmap-wide Goal: no re-authorization between milestones inside the authorized roadmap; GitHub CI is the validation gate (no local npm suites by default); maintain `LAST_SAFE_ZONE` and advance it only after a complete, reviewed, corrected milestone is merged to `main` with required checks green; two-repair loop breaker per root cause; on a critical problem, budget/quota exhaustion, or a design/contract/migration/external blocker enter `CRYO_MODE`, freeze at the Safe Zone and stop. Never start a milestone outside the authorized roadmap or invent 0.26+. The protocol is authoritative for autonomous runs.
+
 ## Mandatory agent workflow
 
 - For changes touching canonical state, migration/save, the political model, multiple domains, or performance: before editing, establish and record a no-code plan covering affected contracts, dependencies, migrations, invariants, tests and risks. If the task is unambiguous and within the authorized scope, continue directly with implementation without waiting for user approval. Stop only for a material design ambiguity or an out-of-scope decision.

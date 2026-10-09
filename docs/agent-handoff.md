@@ -148,6 +148,12 @@ Trade follows **production -> needs -> aggregate flows -> prices -> dependencies
 
 Do not renumber, combine or begin a later milestone without explicit design approval. Political actions remain future-scoped: parties may use sit-ins and general/national/capital demonstrations, unions may strike, and associations have no automatic strike power. Do not implement them early.
 
+## Roadmap Autopilot
+
+The canonical roadmap is [the sub-milestone roadmap](roadmap-submilestones.md); the canonical autonomous-execution contract is [the Autopilot protocol](autopilot-protocol.md). The roadmap records what to build; the protocol records how Reasonix builds it automatically under a single roadmap-wide Goal — including the authorization boundary (end of the authorized numbered roadmap), the GitHub-CI gate, `LAST_SAFE_ZONE`, the two-repair loop breaker, `CRYO_MODE`, and the persistent state at `.reasonix/projectatlas-autopilot-state.json`.
+
+Keep **roadmap** (planned direction), **implementation** (code actually present on a branch), and **acceptance** (explicit user decision) distinct. A branch, a commit, or a green CI run never implies acceptance; the Safe Zone advances only on evidence of a complete, reviewed, corrected milestone merged to `main` with required checks green. Never falsify a milestone's real status.
+
 ## Time and performance expectations
 
 The logical tick is one day. Persistent events may transition over days through states such as announced -> gathering -> active -> declining -> ended. Ordinary gameplay does not require hourly simulation. Tentative pacing is x1 about 15 real seconds per game day, x2 about 7.5 seconds and x5 about 3 seconds; this is a gameplay target, not permission to compromise benchmark or causal correctness. A more recent gameplay-direction target (not yet applied to runtime) is roughly 30 real seconds per game day at slow speed and 15 real seconds per game day at ordinary fast speed, with date and time both visible; the older x1/x2/x5 figure above remains the historical measure.

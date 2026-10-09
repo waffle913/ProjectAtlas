@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "mode": "installed",
+  "roadmap_id": "projectatlas-roadmap-submilestones",
+  "roadmap_doc": "docs/roadmap-submilestones.md",
+  "protocol_doc": "docs/autopilot-protocol.md",
+  "current_milestone": null,
+  "current_block": null,
+  "last_safe_milestone": "V1 core (0.8-0.21) + accepted 0.15 foundation",
+  "last_safe_sha": "237ff12c8594272e78f3d931dd9b858df835544d",
+  "last_safe_branch": "main",
+  "last_safe_ci_status": null,
+  "current_branch": null,
+  "blocked_head_sha": null,
+  "ci_status": null,
+  "repair_signatures": [],
+  "repair_cycles": {},
+  "budget_status": "not_checked",
+  "stop_reason": null,
+  "max_same_root_cause_repair_cycles": 2,
+  "updated_at": "2026-10-09",
+  "notes": "Installed the Roadmap Autopilot. Baseline Safe Zone is current main HEAD; its GitHub CI status was not verified at install time. The Roadmap Goal verifies main CI and the first milestone-that-needs-work at startup, and does not run before an explicit human Goal authorization."
+}

@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Reasonix local config (may contain per-user provider/plugin secrets; keep out of Git)
+reasonix.toml
