@@ -229,14 +229,36 @@ describe('0.23 elections engine', () => {
     if (!partyId) return;
     const leader = partyLeader(initial, countryId, partyId);
     const initialBudget = initial.fiscal.countries[countryId].annualBudget;
-    // A fiscal promise with a real payload (a coherent subject): doubling the infrastructure budget.
-    let state = makeCampaignPromise(leader.state, partyId, countryId, 'Double the infrastructure budget', 'fiscal_reform', { annualBudget: { ...initialBudget, infrastructure: initialBudget.infrastructure * 2 } }, leader.personId);
+    // A fiscal promise with a real payload (a coherent subject): a complete alternative budget
+    // package that changes every mandatory spending line relative to the initial budget. The
+    // optional defense line is carried only when the initial budget really has one, never invented.
+    const promisedBudget = {
+      ...initialBudget,
+      health: initialBudget.health + 1,
+      education: initialBudget.education + 1,
+      pensions: initialBudget.pensions + 1,
+      incomeSupport: initialBudget.incomeSupport + 1,
+      infrastructure: initialBudget.infrastructure + 1,
+      administration: initialBudget.administration + 1,
+      ...(initialBudget.defense !== undefined ? { defense: initialBudget.defense + 1 } : {}),
+    };
+    let state = makeCampaignPromise(leader.state, partyId, countryId, 'Adopt a complete alternative budget package', 'fiscal_reform', { annualBudget: promisedBudget }, leader.personId);
     const promiseId = state.elections.countries[countryId].parties[partyId].promises[0].id;
     // The promise is a typed record, never an applied policy: making it mutates nothing.
     expect(state.fiscal.countries[countryId].annualBudget).toEqual(initialBudget);
-    // Advance past madeOn and take a real dated decision that does NOT satisfy the promise.
+    // Advance past madeOn and take a real dated decision that does NOT satisfy the promise: the
+    // enacted budget assigns yet another value to every promised line, so none of them holds.
     state = { ...state, date: '2026-01-02' };
-    const reformBudget = { ...initialBudget, infrastructure: initialBudget.infrastructure * 3 };
+    const reformBudget = {
+      ...initialBudget,
+      health: initialBudget.health + 2,
+      education: initialBudget.education + 2,
+      pensions: initialBudget.pensions + 2,
+      incomeSupport: initialBudget.incomeSupport + 2,
+      infrastructure: initialBudget.infrastructure + 2,
+      administration: initialBudget.administration + 2,
+      ...(initialBudget.defense !== undefined ? { defense: initialBudget.defense + 2 } : {}),
+    };
     state = scheduleFiscalReform(state, { countryId, effectiveDate: '2026-01-02', annualBudget: reformBudget });
     // The daily cycle derives the promise outcome automatically from the decision actually taken.
     state = runElectionCycle(state);
