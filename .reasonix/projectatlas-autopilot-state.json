@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
   "current_block": "0.24.11",
-  "milestone_phase": "BRANCH_CI",
+  "milestone_phase": "CORRECTING_REVIEW_FINDINGS",
 
   "last_safe_milestone": "0.23",
   "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
@@ -17,7 +17,7 @@
   "sealed_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
   "sealed_ci_run_id": 38017841830,
 
-  "current_branch": "waffle913-construction-assets-024-integration",
+  "current_branch": "waffle913-construction-assets-024-corrections",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
   "milestone_branch_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
@@ -35,11 +35,11 @@
     "milestone": "0.24",
     "full_review_round": 1,
     "max_full_review_rounds": 2,
-    "final_verification_complete": true,
-    "targeted_verification_complete": true,
-    "findings_summary": "Round 1 (CONSOLIDATED_REVIEW): 2 blocking + 5 should-fix + 3 nit, all blocking/should-fix corrected. Round 2 (FINAL_VERIFICATION_REVIEW) via tool:review: 1 remaining should-fix (trade evolve projections omitted construction reservations) + 2 probable-risk + 3 nit; the should-fix and nits were corrected (b1260eb) and CI is green (run 38061660886). No blocking findings remain.",
+    "final_verification_complete": false,
+    "targeted_verification_complete": false,
+    "findings_summary": "Round 1 + Round 2 done and corrected. A subsequent independent human review (concrete external evidence) found 10 remaining 0.24 contract violations; re-entering CORRECTING_REVIEW_FINDINGS for one consolidated corrective campaign. No third broad review will be run — only targeted verification of the corrected areas + direct dependencies.",
     "late_blocking_findings": [],
-    "reopen_count": 0,
+    "reopen_count": 1,
     "max_autonomous_post_seal_reopens": 1
   },
   "review_campaign_history": [
@@ -79,10 +79,10 @@
   },
 
   "safety_mode": {
-    "mode": "unattended_safe",
+    "mode": "normal",
     "enabled_by": "human",
-    "enabled_at": "2026-10-10T04:44:15Z",
-    "note": "Explicitly enabled by the human for the overnight unattended run. Fail-safe rules in docs/autopilot-protocol.md Part C apply until the human changes this."
+    "enabled_at": "2026-10-10T15:30:00Z",
+    "note": "Human explicitly switched back to normal mode to authorize the consolidated 0.24 corrective campaign."
   },
   "deferred_defects": [],
   "defect_triage": {
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24 IMPLEMENTING complete; Round 1 + Round 2 review complete with all blocking/should-fix findings corrected, CI green at b1260eb (run 38061660886). Entering BRANCH_CI: merge the reviewed milestone to main and validate main CI. Deferred (documented V1 limitations, not blocking): soft-reservation material consumption (trade stock not decremented until a later fiscal/trade integration); completed projects keep committedUsd; AssetCapacityRecord has no provenance; legacy SimulationStateV2-V6 types omit assets."
+  "notes": "HUMAN INTERVENTION: 0.24 is NOT accepted and must NOT be sealed; 0.25 must NOT start. Safety mode switched back to normal for explicit corrective work. The 0.24 merge into main (e66be17) is retained as the corrective base; corrections proceed on waffle913-construction-assets-024-corrections. An independent review found 10 contract violations to fix in ONE consolidated campaign: (1) financing not canonically spent/reserved via the fiscal engine; (2) repair costs nothing canonically; (3) material consumption not canonical Trade consumption; (4) construction authority lacks territorial legality; (5) asset effective-control is an incomplete proxy (must reuse operations control, contested regions); (6) repair/use/damage authority must follow the correct territorial situation; (7) 0.24.6D maintenance missing; (8) coverage vocabulary missing derived/not_applicable; (9) provenance validation weaker than 0.24.9D; (10) re-run affected 0.24.11 acceptance paths. If any item requires a design decision or breaks a canonical contract, stop in Cryo with the exact blocker. Targeted verification only after the campaign; merge only when green; then main CI."
 }
