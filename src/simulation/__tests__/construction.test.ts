@@ -331,6 +331,13 @@ const completableProject = () => {
   return { state: worked, leaderId, countryId: cid, regionId: rid };
 };
 
+/** A completed project whose finished asset (asset.00000000) is available. */
+const completedAsset = () => {
+  const { state, leaderId, countryId: cid, regionId: rid } = completableProject();
+  const completed = completeConstruction(state, { projectId: 'project.00000000', personId: leaderId });
+  return { state: completed, leaderId, countryId: cid, regionId: rid };
+};
+
 describe('0.24.6 construction completion and capacity', () => {
   it('completes a fully-worked project into a distinct asset exactly once', () => {
     const { state, leaderId } = completableProject();
@@ -373,20 +380,20 @@ describe('0.24.6 construction completion and capacity', () => {
 
 describe('0.24.7 asset breakdown and repair', () => {
   it('reports a breakdown and degrades the asset availability', () => {
-    const { state, leaderId } = completableProject();
+    const { state, leaderId } = completedAsset();
     const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
     expect(broken.assets.assets['asset.00000000'].operatingStatus).toBe('out_of_service');
     expect(broken.assets.assets['asset.00000000'].availability).toBe('unavailable');
   });
 
   it('refuses to break an asset that is already broken', () => {
-    const { state, leaderId } = completableProject();
+    const { state, leaderId } = completedAsset();
     const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
     expect(() => reportAssetBreakdown(broken, { assetId: 'asset.00000000', personId: leaderId, severity: 'degraded' })).toThrow(/Only an operational or degraded/);
   });
 
   it('schedules a repair and completes it only when its date arrives', () => {
-    const { state, leaderId } = completableProject();
+    const { state, leaderId } = completedAsset();
     const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
     const repairing = repairAsset(broken, { assetId: 'asset.00000000', personId: leaderId });
     const scheduled = repairing.assets.assets['asset.00000000'];
@@ -403,19 +410,19 @@ describe('0.24.7 asset breakdown and repair', () => {
   });
 
   it('refuses to repair an operational asset', () => {
-    const { state, leaderId } = completableProject();
+    const { state, leaderId } = completedAsset();
     expect(() => repairAsset(state, { assetId: 'asset.00000000', personId: leaderId })).toThrow(/Only a broken asset/);
   });
 
   it('refuses to repair without treasury funds', () => {
-    const { state, leaderId, countryId: cid } = completableProject();
+    const { state, leaderId, countryId: cid } = completedAsset();
     const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
     const broke = { ...broken, fiscal: { ...broken.fiscal, countries: { ...broken.fiscal.countries, [cid]: { ...broken.fiscal.countries[cid], cash: 0 } } } };
     expect(() => repairAsset(broke, { assetId: 'asset.00000000', personId: leaderId })).toThrow(/Insufficient treasury funds/);
   });
 
   it('completes due repairs through the shared scheduler', () => {
-    const { state, leaderId } = completableProject();
+    const { state, leaderId } = completedAsset();
     const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
     const repairing = repairAsset(broken, { assetId: 'asset.00000000', personId: leaderId });
     const advanced = advanceSimulationDays(repairing, REPAIR_DURATION_DAYS);
