@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.1B",
+  "current_block": "0.24.1",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
@@ -19,16 +19,16 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "a6d588bc1ece90ae87efc447647230367f26b905",
+  "milestone_branch_head_sha": "654f351c85799b6f02d33c011c716333e647e80f",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38017841830,
-  "ci_head_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "ci_branch": "main",
-  "ci_status": "green",
+  "ci_run_id": 38022542189,
+  "ci_head_sha": "654f351c85799b6f02d33c011c716333e647e80f",
+  "ci_branch": "waffle913-construction-assets-024-integration",
+  "ci_status": "failure",
   "ci_last_checked_at": "2026-10-10",
 
   "review_campaign": {
@@ -68,11 +68,27 @@
   "repair_signatures": [],
   "repair_cycles": {},
 
+  "safety_mode": {
+    "mode": "unattended_safe",
+    "enabled_by": "human",
+    "enabled_at": "2026-10-10T04:44:15Z",
+    "note": "Explicitly enabled by the human for the overnight unattended run. Fail-safe rules in docs/autopilot-protocol.md Part C apply until the human changes this."
+  },
+  "deferred_defects": [],
+  "defect_triage": {
+    "current_defect_id": null,
+    "disposition": null,
+    "assessed_at": null,
+    "assessed_against_roadmap": null,
+    "downstream_critical_risk": null,
+    "rationale": null
+  },
+
   "budget_status": "not_observable_to_agent",
   "budget_observation": null,
 
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user (explicit green light). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24 begins at BRANCH_SYNC: replay the preserved 0.24.1A commit 103a6a4b (canonical physical-asset identity and type vocabulary) onto the sealed Safe Zone 84c09c9, then continue 0.24 under the schema-v2 protocol (bounded review campaign, phase machine). 0.24 review_campaign initialized fresh (full_review_round=0); the 0.23 campaign remains archived in review_campaign_history."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 A+B+C implemented at 654f351 (canonical physical-asset domain, schema 19->20) but GitHub Actions run 38022542189 failed during the TypeScript build with two mechanically-determined, local errors: (1) src/App.tsx still writes schemaVersion 19 and lacks the assets field; (2) src/simulation/save.ts withEngine Omit type now requires assets but the legacy V1 path does not supply it. Both are ordinary deterministic schema-integration errors with a single contract-determined fix (no canonical-state ambiguity, no destructive migration). Local-only paused 0.24.2 WIP commit 6762f20 was preserved on branch waffle913-construction-assets-024-wip-0242-preserved before resetting the integration branch to 654f351; it will be revisited after 0.24.1 is green."
 }
