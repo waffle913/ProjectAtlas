@@ -465,3 +465,39 @@ describe('0.24.8 territory, war and assets', () => {
     expect(restored.assets.assets['asset.00000000'].operatingStatus).toBe('operational');
   });
 });
+
+describe('0.24.9 data and migrations', () => {
+  it('migrates older saves with an empty assets domain at the saved date, never replaying from 2026', () => {
+    const base = worldBase();
+    base.date = '2026-03-15';
+    const legacy = { ...base, schemaVersion: 19 } as Record<string, unknown>;
+    delete (legacy as { assets?: unknown }).assets;
+    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
+    expect(restored.schemaVersion).toBe(20);
+    expect(restored.assets.version).toBe('assets-0.24-v1');
+    expect(restored.assets.initializedOn).toBe('2026-03-15');
+    expect(restored.assets.assets).toEqual({});
+    expect(restored.assets.projects).toEqual({});
+    // Economy, population and ownership are never reset by the migration.
+    expect(restored.populationByRegion).toEqual(base.populationByRegion);
+    expect(restored.regionOwnership).toEqual(base.regionOwnership);
+  });
+
+  it('records the finished asset as modelled, never fabricating a sourced capacity', () => {
+    const { state } = completedAsset();
+    const asset = state.assets.assets['asset.00000000'];
+    expect(asset.capacity.coverage).toBe('modelled');
+    expect(asset.coverage.status).toBe('modelled');
+    expect(asset.capacity.limitation).toBeDefined();
+  });
+
+  it('rejects sourced/partial coverage without provenance via the invariant', () => {
+    const { state } = completedAsset();
+    const asset = state.assets.assets['asset.00000000'];
+    const forged = {
+      ...state,
+      assets: { ...state.assets, assets: { ...state.assets.assets, 'asset.00000000': { ...asset, coverage: { status: 'sourced' } } } },
+    };
+    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('sourced/partial coverage without provenance');
+  });
+});
