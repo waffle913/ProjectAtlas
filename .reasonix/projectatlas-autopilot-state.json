@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
   "current_block": "0.24.11",
-  "milestone_phase": "BRANCH_CI",
+  "milestone_phase": "CORRECTING_REVIEW_FINDINGS",
 
   "last_safe_milestone": "0.23",
   "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
@@ -19,16 +19,16 @@
 
   "current_branch": "waffle913-construction-assets-024-corrections",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
+  "milestone_branch_head_sha": "2368f86e232a078727833c4f35e9753d5099ba0c",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38061660886,
-  "ci_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
-  "ci_branch": "waffle913-construction-assets-024-integration",
-  "ci_status": "success",
+  "ci_run_id": 38073642588,
+  "ci_head_sha": "2368f86e232a078727833c4f35e9753d5099ba0c",
+  "ci_branch": "waffle913-construction-assets-024-corrections",
+  "ci_status": "failure",
   "ci_last_checked_at": "2026-10-10",
 
   "review_campaign": {
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Consolidated 0.24 corrective campaign (final): the previously blocked fiscal/trade/maintenance design decisions were incorporated and all ten independently verified defects were corrected on waffle913-construction-assets-024-corrections, with targeted acceptance tests. 0.24 remains NOT accepted and must NOT be sealed; 0.25 must NOT start. Next: push the corrections branch, get green branch CI, merge to main, get green main CI, then STOP before SEALED_SAFE_ZONE and wait for explicit human acceptance. The earlier BLOCKED_DESIGN record (blocked_head_sha 2f0b982) is cleared as superseded."
+  "notes": "Consolidated 0.24 corrective campaign (round 2): the prior ten defects were corrected, but independent live verification of HEAD 2368f86 found remaining blocking defects, so the campaign continues on waffle913-construction-assets-024-corrections WITHOUT merging. Remaining blockers: (1) construction material requirement/shortage must causally feed Trade import need (no preconfigured importNeedPerMonth); (2) legacy schema-20 backfill must handle outstanding commitments > cash deterministically without fabricating cash; (3) 0.24.6D maintenance must cover costs+resources+availability+wear; (4) run-134 failures (stale repair-error assertion, military migration-oracle) must be fixed narrowly; (5) autopilot state CI evidence updated to 2368f86 / run 38073642588 (failure). 0.24 remains NOT accepted and must NOT be sealed; 0.25 must NOT start. Do not merge until these blockers are resolved and branch CI is green."
 }
