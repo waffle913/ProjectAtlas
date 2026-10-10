@@ -242,16 +242,21 @@ export function completeConstruction(state: SimulationState, input: { projectId:
     physicalCondition: 'good',
     coverage: { status: 'modelled' },
   };
-  const completed = {
+  const withAsset: SimulationState = {
     ...state,
     assets: {
       ...state.assets,
       assets: { ...state.assets.assets, [assetIdValue]: asset },
       assetOrder: [...state.assets.assetOrder, assetIdValue],
       nextAssetSequence: state.assets.nextAssetSequence + 1,
-      projects: { ...state.assets.projects, [input.projectId]: { ...project, status: 'completed', completedOn: state.date, resultingAssetId: assetIdValue, reservedWorkers: undefined } },
     },
   };
+  const completed = updateProject(withAsset, input.projectId, {
+    status: 'completed',
+    completedOn: state.date,
+    resultingAssetId: assetIdValue,
+    reservedWorkers: undefined,
+  });
   return reconcileConstructionWorkforce(completed);
 }
 
