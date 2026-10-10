@@ -107,7 +107,7 @@ function reconcileWorkforce(state: SimulationState): SimulationState {
   for (const [id, r] of Object.entries(regions)) {
     if (!r.economy) continue;
     const reserved = reservedPersonnel(state, id) + constructionReservedPersonnel(state, id), e = r.economy;
-    if (reserved > e.labourForce) throw new Error('Military reservation exceeds regional labour force.');
+    if (reserved > e.labourForce) throw new Error('Reserved labour exceeds regional labour force.');
     const employed = Math.min(e.employed, e.labourForce - reserved);
     if (employed !== e.employed || e.unemployed !== e.labourForce - employed - reserved) regions[id] = { ...r, economy: { ...e, employed, unemployed: e.labourForce - employed - reserved } };
   }

@@ -2,9 +2,9 @@ import type { SimulationState } from '../../types';
 import { CONSTRUCTION_MATERIAL_CATEGORY } from './model';
 
 /**
- * Total physical materials consumed by a Country's active/paused construction
- * projects (0.24.5C). Pure and side-effect-free so both the assets runtime and
- * tests can use it without an import cycle.
+ * Total physical materials consumed by a Country's construction projects, across
+ * all statuses (consumed materials are physically gone and never returned).
+ * Pure and side-effect-free so both the assets runtime and tests can use it.
  */
 export const constructionMaterialsConsumed = (state: SimulationState, countryId: string): number => {
   let total = 0;
