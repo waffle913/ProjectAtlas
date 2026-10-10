@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
   "current_block": "0.24.11",
-  "milestone_phase": "CONSOLIDATED_REVIEW",
+  "milestone_phase": "FINAL_VERIFICATION_REVIEW",
 
   "last_safe_milestone": "0.23",
   "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
@@ -19,25 +19,25 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "62225f26ac2dac880914f4a20db05abf27ef9cad",
+  "milestone_branch_head_sha": "5dbdd673f967a4bd255f2ccc961ef3ca2a682b59",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38053934263,
-  "ci_head_sha": "62225f26ac2dac880914f4a20db05abf27ef9cad",
+  "ci_run_id": 38058955169,
+  "ci_head_sha": "5dbdd673f967a4bd255f2ccc961ef3ca2a682b59",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
 
   "review_campaign": {
     "milestone": "0.24",
-    "full_review_round": 0,
+    "full_review_round": 1,
     "max_full_review_rounds": 2,
     "final_verification_complete": false,
     "targeted_verification_complete": false,
-    "findings_summary": "",
+    "findings_summary": "Round 1 (CONSOLIDATED_REVIEW) via tool:review found 2 blocking, 5 should-fix, 3 nit. Blocking fixed: (1) capability backfill into pre-0.24 executive offices (with unresolved-office skip); (2) socioeconomic monthly labour conservation now includes construction reservations. Should-fix fixed: consumed materials counted across all statuses; military free-labour subtracts construction; proportional material consumption + sorted deterministic order; legacy v1-v6 assets date. Nits deferred (completed keeps committedUsd; capacity coverage provenance; legacy V2-V6 type omit).",
     "late_blocking_findings": [],
     "reopen_count": 0,
     "max_autonomous_post_seal_reopens": 1
@@ -59,10 +59,10 @@
   ],
 
   "review_capability_adapter": {
-    "capability_identity": null,
-    "invocation_parameter": null,
-    "resolved_at": null,
-    "status": "resolve_on_resume"
+    "capability_identity": "tool:review",
+    "invocation_parameter": "task",
+    "resolved_at": "2026-10-10",
+    "status": "resolved"
   },
 
   "repair_signatures": [
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24 IMPLEMENTING is complete: 0.24.1-0.24.11 all green on the integration branch (latest 62225f2, run 38053934263), covering identities/types/state, projects, financing, work/progression, inputs, completion/capacity, breakdown/repair, territory/war, data/migrations, consultation and the integration campaign. Entering CONSOLIDATED_REVIEW (Round 1) of the whole milestone delta."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24 IMPLEMENTING complete (0.24.1-0.24.11 green). Round 1 CONSOLIDATED_REVIEW via tool:review found 2 blocking + 5 should-fix + 3 nit; all blocking and should-fix corrected (9c9936a + 5dbdd67), CI green at 5dbdd67 (run 38058955169). Entering FINAL_VERIFICATION_REVIEW (Round 2)."
 }
