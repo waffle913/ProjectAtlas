@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
+import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
-import { authorizeConstruction, cancelConstruction, proposeConstruction } from '../assets/runtime';
+import { authorizeConstruction, cancelConstruction, fundConstruction, proposeConstruction } from '../assets/runtime';
+import { initializeFiscal } from '../fiscal/runtime';
 import { assetsInvariant } from '../assets/invariants';
 import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
@@ -119,5 +120,81 @@ describe('0.24 construction projects', () => {
     const restored = restoreSimulationState(serializeSimulationState(proposed, worldContext), worldRegions, {}, {}, worldContext);
     expect(restored.assets.projects['project.00000000']).toEqual(proposed.assets.projects['project.00000000']);
     expect(restored.assets.projectOrder).toEqual(['project.00000000']);
+  });
+});
+
+/** A fully-initialized world (real socioeconomic + fiscal treasury) with a head of government. */
+const funded = () => {
+  let state = initializeFiscal(socioeconomicWorld());
+  const fundedCountryId = Object.keys(state.fiscal.countries).find(id => (state.fiscal.countries[id]?.cash ?? 0) > 0)!;
+  const fundedRegionId = Object.keys(state.regionOwnership).find(rid => state.regionOwnership[rid] === fundedCountryId) ?? worldRegions[0].id;
+  state = createPoliticalPerson(state, { displayName: 'Head of Government', countryId: fundedCountryId });
+  const leaderId = Object.keys(state.governance.persons)[0];
+  state = assignPoliticalOffice(state, leaderId, { role: 'head_of_government', countryId: fundedCountryId });
+  return { state, leaderId, countryId: fundedCountryId, regionId: fundedRegionId };
+};
+
+describe('0.24.3 construction financing', () => {
+  it('proposes a project with an explicit cost estimate distinct from any commitment', () => {
+    const { state, leaderId } = headOfGovernment();
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.dam', title: 'Dam', estimatedCostUsd: 2_500_000 });
+    const project = proposed.assets.projects['project.00000000'];
+    expect(project.estimatedCostUsd).toBe(2_500_000);
+    expect(project.committedUsd).toBeUndefined();
+    expect(assertSimulationInvariants(proposed, worldContext, 'save')).toBe(true);
+  });
+
+  it('refuses to fund a project without a cost estimate', () => {
+    const { state, leaderId } = headOfGovernment();
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.road', title: 'Road' });
+    expect(() => fundConstruction(proposed, { projectId: 'project.00000000', funderPersonId: leaderId })).toThrow(/no cost estimate/);
+  });
+
+  it('refuses to fund when the treasury lacks uncommitted cash', () => {
+    const { state, leaderId } = headOfGovernment();
+    // worldBase carries no fiscal treasury, so available cash is zero.
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: 1 });
+    expect(() => fundConstruction(proposed, { projectId: 'project.00000000', funderPersonId: leaderId })).toThrow(/Insufficient treasury funds/);
+  });
+
+  it('refuses a funder without the fund_construction authority', () => {
+    const { state, leaderId, legislatorId } = withLegislator();
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: 1 });
+    expect(() => fundConstruction(proposed, { projectId: 'project.00000000', funderPersonId: legislatorId })).toThrow(/lacks authority/);
+  });
+
+  it('commits treasury cash and refuses to reuse it', () => {
+    const { state, leaderId, countryId: cid, regionId: rid } = funded();
+    const cash = state.fiscal.countries[cid].cash;
+    expect(cash).toBeGreaterThan(0);
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId: cid, regionId: rid, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: cash });
+    const fundedState = fundConstruction(proposed, { projectId: 'project.00000000', funderPersonId: leaderId });
+    expect(fundedState.assets.projects['project.00000000'].committedUsd).toBe(cash);
+    // The whole treasury is now committed, so another project cannot be funded (no reuse).
+    const second = proposeConstruction(fundedState, { proposerPersonId: leaderId, countryId: cid, regionId: rid, assetTypeId: 'type.bridge', title: 'Bridge', estimatedCostUsd: 1 });
+    expect(() => fundConstruction(second, { projectId: 'project.00000001', funderPersonId: leaderId })).toThrow(/Insufficient treasury funds/);
+    // The same project cannot be funded twice.
+    expect(() => fundConstruction(fundedState, { projectId: 'project.00000000', funderPersonId: leaderId })).toThrow(/already funded/);
+  });
+
+  it('releases the commitment when a funded project is cancelled', () => {
+    const { state, leaderId, countryId: cid, regionId: rid } = funded();
+    const cash = state.fiscal.countries[cid].cash;
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId: cid, regionId: rid, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: cash });
+    const fundedState = fundConstruction(proposed, { projectId: 'project.00000000', funderPersonId: leaderId });
+    const cancelled = cancelConstruction(fundedState, { projectId: 'project.00000000', cancellerPersonId: leaderId });
+    expect(cancelled.assets.projects['project.00000000'].committedUsd).toBeUndefined();
+    expect(cancelled.assets.projects['project.00000000'].status).toBe('cancelled');
+  });
+
+  it('rejects a commitment exceeding the estimate via the assets invariant', () => {
+    const { state, leaderId } = headOfGovernment();
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: 1000 });
+    const planned = proposed.assets.projects['project.00000000'];
+    const forged = {
+      ...proposed,
+      assets: { ...proposed.assets, projects: { ...proposed.assets.projects, 'project.00000000': { ...planned, committedUsd: 2000 } } },
+    };
+    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Project project.00000000 has an invalid cost commitment.');
   });
 });
