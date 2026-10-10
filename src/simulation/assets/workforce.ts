@@ -19,3 +19,26 @@ export const constructionReservedPersonnel = (state: SimulationState, regionId: 
   }
   return total;
 };
+
+/**
+ * Canonical effective control of a Region, derived from the operations system
+ * (regionControl + decisive strategic components). Sovereignty, occupation and
+ * effective control stay distinct: `contested` means no single controller.
+ */
+export const effectiveRegionControl = (state: SimulationState, regionId: string): { controller?: string; contested: boolean } => {
+  const control = state.operations?.regionControl?.[regionId];
+  if (control === undefined) {
+    // Operations not yet initialized for this Region: occupation-over-sovereignty proxy.
+    return { controller: state.occupationByRegion[regionId]?.occupierCountryId ?? state.regionOwnership[regionId], contested: false };
+  }
+  if (control === 'contested') return { controller: undefined, contested: true };
+  if (control === 'sovereign_controlled') return { controller: state.regionOwnership[regionId], contested: false };
+  const controllers = [...new Set(
+    Object.values(state.operations.components)
+      .filter(component => component.regionId === regionId && component.kind === 'decisive')
+      .map(component => component.controllingCountryId)
+      .filter((value): value is string => Boolean(value)),
+  )];
+  if (controllers.length === 1) return { controller: controllers[0], contested: false };
+  return { controller: state.occupationByRegion[regionId]?.occupierCountryId ?? state.regionOwnership[regionId], contested: true };
+};

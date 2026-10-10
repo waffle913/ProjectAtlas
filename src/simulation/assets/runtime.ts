@@ -6,7 +6,7 @@ import { hasGovernmentInformationAccess } from '../information/runtime';
 import type { SimulationScheduler } from '../scheduler';
 import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
 import { availableConstructionMaterials } from './materials';
-import { constructionReservedPersonnel } from './workforce';
+import { constructionReservedPersonnel, effectiveRegionControl } from './workforce';
 
 const requireActivePerson = (state: SimulationState, personId: string) => {
   const person = state.governance.persons[personId];
@@ -83,6 +83,11 @@ export function proposeConstruction(
   requireAuthority(state, input.proposerPersonId, input.countryId, 'propose_construction');
   requireCountry(state, input.countryId);
   requireRegion(state, input.regionId);
+  // 0.24.2C/0.24.8 — territorial legality: the Country must sovereignly own AND
+  // effectively control the proposed Region (sovereignty != occupation != control).
+  if (state.regionOwnership[input.regionId] !== input.countryId) throw new Error('A construction project can only be proposed in a Region the Country sovereignly owns.');
+  const siteControl = effectiveRegionControl(state, input.regionId);
+  if (siteControl.contested || siteControl.controller !== input.countryId) throw new Error('The Country does not effectively control the proposed construction Region.');
   if (typeof input.assetTypeId !== 'string' || !input.assetTypeId.trim()) throw new Error('A construction project requires a non-empty asset type.');
   if (typeof input.title !== 'string' || !input.title.trim()) throw new Error('A construction project requires a non-empty title.');
   if (input.estimatedCostUsd !== undefined && (!Number.isSafeInteger(input.estimatedCostUsd) || input.estimatedCostUsd <= 0)) throw new Error('A construction cost estimate must be a positive integer USD amount.');
@@ -273,7 +278,8 @@ const updateAsset = (state: SimulationState, assetIdValue: string, patch: Partia
 });
 
 /** The sovereign Country owning an asset's Region (canonical ownership, never a second territorial truth). */
-const assetCountry = (state: SimulationState, asset: AssetRecord): string => state.regionOwnership[asset.regionId] ?? '';
+/** The Country effectively controlling an asset's Region (operations-derived). */
+const assetCountry = (state: SimulationState, asset: AssetRecord): string => effectiveRegionControl(state, asset.regionId).controller ?? '';
 
 /**
  * 0.24.7A — Report an asset breakdown, making its capacity partially or totally
@@ -285,7 +291,7 @@ export function reportAssetBreakdown(state: SimulationState, input: { assetId: s
   const asset = state.assets.assets[input.assetId];
   if (!asset) throw new Error(`Unknown asset: ${input.assetId}`);
   const countryId = assetCountry(state, asset);
-  if (!countryId) throw new Error('The asset Region has no sovereign owner.');
+  if (!countryId) throw new Error('The asset Region has no effective controller.');
   requireAuthority(state, input.personId, countryId, 'authorize_construction');
   if (asset.operatingStatus !== 'operational' && asset.operatingStatus !== 'degraded') throw new Error('Only an operational or degraded asset can be reported broken.');
   if (input.severity === 'degraded') return updateAsset(state, input.assetId, { operatingStatus: 'degraded', availability: 'partial' });
@@ -304,7 +310,7 @@ export function repairAsset(state: SimulationState, input: { assetId: string; pe
   const asset = state.assets.assets[input.assetId];
   if (!asset) throw new Error(`Unknown asset: ${input.assetId}`);
   const countryId = assetCountry(state, asset);
-  if (!countryId) throw new Error('The asset Region has no sovereign owner.');
+  if (!countryId) throw new Error('The asset Region has no effective controller.');
   requireAuthority(state, input.personId, countryId, 'authorize_construction');
   if (asset.operatingStatus !== 'degraded' && asset.operatingStatus !== 'out_of_service') throw new Error('Only a broken asset can be repaired.');
   if (asset.repairReadyOn !== undefined) throw new Error('This asset already has a scheduled repair.');
@@ -332,7 +338,7 @@ export function completeDueRepairs(state: SimulationState): SimulationState {
 export const assetController = (state: SimulationState, assetId: string): string | undefined => {
   const asset = state.assets.assets[assetId];
   if (!asset) return undefined;
-  return state.occupationByRegion[asset.regionId]?.occupierCountryId ?? state.regionOwnership[asset.regionId];
+  return effectiveRegionControl(state, asset.regionId).controller;
 };
 
 /**

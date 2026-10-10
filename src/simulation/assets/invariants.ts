@@ -5,7 +5,9 @@ import { ASSETS_VERSION } from './model';
 const OPERATING_STATUSES = ['operational', 'degraded', 'out_of_service', 'under_construction', 'decommissioned', 'unavailable'] as const;
 const PHYSICAL_CONDITIONS = ['excellent', 'good', 'fair', 'poor', 'critical', 'unavailable'] as const;
 const AVAILABILITIES = ['available', 'partial', 'unavailable'] as const;
-const COVERAGE_STATUSES = ['sourced', 'modelled', 'partial', 'unavailable'] as const;
+const COVERAGE_STATUSES = ['sourced', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable'] as const;
+const PROVENANCE_FIELDS = ['publisher', 'dataset', 'url', 'referenceDate', 'retrievedAt', 'licence', 'attribution', 'limitation'] as const;
+const hasFullProvenance = (coverage: { provenance?: Record<string, unknown> }) => Boolean(coverage.provenance) && PROVENANCE_FIELDS.every(field => typeof coverage.provenance![field] === 'string' && (coverage.provenance![field] as string).trim());
 
 /** 0.24.1C — the assets domain is the single canonical owner of physical-asset
  *  records. This invariant guards identity permanence, honest coverage, and the
@@ -46,8 +48,8 @@ export const assetsInvariant: SimulationInvariant = {
       }
       const coverage = asset.coverage;
       if (!coverage || !COVERAGE_STATUSES.includes(coverage.status)) errors.push(`Asset ${id} has an invalid coverage.`);
-      else if ((coverage.status === 'sourced' || coverage.status === 'partial') && (!coverage.provenance || typeof coverage.provenance.publisher !== 'string' || !coverage.provenance.publisher.trim())) {
-        errors.push(`Asset ${id} has sourced/partial coverage without provenance.`);
+      else if ((coverage.status === 'sourced' || coverage.status === 'derived' || coverage.status === 'partial') && !hasFullProvenance(coverage)) {
+        errors.push(`Asset ${id} has sourced/derived/partial coverage without full provenance.`);
       }
       if (asset.repairReadyOn !== undefined && !validDate(asset.repairReadyOn)) errors.push(`Asset ${id} has an invalid repair schedule.`);
     }

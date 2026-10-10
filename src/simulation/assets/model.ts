@@ -69,7 +69,7 @@ export type AssetActorId = string;
  * the datum could not be sourced, not that the asset, its type or its owner
  * does not exist.
  */
-export type AssetCoverageStatus = 'sourced' | 'modelled' | 'partial' | 'unavailable';
+export type AssetCoverageStatus = 'sourced' | 'derived' | 'modelled' | 'partial' | 'unavailable' | 'not_applicable';
 
 /**
  * Dated, traceable provenance of a real-world datum, following the provenance
@@ -89,9 +89,9 @@ export interface AssetSourceProvenance {
 
 /**
  * Coverage of an asset identity: its status plus the provenance of any sourced
- * part. Provenance is expected for `'sourced'` and `'partial'` coverage and is
- * absent for `'modelled'` and `'unavailable'`, where no real-world datum
- * supports the record.
+ * or derived part. Provenance is required for `'sourced'`, `'derived'` and
+ * `'partial'` coverage and is absent for `'modelled'`, `'unavailable'` and
+ * justified `'not_applicable'`, where no real-world datum supports the record.
  */
 export interface AssetCoverageRecord {
   status: AssetCoverageStatus;
