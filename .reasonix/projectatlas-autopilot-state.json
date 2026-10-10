@@ -23,7 +23,7 @@
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
-  "blocked_head_sha": null,
+  "blocked_head_sha": "2f0b9823e47908211f8aadc98fcfec60d281cf34",
 
   "ci_run_id": 38061660886,
   "ci_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
@@ -97,8 +97,8 @@
   "budget_status": "not_observable_to_agent",
   "budget_observation": null,
 
-  "stop_reason": null,
+  "stop_reason": "BLOCKED_DESIGN",
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "HUMAN INTERVENTION: 0.24 is NOT accepted and must NOT be sealed; 0.25 must NOT start. Safety mode switched back to normal for explicit corrective work. The 0.24 merge into main (e66be17) is retained as the corrective base; corrections proceed on waffle913-construction-assets-024-corrections. An independent review found 10 contract violations to fix in ONE consolidated campaign: (1) financing not canonically spent/reserved via the fiscal engine; (2) repair costs nothing canonically; (3) material consumption not canonical Trade consumption; (4) construction authority lacks territorial legality; (5) asset effective-control is an incomplete proxy (must reuse operations control, contested regions); (6) repair/use/damage authority must follow the correct territorial situation; (7) 0.24.6D maintenance missing; (8) coverage vocabulary missing derived/not_applicable; (9) provenance validation weaker than 0.24.9D; (10) re-run affected 0.24.11 acceptance paths. If any item requires a design decision or breaks a canonical contract, stop in Cryo with the exact blocker. Targeted verification only after the campaign; merge only when green; then main CI."
+  "notes": "HUMAN INTERVENTION: 0.24 is NOT accepted and must NOT be sealed; 0.25 must NOT start. Safety mode switched back to normal. Corrections on waffle913-construction-assets-024-corrections. Items 4,5,6,8,9 (territorial authority, effective control via operations, coverage vocabulary, provenance) are FIXED (2f0b982). Items 1,2,3,7 BLOCK CRYO (BLOCKED_DESIGN): (1,2) integrating one-time construction/repair spending into the fiscal engine's monthly treasury identity (Account/FiscalCountry/runFiscalMonth extension) requires a design decision — the 0.16 defense pattern is monthly-recurring, construction commitment is one-time event-driven, and the exact accounting-identity extension for refund-on-cancel and no-lock-on-complete is not determined by the roadmap; (3) routing daily construction material consumption through the Trade monthly stock/ledger (vs the 0.17 militaryInput monthly pattern) requires a design decision; (7) the 0.24.6D maintenance contract (costs/resources/wear) is not defined by the roadmap and must not be invented. Do not invent these; human decision required."
 }
