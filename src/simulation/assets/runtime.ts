@@ -2,6 +2,7 @@ import type { SimulationState } from '../../types';
 import { hasPoliticalAuthority } from '../governance/runtime';
 import type { AuthorityCapability } from '../governance/model';
 import { reservedPersonnel } from '../military/runtime';
+import { hasGovernmentInformationAccess } from '../information/runtime';
 import type { SimulationScheduler } from '../scheduler';
 import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
 import { availableConstructionMaterials } from './materials';
@@ -391,3 +392,17 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
 export const registerConstructionTasks = (scheduler: SimulationScheduler) => scheduler
   .register({ id: 'construction.progress', cadence: 'daily', priority: 60, run: advanceConstructionProgress })
   .register({ id: 'construction.repair', cadence: 'daily', priority: 61, run: completeDueRepairs });
+
+/** 0.24.10A/C — Government-information-gated construction query. The player sees
+ *  only the projects and assets their office's Country can actually know; returns
+ *  a defensive clone, or undefined without information access. Reality stays
+ *  distinct from Government Information. */
+export const inspectConstruction = (state: SimulationState, personId: string, countryId: string) => {
+  if (!hasGovernmentInformationAccess(state, personId, countryId)) return undefined;
+  const assets = Object.values(state.assets.assets).filter(asset => assetController(state, asset.assetId) === countryId);
+  const projects = Object.values(state.assets.projects).filter(project => project.countryId === countryId);
+  return structuredClone({ assets, projects });
+};
+
+/** 0.24.10D — full technical/provenance view for diagnostics, never the normal UI. */
+export const inspectAssetsDebug = (state: SimulationState) => structuredClone(state.assets);

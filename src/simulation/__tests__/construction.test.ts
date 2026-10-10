@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
-import { assetController, authorizeConstruction, cancelConstruction, advanceConstructionProgress, completeConstruction, completeDueRepairs, damageAsset, fundConstruction, pauseConstruction, proposeConstruction, repairAsset, reportAssetBreakdown, resumeConstruction, startWork } from '../assets/runtime';
+import { assetController, authorizeConstruction, cancelConstruction, advanceConstructionProgress, completeConstruction, completeDueRepairs, damageAsset, fundConstruction, inspectAssetsDebug, inspectConstruction, pauseConstruction, proposeConstruction, repairAsset, reportAssetBreakdown, resumeConstruction, startWork } from '../assets/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { initializeFiscal } from '../fiscal/runtime';
 import { admitTradeMarket, initializeTrade } from '../trade/runtime';
@@ -496,5 +496,27 @@ describe('0.24.9 data and migrations', () => {
     const forged = structuredClone(state);
     forged.assets.assets['asset.00000000'].coverage = { status: 'sourced' };
     expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Asset asset.00000000 has sourced/partial coverage without provenance.');
+  });
+});
+
+describe('0.24.10 consultation and commands', () => {
+  it('gates the construction query behind government information access', () => {
+    const { state, leaderId, legislatorId } = withLegislator();
+    expect(inspectConstruction(state, legislatorId, countryId)).toBeUndefined();
+    expect(inspectConstruction(state, leaderId, countryId)).toEqual({ assets: [], projects: [] });
+  });
+
+  it('returns the country-visible projects and assets for an informed office', () => {
+    const { state, leaderId, countryId: cid } = completedAsset();
+    const view = inspectConstruction(state, leaderId, cid)!;
+    expect(view.projects.map(p => p.projectId)).toContain('project.00000000');
+    expect(view.assets.map(a => a.assetId)).toContain('asset.00000000');
+  });
+
+  it('exposes the full assets state only through the debug view', () => {
+    const { state } = completedAsset();
+    const debug = inspectAssetsDebug(state);
+    expect(debug.assets['asset.00000000']).toBeDefined();
+    expect(debug.projects['project.00000000']).toBeDefined();
   });
 });
