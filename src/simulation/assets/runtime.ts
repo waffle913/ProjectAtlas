@@ -324,6 +324,35 @@ export function completeDueRepairs(state: SimulationState): SimulationState {
   return changed ? { ...state, assets: { ...state.assets, assets } } : state;
 }
 
+/** The Country effectively controlling an asset's Region: the military occupier
+ *  when one exists, otherwise the sovereign owner. Sovereignty, occupation and
+ *  effective control stay distinct; this V1 proxy uses occupation-over-sovereignty
+ *  (finer operations region-control is a later refinement). */
+export const assetController = (state: SimulationState, assetId: string): string | undefined => {
+  const asset = state.assets.assets[assetId];
+  if (!asset) return undefined;
+  return state.occupationByRegion[asset.regionId]?.occupierCountryId ?? state.regionOwnership[asset.regionId];
+};
+
+/**
+ * 0.24.8C — A military operation damages an asset in a controlled Region. Requires
+ * command_military_operations authority in the Country that effectively controls
+ * the asset's Region. The asset identity stays tied to its permanent Region
+ * (0.24.8A) and the damage persists (0.24.8D): it is restored only by an explicit
+ * repair, never automatically when a war ends.
+ */
+export function damageAsset(state: SimulationState, input: { assetId: string; personId: string; severity: 'degraded' | 'out_of_service' }): SimulationState {
+  requireActivePerson(state, input.personId);
+  const asset = state.assets.assets[input.assetId];
+  if (!asset) throw new Error(`Unknown asset: ${input.assetId}`);
+  const controller = assetController(state, input.assetId);
+  if (!controller) throw new Error('The asset Region has no effective controller.');
+  requireAuthority(state, input.personId, controller, 'command_military_operations');
+  if (asset.operatingStatus !== 'operational' && asset.operatingStatus !== 'degraded') throw new Error('Only an operational or degraded asset can be damaged.');
+  if (input.severity === 'degraded') return updateAsset(state, input.assetId, { operatingStatus: 'degraded', availability: 'partial' });
+  return updateAsset(state, input.assetId, { operatingStatus: 'out_of_service', availability: 'unavailable' });
+}
+
 /**
  * 0.24.4C + 0.24.5 — Advance funded work for active projects with reserved
  * workers. Each reserved worker completes CONSTRUCTION_DAILY_COST_PER_WORKER_USD

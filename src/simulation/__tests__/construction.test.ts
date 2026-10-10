@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
-import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, completeConstruction, completeDueRepairs, fundConstruction, pauseConstruction, proposeConstruction, repairAsset, reportAssetBreakdown, resumeConstruction, startWork } from '../assets/runtime';
+import { assetController, authorizeConstruction, cancelConstruction, advanceConstructionProgress, completeConstruction, completeDueRepairs, damageAsset, fundConstruction, pauseConstruction, proposeConstruction, repairAsset, reportAssetBreakdown, resumeConstruction, startWork } from '../assets/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { initializeFiscal } from '../fiscal/runtime';
 import { admitTradeMarket, initializeTrade } from '../trade/runtime';
@@ -428,5 +428,40 @@ describe('0.24.7 asset breakdown and repair', () => {
     const advanced = advanceSimulationDays(repairing, REPAIR_DURATION_DAYS);
     expect(advanced.assets.assets['asset.00000000'].operatingStatus).toBe('operational');
     expect(advanced.assets.assets['asset.00000000'].repairReadyOn).toBeUndefined();
+  });
+});
+
+describe('0.24.8 territory, war and assets', () => {
+  it('keeps the asset identity tied to its permanent Region across sovereignty changes', () => {
+    const { state, regionId } = completedAsset();
+    const asset = state.assets.assets['asset.00000000'];
+    const changed = { ...state, regionOwnership: { ...state.regionOwnership, [regionId]: 'country.other' } };
+    expect(changed.assets.assets['asset.00000000'].regionId).toBe(asset.regionId);
+    expect(changed.assets.assets['asset.00000000'].regionId).toBe(regionId);
+  });
+
+  it('resolves the effective controller as occupier over sovereign owner', () => {
+    const { state } = completedAsset();
+    const asset = state.assets.assets['asset.00000000'];
+    expect(assetController(state, 'asset.00000000')).toBe(state.regionOwnership[asset.regionId]);
+    const occupied = { ...state, occupationByRegion: { ...state.occupationByRegion, [asset.regionId]: { occupierCountryId: 'country.occupier' } as any } };
+    expect(assetController(occupied, 'asset.00000000')).toBe('country.occupier');
+  });
+
+  it('damages an asset via military authority over the controlling Country', () => {
+    const { state, leaderId } = completedAsset();
+    const damaged = damageAsset(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
+    expect(damaged.assets.assets['asset.00000000'].operatingStatus).toBe('out_of_service');
+    expect(damaged.assets.assets['asset.00000000'].availability).toBe('unavailable');
+  });
+
+  it('keeps damage until an explicit repair, never auto-healing at war end', () => {
+    const { state, leaderId } = completedAsset();
+    const damaged = damageAsset(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
+    const later = advanceSimulationDays(damaged, 10);
+    expect(later.assets.assets['asset.00000000'].operatingStatus).toBe('out_of_service');
+    const repairing = repairAsset(later, { assetId: 'asset.00000000', personId: leaderId });
+    const restored = completeDueRepairs({ ...repairing, date: repairing.assets.assets['asset.00000000'].repairReadyOn! });
+    expect(restored.assets.assets['asset.00000000'].operatingStatus).toBe('operational');
   });
 });
