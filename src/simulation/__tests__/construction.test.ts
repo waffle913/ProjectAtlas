@@ -14,7 +14,7 @@ import { advanceSimulationDays } from '../engine';
 import { ASSETS_VERSION, COMPLETED_ASSET_CAPACITY, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, REPAIR_DURATION_DAYS } from '../assets/model';
 
 const countryId = worldCountryIds[0];
-const regionId = worldRegions[0].id;
+const regionId = worldRegions.find(region => region.initialOwnerCountryId === countryId)?.id ?? worldRegions[0].id;
 
 /** worldBase + an active person installed as head of government of `countryId`. */
 const headOfGovernment = () => {
