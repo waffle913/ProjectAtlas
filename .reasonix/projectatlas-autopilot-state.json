@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.1",
+  "current_block": "0.24.3",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
@@ -19,14 +19,14 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "96c708c288e88a36ab93dbc12d25f4244562985f",
+  "milestone_branch_head_sha": "f335eead91f3a5ff266dda5679ae5dcd67d1c6d3",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38028404964,
-  "ci_head_sha": "96c708c288e88a36ab93dbc12d25f4244562985f",
+  "ci_run_id": 38030926531,
+  "ci_head_sha": "f335eead91f3a5ff266dda5679ae5dcd67d1c6d3",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 A+B+C implemented at 654f351 (canonical physical-asset domain, schema 19->20). Repair cycle 1 for the single root cause 'schema-19->20 propagation incomplete in 654f351' RESOLVED: build errors fixed (src/App.tsx, src/simulation/save.ts in 03534d4), 11 migration/restore test assertions updated to schema 20 (1576049), and the schema13 preserved-subset deep-equality fixed by excluding+asserting the assets backfill (96c708c). Run 38028404964 on 96c708c is GREEN (ubuntu+windows). 0.24.1 is now validated on the integration branch. Local-only paused 0.24.2 WIP commit 6762f20 was preserved on branch waffle913-construction-assets-024-wip-0242-preserved; it is revisited next for 0.24.2."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 A+B+C implemented and green at 96c708c (run 38028404964). 0.24.2 construction projects implemented and green at f335eea (run 38030926531): ConstructionProjectRecord + lifecycle statuses + projects in the canonical AssetsState (19429c4), office-gated propose/authorize/cancel commands (2a3dee0), and tests (f335eea). Deferred by design to later blocks: fund->0.24.3, pause/resume->0.24.4D, completion->asset->0.24.6. Next: 0.24.3 financing (costs, treasury/commitment via the fiscal engine, refusal/cancellation)."
 }
