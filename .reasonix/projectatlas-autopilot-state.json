@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.3",
+  "current_block": "0.24.4",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
@@ -19,14 +19,14 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "f335eead91f3a5ff266dda5679ae5dcd67d1c6d3",
+  "milestone_branch_head_sha": "49112b1d2544f60da92324f418d91672f41c4bd9",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38030926531,
-  "ci_head_sha": "f335eead91f3a5ff266dda5679ae5dcd67d1c6d3",
+  "ci_run_id": 38033412149,
+  "ci_head_sha": "49112b1d2544f60da92324f418d91672f41c4bd9",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 A+B+C implemented and green at 96c708c (run 38028404964). 0.24.2 construction projects implemented and green at f335eea (run 38030926531): ConstructionProjectRecord + lifecycle statuses + projects in the canonical AssetsState (19429c4), office-gated propose/authorize/cancel commands (2a3dee0), and tests (f335eea). Deferred by design to later blocks: fund->0.24.3, pause/resume->0.24.4D, completion->asset->0.24.6. Next: 0.24.3 financing (costs, treasury/commitment via the fiscal engine, refusal/cancellation)."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 green at 96c708c (run 38028404964); 0.24.2 construction projects green at f335eea (run 38030926531); 0.24.3 financing green at 49112b1 (run 38033412149): explicit estimate/commitment, treasury-bounded fundConstruction (no free money, no reuse), refusal on insufficient funds/authority, cancellation release. Fiscal treasury is read-only so far; actual cash consumption on work execution is 0.24.4/0.24.5 scope. Next: 0.24.4 work and progression (labour reservation, common scheduler, real progression, pause/shortage)."
 }
