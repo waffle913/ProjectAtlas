@@ -284,7 +284,7 @@ describe('generic deterministic crisis engine', () => {
   it('migrates schema 9 at the saved date without fake history', () => {
     const { state, regions } = build(); const legacy = structuredClone(state) as unknown as Record<string, unknown>; delete legacy.crisis; legacy.schemaVersion = 9; legacy.date = '2031-06-15';
     const ids = new Set(['country.a']), migrated = migrateSimulationState(legacy, regions, {}, {}, { countryIds: ids, regionIds: new Set(['region.a']) });
-    expect(migrated.schemaVersion).toBe(19); expect(migrated.crisis.initializedOn).toBe('2031-06-15'); expect(migrated.crisis.lastMonthlyDate).toBeUndefined();
+    expect(migrated.schemaVersion).toBe(20); expect(migrated.crisis.initializedOn).toBe('2031-06-15'); expect(migrated.crisis.lastMonthlyDate).toBeUndefined();
     expect(migrated.crisis.countries['country.a'].history).toEqual([]); expect(episode(migrated, 'fiscal_stress').lastEvaluatedOn).toBeUndefined();
   });
 

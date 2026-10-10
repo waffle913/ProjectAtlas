@@ -1040,7 +1040,7 @@ describe('governance 0.15 situational institutional interest', () => {
     const saved = serializeSimulationState(resolved, worldContext), restored = restoreSimulationState(saved, worldRegions, {}, {}, worldContext);
     expect(restored).toEqual(resolved); expect(serializeSimulationState(restored, worldContext)).toBe(saved);
     expect(restored.governance.proposals[proposalId].evaluationVersion).toBe('situational-plurality-0.15-v2');
-    expect(restored.schemaVersion).toBe(19); expect(restored.date).toBe(submitted.date); expect(restored.engine).toEqual(submitted.engine);
+    expect(restored.schemaVersion).toBe(20); expect(restored.date).toBe(submitted.date); expect(restored.engine).toEqual(submitted.engine);
     for (const branch of ['fiscal', 'socioeconomy', 'politics', 'crisis', 'regionOwnership', 'populationByRegion', 'economicOutputByRegion'] as const) expect(resolved[branch]).toBe(submitted[branch]);
     expect(restored.governance.proposals[proposalId].voteResult!.chambers.flatMap(chamber => chamber.partyEvaluations ?? []).every(item => item.institutionalInterest?.status === 'not_applicable')).toBe(true);
   }, 30_000);
@@ -1543,7 +1543,7 @@ describe('governance 0.14 player and political decisions', () => {
       },
     };
     const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
-    expect(restored.schemaVersion).toBe(19);
+    expect(restored.schemaVersion).toBe(20);
     expect(restored.date).toBe(started.date);
     expect(restored.engine.tick).toBe(started.engine.tick);
     expect(restored.engine.seed).toBe(started.engine.seed);
@@ -1916,7 +1916,7 @@ describe('governance 0.14 player and political decisions', () => {
     const legacy = structuredClone(initial) as unknown as Record<string, unknown>; legacy.schemaVersion = 11; legacy.date = '2034-05-06'; delete legacy.governance;
     const politics = legacy.politics, fiscal = legacy.fiscal, socioeconomy = legacy.socioeconomy, crisis = legacy.crisis;
     const migrated = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
-    expect(migrated.governance.initializedOn).toBe('2034-05-06'); expect(migrated.governance.proposalOrder).toEqual([]); expect(migrated.schemaVersion).toBe(19);
+    expect(migrated.governance.initializedOn).toBe('2034-05-06'); expect(migrated.governance.proposalOrder).toEqual([]); expect(migrated.schemaVersion).toBe(20);
     expect(migrated.information).toMatchObject({ initializedOn: '2034-05-06', briefings: [], latestGovernmentReports: {} });
     expect(migrated.politics).toEqual(JSON.parse(JSON.stringify(politics))); expect(migrated.fiscal).toEqual(JSON.parse(JSON.stringify(fiscal))); expect(migrated.socioeconomy).toEqual(JSON.parse(JSON.stringify(socioeconomy))); expect(migrated.crisis).toEqual(JSON.parse(JSON.stringify(crisis)));
   }, 30_000);

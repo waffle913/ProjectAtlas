@@ -221,7 +221,7 @@ describe('0.11 causal monthly integration', () => {
     const s = advanceSimulationDays(base(), 420);
     const { fiscal: _f, ...body } = s;
     const restored = migrateSimulationState({ ...body, schemaVersion: 8 }, regions, {}, {}, context);
-    expect(restored.schemaVersion).toBe(19); expect(restored.socioeconomy).toEqual(s.socioeconomy); expect(restored.engine).toEqual(s.engine);
+    expect(restored.schemaVersion).toBe(20); expect(restored.socioeconomy).toEqual(s.socioeconomy); expect(restored.engine).toEqual(s.engine);
     expect(restored.populationByRegion).toEqual(s.populationByRegion);
     expect(restored.fiscal.initializedOn).toBe(s.date); expect(restored.fiscal.lastMonthlyDate).toBeUndefined();
     expect(restored.fiscal.countries[us].account).toBeUndefined(); expect(assertSimulationInvariants(restored, context, 'reload')).toBe(true);
@@ -243,7 +243,7 @@ describe('0.11 causal monthly integration', () => {
     const a = migrateSimulationState(legacy, regions, {}, {}, context);
     const b = migrateSimulationState(legacy, regions, {}, {}, context);
     expect(a).toEqual(b);
-    expect(a.schemaVersion).toBe(19); expect(a.fiscal.version).toBe('fiscal-0.11-v2');
+    expect(a.schemaVersion).toBe(20); expect(a.fiscal.version).toBe('fiscal-0.11-v2');
     expect(a.fiscal.countries.unknown.revenueCalibration.status).toBe('modelled');
     expect(a.fiscal.countries.unknown.debtInitialization).toMatchObject({ status: 'modelled', limitation: expect.stringMatching(/not be interpreted as observed/) });
     expect(a.fiscal.countries.unknown.account).toBeUndefined();
