@@ -4,7 +4,22 @@ import { emptyInternational } from '../international/model';
 import { emptyMultilateral } from '../multilateral/model';
 import { emptyConstitution } from '../constitution/model';
 import { emptyElections } from '../elections/model';
+import { emptyAssets } from '../assets/model';
 import { emptyTrade } from '../trade/model';
+
+/** 0.24 construction capabilities are backfilled into saved executive offices on
+ *  migration; strip them before comparing restored governance to the historical
+ *  fixture (an admitted structural backfill, like the 0.23 cabinets backfill). */
+const CONSTRUCTION_CAPABILITIES = ['propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction'];
+const stripConstructionCapabilities = (governance: { persons: Record<string, { office?: { authorityProfile?: { capabilities?: string[] } } }> }) => ({
+  ...governance,
+  persons: Object.fromEntries(Object.entries(governance.persons).map(([id, person]) => [
+    id,
+    person?.office?.authorityProfile
+      ? { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: person.office.authorityProfile.capabilities!.filter(c => !CONSTRUCTION_CAPABILITIES.includes(c)) } } }
+      : person,
+  ])),
+});
 import { describe, expect, it, vi } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { EQUIPMENT_REGISTRY, MILITARY_ITEMS, DEFENSE_COSTS, emptyMilitary, equipmentTotal, militaryReadiness, militarySupportStaff, presentPersonnel, trainingPersonnel, type MilitaryParameters } from '../military/model';
@@ -52,7 +67,7 @@ export const militaryParameters: MilitaryParameters = {
 };
 export function militaryFixture(admit = true): SimulationState {
   let state: SimulationState = {
-    schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), socioeconomy: emptySocioeconomy(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
+    schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(), military: emptyMilitary(), socioeconomy: emptySocioeconomy(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
     politics: emptyPolitics(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'),
     date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
     regionOwnership: Object.fromEntries(militaryRegions.map(r => [r.id, r.initialOwnerCountryId])),
@@ -464,9 +479,10 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     expect(schema13Fixture.referenceCommit).toBe('ceddc8e04fc470f41155fdc8b6250142fb970705');
     expect(schema13Fixture.state.schemaVersion).toBe(13);
     const restored = restoreSimulationState(JSON.stringify(schema13Fixture.state), militaryRegions, {}, {}, militaryContext);
-    const { schemaVersion, military, trade, international, operations, multilateral, constitution, elections, ...preserved } = restored;
-    expect(schemaVersion).toBe(19); expect(military.initializedOn).toBe('2028-03-11');
+    const { schemaVersion, military, trade, international, operations, multilateral, constitution, elections, assets, ...preserved } = restored;
+    expect(schemaVersion).toBe(20); expect(military.initializedOn).toBe('2028-03-11');
     expect(trade.initializedOn).toBe('2028-03-11'); expect(trade.flows).toEqual([]);
+    expect(assets.initializedOn).toBe('2028-03-11'); expect(assets.assetOrder).toEqual([]); expect(assets.assets).toEqual({});
     // Historical data stays identical; the only admitted deviations are the structural 0.23
     // backfills in governance and politics, each verified explicitly below.
     const { schemaVersion: _legacySchemaVersion, governance: legacyGovernance, politics: legacyPolitics, ...legacyPreserved } = schema13Fixture.state;
@@ -477,7 +493,7 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     expect(ministerialSuggestions).toEqual([]);
     expect(nextSuggestionSequence).toBe(0);
     expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
-    expect(restoredGovernanceRest).toEqual(legacyGovernance);
+    expect(stripConstructionCapabilities(restoredGovernanceRest)).toEqual(legacyGovernance);
     const { religiousOrganizationsCoverage, ...restoredPoliticsRest } = restoredPolitics;
     expect(religiousOrganizationsCoverage.status).toBe('unavailable');
     expect(typeof religiousOrganizationsCoverage.limitation).toBe('string');

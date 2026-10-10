@@ -32,6 +32,7 @@ export function cloneSimulationState(state: SimulationState): SimulationState {
     multilateral: structuredClone(state.multilateral),
     constitution: structuredClone(state.constitution),
     elections: structuredClone(state.elections),
+    assets: structuredClone(state.assets),
     territoryOwnership: { ...state.territoryOwnership },
     regionOwnership: { ...state.regionOwnership },
     populationByRegion: { ...state.populationByRegion },

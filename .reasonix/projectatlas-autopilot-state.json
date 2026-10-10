@@ -1,12 +1,12 @@
 {
   "schema": 2,
-  "mode": "paused_by_user",
+  "mode": "running",
   "roadmap_id": "projectatlas-roadmap-submilestones",
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": null,
-  "milestone_phase": "PAUSED_BEFORE_MILESTONE_START",
+  "current_block": "0.24.11",
+  "milestone_phase": "BRANCH_CI",
 
   "last_safe_milestone": "0.23",
   "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
@@ -17,21 +17,31 @@
   "sealed_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
   "sealed_ci_run_id": 38017841830,
 
-  "current_branch": "waffle913-construction-assets-024",
+  "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "103a6a4b885f512ee19b4965685a570fa2c43106",
+  "milestone_branch_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38017841830,
-  "ci_head_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "ci_branch": "main",
-  "ci_status": "green",
+  "ci_run_id": 38061660886,
+  "ci_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
+  "ci_branch": "waffle913-construction-assets-024-integration",
+  "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
 
-  "review_campaign": null,
+  "review_campaign": {
+    "milestone": "0.24",
+    "full_review_round": 1,
+    "max_full_review_rounds": 2,
+    "final_verification_complete": true,
+    "targeted_verification_complete": true,
+    "findings_summary": "Round 1 (CONSOLIDATED_REVIEW): 2 blocking + 5 should-fix + 3 nit, all blocking/should-fix corrected. Round 2 (FINAL_VERIFICATION_REVIEW) via tool:review: 1 remaining should-fix (trade evolve projections omitted construction reservations) + 2 probable-risk + 3 nit; the should-fix and nits were corrected (b1260eb) and CI is green (run 38061660886). No blocking findings remain.",
+    "late_blocking_findings": [],
+    "reopen_count": 0,
+    "max_autonomous_post_seal_reopens": 1
+  },
   "review_campaign_history": [
     {
       "milestone": "0.23",
@@ -49,23 +59,30 @@
   ],
 
   "review_capability_adapter": {
-    "capability_identity": null,
-    "invocation_parameter": null,
-    "resolved_at": null,
-    "status": "resolve_on_resume"
+    "capability_identity": "tool:review",
+    "invocation_parameter": "task",
+    "resolved_at": "2026-10-10",
+    "status": "resolved"
   },
 
-  "repair_signatures": [],
-  "repair_cycles": {},
-
-  "budget_status": "not_observable_to_agent",
-  "budget_observation": null,
+  "repair_signatures": [
+    {
+      "signature": "schema-19->20 propagation incomplete in 654f351 (build literals + migration/restore test assertions)",
+      "first_seen_run": 38022542189,
+      "first_seen_sha": "654f351c85799b6f02d33c011c716333e647e80f",
+      "disposition": "ordinary deterministic schema-integration error (mechanically determined fix)",
+      "resolution": "resolved"
+    }
+  ],
+  "repair_cycles": {
+    "schema-19->20 propagation incomplete in 654f351": 1
+  },
 
   "safety_mode": {
-    "mode": "normal",
-    "enabled_by": null,
-    "enabled_at": null,
-    "note": "Unattended safe mode is opt-in and disabled during patch installation; the human enables it explicitly when resuming for the night."
+    "mode": "unattended_safe",
+    "enabled_by": "human",
+    "enabled_at": "2026-10-10T04:44:15Z",
+    "note": "Explicitly enabled by the human for the overnight unattended run. Fail-safe rules in docs/autopilot-protocol.md Part C apply until the human changes this."
   },
   "deferred_defects": [],
   "defect_triage": {
@@ -77,8 +94,11 @@
     "rationale": null
   },
 
-  "stop_reason": "USER_PAUSED_FOR_AUTOPILOT_HARDENING",
+  "budget_status": "not_observable_to_agent",
+  "budget_observation": null,
+
+  "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "User paused the Roadmap Goal to apply the Autopilot hardening patch. 0.23 is SEALED at the latest known green runtime SHA 84c09c9 (workflow run 97 / run id 38017841830, ubuntu+windows success). LEGACY OVERRUN (observed before schema-v2 hardening, do not rerun 0.23 reviews to 'make history conform'): 0.23 general review rounds observed = 4+; post-Safe-Zone reopenings observed = 2; this exceeded the new limits but occurred under the pre-hardening protocol. 0.23 is sealed based on already obtained evidence. 0.24.1A (canonical physical-asset identity and type vocabulary, commit 103a6a4b) must be PRESERVED and replayed onto the sealed Safe Zone after branch synchronization — its source branch waffle913-construction-assets-024 is currently 1 ahead / 18 behind the sealed Safe Zone (merge base 433633f2b2fad43b58951cb8d5dae817616b5ba4); the stale red CI on that pre-sync branch must not be treated as a current failure signature. Do not start 0.24 while applying this patch; the user will explicitly resume the Roadmap Goal."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24 IMPLEMENTING complete; Round 1 + Round 2 review complete with all blocking/should-fix findings corrected, CI green at b1260eb (run 38061660886). Entering BRANCH_CI: merge the reviewed milestone to main and validate main CI. Deferred (documented V1 limitations, not blocking): soft-reservation material consumption (trade stock not decremented until a later fiscal/trade integration); completed projects keep committedUsd; AssetCapacityRecord has no provenance; legacy SimulationStateV2-V6 types omit assets."
 }

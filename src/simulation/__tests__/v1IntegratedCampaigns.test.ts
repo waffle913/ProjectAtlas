@@ -23,6 +23,7 @@ import { initializeSocioeconomy } from '../socioeconomy/initialization';
 import { emptyMultilateral } from '../multilateral/model';
 import { emptyConstitution } from '../constitution/model';
 import { emptyElections } from '../elections/model';
+import { emptyAssets } from '../assets/model';
 import { initializeMultilateral, proposeTreaty, signTreaty, establishOrganization, proposeDecision, voteOnDecision, closeDecision, runMultilateralAI, runMultilateralMonth, withdrawFromOrganization } from '../multilateral/runtime';
 import { createClaim } from '../diplomacy';
 import { declareLimitedWar, endWar, isWarGoalSatisfied, occupyRegion } from '../war';
@@ -42,7 +43,7 @@ const source = { status: 'modelled' as const, publisher: 'Synthetic V1 campaign'
 
 function fixture(): SimulationState {
   let state: SimulationState = {
-    schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
+    schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1,
     territoryOwnership: {}, regionOwnership: { [regionA]: A, [regionB]: B },
     populationByRegion: { [regionA]: 10000, [regionB]: 10000 }, economicOutputByRegion: { [regionA]: 1200000000, [regionB]: 1200000000 },
     bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState([A, B]),

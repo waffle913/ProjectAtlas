@@ -33,7 +33,7 @@ const requireControlled = (state: SimulationState, id: string) => { if (state.go
  *  and a legislator sponsors nothing — only the authorized government leader (head of government)
  *  carries the legislative initiative. Ministers have no legislative powers at all; they suggest. */
 const capabilitiesFor = (role: PoliticalOfficeRole): AuthorityCapability[] => role === 'head_of_government'
-  ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations']
+  ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations', 'propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction']
   : role === 'head_of_state' ? ['access_government_information', 'command_military_operations']
   : role === 'legislator' ? ['vote_legislation'] : [];
 const authorityLimitation = 'Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule.';

@@ -3,6 +3,7 @@ import { emptyInternational } from '../international/model';
 import { emptyMultilateral } from '../multilateral/model';
 import { emptyConstitution } from '../constitution/model';
 import { emptyElections } from '../elections/model';
+import { emptyAssets } from '../assets/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
 import { emptyFiscal } from '../fiscal/model';
@@ -25,7 +26,7 @@ import { simulationDelta } from '../world';
 
 const regions: RegionEntity[] = ['a', 'b'].map(id => ({ id, parentCountryId: id, initialOwnerCountryId: id, commonName: id, administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: [id] } }));
 const context = { regions, regionIds: new Set(['a', 'b']), countryIds: new Set(['a', 'b']) };
-const initial = (): SimulationState => initializeSocioeconomy({ schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: { a: 'a', b: 'b' }, populationByRegion: { a: 10000, b: 10000 }, economicOutputByRegion: { a: 12000000, b: 12000000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(['a', 'b']) }, regions);
+const initial = (): SimulationState => initializeSocioeconomy({ schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: { a: 'a', b: 'b' }, populationByRegion: { a: 10000, b: 10000 }, economicOutputByRegion: { a: 12000000, b: 12000000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(['a', 'b']) }, regions);
 const economy = (s: SimulationState) => s.socioeconomy.regions.a.economy!;
 
 describe('0.10 deterministic socioeconomic model', () => {
@@ -146,7 +147,7 @@ describe('0.10 deterministic socioeconomic model', () => {
     const { socioeconomy: _s, ...body } = s;
     const legacy = { ...body, schemaVersion: 7, date: '2033-06-14', populationByRegion: { a: 9876, b: undefined }, economicOutputByRegion: { a: 9876543, b: undefined }, regionOwnership: { a: 'b', b: 'a' } };
     const migrated = migrateSimulationState(legacy, regions, { a: 1 }, { a: 1 }, context);
-    expect(migrated.schemaVersion).toBe(19);
+    expect(migrated.schemaVersion).toBe(20);
     expect(migrated.socioeconomy.regions.a.population).toBe(9876);
     expect(migrated.socioeconomy.initializedOn).toBe('2033-06-14');
     for (const field of ['populationByRegion', 'economicOutputByRegion', 'engine', 'regionOwnership', 'wars', 'claims'] as const) expect(migrated[field]).toEqual(legacy[field]);

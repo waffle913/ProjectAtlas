@@ -1,5 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
+import { constructionReservedPersonnel } from '../assets/workforce';
 import { allocate, integer, ratio } from '../socioeconomy/model';
 import { borrowingCapacity, sum } from '../fiscal/math';
 import { CATEGORIES } from '../fiscal/model';
@@ -61,7 +62,7 @@ export function admitMilitaryBaseline(state: SimulationState, input: MilitaryAdm
   integer(input.present); integer(input.trainees);
   if (input.trainees > input.present) throw new Error('Trainees exceed present personnel.');
   const ids = Object.keys(state.socioeconomy.regions).filter(id => state.regionOwnership[id] === input.countryId && state.socioeconomy.regions[id].economy).sort();
-  const available = ids.map(id => state.socioeconomy.regions[id].economy!.labourForce - reservedPersonnel(state, id));
+  const available = ids.map(id => state.socioeconomy.regions[id].economy!.labourForce - reservedPersonnel(state, id) - constructionReservedPersonnel(state, id));
   if (input.present > sum(available)) throw new Error('Military personnel exceed existing usable regional labour/population.');
   const assignment = allocate(input.present, available);
   const c: MilitaryCapability = {
@@ -105,8 +106,8 @@ function reconcileWorkforce(state: SimulationState): SimulationState {
   const regions = { ...state.socioeconomy.regions };
   for (const [id, r] of Object.entries(regions)) {
     if (!r.economy) continue;
-    const reserved = reservedPersonnel(state, id), e = r.economy;
-    if (reserved > e.labourForce) throw new Error('Military reservation exceeds regional labour force.');
+    const reserved = reservedPersonnel(state, id) + constructionReservedPersonnel(state, id), e = r.economy;
+    if (reserved > e.labourForce) throw new Error('Reserved labour exceeds regional labour force.');
     const employed = Math.min(e.employed, e.labourForce - reserved);
     if (employed !== e.employed || e.unemployed !== e.labourForce - employed - reserved) regions[id] = { ...r, economy: { ...e, employed, unemployed: e.labourForce - employed - reserved } };
   }
@@ -204,7 +205,7 @@ export function prepareMilitaryMonth(state: SimulationState): SimulationState {
     const c = capability(next, id); if (c.lastPreparedOn === state.date) continue;
     const fiscal = state.fiscal.countries[id], present = presentPersonnel(c), p = c.parameters;
     const ids = Object.keys(state.socioeconomy.regions).filter(r => state.regionOwnership[r] === id && state.socioeconomy.regions[r].economy).sort();
-    const free = ids.map(r => state.socioeconomy.regions[r].economy!.labourForce - reservedPersonnel(next, r));
+    const free = ids.map(r => state.socioeconomy.regions[r].economy!.labourForce - reservedPersonnel(next, r) - constructionReservedPersonnel(next, r));
     const affordable = p.monthlySalaryUsd ? Math.floor((fiscal?.annualBudget.defense ?? 0) / 12 / p.monthlySalaryUsd) : c.authorized;
     const recruited = c.payrollArrears ? 0 : Math.min(Math.max(0, Math.min(c.authorized, affordable) - present), p.recruitmentPerMonth, sum(free));
     const retentionTarget = c.unpaidMonths >= 3 ? Math.min(c.authorized, Math.floor((c.lastLedger?.grossPayrollPaid ?? 0) / p.monthlySalaryUsd)) : c.authorized;

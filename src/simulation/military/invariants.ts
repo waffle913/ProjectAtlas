@@ -1,4 +1,5 @@
 import type { SimulationInvariant } from '../invariants';
+import { constructionReservedPersonnel } from '../assets/workforce';
 import { dateValid, sum } from '../fiscal/math';
 import { MILITARY_VERSION, presentPersonnel } from './model';
 import { validateCapability } from './validation';
@@ -39,7 +40,7 @@ export const militaryInvariant: SimulationInvariant = {
       }
     }
     for (const [id, r] of Object.entries(state.socioeconomy.regions)) {
-      if (r.economy && r.economy.employed + r.economy.unemployed + (reservations.get(id) ?? 0) !== r.economy.labourForce) errors.push(`${id}: Civilian jobs/unemployment/military labour conservation failed.`);
+      if (r.economy && r.economy.employed + r.economy.unemployed + (reservations.get(id) ?? 0) + constructionReservedPersonnel(state, id) !== r.economy.labourForce) errors.push(`${id}: Civilian jobs/unemployment/military/construction labour conservation failed.`);
     }
     const reports = state.information.militaryReports;
     if (reports) {

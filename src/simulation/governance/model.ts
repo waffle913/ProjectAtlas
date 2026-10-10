@@ -4,7 +4,7 @@ import type { ConstitutionalRights, ParliamentConstitution, HeadOfStateConstitut
 import { deterministicFingerprint } from '../fingerprint';
 
 export const GOVERNANCE_VERSION = 'governance-0.14-v1' as const;
-export const AUTHORITY_CAPABILITIES = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations'] as const;
+export const AUTHORITY_CAPABILITIES = ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations', 'propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction'] as const;
 export type AuthorityCapability = typeof AUTHORITY_CAPABILITIES[number];
 export type PoliticalOfficeRole = 'head_of_government' | 'head_of_state' | 'legislator' | 'minister';
 export const INITIAL_LEADER_PROVENANCE_METHODS = ['reviewed_primary_party_source_v1', 'reviewed_global_party_chair_snapshot_v1', 'reviewed_party_leadership_evidence_v1', 'party_platform_initial_v2'] as const;

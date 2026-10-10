@@ -26,6 +26,7 @@ import { emptyMultilateral, MULTILATERAL_VERSION } from './multilateral/model';
 import { initializeMultilateral } from './multilateral/runtime';
 import { initializeConstitution, emptyConstitution } from './constitution/model';
 import { initializeElections, emptyElections } from './elections/model';
+import { emptyAssets, ASSETS_VERSION } from './assets/model';
 import { institutionalStakesFingerprint } from './governance/institutionalInterest';
 
 /** Idempotent intra-schema-19 backfill for saves written before pendingAmendments, per-chamber
@@ -374,9 +375,9 @@ const countryIdsFor = (state: { territoryOwnership: Record<string, string | unde
   }
   return countryIds;
 };
-const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields | 'international' | 'operations' | 'multilateral' | 'constitution' | 'elections'>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
+const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields | 'international' | 'operations' | 'multilateral' | 'constitution' | 'elections' | 'assets'>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
   const countryIds = countryIdsFor(state, regions, context);
-  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
+  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(state.date), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
   const withPolitics = { ...crisis, politics: initializePolitics(crisis, countryIds, regions), governance: emptyGovernance(crisis.date) };
   return initializeElections(initializeConstitution(initializeOperations(initializeInternational(initializeMultilateral(initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics)))))), [...countryIds]), [...countryIds]);
@@ -394,7 +395,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     return map && typeof map === 'object' && !Array.isArray(map)
       ? [[field, { ...Object.fromEntries(regions.map(region => [region.id, undefined])), ...map }]] : [];
   })) };
-  if (version === 7 || version === 8 || version === 9 || version === 10 || version === 11 || version === 12 || version === 13 || version === 14 || version === 15 || version === 16 || version === 17 || version === 18 || version === 19) {
+  if (version === 7 || version === 8 || version === 9 || version === 10 || version === 11 || version === 12 || version === 13 || version === 14 || version === 15 || version === 16 || version === 17 || version === 18 || version === 19 || version === 20) {
     const current = save as SimulationState & { crisis?: SimulationState['crisis']; politics?: SimulationState['politics'] };
     if (!diplomacyContext) throw new Error('A Country and Region registry context is required to validate a v7-v15 simulation save.');
     if (!current.engine || typeof current.engine.seed !== 'string' || !Number.isSafeInteger(current.engine.tick) || !current.engine.fidelityByCountry || !Array.isArray(current.engine.pendingFidelityTransitions) || !Array.isArray(current.engine.recentFidelityTransitions) || !Array.isArray(current.engine.pendingImmediateUpdates) || !Array.isArray(current.engine.dirtyDomains)) throw new Error('Malformed v7 simulation engine state.');
@@ -410,10 +411,11 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     if (version === 16 && current.international?.version !== 'international-0.18-v1') throw new Error('Malformed international model.');
     if (version === 17 && current.operations?.version !== 'operations-0.19-v1') throw new Error('Malformed operations model.');
     if (version === 18 && current.multilateral?.version !== MULTILATERAL_VERSION) throw new Error('Malformed multilateral model.');
+    if (version === 20 && current.assets?.version !== ASSETS_VERSION) throw new Error('Malformed assets model.');
     const fiscal = version >= 9 ? upgradeFiscalStateV1(current.fiscal, current.date) : emptyFiscal();
     const countryIds = countryIdsFor(current, regions, diplomacyContext);
     const crisis = version >= 10 ? current.crisis! : initializeCrisisState(emptyCrisis(), countryIds, current.date);
-    const base = { ...current, schemaVersion: 19 as const, operations: version >= 17 ? current.operations! : emptyOperations(), international: version >= 16 ? current.international! : emptyInternational(), multilateral: version >= 18 ? current.multilateral! : emptyMultilateral(), constitution: version >= 19 ? current.constitution! : initializeConstitution(current, [...countryIds]).constitution, elections: version >= 19 ? current.elections! : initializeElections(current, [...countryIds]).elections, trade: version >= 15 ? current.trade : emptyTrade(), military: version >= 14 ? current.military : emptyMilitary(), information: version >= 13 ? current.information! : emptyInformation(current.date), governance: version >= 12 ? current.governance! : emptyGovernance(current.date), politics: version >= 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
+    const base = { ...current, schemaVersion: 20 as const, operations: version >= 17 ? current.operations! : emptyOperations(), international: version >= 16 ? current.international! : emptyInternational(), multilateral: version >= 18 ? current.multilateral! : emptyMultilateral(), constitution: version >= 19 ? current.constitution! : initializeConstitution(current, [...countryIds]).constitution, elections: version >= 19 ? current.elections! : initializeElections(current, [...countryIds]).elections, assets: version >= 20 ? current.assets! : emptyAssets(current.date), trade: version >= 15 ? current.trade : emptyTrade(), military: version >= 14 ? current.military : emptyMilitary(), information: version >= 13 ? current.information! : emptyInformation(current.date), governance: version >= 12 ? current.governance! : emptyGovernance(current.date), politics: version >= 11 ? current.politics! : emptyPolitics(), crisis, fiscal, socioeconomy: version === 7 ? emptySocioeconomy() : current.socioeconomy };
     const upgraded = cloneSimulationState(base);
     const fiscalRestored = version >= 9 ? upgraded : initializeFiscal(version === 7 ? initializeSocioeconomy(upgraded, regions) : upgraded);
     const savedRegistryVersion = version >= 11 ? (current.politics as { registryVersion?: unknown }).registryVersion : undefined;
@@ -446,6 +448,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     // Intra-schema-19 backfill for saves written before pendingAmendments, per-chamber elections
     // and organization banEvents were introduced. Idempotent: present fields are never rewritten.
     restored = backfillSchema19(restored);
+    if (version < 20) restored = upgradeConstructionAuthority(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }
@@ -509,6 +512,25 @@ function upgradeOperationsAuthority(state: SimulationState): SimulationState {
       || person.office.evidence?.authorityBasis === 'institutional_authority_unresolved'
       || person.office.authorityProfile.capabilities.includes('command_military_operations')) continue;
     persons[id] = { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: [...person.office.authorityProfile.capabilities, 'command_military_operations' as const].sort() as typeof person.office.authorityProfile.capabilities } } };
+  }
+  return { ...state, governance: { ...state.governance, persons } };
+}
+
+/** 0.24 — backfill the four construction capabilities into pre-0.24 executive
+ *  offices: every head of government (role-derived) and every source-reconciled
+ *  executive (head of government or head of state) gains propose/authorize/fund/
+ *  cancel construction. Idempotent: capabilities already present are not re-added. */
+function upgradeConstructionAuthority(state: SimulationState): SimulationState {
+  const construction = ['propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction'] as const;
+  const persons = { ...state.governance.persons };
+  for (const [id, person] of Object.entries(persons)) {
+    if (!person.office) continue;
+    if (person.office.evidence?.authorityBasis === 'institutional_authority_unresolved') continue;
+    const reconciled = Boolean(person.office.evidence?.authorityBasis);
+    if (person.office.role !== 'head_of_government' && !reconciled) continue;
+    const missing = construction.filter(capability => !person.office!.authorityProfile.capabilities.includes(capability));
+    if (!missing.length) continue;
+    persons[id] = { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: [...person.office.authorityProfile.capabilities, ...missing].sort() as typeof person.office.authorityProfile.capabilities } } };
   }
   return { ...state, governance: { ...state.governance, persons } };
 }
