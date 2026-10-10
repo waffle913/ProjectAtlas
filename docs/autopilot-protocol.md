@@ -550,7 +550,13 @@ at the last Safe Zone.
 
 When milestone N becomes the new Safe Zone, Reasonix may immediately identify
 milestone N+1, create its branch, read its contracts, plan, and begin — no
-intermediate user confirmation if N+1 is already inside the authorized roadmap.
+intermediate user confirmation **only if the human has explicitly granted
+multi-milestone authorization covering N+1** (for example a single roadmap-wide
+Goal that names N+1 inside its authorized scope). Accepting or completing one
+main milestone is never, by itself, authorization to implement the next one. If
+no explicit multi-milestone authorization exists, the Autopilot persists
+`AWAITING_NEXT_MILESTONE_AUTHORIZATION` (§22, §63) and STOPs until the human
+explicitly authorizes the next milestone.
 
 When every numbered, authorized milestone is complete: STOP. Do not convert the
 unnumbered backlog into new versions. Produce:
@@ -610,13 +616,25 @@ BRANCH_SYNC
 -> BRANCH_CI
 -> MERGE_TO_MAIN
 -> MAIN_CI
--> SEALED_SAFE_ZONE
--> NEXT_MILESTONE
+-> AWAITING_HUMAN_ACCEPTANCE      (green CI / merge is NOT acceptance)
+-> SEALED_SAFE_ZONE               (only after explicit human acceptance)
+-> AWAITING_NEXT_MILESTONE_AUTHORIZATION
+-> NEXT_MILESTONE                 (only after explicit human authorization)
+-> BRANCH_SYNC                    (next milestone)
 ```
 
 `NEXT_MILESTONE` means the previous milestone is **sealed**. A sealed milestone
 cannot receive a spontaneous new general review. Do not set `current_milestone`
 to the next milestone and then continue reviewing the previous milestone.
+
+`AWAITING_HUMAN_ACCEPTANCE` and `AWAITING_NEXT_MILESTONE_AUTHORIZATION` are
+explicit persisted phases, not conversational states. A green CI, a merge, or an
+agent statement such as "done"/"validated"/"ready" is **never** human acceptance.
+Human acceptance is recorded only through an explicit persisted decision record
+(§52). Completing or accepting one main milestone does **not** automatically
+authorize the next main milestone (§63): after `SEALED_SAFE_ZONE` the Autopilot
+persists `AWAITING_NEXT_MILESTONE_AUTHORIZATION` and STOPs until a human
+explicitly authorizes the next milestone.
 
 On the `NEXT_MILESTONE -> BRANCH_SYNC` transition, before any work on the new
 milestone begins: archive the previous milestone's `review_campaign` verbatim
@@ -942,6 +960,11 @@ max_same_root_cause_repair_cycles, updated_at, notes). Material history remains
 auditable; review/repair counters are not reset merely to make the state look
 clean.
 
+Schema 3 (Part D) extends this with: `runtime_sha`, `metadata_head_sha`,
+`human_acceptance`, `next_milestone_authorization`, `active_blocker`,
+`blocker_history`, and `ci_conclusion`. The consistency of all these fields is
+checked by `.reasonix/autopilot-state-validator.mjs` (§61).
+
 ## 36. Cryo reasons
 
 In addition to the existing reasons, add:
@@ -1175,3 +1198,212 @@ Cryo blocker first; (2) show/report any new deferred defects; (3) continue
 according to their triggers and roadmap impact; (4) preserve history. The
 existence of deferred defects is not itself a reason to stop normal roadmap
 progression unless a trigger has been reached or new evidence raises their impact.
+
+---
+
+# Part D — Autopilot Hardening (schema v3)
+
+This part hardens the Autopilot against context compaction, deliberate context
+purge, fresh sessions, model/provider changes, restarts/crashes, and stale
+persistent metadata. It is normative and supersedes earlier sections wherever
+they conflict. The repository and GitHub remain the authoritative evidence even
+if the entire prior conversation disappears.
+
+## 51. Authoritative reconstruction order
+
+A fresh or compacted session reconstructs ProjectAtlas state in this exact order,
+and treats later items only as navigation/background:
+
+1. `.reasonix/projectatlas-autopilot-state.json`
+2. actual local Git worktree / current branch / exact HEAD
+3. actual `origin/main`
+4. actual milestone/correction branches when relevant
+5. exact GitHub Actions evidence for the SHA being validated
+6. `docs/autopilot-protocol.md`
+7. `docs/roadmap-submilestones.md`
+8. subsystem contracts
+9. `AGENTS.md`, the canonical handoff and other standing engineering instructions
+10. persisted human decisions/authorizations
+11. compacted-conversation summary or model memory
+
+A conversation summary, compaction summary or model memory is never authoritative
+evidence of repository state. If persistent state conflicts with Git/GitHub
+evidence, do not silently trust either side: reconcile against Git/GitHub, update
+the persistent state to match verified reality, and preserve the historical
+contradiction when useful for audit.
+
+## 52. Human-acceptance record
+
+Human acceptance is an explicit persisted decision record, distinct from every
+phase before it. A green CI is not acceptance; a merge is not acceptance; an
+agent statement "done"/"validated"/"ready" is not acceptance. Persist at minimum:
+
+```text
+human_acceptance:
+  accepted_milestone
+  accepted_by = human
+  accepted_at          (null when the runtime cannot reliably establish it)
+  accepted_runtime_sha
+  acceptance_context
+```
+
+Do not invent an acceptance timestamp the runtime cannot establish; preserve the
+fact of acceptance honestly. `SEALED_SAFE_ZONE` and
+`AWAITING_NEXT_MILESTONE_AUTHORIZATION` require this record.
+
+## 53. Runtime Safe-Zone SHA vs metadata HEAD
+
+Keep these strictly distinct:
+
+- validated runtime SHA — the exact runtime state whose required GitHub checks
+  passed (the Safe-Zone SHA);
+- current Git HEAD;
+- metadata/protocol/state commit;
+- milestone branch HEAD;
+- CI-tested SHA.
+
+Persist `runtime_sha` (validated runtime) and `metadata_head_sha` (informational;
+Git is authoritative) so both can be represented at once. A later metadata-only
+commit touching `.reasonix/**`, `docs/**`, the protocol, or status/acceptance
+records must never silently replace the validated runtime SHA.
+
+## 54. Persistent state must survive context loss
+
+Context loss is not a new campaign. A new session must not interpret missing
+conversational context as permission to reset a campaign. Context loss must never
+reset or erase: current milestone/micro-block; milestone phase; branch; exact
+HEAD; validated runtime SHA; last Safe Zone; sealed milestone; human acceptance;
+next-milestone authorization; review-round counters; repair-cycle counters;
+reopen count; outstanding/late-blocking findings; deferred defects; optional
+improvements; current blocker; historical blockers; Cryo status; CI run ID /
+SHA / branch / result; unfinished atomic operation/checkpoint.
+
+## 55. Proactive context purge / compaction
+
+Use actual context-window utilization only when the runtime reliably exposes it.
+Never substitute prompt-cache percentage, cache hit rate, credit usage, provider
+spending percentage, token billing statistics, or arbitrary estimated context
+usage for real context-window utilization.
+
+- Soft threshold ≈ 70% real utilization: do not begin another large operation;
+  finish the current small/atomic operation if safe, otherwise stop at the
+  nearest clean recoverable checkpoint; persist all recovery information; invoke
+  the runtime-supported purge/compaction; reconstruct authoritative context
+  afterward; resume from the exact checkpoint.
+- Hard threshold 80% or above: start no new substantial operation, no broad
+  review, no new micro-block, no large migration/refactor; persist a complete
+  recovery checkpoint immediately; purge/compact as soon as state can be safely
+  preserved. If no purge/compaction mechanism exists: persist the checkpoint and
+  STOP safely.
+
+## 56. Pre-purge checkpoint
+
+Before a deliberate purge/compaction, persist everything necessary to resume
+without conversational memory: current milestone/micro-block/phase; branch,
+HEAD, `origin/main` HEAD; validated runtime SHA, last Safe-Zone SHA, sealed SHA;
+CI run ID/SHA/branch/status/conclusion/last-checked; review round + maximum,
+final/targeted verification state; repair signatures and cycle counts; active
+findings, late-blocking findings, deferred defects; active blocker/Cryo reason
+and historical blockers; human acceptance and next-milestone authorization;
+unfinished atomic operation and exact resume point. Persist only material
+transitions/checkpoints — never a Git commit per internal thought.
+
+## 57. Post-purge reconstruction
+
+After purge/compaction: reload persistent state; verify the actual worktree;
+verify local and remote branch/HEAD; verify `main`; query the recorded GitHub CI
+run if relevant; reread only the necessary protocol/roadmap/contracts; recover
+persisted human decisions; compare verified reality with persistent metadata;
+repair stale metadata; resume the exact unfinished operation. Do not restart the
+milestone, rerun completed broad reviews, repeat already-green validation,
+recreate completed work, reset repair cycles, forget blockers, or silently
+authorize the next milestone.
+
+## 58. CI wait / stale wait protection
+
+Whenever waiting on CI, persist: workflow name, run ID, exact SHA, branch, status,
+conclusion when terminal, `last_checked_at`. When a session resumes from WAIT,
+query the actual recorded GitHub run before waiting again; never assume from
+conversational state that the run is still queued/in progress. If the run is
+terminal, consume its actual result once and stop polling it. If the recorded CI
+SHA differs from the SHA being validated, treat the CI metadata as stale and
+reconcile before progression. If the run no longer exists or cannot be retrieved,
+do not invent success/failure — classify the external validation state honestly.
+A long CI wait is a good purge boundary: persist run ID/SHA, purge when the
+threshold warrants it, and after reconstruction query the same run.
+
+## 59. Blocker cleanup and history
+
+Separate `active_blocker` (current) from `blocker_history` (resolved). When a
+human resolves `BLOCKED_DESIGN`, `BLOCKED_CONTRACT`, `BLOCKED_MIGRATION`,
+`BLOCKED_EXTERNAL`, or another Cryo reason, retain the historical record but
+clear the stale active fields. Never leave contradictory state such as
+`mode = running` with `stop_reason = BLOCKED_DESIGN` after that blocker is
+resolved; likewise clear stale `blocked_head_sha`, obsolete notes, outdated
+branch/CI run/SHA, and old correction status. Historical evidence stays auditable
+in campaign/history records.
+
+## 60. Review and repair counters survive purge
+
+`MAX_FULL_MILESTONE_REVIEW_ROUNDS = 2` (Round 1 CONSOLIDATED_REVIEW, Round 2
+FINAL_VERIFICATION_REVIEW; after Round-2 blocking findings FINAL_CORRECTIONS →
+TARGETED_VERIFICATION). A purge, restart, fresh session or model change must never
+reset the review counter and accidentally authorize Round 3. TARGETED_VERIFICATION
+inspects corrected code, directly affected invariants, direct dependencies, and
+the regression surfaces created by the correction — it must not silently expand
+into another full review. Root-cause repair-cycle counters also survive
+purge/restart: a fresh context does not turn repair attempt 2 into attempt 0.
+`MAX_SAME_ROOT_CAUSE_REPAIR_CYCLES = 2` remains authoritative and is never bypassed
+through context reset, renamed error messages, a new session, another model, or
+another reviewer.
+
+## 61. State consistency validation
+
+A cheap deterministic validator
+(`.reasonix/autopilot-state-validator.mjs`, run via
+`node --test .reasonix/autopilot-state-validator.test.mjs`) checks the persisted
+state for contradictions such as: `SEALED_SAFE_ZONE` without human acceptance;
+accepted milestone differing from sealed milestone without a transitional state;
+sealed runtime SHA inconsistent with recorded runtime evidence; `ci_status =
+success` against a CI SHA for another runtime SHA; `AWAITING_HUMAN_ACCEPTANCE`
+while acceptance is already recorded; next milestone active while the previous is
+unsealed/unaccepted/unauthorized; review counters out of bounds; active blocker
+with `stop_reason = null` (or `stop_reason` without an active blocker);
+`blocked_head_sha` referring to an already-resolved blocker; a CI WAIT phase with
+a terminal recorded conclusion; the Safe Zone moved to a metadata-only commit;
+milestone authorization inferred without an explicit human record. Prefer this
+schema/consistency validation over running the entire application suite when
+runtime/gameplay code has not changed.
+
+## 62. Tool / plugin usage
+
+Use the cheapest authoritative source appropriate to the task; a connected tool is
+not called every turn. GitHub integration is the authoritative remote source for
+branches, commits, PRs, workflow runs, job results, exact CI SHA, and current
+remote `main` — never conversational memory. Context7 is used only when
+implementation depends on current external library/framework/API behavior with
+meaningful risk that model knowledge is stale; never to override ProjectAtlas
+contracts, and never with secrets/credentials/proprietary material. External web
+research is used only when genuinely necessary and is kept distinct from
+ProjectAtlas contracts, simulation state, and accepted design decisions. Browser
+automation is used only for real UI/end-to-end validation, not to validate
+backend Autopilot metadata. Observability tools are used only when runtime
+telemetry is actually relevant and never replace deterministic tests, CI,
+invariants, or repository evidence. Never invent tool availability, credentials,
+or returned evidence.
+
+## 63. No automatic next-milestone authorization
+
+Completing or accepting one main milestone does **not** automatically authorize
+implementation of the next main milestone. Unless a future human instruction
+explicitly grants multi-milestone authorization:
+
+```text
+SEALED_SAFE_ZONE
+-> AWAITING_NEXT_MILESTONE_AUTHORIZATION
+and STOP.
+```
+
+A new main milestone begins only after explicit human authorization, persisted in
+`next_milestone_authorization`. A future human may explicitly grant broader
+authorization; it is never inferred. This hardening task does not authorize 0.25.

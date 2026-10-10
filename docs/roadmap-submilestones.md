@@ -6,7 +6,7 @@ This document is the detailed planning reference for ProjectAtlas. It complement
 
 - **Historical milestones are not re-cut retroactively.** 0.1–0.21 keep their original numbering and scope. They are preserved here as context, not as tasks to redo.
 - **New large milestones are split into small units.** 0.24 and 0.25 are decomposed into sub-milestones and micro-blocks to reduce the surface of each change and the cost of corrective loops.
-- **Presence in this roadmap is not authorization to implement.** Each main milestone still requires explicit user authorization, and no next main milestone starts automatically.
+- **Presence in this roadmap is not authorization to implement.** Each main milestone still requires explicit user authorization, and no next main milestone starts automatically. Accepting or completing a main milestone never authorizes the next one: the Autopilot persists `AWAITING_NEXT_MILESTONE_AUTHORIZATION` and stops until a human explicitly authorizes the next milestone (see `docs/autopilot-protocol.md` Part D).
 - **Execution method.** How a Roadmap Goal builds this roadmap autonomously (authorization boundary, Planner/Executor/Reviewer roles, GitHub-CI gate, Safe Zones, repair loop breaker, Cryo Mode) is defined by the [Autopilot protocol](autopilot-protocol.md), not by this document.
 - Keep these statuses distinct — an agent's declaration, a commit actually present, a green CI run, an independent review, and user acceptance are five different things:
 
@@ -21,6 +21,14 @@ This document is the detailed planning reference for ProjectAtlas. It complement
 Never write `final`, `last`, `validated` or `accepted` without repository evidence or an explicit user decision.
 
 ## Observed status (at the time of writing)
+
+The snapshot below is historical and is not the authoritative current status. The
+authoritative acceptance/sealing state lives in
+`.reasonix/projectatlas-autopilot-state.json` and in the actual Git/GitHub
+evidence (see `docs/autopilot-protocol.md` Part D §51). As of the schema-v3
+hardening, 0.24 is accepted and sealed at runtime SHA `6b6794e`; 0.25 is not
+authorized.
+
 
 - `main` — `75cb45d` — the V1 core (0.8–0.21) plus the accepted 0.15 foundation, and these planning documents.
 - `waffle913-policy-framework-022` — 0.22 implemented for independent review, **not accepted** (schema 18).

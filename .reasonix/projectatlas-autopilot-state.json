@@ -1,12 +1,12 @@
 {
-  "schema": 2,
+  "schema": 3,
   "mode": "running",
   "roadmap_id": "projectatlas-roadmap-submilestones",
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
   "current_block": "0.24.11",
-  "milestone_phase": "SEALED_SAFE_ZONE",
+  "milestone_phase": "AWAITING_NEXT_MILESTONE_AUTHORIZATION",
 
   "last_safe_milestone": "0.24",
   "last_safe_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
@@ -17,6 +17,23 @@
   "sealed_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
   "sealed_ci_run_id": 38079523537,
 
+  "runtime_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
+  "metadata_head_sha": "d791bea8c2a8509b38bc646bc9df83af4907df2c",
+
+  "human_acceptance": {
+    "accepted_milestone": "0.24",
+    "accepted_by": "human",
+    "accepted_at": null,
+    "accepted_runtime_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
+    "acceptance_context": "Human message accepted 0.24 ('tu as le feu vert') and directed to stop before 0.25. The exact acceptance timestamp was not exposed to the agent; the fact of acceptance is recorded honestly without an invented timestamp."
+  },
+  "next_milestone_authorization": {
+    "authorized_milestone": null,
+    "authorized_by": null,
+    "authorized_at": null,
+    "context": "0.25 Economy V2 is NOT authorized. A new main milestone begins only after an explicit human authorization is recorded in this field."
+  },
+
   "current_branch": "main",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
   "milestone_branch_head_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
@@ -24,11 +41,22 @@
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
+  "active_blocker": null,
+  "blocker_history": [
+    {
+      "reason": "BLOCKED_DESIGN",
+      "head_sha": "2f0b9823e47908211f8aadc98fcfec60d281cf34",
+      "first_seen_at": "2026-10-10",
+      "resolved_at": "2026-10-10",
+      "resolution": "Human design decisions for fiscal/trade/maintenance integration were incorporated; the consolidated 0.24 corrective campaign resolved all ten defects plus the five round-2 blockers, and 0.24 was accepted and sealed."
+    }
+  ],
 
   "ci_run_id": 38079523537,
   "ci_head_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
   "ci_branch": "main",
   "ci_status": "success",
+  "ci_conclusion": "success",
   "ci_last_checked_at": "2026-10-10",
 
   "review_campaign": {
@@ -37,7 +65,7 @@
     "max_full_review_rounds": 2,
     "final_verification_complete": false,
     "targeted_verification_complete": false,
-    "findings_summary": "Round 1 + Round 2 done and corrected. A subsequent independent human review (concrete external evidence) found 10 remaining 0.24 contract violations; the consolidated corrective campaign re-entered CORRECTING_REVIEW_FINDINGS and addressed all ten areas (fiscal accounting/committed cash, slow maintenance wear, maintenance-vs-repair, intra-schema-20 backfill, territorial control across the lifecycle, Trade material imports, coverage/provenance, targeted acceptance tests, autopilot state). No third broad review was run — only targeted verification. Awaiting branch CI, merge to main, main CI, then STOP before SEALED_SAFE_ZONE for explicit human acceptance.",
+    "findings_summary": "Round 1 + Round 2 done and corrected. A subsequent independent human review (concrete external evidence) found 10 remaining 0.24 contract violations; the consolidated corrective campaign addressed all ten areas plus the five round-2 blockers (causal construction-material import need, underfunded legacy commitment reconciliation, maintenance resources/availability, run-134 assertion/oracle fixes, autopilot state evidence). Targeted verification passed; branch CI green (run 38077899157), merged to main, main CI green (run 38079523537). 0.24 accepted by the human and sealed at 6b6794e. No third broad review was run.",
     "late_blocking_findings": [],
     "reopen_count": 1,
     "max_autonomous_post_seal_reopens": 1
@@ -100,5 +128,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "0.24 accepted by the human. Sealed at 6b6794e (runtime SHA, main CI green run 38079523537). STOPPED before starting 0.25: the human will add autopilot instructions shortly; do not start 0.25 or archive the review campaign until those instructions arrive."
+  "notes": "0.24 accepted and sealed at runtime SHA 6b6794e (main CI green run 38079523537). Autopilot hardened before 0.25: milestone_phase = AWAITING_NEXT_MILESTONE_AUTHORIZATION. 0.25 Economy V2 is NOT authorized and must NOT start until an explicit human authorization is recorded. Do not start 0.25, do not archive the 0.24 review campaign, and do not run another 0.24 broad review."
 }
