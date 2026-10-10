@@ -3,6 +3,7 @@ import { emptyInternational } from '../international/model';
 import { emptyMultilateral } from '../multilateral/model';
 import { emptyConstitution } from '../constitution/model';
 import { emptyElections } from '../elections/model';
+import { emptyAssets } from '../assets/model';
 import { emptyTrade } from '../trade/model';
 import { emptyMilitary } from '../military/model';
 import { emptyFiscal } from '../fiscal/model';
@@ -25,7 +26,7 @@ import { simulationDelta } from '../world';
 
 const regions: RegionEntity[] = ['a', 'b'].map(id => ({ id, parentCountryId: id, initialOwnerCountryId: id, commonName: id, administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: [id] } }));
 const context = { regions, regionIds: new Set(['a', 'b']), countryIds: new Set(['a', 'b']) };
-const initial = (): SimulationState => initializeSocioeconomy({ schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: { a: 'a', b: 'b' }, populationByRegion: { a: 10000, b: 10000 }, economicOutputByRegion: { a: 12000000, b: 12000000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(['a', 'b']) }, regions);
+const initial = (): SimulationState => initializeSocioeconomy({ schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(), military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {}, regionOwnership: { a: 'a', b: 'b' }, populationByRegion: { a: 10000, b: 10000 }, economicOutputByRegion: { a: 12000000, b: 12000000 }, bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(['a', 'b']) }, regions);
 const economy = (s: SimulationState) => s.socioeconomy.regions.a.economy!;
 
 describe('0.10 deterministic socioeconomic model', () => {

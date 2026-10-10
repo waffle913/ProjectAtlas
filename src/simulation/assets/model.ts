@@ -126,3 +126,66 @@ export interface AssetIdentityRecord {
   /** Real-world coverage and provenance of this identity. */
   coverage: AssetCoverageRecord;
 }
+
+// ---------------------------------------------------------------------------
+// 0.24.1B — Physical state vocabulary.
+// ---------------------------------------------------------------------------
+
+/** Operating status of a physical asset. `'unavailable'` means the status could
+ *  not be sourced, never that the asset is absent or has zero capacity. */
+export type AssetOperatingStatus = 'operational' | 'degraded' | 'out_of_service' | 'under_construction' | 'decommissioned' | 'unavailable';
+
+/** Physical condition of an asset when a source provides it. */
+export type AssetPhysicalCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'critical' | 'unavailable';
+
+/** Whether the asset's capacity is currently usable. `'unavailable'` never means zero. */
+export type AssetAvailability = 'available' | 'partial' | 'unavailable';
+
+/** Physical capacity of an asset: a non-negative quantity with a physical unit
+ *  and honest coverage. `amount` is present only when coverage is not
+ *  `'unavailable'` — unavailable is never recorded as a zero quantity. */
+export interface AssetCapacityRecord {
+  amount?: number;
+  unit: string;
+  coverage: AssetCoverageStatus;
+  limitation?: string;
+}
+
+/** Physical state of an asset (0.24.1B): operating status, capacity,
+ *  availability and — when a source provides it — physical condition. */
+export interface AssetPhysicalStateRecord {
+  operatingStatus: AssetOperatingStatus;
+  capacity: AssetCapacityRecord;
+  availability: AssetAvailability;
+  physicalCondition?: AssetPhysicalCondition;
+}
+
+/** Canonical record of one physical asset: identity (0.24.1A) plus physical
+ *  state (0.24.1B). */
+export interface AssetRecord extends AssetIdentityRecord, AssetPhysicalStateRecord {}
+
+// ---------------------------------------------------------------------------
+// 0.24.1C — Canonical assets state.
+// ---------------------------------------------------------------------------
+
+export const ASSETS_VERSION = 'assets-0.24-v1' as const;
+
+/** The single canonical owner of all physical-asset records. No parallel store. */
+export interface AssetsState {
+  version: typeof ASSETS_VERSION;
+  initializedOn?: string;
+  assets: Record<AssetId, AssetRecord>;
+  assetOrder: AssetId[];
+  nextAssetSequence: number;
+}
+
+export const emptyAssets = (initializedOn?: string): AssetsState => ({
+  version: ASSETS_VERSION,
+  initializedOn,
+  assets: {},
+  assetOrder: [],
+  nextAssetSequence: 0,
+});
+
+/** Deterministic permanent asset identity: opaque, sequence-derived only. */
+export const assetId = (sequence: number): AssetId => `asset.${sequence.toString().padStart(8, '0')}`;

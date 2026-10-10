@@ -4,6 +4,7 @@ import { emptyInternational } from '../international/model';
 import { emptyMultilateral } from '../multilateral/model';
 import { emptyConstitution } from '../constitution/model';
 import { emptyElections } from '../elections/model';
+import { emptyAssets } from '../assets/model';
 import { emptyTrade } from '../trade/model';
 import { describe, expect, it, vi } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
@@ -52,7 +53,7 @@ export const militaryParameters: MilitaryParameters = {
 };
 export function militaryFixture(admit = true): SimulationState {
   let state: SimulationState = {
-    schemaVersion: 19, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), trade: emptyTrade(), military: emptyMilitary(), socioeconomy: emptySocioeconomy(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
+    schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(), military: emptyMilitary(), socioeconomy: emptySocioeconomy(), fiscal: emptyFiscal(), crisis: emptyCrisis(),
     politics: emptyPolitics(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'),
     date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
     regionOwnership: Object.fromEntries(militaryRegions.map(r => [r.id, r.initialOwnerCountryId])),

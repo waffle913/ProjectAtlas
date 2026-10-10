@@ -1355,7 +1355,7 @@ describe('final foundation stored governance evidence', () => {
 
 describe('governance 0.14 player and political decisions', () => {
   it('initializes party leaders and materializes sourced executives independently of party-leadership coverage', () => {
-    expect(initial).toMatchObject({ schemaVersion: 19, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
+    expect(initial).toMatchObject({ schemaVersion: 20, governance: { version: 'governance-0.14-v1', initializedOn: '2026-01-01', player: {}, proposals: {}, proposalOrder: [], nextProposalSequence: 0, leadersInitializedOn: '2026-01-01' } });
     expect(Object.values(initial.governance.persons).filter(person => person.isPartyLeader && person.status === 'active')).toHaveLength(Object.keys(politicalRegistry.parties).length);
     const offices = new Map(politicalOffices.offices.map(office => [office.id, office]));
     const eligible = politicalOffices.officeholders.filter(record => {
@@ -2078,7 +2078,7 @@ describe('governance 0.14 situational corrective contracts', () => {
 
   it('reloads an actual d2f3ce aggregate-only enacted schema-12 proposal', () => {
     const legacy = d2LegacyResolved('enacted'), restored = restoreSimulationState(JSON.stringify(legacy.state), worldRegions, {}, {}, worldContext), proposal = restored.governance.proposals[legacy.proposalId];
-    expect(restored).toMatchObject({ schemaVersion: 19, governance: { version: 'governance-0.14-v1' } }); expect(proposal).toMatchObject({ status: 'enacted', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'adopted', coverage: 'complete' } });
+    expect(restored).toMatchObject({ schemaVersion: 20, governance: { version: 'governance-0.14-v1' } }); expect(proposal).toMatchObject({ status: 'enacted', evaluationVersion: 'legacy-0.14-v1', voteResult: { outcome: 'adopted', coverage: 'complete' } });
     expect(proposal.parliamentaryEstimate!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true); expect(proposal.voteResult!.chambers.every(chamber => chamber.partyEvaluations === undefined)).toBe(true);
     const evidence = [...restored.fiscal.reforms, ...restored.fiscal.reformReceipts].filter(item => item.sequence === legacy.sequence); expect(evidence).toHaveLength(1); expect(evidence[0].origin?.proposalId).toBe(legacy.proposalId); expect(assertSimulationInvariants(restored, worldContext, 'reload')).toBe(true);
   });
