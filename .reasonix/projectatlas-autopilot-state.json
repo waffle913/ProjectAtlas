@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.8",
+  "current_block": "0.24.9",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
@@ -19,14 +19,14 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "3d5474edb1abeb028e677d220627dbafe49dc2e4",
+  "milestone_branch_head_sha": "5a2f18ee5b640663010d8752109d7fe843c16965",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38046257811,
-  "ci_head_sha": "3d5474edb1abeb028e677d220627dbafe49dc2e4",
+  "ci_run_id": 38047708384,
+  "ci_head_sha": "5a2f18ee5b640663010d8752109d7fe843c16965",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 green at 96c708c; 0.24.2 green at f335eea; 0.24.3 financing green at 49112b1; 0.24.4 work/progression green at 2bf9e1a; 0.24.5 inputs green at af59962; 0.24.6 completion/capacity green at f48ba4b; 0.24.7 breakdown/repair green at 3d5474e (run 38046257811): reportAssetBreakdown, cost/time-gated repairAsset, completeDueRepairs on the scheduler. Next: 0.24.8 territory/war/assets (identity stays tied to permanent Region; exploitation depends on real control; damage may be physical; sovereignty != occupation != control)."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 green at 96c708c; 0.24.2 green at f335eea; 0.24.3 green at 49112b1; 0.24.4 green at 2bf9e1a; 0.24.5 green at af59962; 0.24.6 green at f48ba4b; 0.24.7 green at 3d5474e; 0.24.8 territory/war/assets green at 5a2f18e (run 38047708384): assetController (occupier over sovereign), damageAsset, persistent-until-repair. Next: 0.24.9 data/migrations (migrate at the saved date; real capacities only with compatible sources; sourced/derived/modelled/partial/unavailable; provenance)."
 }
