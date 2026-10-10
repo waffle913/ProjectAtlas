@@ -166,6 +166,8 @@ export interface AssetRecord extends AssetIdentityRecord, AssetPhysicalStateReco
   /** 0.24.7B — the date a scheduled repair completes; while set and in the
    *  future the asset's capacity stays unavailable. Cleared on restoration. */
   repairReadyOn?: string;
+  /** 0.24.6D — date of the last funded maintenance cycle. */
+  lastMaintainedOn?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -287,3 +289,11 @@ export const COMPLETED_ASSET_CAPACITY_UNIT = 'unit';
  */
 export const REPAIR_COST_USD = 100;
 export const REPAIR_DURATION_DAYS = 3;
+
+/**
+ * 0.24.6D — modelled monthly maintenance cost per asset and the modelled number
+ * of months of unfunded maintenance before physical condition wears one step.
+ * Central modelling assumptions, not observed prices or schedules.
+ */
+export const MAINTENANCE_COST_USD = 10;
+export const MAINTENANCE_WEAR_MONTHS = 12;

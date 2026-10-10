@@ -4,7 +4,7 @@ import type { AuthorityCapability } from '../governance/model';
 import { reservedPersonnel } from '../military/runtime';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import type { SimulationScheduler } from '../scheduler';
-import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
+import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, MAINTENANCE_COST_USD, MAINTENANCE_WEAR_MONTHS, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
 import { availableConstructionMaterials, consumeConstructionMaterials } from './materials';
 import { constructionReservedPersonnel, effectiveRegionControl } from './workforce';
 
@@ -419,9 +419,36 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
 }
 
 /** 0.24.4B — construction progression runs on the shared scheduler, never a parallel timer. */
+const CONDITION_ORDER = ['excellent', 'good', 'fair', 'poor', 'critical'] as const;
+/** 0.24.6D — monthly maintenance: funded assets are maintained (availability restored);
+ *  unfunded assets degrade availability and, once overdue, wear one condition step. */
+export function runAssetMaintenance(state: SimulationState): SimulationState {
+  let next = state;
+  for (const [assetId, asset] of Object.entries(state.assets.assets)) {
+    const controller = assetController(next, assetId);
+    if (!controller) continue;
+    const cash = next.fiscal.countries[controller]?.cash ?? 0;
+    if (cash >= MAINTENANCE_COST_USD) {
+      next = withFiscalConstruction(next, controller, { executed: MAINTENANCE_COST_USD, cash: -MAINTENANCE_COST_USD });
+      next = updateAsset(next, assetId, { lastMaintainedOn: next.date, availability: 'available' });
+    } else {
+      const availability = asset.availability === 'available' ? 'partial' : 'unavailable';
+      let patch: Partial<AssetRecord> = { availability };
+      const overdue = asset.lastMaintainedOn === undefined || asset.lastMaintainedOn <= addDays(next.date, -MAINTENANCE_WEAR_MONTHS * 30);
+      if (overdue && asset.physicalCondition && (CONDITION_ORDER as readonly string[]).includes(asset.physicalCondition)) {
+        const idx = CONDITION_ORDER.indexOf(asset.physicalCondition as (typeof CONDITION_ORDER)[number]);
+        if (idx < CONDITION_ORDER.length - 1) patch = { ...patch, physicalCondition: CONDITION_ORDER[idx + 1] };
+      }
+      next = updateAsset(next, assetId, patch);
+    }
+  }
+  return next;
+}
+
 export const registerConstructionTasks = (scheduler: SimulationScheduler) => scheduler
   .register({ id: 'construction.progress', cadence: 'daily', priority: 60, run: advanceConstructionProgress })
-  .register({ id: 'construction.repair', cadence: 'daily', priority: 61, run: completeDueRepairs });
+  .register({ id: 'construction.repair', cadence: 'daily', priority: 61, run: completeDueRepairs })
+  .register({ id: 'construction.maintenance', cadence: 'monthly', priority: 62, run: runAssetMaintenance });
 
 /** 0.24.10A/C — Government-information-gated construction query. The player sees
  *  only the projects and assets their office's Country can actually know; returns
