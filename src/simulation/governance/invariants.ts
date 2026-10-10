@@ -289,7 +289,10 @@ export const governanceInvariant: SimulationInvariant = { id: 'governance', chec
         if (effects.length !== 1) errors.push(`Enacted proposal ${id} lacks exactly one matching typed effect.`);
         else {
           const firstEffect = effects[0];
-          if (proposal.kind === 'fiscal_reform' && proposal.enactmentReference && (firstEffect == null || firstEffect.fiscalReformSequence !== proposal.enactmentReference.fiscalReformSequence || firstEffect.reformFingerprint !== proposal.enactmentReference.reformFingerprint)) errors.push(`Enacted proposal ${id} has a typed effect inconsistent with its enactment reference.`);
+          if (proposal.kind === 'fiscal_reform' && proposal.enactmentReference) {
+            const fiscalEffect = firstEffect != null && firstEffect.category === 'fiscal_reform' ? firstEffect : undefined;
+            if (!fiscalEffect || fiscalEffect.fiscalReformSequence !== proposal.enactmentReference.fiscalReformSequence || fiscalEffect.reformFingerprint !== proposal.enactmentReference.reformFingerprint) errors.push(`Enacted proposal ${id} has a typed effect inconsistent with its enactment reference.`);
+          }
         }
       }
       if (proposal.status !== 'enacted' && effects.length !== 0) errors.push(`Non-enacted proposal ${id} records a typed effect before becoming effective.`);
