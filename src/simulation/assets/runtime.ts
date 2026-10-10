@@ -1,7 +1,10 @@
 import type { SimulationState } from '../../types';
 import { hasPoliticalAuthority } from '../governance/runtime';
 import type { AuthorityCapability } from '../governance/model';
-import { constructionProjectId, type ConstructionProjectRecord } from './model';
+import { reservedPersonnel } from '../military/runtime';
+import type { SimulationScheduler } from '../scheduler';
+import { CONSTRUCTION_DAILY_COST_PER_WORKER_USD, constructionProjectId, type ConstructionProjectRecord } from './model';
+import { constructionReservedPersonnel } from './workforce';
 
 const requireActivePerson = (state: SimulationState, personId: string) => {
   const person = state.governance.persons[personId];
@@ -46,6 +49,24 @@ const updateProject = (state: SimulationState, projectId: string, patch: Partial
     },
   };
 };
+
+/** Reconcile each Region's labour force so civilian employment + unemployment +
+ *  military reservations + construction reservations exactly conserve the labour
+ *  force. A reserved construction worker is never also employed or unemployed. */
+export function reconcileConstructionWorkforce(state: SimulationState): SimulationState {
+  const regions = { ...state.socioeconomy.regions };
+  for (const [id, r] of Object.entries(regions)) {
+    if (!r.economy) continue;
+    const reserved = reservedPersonnel(state, id) + constructionReservedPersonnel(state, id);
+    const e = r.economy;
+    if (reserved > e.labourForce) throw new Error('Reserved labour exceeds regional labour force.');
+    const employed = Math.min(e.employed, e.labourForce - reserved);
+    if (employed !== e.employed || e.unemployed !== e.labourForce - employed - reserved) {
+      regions[id] = { ...r, economy: { ...e, employed, unemployed: e.labourForce - employed - reserved } };
+    }
+  }
+  return { ...state, socioeconomy: { ...state.socioeconomy, regions } };
+}
 
 /**
  * 0.24.2B/C — Propose a construction project (status `planned`). Requires the
@@ -110,12 +131,14 @@ export function cancelConstruction(state: SimulationState, input: { projectId: s
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.cancellerPersonId, project.countryId, 'cancel_construction');
   if (!['planned', 'active', 'paused'].includes(project.status)) throw new Error('A completed or already-cancelled construction project cannot be cancelled.');
-  return updateProject(state, input.projectId, {
+  const cancelled = updateProject(state, input.projectId, {
     status: 'cancelled',
     cancelledOn: state.date,
     cancelledByPersonId: canceller.id,
     committedUsd: undefined,
+    reservedWorkers: undefined,
   });
+  return reconcileConstructionWorkforce(cancelled);
 }
 
 /**
@@ -125,7 +148,7 @@ export function cancelConstruction(state: SimulationState, input: { projectId: s
  * funded (a commitment is never reusable). Cancellation releases the commitment.
  */
 export function fundConstruction(state: SimulationState, input: { projectId: string; funderPersonId: string }): SimulationState {
-  const funder = requireActivePerson(state, input.funderPersonId);
+  requireActivePerson(state, input.funderPersonId);
   const project = state.assets.projects[input.projectId];
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.funderPersonId, project.countryId, 'fund_construction');
@@ -139,3 +162,79 @@ export function fundConstruction(state: SimulationState, input: { projectId: str
   if (cash - alreadyCommitted < project.estimatedCostUsd) throw new Error('Insufficient treasury funds to commit this construction project.');
   return updateProject(state, input.projectId, { committedUsd: project.estimatedCostUsd });
 }
+
+/**
+ * 0.24.4A — Reserve workers from the site Region's labour force to begin work.
+ * Requires the `authorize_construction` capability. The project must be active
+ * and funded. Reserved workers are subtracted from the labour force so no worker
+ * is employed twice (see reconcileConstructionWorkforce).
+ */
+export function startWork(state: SimulationState, input: { projectId: string; personId: string; workers: number }): SimulationState {
+  requireActivePerson(state, input.personId);
+  const project = state.assets.projects[input.projectId];
+  if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
+  requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
+  if (project.status !== 'active') throw new Error('Only an active construction project can start work.');
+  if (project.committedUsd === undefined || project.committedUsd <= 0) throw new Error('A construction project must be funded before work starts.');
+  if (project.reservedWorkers !== undefined) throw new Error('Work has already started on this project.');
+  if (!Number.isSafeInteger(input.workers) || input.workers <= 0) throw new Error('Worker count must be a positive integer.');
+  const economy = state.socioeconomy.regions[project.regionId]?.economy;
+  if (!economy) throw new Error('The construction Region has no economic labour force.');
+  const available = economy.labourForce - reservedPersonnel(state, project.regionId) - constructionReservedPersonnel(state, project.regionId);
+  if (input.workers > available) throw new Error('Insufficient regional labour to reserve this many construction workers.');
+  const started = updateProject(state, input.projectId, { reservedWorkers: input.workers, completedWorkUsd: 0 });
+  return reconcileConstructionWorkforce(started);
+}
+
+/**
+ * 0.24.4D — Pause an active project: progression stops. Requires the
+ * `authorize_construction` capability. Reserved workers remain assigned while
+ * paused and are only released on cancellation/completion.
+ */
+export function pauseConstruction(state: SimulationState, input: { projectId: string; personId: string }): SimulationState {
+  requireActivePerson(state, input.personId);
+  const project = state.assets.projects[input.projectId];
+  if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
+  requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
+  if (project.status !== 'active') throw new Error('Only an active construction project can be paused.');
+  return updateProject(state, input.projectId, { status: 'paused', pausedOn: state.date });
+}
+
+/**
+ * 0.24.4D — Resume a paused project: progression resumes. Requires the
+ * `authorize_construction` capability.
+ */
+export function resumeConstruction(state: SimulationState, input: { projectId: string; personId: string }): SimulationState {
+  requireActivePerson(state, input.personId);
+  const project = state.assets.projects[input.projectId];
+  if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
+  requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
+  if (project.status !== 'paused') throw new Error('Only a paused construction project can be resumed.');
+  return updateProject(state, input.projectId, { status: 'active', pausedOn: undefined });
+}
+
+/**
+ * 0.24.4C — Advance funded work for active projects with reserved workers. Each
+ * reserved worker completes CONSTRUCTION_DAILY_COST_PER_WORKER_USD of funded work
+ * per day, capped by the remaining committed budget, so progression depends on
+ * both labour and funding and construction is never instant.
+ */
+export function advanceConstructionProgress(state: SimulationState): SimulationState {
+  const projects = { ...state.assets.projects };
+  let changed = false;
+  for (const [pid, project] of Object.entries(projects)) {
+    if (project.status !== 'active' || project.reservedWorkers === undefined || project.committedUsd === undefined) continue;
+    const remaining = project.committedUsd - (project.completedWorkUsd ?? 0);
+    if (remaining <= 0) continue;
+    const dailyWork = Math.min(project.reservedWorkers * CONSTRUCTION_DAILY_COST_PER_WORKER_USD, remaining);
+    if (dailyWork <= 0) continue;
+    projects[pid] = { ...project, completedWorkUsd: (project.completedWorkUsd ?? 0) + dailyWork };
+    changed = true;
+  }
+  return changed ? { ...state, assets: { ...state.assets, projects } } : state;
+}
+
+/** 0.24.4B — construction progression runs on the shared scheduler, never a parallel timer. */
+export const registerConstructionTasks = (scheduler: SimulationScheduler) => scheduler.register({
+  id: 'construction.progress', cadence: 'daily', priority: 60, run: advanceConstructionProgress,
+});

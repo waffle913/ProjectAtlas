@@ -83,6 +83,11 @@ export const assetsInvariant: SimulationInvariant = {
       // 0.24.3A — explicit cost estimate, kept distinct from the committed amount.
       if (project.estimatedCostUsd !== undefined && (!Number.isSafeInteger(project.estimatedCostUsd) || project.estimatedCostUsd < 0)) errors.push(`Project ${pid} has an invalid cost estimate.`);
       if (project.committedUsd !== undefined && (!Number.isSafeInteger(project.committedUsd) || project.committedUsd < 0 || project.estimatedCostUsd === undefined || project.committedUsd > project.estimatedCostUsd)) errors.push(`Project ${pid} has an invalid cost commitment.`);
+      // 0.24.4A/C — labour reservation and cumulative funded work.
+      if (project.reservedWorkers !== undefined && (!Number.isSafeInteger(project.reservedWorkers) || project.reservedWorkers < 0)) errors.push(`Project ${pid} has an invalid worker reservation.`);
+      if (project.completedWorkUsd !== undefined && (!Number.isSafeInteger(project.completedWorkUsd) || project.completedWorkUsd < 0 || (project.committedUsd !== undefined && project.completedWorkUsd > project.committedUsd))) errors.push(`Project ${pid} has invalid work progress.`);
+      if (project.status !== 'active' && project.status !== 'paused' && project.reservedWorkers !== undefined) errors.push(`Project ${pid} carries a worker reservation in a non-working status.`);
+      if (project.status === 'planned' && project.completedWorkUsd !== undefined) errors.push(`Planned project ${pid} carries work progress before starting.`);
     }
     return errors;
   },

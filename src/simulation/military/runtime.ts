@@ -1,5 +1,6 @@
 import type { SimulationState } from '../../types';
 import type { SimulationScheduler } from '../scheduler';
+import { constructionReservedPersonnel } from '../assets/workforce';
 import { allocate, integer, ratio } from '../socioeconomy/model';
 import { borrowingCapacity, sum } from '../fiscal/math';
 import { CATEGORIES } from '../fiscal/model';
@@ -105,7 +106,7 @@ function reconcileWorkforce(state: SimulationState): SimulationState {
   const regions = { ...state.socioeconomy.regions };
   for (const [id, r] of Object.entries(regions)) {
     if (!r.economy) continue;
-    const reserved = reservedPersonnel(state, id), e = r.economy;
+    const reserved = reservedPersonnel(state, id) + constructionReservedPersonnel(state, id), e = r.economy;
     if (reserved > e.labourForce) throw new Error('Military reservation exceeds regional labour force.');
     const employed = Math.min(e.employed, e.labourForce - reserved);
     if (employed !== e.employed || e.unemployed !== e.labourForce - employed - reserved) regions[id] = { ...r, economy: { ...e, employed, unemployed: e.labourForce - employed - reserved } };

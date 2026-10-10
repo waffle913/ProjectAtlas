@@ -235,8 +235,22 @@ export interface ConstructionProjectRecord {
   /** Nominal USD committed from the Country treasury toward this project
    *  (0.24.3B), distinct from the estimate and never reusable while committed. */
   committedUsd?: number;
+  /** Workers reserved from the site Region's labour force (0.24.4A); a reserved
+   *  worker is never simultaneously a civilian employee or a military reservist. */
+  reservedWorkers?: number;
+  /** Cumulative funded work done (0.24.4C), in nominal USD, never exceeding the
+   *  committed amount. */
+  completedWorkUsd?: number;
   coverage: AssetCoverageRecord;
 }
 
 /** Deterministic permanent construction-project identity: opaque, sequence-derived only. */
 export const constructionProjectId = (sequence: number): ConstructionProjectId => `project.${sequence.toString().padStart(8, '0')}`;
+
+/**
+ * 0.24.4C — Modelled nominal USD of funded work one reserved worker completes
+ * per day. This is a central modelling assumption, not an observed wage; it
+ * couples progression to labour and to the committed treasury budget so that no
+ * work is done without funded labour and no instant construction is possible.
+ */
+export const CONSTRUCTION_DAILY_COST_PER_WORKER_USD = 200;
