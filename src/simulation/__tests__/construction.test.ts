@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import type { SimulationState } from '../../types';
 import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
 import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, fundConstruction, pauseConstruction, proposeConstruction, resumeConstruction, startWork } from '../assets/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { initializeFiscal } from '../fiscal/runtime';
+import { admitTradeMarket } from '../trade/runtime';
+import { syntheticTradeMarket } from '../trade/scenario';
 import { assetsInvariant } from '../assets/invariants';
 import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { ASSETS_VERSION } from '../assets/model';
+import { ASSETS_VERSION, CONSTRUCTION_DAILY_COST_PER_WORKER_USD } from '../assets/model';
 
 const countryId = worldCountryIds[0];
 const regionId = worldRegions[0].id;
@@ -213,6 +216,12 @@ const workingProject = () => {
   return { state: started, leaderId, countryId: cid, regionId: rid, workers };
 };
 
+/** Admit a raw_materials trade market with the given stock quantity for a Country. */
+const withRawMaterials = (state: SimulationState, countryId: string, quantity: number) =>
+  admitTradeMarket(state, countryId, syntheticTradeMarket('raw_materials', {
+    stock: { opening: quantity, produced: 0, received: 0, consumed: 0, exported: 0, quantity, capacity: quantity, target: quantity },
+  }));
+
 describe('0.24.4 construction work and progression', () => {
   it('reserves workers from the regional labour force without double employment', () => {
     const { state, regionId, workers } = workingProject();
@@ -242,18 +251,21 @@ describe('0.24.4 construction work and progression', () => {
     expect(() => startWork(authorized, { projectId: 'project.00000000', personId: leaderId, workers: 1 })).toThrow(/must be funded/);
   });
 
-  it('advances funded work daily, bounded by the committed budget', () => {
-    const { state } = workingProject();
-    const before = state.assets.projects['project.00000000'].completedWorkUsd ?? 0;
-    const advanced = advanceConstructionProgress(state);
-    const after = advanced.assets.projects['project.00000000'].completedWorkUsd ?? 0;
-    expect(after).toBeGreaterThan(before);
-    expect(after).toBeLessThanOrEqual(advanced.assets.projects['project.00000000'].committedUsd!);
+  it('advances funded work daily, bounded by the committed budget and materials', () => {
+    const { state, countryId: cid } = workingProject();
+    const withStock = withRawMaterials(state, cid, 1000);
+    const before = withStock.assets.projects['project.00000000'].completedWorkUsd ?? 0;
+    const advanced = advanceConstructionProgress(withStock);
+    const project = advanced.assets.projects['project.00000000'];
+    expect(project.completedWorkUsd ?? 0).toBeGreaterThan(before);
+    expect(project.completedWorkUsd ?? 0).toBeLessThanOrEqual(project.committedUsd ?? 0);
+    expect(project.consumedMaterials ?? 0).toBeGreaterThan(0);
   });
 
   it('stops progression while paused and resumes it after', () => {
-    const { state, leaderId } = workingProject();
-    const paused = pauseConstruction(state, { projectId: 'project.00000000', personId: leaderId });
+    const { state, leaderId, countryId: cid } = workingProject();
+    const withStock = withRawMaterials(state, cid, 1000);
+    const paused = pauseConstruction(withStock, { projectId: 'project.00000000', personId: leaderId });
     expect(paused.assets.projects['project.00000000'].status).toBe('paused');
     const pausedProgress = paused.assets.projects['project.00000000'].completedWorkUsd!;
     expect(advanceConstructionProgress(paused).assets.projects['project.00000000'].completedWorkUsd).toBe(pausedProgress);
@@ -280,5 +292,27 @@ describe('0.24.4 construction work and progression', () => {
       assets: { ...proposed.assets, projects: { ...proposed.assets.projects, 'project.00000000': { ...planned, reservedWorkers: 5 } } },
     };
     expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Project project.00000000 carries a worker reservation in a non-working status.');
+  });
+});
+
+describe('0.24.5 construction material inputs', () => {
+  it('stops progression without materials (shortage, no automatic creation)', () => {
+    const { state } = workingProject(); // emptyTrade -> no raw_materials stock
+    const project = state.assets.projects['project.00000000'];
+    const advanced = advanceConstructionProgress(state);
+    expect(advanced.assets.projects['project.00000000'].completedWorkUsd).toBe(project.completedWorkUsd ?? 0);
+    expect(advanced.assets.projects['project.00000000'].consumedMaterials).toBeUndefined();
+  });
+
+  it('consumes materials bounded by the available trade stock', () => {
+    const { state, countryId: cid } = workingProject();
+    const withStock = withRawMaterials(state, cid, 3); // only 3 material units for 10 workers
+    const advanced = advanceConstructionProgress(withStock);
+    const project = advanced.assets.projects['project.00000000'];
+    expect(project.consumedMaterials).toBe(3);
+    expect(project.completedWorkUsd).toBe(3 * CONSTRUCTION_DAILY_COST_PER_WORKER_USD);
+    // Stock is now exhausted, so the next day produces no further progress.
+    const next = advanceConstructionProgress(advanced);
+    expect(next.assets.projects['project.00000000'].completedWorkUsd).toBe(project.completedWorkUsd);
   });
 });
