@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
-import { authorizeConstruction, cancelConstruction, fundConstruction, proposeConstruction } from '../assets/runtime';
+import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, fundConstruction, pauseConstruction, proposeConstruction, resumeConstruction, startWork } from '../assets/runtime';
+import { constructionReservedPersonnel } from '../assets/workforce';
 import { initializeFiscal } from '../fiscal/runtime';
 import { assetsInvariant } from '../assets/invariants';
 import { assertSimulationInvariants } from '../invariants';
@@ -196,5 +197,88 @@ describe('0.24.3 construction financing', () => {
       assets: { ...proposed.assets, projects: { ...proposed.assets.projects, 'project.00000000': { ...planned, committedUsd: 2000 } } },
     };
     expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Project project.00000000 has an invalid cost commitment.');
+  });
+});
+
+/** A funded + active + started construction project in a real Region. */
+const workingProject = () => {
+  const { state, leaderId, countryId: cid, regionId: rid } = funded();
+  const cash = state.fiscal.countries[cid].cash;
+  const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId: cid, regionId: rid, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: cash });
+  const authorized = authorizeConstruction(proposed, { projectId: 'project.00000000', authorizerPersonId: leaderId });
+  const fundedState = fundConstruction(authorized, { projectId: 'project.00000000', funderPersonId: leaderId });
+  const regionLabour = fundedState.socioeconomy.regions[rid].economy!.labourForce;
+  const workers = Math.min(10, regionLabour);
+  const started = startWork(fundedState, { projectId: 'project.00000000', personId: leaderId, workers });
+  return { state: started, leaderId, countryId: cid, regionId: rid, workers };
+};
+
+describe('0.24.4 construction work and progression', () => {
+  it('reserves workers from the regional labour force without double employment', () => {
+    const { state, regionId, workers } = workingProject();
+    const project = state.assets.projects['project.00000000'];
+    const economy = state.socioeconomy.regions[regionId].economy!;
+    expect(project.reservedWorkers).toBe(workers);
+    expect(constructionReservedPersonnel(state, regionId)).toBe(workers);
+    expect(economy.employed + economy.unemployed + constructionReservedPersonnel(state, regionId)).toBe(economy.labourForce);
+    expect(assertSimulationInvariants(state, worldContext, 'save')).toBe(true);
+  }, 30_000);
+
+  it('refuses to reserve more workers than the regional labour force', () => {
+    const { state: fundedState, leaderId, countryId: cid, regionId: rid } = funded();
+    const cash = fundedState.fiscal.countries[cid].cash;
+    const proposed = proposeConstruction(fundedState, { proposerPersonId: leaderId, countryId: cid, regionId: rid, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: cash });
+    const authorized = authorizeConstruction(proposed, { projectId: 'project.00000000', authorizerPersonId: leaderId });
+    const funded2 = fundConstruction(authorized, { projectId: 'project.00000000', funderPersonId: leaderId });
+    const labourForce = funded2.socioeconomy.regions[rid].economy!.labourForce;
+    expect(() => startWork(funded2, { projectId: 'project.00000000', personId: leaderId, workers: labourForce + 1 })).toThrow(/Insufficient regional labour/);
+  });
+
+  it('refuses to start work on an unfunded project', () => {
+    const { state: fundedState, leaderId, countryId: cid, regionId: rid } = funded();
+    const cash = fundedState.fiscal.countries[cid].cash;
+    const proposed = proposeConstruction(fundedState, { proposerPersonId: leaderId, countryId: cid, regionId: rid, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: cash });
+    const authorized = authorizeConstruction(proposed, { projectId: 'project.00000000', authorizerPersonId: leaderId });
+    expect(() => startWork(authorized, { projectId: 'project.00000000', personId: leaderId, workers: 1 })).toThrow(/must be funded/);
+  });
+
+  it('advances funded work daily, bounded by the committed budget', () => {
+    const { state } = workingProject();
+    const before = state.assets.projects['project.00000000'].completedWorkUsd ?? 0;
+    const advanced = advanceConstructionProgress(state);
+    const after = advanced.assets.projects['project.00000000'].completedWorkUsd ?? 0;
+    expect(after).toBeGreaterThan(before);
+    expect(after).toBeLessThanOrEqual(advanced.assets.projects['project.00000000'].committedUsd!);
+  });
+
+  it('stops progression while paused and resumes it after', () => {
+    const { state, leaderId } = workingProject();
+    const paused = pauseConstruction(state, { projectId: 'project.00000000', personId: leaderId });
+    expect(paused.assets.projects['project.00000000'].status).toBe('paused');
+    const pausedProgress = paused.assets.projects['project.00000000'].completedWorkUsd!;
+    expect(advanceConstructionProgress(paused).assets.projects['project.00000000'].completedWorkUsd).toBe(pausedProgress);
+    const resumed = resumeConstruction(paused, { projectId: 'project.00000000', personId: leaderId });
+    expect(resumed.assets.projects['project.00000000'].status).toBe('active');
+    expect(advanceConstructionProgress(resumed).assets.projects['project.00000000'].completedWorkUsd).toBeGreaterThan(pausedProgress);
+  });
+
+  it('releases reserved workers and commitment on cancellation', () => {
+    const { state, leaderId, regionId } = workingProject();
+    const cancelled = cancelConstruction(state, { projectId: 'project.00000000', cancellerPersonId: leaderId });
+    expect(cancelled.assets.projects['project.00000000'].reservedWorkers).toBeUndefined();
+    expect(cancelled.assets.projects['project.00000000'].committedUsd).toBeUndefined();
+    const economy = cancelled.socioeconomy.regions[regionId].economy!;
+    expect(economy.employed + economy.unemployed).toBe(economy.labourForce);
+  });
+
+  it('rejects a worker reservation in a non-working status via the invariant', () => {
+    const { state, leaderId } = headOfGovernment();
+    const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: 1000 });
+    const planned = proposed.assets.projects['project.00000000'];
+    const forged = {
+      ...proposed,
+      assets: { ...proposed.assets, projects: { ...proposed.assets.projects, 'project.00000000': { ...planned, reservedWorkers: 5 } } },
+    };
+    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('carries a worker reservation in a non-working status');
   });
 });
