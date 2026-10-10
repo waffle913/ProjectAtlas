@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.10",
+  "current_block": "0.24.11",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
@@ -19,14 +19,14 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "228fb8e418e3ee603f9e5c54647bdf35ac82a29d",
+  "milestone_branch_head_sha": "d386eea2fbafaa129151b9e975ebbf1a1cacd4bd",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38050811137,
-  "ci_head_sha": "228fb8e418e3ee603f9e5c54647bdf35ac82a29d",
+  "ci_run_id": 38052378585,
+  "ci_head_sha": "d386eea2fbafaa129151b9e975ebbf1a1cacd4bd",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1-0.24.9 all green on the integration branch (latest 0.24.9 at 228fb8e, run 38050811137): migration-at-saved-date, honest modelled coverage, provenance enforcement verified. Next: 0.24.10 consultation and commands (clean engine query interfaces; commands check authority/resources/institutional situation; the UI never mutates canonical state)."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1-0.24.10 all green on the integration branch (latest 0.24.10 at d386eea, run 38052378585). Next: 0.24.11 integration/acceptance (budget->project->work->completion->asset->capacity; shortage->pause->resume; damage->repair; save/reload; determinism), then the milestone CONSOLIDATED_REVIEW."
 }
