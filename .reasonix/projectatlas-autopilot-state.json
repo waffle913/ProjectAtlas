@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.4",
+  "current_block": "0.24.5",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
@@ -19,14 +19,14 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "49112b1d2544f60da92324f418d91672f41c4bd9",
+  "milestone_branch_head_sha": "2bf9e1a2429b867349a6321712e558649490e8a8",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38033412149,
-  "ci_head_sha": "49112b1d2544f60da92324f418d91672f41c4bd9",
+  "ci_run_id": 38037142366,
+  "ci_head_sha": "2bf9e1a2429b867349a6321712e558649490e8a8",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 green at 96c708c (run 38028404964); 0.24.2 construction projects green at f335eea (run 38030926531); 0.24.3 financing green at 49112b1 (run 38033412149): explicit estimate/commitment, treasury-bounded fundConstruction (no free money, no reuse), refusal on insufficient funds/authority, cancellation release. Fiscal treasury is read-only so far; actual cash consumption on work execution is 0.24.4/0.24.5 scope. Next: 0.24.4 work and progression (labour reservation, common scheduler, real progression, pause/shortage)."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 green at 96c708c; 0.24.2 green at f335eea; 0.24.3 financing green at 49112b1; 0.24.4 work/progression green at 2bf9e1a (run 38037142366): reservedWorkers/completedWorkUsd, startWork labour reservation, reconcileConstructionWorkforce, daily scheduler task construction.progress, pause/resume, cancellation release. Labour conservation now spans civilian+military+construction across the military AND socioeconomic invariants. Next: 0.24.5 inputs (physical needs, reservation, consumption, shortages/imports through the existing trade engine)."
 }
