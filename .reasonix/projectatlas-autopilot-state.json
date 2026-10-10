@@ -7,7 +7,7 @@
   "current_milestone": "0.24",
   "current_block": null,
   "last_safe_milestone": "0.23",
-  "last_safe_sha": "465fae96cc8b328b6231b6c746b6ba5766b33498",
+  "last_safe_sha": "31e0e3bb2d8e260fb867db6675276ae20a614624",
   "last_safe_branch": "main",
   "last_safe_ci_status": "green (verify ubuntu-latest + windows-latest success)",
   "current_branch": null,
@@ -19,5 +19,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "0.23 (constitution/institutions/elections/organisations) merged to main (465fae9), schema 19. Synchronized the 0.23 branch onto main (which had gained the 0.22 corrections and the autopilot docs), resolving conflicts in governance/invariants.ts, governance/migration.ts, policyFramework.test.ts and agent-handoff.md. Independent review found 5 CERTAIN BUGS and 6 PROBABLE RISKS; corrective pass fixed all of them (constitution devolution competences, censure governmentStatus + dynamic parties, upheld-ban invariant, head-of-state daily-tick try/catch, dynamic-party winners, censure denominator, cyber-attack unavailable defence, formGovernment appointment gate, dynamic-party seats in censure/dissolution, party-merge single leader), and a re-review cleared it (SHIP). Raised the vitest testTimeout to 30s for full-world integration tests (0.23 invariants run over 252 Countries). Also merged the playable-shell V1 (Tauri) and the 0.22 discriminated-union refinement that the 0.23 branch carried; they are documented as separate deliverables, not 0.23 engine scope. Next: 0.24 (branch waffle913-construction-assets-024 @ 103a6a4, both CI red; branched from 433633f so it is missing the final 0.23 fix 8951d46 which is now superseded by main)."
+  "notes": "0.23 (constitution/institutions/elections/organisations) merged to main, schema 19. Three independent review passes: (1) found 5 CERTAIN BUGS + 6 PROBABLE RISKS, fixed; (2) SHIP with 2 non-blocking probable risks, fixed; (3) found 3 CERTAIN BUGS (party-merge membership, sovereignty politics cache, annulment devolved-powers replay) + 3 PROBABLE RISKS (proportionalSeats threshold crash, formGovernment nominator gate, censure headless), all fixed. Main CI green at 31e0e3b. Synchronized the 0.23 branch onto main (0.22 corrections + autopilot docs); conflicts resolved in governance invariants/migration, policyFramework.test.ts, agent-handoff.md. Raised vitest testTimeout to 30s (0.23 invariants run over 252 Countries). The branch also carried the playable-shell V1 (Tauri) and the 0.22 discriminated-union refinement, documented as separate deliverables. Next: 0.24 (branch waffle913-construction-assets-024 @ 103a6a4, both CI red; branched from 433633f which is now superseded by main)."
 }
