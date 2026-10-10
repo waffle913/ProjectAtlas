@@ -492,11 +492,15 @@ function seatsForSystem(state: SimulationState, countryId: string, seats: number
   }
   if (system === 'mixed') {
     // The mixed system uses the same spatial constituencies for its majoritarian component.
-    const proportional = proportionalSeats(effective, Math.ceil(seats / 2), thresholdBps);
+    const proportionalSeatCount = Math.ceil(seats / 2);
+    const proportional = proportionalSeats(effective, proportionalSeatCount, thresholdBps);
     const majoritarian = regionalMajoritarianSeats(state, countryId, Math.floor(seats / 2), rounds as 1 | 2);
     const result: Record<string, number> = { ...proportional };
     for (const [partyId, count] of Object.entries(majoritarian.seatsByParty)) result[partyId] = (result[partyId] ?? 0) + count;
-    return { seatsByParty: result, unallocatedSeats: majoritarian.unallocatedSeats };
+    // Seats the proportional half could not allocate (e.g. the threshold excluded every party) are
+    // reported as unallocated, never silently dropped from the chamber total.
+    const proportionalAllocated = Object.values(proportional).reduce((sum, value) => sum + value, 0);
+    return { seatsByParty: result, unallocatedSeats: majoritarian.unallocatedSeats + Math.max(0, proportionalSeatCount - proportionalAllocated) };
   }
   const seatsByParty = proportionalSeats(effective, seats, thresholdBps);
   const allocatedSum = Object.values(seatsByParty).reduce((sum, value) => sum + value, 0);

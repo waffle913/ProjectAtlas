@@ -617,21 +617,10 @@ function applyConstitutionalAmendment(state: SimulationState, proposal: { id: st
       for (const regionId of sovereigntyTransfer.regionIds) {
         if (next.regionOwnership[regionId] !== proposal.countryId) throw new Error(`Region ${regionId} is not owned by ${proposal.countryId}; its sovereignty cannot be transferred.`);
       }
-      const fromCountryId = proposal.countryId, toCountryId = sovereigntyTransfer.toCountryId, transferredRegionIds = sovereigntyTransfer.regionIds;
-      next = { ...next, regionOwnership: { ...next.regionOwnership, ...Object.fromEntries(transferredRegionIds.map(regionId => [regionId, toCountryId])) } };
-      // Reconcile the politics ownership cache so a save in the transfer tick never captures a
-      // Region still linked to the Country that no longer owns it.
-      const politics = next.politics;
-      const fromRegions = (politics.countries[fromCountryId]?.regionIds ?? []).filter(id => !transferredRegionIds.includes(id));
-      const toRegions = [...new Set([...(politics.countries[toCountryId]?.regionIds ?? []), ...transferredRegionIds])].sort();
-      const regionalOpinion = { ...politics.regionalOpinion };
-      for (const regionId of transferredRegionIds) {
-        if (regionalOpinion[regionId]) regionalOpinion[regionId] = { ...regionalOpinion[regionId], countryId: toCountryId };
-      }
-      const countries = { ...politics.countries };
-      if (countries[fromCountryId]) countries[fromCountryId] = { ...countries[fromCountryId], regionIds: fromRegions };
-      if (countries[toCountryId]) countries[toCountryId] = { ...countries[toCountryId], regionIds: toRegions };
-      next = { ...next, politics: { ...politics, countries, regionalOpinion } };
+      next = { ...next, regionOwnership: { ...next.regionOwnership, ...Object.fromEntries(sovereigntyTransfer.regionIds.map(regionId => [regionId, sovereigntyTransfer.toCountryId])) } };
+      // The canonical ownership map is the only authoritative source. The politics ownership cache
+      // reconciles to it on the next weekly opinion pass (its own cadence); a sovereignty transfer
+      // never rewrites opinion/support history by hand.
     }
   }
   if (p.amendmentChanges && Object.keys(p.amendmentChanges).length) {
