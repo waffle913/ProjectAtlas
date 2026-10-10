@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import { socioeconomicWorld, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
-import { advanceConstructionProgress, authorizeConstruction, completeConstruction, fundConstruction, proposeConstruction, startWork } from '../assets/runtime';
+import { advanceConstructionProgress, authorizeConstruction, cancelConstruction, completeConstruction, fundConstruction, proposeConstruction, startWork } from '../assets/runtime';
 import { initializeFiscal } from '../fiscal/runtime';
 import { admitTradeMarket, initializeTrade } from '../trade/runtime';
 import { syntheticTradeMarket } from '../trade/scenario';
@@ -63,5 +63,25 @@ describe('0.24.11 construction integration campaign', () => {
     expect(Object.keys(s.assets.projects)).toHaveLength(5);
     expect(s.assets.nextProjectSequence).toBe(5);
     expect(assertSimulationInvariants(s, worldContext, 'save')).toBe(true);
+  }, 30_000);
+
+  it('moves money and materials canonically: commit -> spend -> release on cancel', () => {
+    const { state, leaderId, countryId, regionId } = funded();
+    const cost = CONSTRUCTION_DAILY_COST_PER_WORKER_USD * 2;
+    let s = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: cost });
+    s = authorizeConstruction(s, { projectId: 'project.00000000', authorizerPersonId: leaderId });
+    const beforeCash = s.fiscal.countries[countryId].cash;
+    s = fundConstruction(s, { projectId: 'project.00000000', funderPersonId: leaderId });
+    expect(s.fiscal.countries[countryId].constructionCommitted).toBe(cost);
+    s = admitTradeMarket(initializeTrade(s), countryId, syntheticTradeMarket('raw_materials', {
+      stock: { opening: 10, produced: 0, received: 0, consumed: 0, exported: 0, quantity: 10, capacity: 10, target: 10 },
+    }));
+    s = startWork(s, { projectId: 'project.00000000', personId: leaderId, workers: 1 });
+    s = advanceConstructionProgress(s);
+    expect(s.fiscal.countries[countryId].constructionExecuted).toBe(CONSTRUCTION_DAILY_COST_PER_WORKER_USD);
+    expect(s.fiscal.countries[countryId].cash).toBe(beforeCash - CONSTRUCTION_DAILY_COST_PER_WORKER_USD);
+    expect(s.trade.countries[countryId].markets['raw_materials'].stock!.quantity).toBe(9);
+    s = cancelConstruction(s, { projectId: 'project.00000000', cancellerPersonId: leaderId });
+    expect(s.fiscal.countries[countryId].constructionCommitted).toBe(0);
   }, 30_000);
 });
