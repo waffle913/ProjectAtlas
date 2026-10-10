@@ -229,6 +229,12 @@ export interface ConstructionProjectRecord {
   cancelledByPersonId?: string;
   /** Set exactly once when the project completes (0.24.6B); never duplicated. */
   resultingAssetId?: AssetId;
+  /** Explicit estimated cost in nominal USD (0.24.3A). Absence records that no
+   *  cost estimate exists yet — it is never a zero cost. */
+  estimatedCostUsd?: number;
+  /** Nominal USD committed from the Country treasury toward this project
+   *  (0.24.3B), distinct from the estimate and never reusable while committed. */
+  committedUsd?: number;
   coverage: AssetCoverageRecord;
 }
 

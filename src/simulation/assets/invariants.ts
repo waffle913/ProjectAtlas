@@ -80,6 +80,9 @@ export const assetsInvariant: SimulationInvariant = {
       if (project.resultingAssetId && !assets.assets[project.resultingAssetId]) errors.push(`Project ${pid} references an unknown resulting asset.`);
       const pcoverage = project.coverage;
       if (!pcoverage || !COVERAGE_STATUSES.includes(pcoverage.status)) errors.push(`Project ${pid} has an invalid coverage.`);
+      // 0.24.3A — explicit cost estimate, kept distinct from the committed amount.
+      if (project.estimatedCostUsd !== undefined && (!Number.isSafeInteger(project.estimatedCostUsd) || project.estimatedCostUsd < 0)) errors.push(`Project ${pid} has an invalid cost estimate.`);
+      if (project.committedUsd !== undefined && (!Number.isSafeInteger(project.committedUsd) || project.committedUsd < 0 || project.estimatedCostUsd === undefined || project.committedUsd > project.estimatedCostUsd)) errors.push(`Project ${pid} has an invalid cost commitment.`);
     }
     return errors;
   },

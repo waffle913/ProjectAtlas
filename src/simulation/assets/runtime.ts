@@ -54,7 +54,7 @@ const updateProject = (state: SimulationState, projectId: string, patch: Partial
  */
 export function proposeConstruction(
   state: SimulationState,
-  input: { proposerPersonId: string; countryId: string; regionId: string; assetTypeId: string; title: string },
+  input: { proposerPersonId: string; countryId: string; regionId: string; assetTypeId: string; title: string; estimatedCostUsd?: number },
 ): SimulationState {
   const proposer = requireActivePerson(state, input.proposerPersonId);
   requireAuthority(state, input.proposerPersonId, input.countryId, 'propose_construction');
@@ -62,6 +62,7 @@ export function proposeConstruction(
   requireRegion(state, input.regionId);
   if (typeof input.assetTypeId !== 'string' || !input.assetTypeId.trim()) throw new Error('A construction project requires a non-empty asset type.');
   if (typeof input.title !== 'string' || !input.title.trim()) throw new Error('A construction project requires a non-empty title.');
+  if (input.estimatedCostUsd !== undefined && (!Number.isSafeInteger(input.estimatedCostUsd) || input.estimatedCostUsd <= 0)) throw new Error('A construction cost estimate must be a positive integer USD amount.');
   const project: ConstructionProjectRecord = {
     projectId: constructionProjectId(state.assets.nextProjectSequence),
     countryId: input.countryId,
@@ -71,6 +72,7 @@ export function proposeConstruction(
     status: 'planned',
     proposedOn: state.date,
     proposedByPersonId: proposer.id,
+    ...(input.estimatedCostUsd !== undefined ? { estimatedCostUsd: input.estimatedCostUsd } : {}),
     coverage: { status: 'modelled' },
   };
   return insertProject(state, project);
@@ -97,10 +99,10 @@ export function authorizeConstruction(state: SimulationState, input: { projectId
 }
 
 /**
- * 0.24.2B/C — Cancel a planned/active/paused project, transitioning it to
- * `cancelled`. Requires the `cancel_construction` capability in the project's
- * Country. Financial treatment of cancellation is 0.24.3C scope and is not
- * implemented here; this command records only the lifecycle transition.
+ * 0.24.2B/C + 0.24.3C — Cancel a planned/active/paused project, transitioning it
+ * to `cancelled`. Requires the `cancel_construction` capability in the project's
+ * Country. Any committed treasury reservation is released (0.24.3C coherent
+ * financial treatment): the commitment is cleared so it becomes available again.
  */
 export function cancelConstruction(state: SimulationState, input: { projectId: string; cancellerPersonId: string }): SimulationState {
   const canceller = requireActivePerson(state, input.cancellerPersonId);
@@ -112,5 +114,28 @@ export function cancelConstruction(state: SimulationState, input: { projectId: s
     status: 'cancelled',
     cancelledOn: state.date,
     cancelledByPersonId: canceller.id,
+    committedUsd: undefined,
   });
+}
+
+/**
+ * 0.24.3B/C — Commit the project's estimated cost from the Country treasury.
+ * Requires the `fund_construction` capability. Refuses without a cost estimate,
+ * without sufficient uncommitted treasury cash, or when the project is already
+ * funded (a commitment is never reusable). Cancellation releases the commitment.
+ */
+export function fundConstruction(state: SimulationState, input: { projectId: string; funderPersonId: string }): SimulationState {
+  const funder = requireActivePerson(state, input.funderPersonId);
+  const project = state.assets.projects[input.projectId];
+  if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
+  requireAuthority(state, input.funderPersonId, project.countryId, 'fund_construction');
+  if (project.status === 'completed' || project.status === 'cancelled') throw new Error('A completed or cancelled construction project cannot be funded.');
+  if (project.estimatedCostUsd === undefined) throw new Error('This construction project has no cost estimate and cannot be funded.');
+  if (project.committedUsd !== undefined) throw new Error('This construction project is already funded.');
+  const cash = state.fiscal.countries[project.countryId]?.cash ?? 0;
+  const alreadyCommitted = Object.values(state.assets.projects)
+    .filter(other => other.countryId === project.countryId && other.committedUsd !== undefined)
+    .reduce((sum, other) => sum + (other.committedUsd ?? 0), 0);
+  if (cash - alreadyCommitted < project.estimatedCostUsd) throw new Error('Insufficient treasury funds to commit this construction project.');
+  return updateProject(state, input.projectId, { committedUsd: project.estimatedCostUsd });
 }
