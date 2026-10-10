@@ -270,3 +270,11 @@ export const CONSTRUCTION_MATERIAL_CATEGORY = 'raw_materials' as const;
  * work. Central modelling assumption, not an observed bill of materials.
  */
 export const CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY = 1;
+
+/**
+ * 0.24.6C — Modelled physical capacity a completed asset provides (placeholder).
+ * Asset-type-specific capacity mapping arrives with the 0.25 economy registry;
+ * capacity is a physical quantity, never a direct GDP multiplier.
+ */
+export const COMPLETED_ASSET_CAPACITY = 1;
+export const COMPLETED_ASSET_CAPACITY_UNIT = 'unit';

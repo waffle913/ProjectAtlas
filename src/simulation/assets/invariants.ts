@@ -77,7 +77,11 @@ export const assetsInvariant: SimulationInvariant = {
       if (project.status === 'cancelled' && (!project.cancelledOn || !project.cancelledByPersonId || project.completedOn || project.resultingAssetId)) errors.push(`Cancelled project ${pid} has an incoherent lifecycle.`);
       if (project.authorizedByPersonId && !state.governance.persons[project.authorizedByPersonId]) errors.push(`Project ${pid} has an invalid authorizer.`);
       if (project.cancelledByPersonId && !state.governance.persons[project.cancelledByPersonId]) errors.push(`Project ${pid} has an invalid canceller.`);
-      if (project.resultingAssetId && !assets.assets[project.resultingAssetId]) errors.push(`Project ${pid} references an unknown resulting asset.`);
+      if (project.resultingAssetId) {
+        const resultAsset = assets.assets[project.resultingAssetId];
+        if (!resultAsset) errors.push(`Project ${pid} references an unknown resulting asset.`);
+        else if (resultAsset.regionId !== project.regionId || resultAsset.assetTypeId !== project.assetTypeId) errors.push(`Project ${pid} resulting asset does not match the project site or type.`);
+      }
       const pcoverage = project.coverage;
       if (!pcoverage || !COVERAGE_STATUSES.includes(pcoverage.status)) errors.push(`Project ${pid} has an invalid coverage.`);
       // 0.24.3A — explicit cost estimate, kept distinct from the committed amount.

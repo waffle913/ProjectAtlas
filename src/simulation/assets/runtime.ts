@@ -3,7 +3,7 @@ import { hasPoliticalAuthority } from '../governance/runtime';
 import type { AuthorityCapability } from '../governance/model';
 import { reservedPersonnel } from '../military/runtime';
 import type { SimulationScheduler } from '../scheduler';
-import { CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, type ConstructionProjectRecord } from './model';
+import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, type AssetRecord, type ConstructionProjectRecord } from './model';
 import { availableConstructionMaterials } from './materials';
 import { constructionReservedPersonnel } from './workforce';
 
@@ -212,6 +212,47 @@ export function resumeConstruction(state: SimulationState, input: { projectId: s
   requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
   if (project.status !== 'paused') throw new Error('Only a paused construction project can be resumed.');
   return updateProject(state, input.projectId, { status: 'active', pausedOn: undefined });
+}
+
+/**
+ * 0.24.6A/B — Complete an active, fully-funded, fully-worked project: transition
+ * it to `completed` and materialize the finished physical asset exactly once.
+ * Requires the `authorize_construction` capability. Completion criteria are
+ * explicit: completedWorkUsd must reach the estimated cost. The finished asset is
+ * a distinct record in the single canonical assets store, never duplicated, and
+ * carries a modelled physical capacity (asset -> capacity, never a GDP shortcut).
+ */
+export function completeConstruction(state: SimulationState, input: { projectId: string; personId: string }): SimulationState {
+  requireActivePerson(state, input.personId);
+  const project = state.assets.projects[input.projectId];
+  if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
+  requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
+  if (project.status !== 'active') throw new Error('Only an active construction project can be completed.');
+  if (project.estimatedCostUsd === undefined || project.committedUsd === undefined) throw new Error('A construction project must be estimated and funded before completion.');
+  if ((project.completedWorkUsd ?? 0) < project.estimatedCostUsd) throw new Error('Construction work is not yet complete.');
+  if (project.resultingAssetId !== undefined) throw new Error('This construction project has already produced its asset.');
+  const assetIdValue = assetId(state.assets.nextAssetSequence);
+  const asset: AssetRecord = {
+    assetId: assetIdValue,
+    assetTypeId: project.assetTypeId,
+    regionId: project.regionId,
+    operatingStatus: 'operational',
+    capacity: { amount: COMPLETED_ASSET_CAPACITY, unit: COMPLETED_ASSET_CAPACITY_UNIT, coverage: 'modelled', limitation: 'Modelled placeholder capacity; asset-type-specific capacity arrives with the 0.25 economy registry.' },
+    availability: 'available',
+    physicalCondition: 'good',
+    coverage: { status: 'modelled' },
+  };
+  const completed = {
+    ...state,
+    assets: {
+      ...state.assets,
+      assets: { ...state.assets.assets, [assetIdValue]: asset },
+      assetOrder: [...state.assets.assetOrder, assetIdValue],
+      nextAssetSequence: state.assets.nextAssetSequence + 1,
+      projects: { ...state.assets.projects, [input.projectId]: { ...project, status: 'completed', completedOn: state.date, resultingAssetId: assetIdValue, reservedWorkers: undefined } },
+    },
+  };
+  return reconcileConstructionWorkforce(completed);
 }
 
 /**
