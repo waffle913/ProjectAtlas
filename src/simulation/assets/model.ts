@@ -177,6 +177,9 @@ export interface AssetsState {
   assets: Record<AssetId, AssetRecord>;
   assetOrder: AssetId[];
   nextAssetSequence: number;
+  projects: Record<ConstructionProjectId, ConstructionProjectRecord>;
+  projectOrder: ConstructionProjectId[];
+  nextProjectSequence: number;
 }
 
 export const emptyAssets = (initializedOn?: string): AssetsState => ({
@@ -185,7 +188,49 @@ export const emptyAssets = (initializedOn?: string): AssetsState => ({
   assets: {},
   assetOrder: [],
   nextAssetSequence: 0,
+  projects: {},
+  projectOrder: [],
+  nextProjectSequence: 0,
 });
 
 /** Deterministic permanent asset identity: opaque, sequence-derived only. */
 export const assetId = (sequence: number): AssetId => `asset.${sequence.toString().padStart(8, '0')}`;
+
+// ---------------------------------------------------------------------------
+// 0.24.2A/B — Construction projects.
+// ---------------------------------------------------------------------------
+
+/** Lifecycle of a construction project. The project and the finished asset are
+ *  distinct: a project is the plan/site; an asset is its completed physical result. */
+export type ConstructionProjectStatus = 'planned' | 'active' | 'paused' | 'completed' | 'cancelled';
+
+/** One construction project. It is distinct from the finished asset it may one day
+ *  produce (`resultingAssetId`, set exactly once on completion). The project keeps
+ *  its permanent identity and its permanent Region reference across its whole
+ *  lifecycle; current sovereignty, control and occupation stay canonical elsewhere. */
+export interface ConstructionProjectRecord {
+  projectId: ConstructionProjectId;
+  /** Country whose institutions authorize the project. */
+  countryId: string;
+  /** Permanent Region of the site — never a mutable owner. */
+  regionId: string;
+  /** The asset type the project will build. */
+  assetTypeId: AssetTypeId;
+  title: string;
+  status: ConstructionProjectStatus;
+  proposedOn: string;
+  proposedByPersonId: string;
+  authorizedOn?: string;
+  authorizedByPersonId?: string;
+  startedOn?: string;
+  pausedOn?: string;
+  completedOn?: string;
+  cancelledOn?: string;
+  cancelledByPersonId?: string;
+  /** Set exactly once when the project completes (0.24.6B); never duplicated. */
+  resultingAssetId?: AssetId;
+  coverage: AssetCoverageRecord;
+}
+
+/** Deterministic permanent construction-project identity: opaque, sequence-derived only. */
+export const constructionProjectId = (sequence: number): ConstructionProjectId => `project.${sequence.toString().padStart(8, '0')}`;

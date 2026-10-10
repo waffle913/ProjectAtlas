@@ -1,4 +1,5 @@
 import type { SimulationInvariant } from '../invariants';
+import { isSimulationDate as validDate } from '../date';
 import { ASSETS_VERSION } from './model';
 
 const OPERATING_STATUSES = ['operational', 'degraded', 'out_of_service', 'under_construction', 'decommissioned', 'unavailable'] as const;
@@ -48,6 +49,37 @@ export const assetsInvariant: SimulationInvariant = {
       else if ((coverage.status === 'sourced' || coverage.status === 'partial') && (!coverage.provenance || typeof coverage.provenance.publisher !== 'string' || !coverage.provenance.publisher.trim())) {
         errors.push(`Asset ${id} has sourced/partial coverage without provenance.`);
       }
+    }
+    const PROJECT_STATUSES = ['planned', 'active', 'paused', 'completed', 'cancelled'];
+    const seenProjects = new Set<string>();
+    for (const pid of assets.projectOrder) {
+      if (seenProjects.has(pid)) { errors.push(`Project order contains a duplicated id ${pid}.`); continue; }
+      seenProjects.add(pid);
+      if (!assets.projects[pid]) errors.push(`Project order references an unknown project ${pid}.`);
+    }
+    for (const [pid, project] of Object.entries(assets.projects)) {
+      if (!seenProjects.has(pid)) errors.push(`Project ${pid} exists but is absent from projectOrder.`);
+      if (project.projectId !== pid || !/^project\.\d{8}$/.test(pid)) { errors.push(`Project ${pid} has an invalid identity.`); continue; }
+      const pseq = Number(pid.slice(8));
+      if (!Number.isSafeInteger(pseq) || pseq >= assets.nextProjectSequence) errors.push(`Project ${pid} has an out-of-range sequence.`);
+      if (!PROJECT_STATUSES.includes(project.status)) errors.push(`Project ${pid} has an invalid status.`);
+      if (typeof project.countryId !== 'string' || !context.countryIds.has(project.countryId)) errors.push(`Project ${pid} references an unknown Country ${String(project.countryId)}.`);
+      if (typeof project.regionId !== 'string' || !context.regionIds.has(project.regionId)) errors.push(`Project ${pid} references an unknown Region ${String(project.regionId)}.`);
+      if (typeof project.assetTypeId !== 'string' || !project.assetTypeId.trim()) errors.push(`Project ${pid} has an invalid asset type.`);
+      if (typeof project.title !== 'string' || !project.title.trim()) errors.push(`Project ${pid} has an invalid title.`);
+      if (!validDate(project.proposedOn) || project.proposedOn > state.date) errors.push(`Project ${pid} has an invalid proposal date.`);
+      if (typeof project.proposedByPersonId !== 'string' || !state.governance.persons[project.proposedByPersonId]) errors.push(`Project ${pid} has an invalid proposer.`);
+      // Lifecycle residue: each status admits exactly its own dated transitions.
+      if (project.status === 'planned' && (project.authorizedOn || project.startedOn || project.completedOn || project.cancelledOn || project.resultingAssetId)) errors.push(`Planned project ${pid} carries lifecycle residue.`);
+      if (project.status === 'active' && (!project.authorizedOn || !project.authorizedByPersonId || !project.startedOn || project.pausedOn || project.completedOn || project.cancelledOn)) errors.push(`Active project ${pid} has an incoherent lifecycle.`);
+      if (project.status === 'paused' && (!project.authorizedOn || !project.startedOn || !project.pausedOn || project.completedOn || project.cancelledOn)) errors.push(`Paused project ${pid} has an incoherent lifecycle.`);
+      if (project.status === 'completed' && (!project.authorizedOn || !project.startedOn || !project.completedOn || !project.resultingAssetId || project.cancelledOn)) errors.push(`Completed project ${pid} has an incoherent lifecycle.`);
+      if (project.status === 'cancelled' && (!project.cancelledOn || !project.cancelledByPersonId || project.completedOn || project.resultingAssetId)) errors.push(`Cancelled project ${pid} has an incoherent lifecycle.`);
+      if (project.authorizedByPersonId && !state.governance.persons[project.authorizedByPersonId]) errors.push(`Project ${pid} has an invalid authorizer.`);
+      if (project.cancelledByPersonId && !state.governance.persons[project.cancelledByPersonId]) errors.push(`Project ${pid} has an invalid canceller.`);
+      if (project.resultingAssetId && !assets.assets[project.resultingAssetId]) errors.push(`Project ${pid} references an unknown resulting asset.`);
+      const pcoverage = project.coverage;
+      if (!pcoverage || !COVERAGE_STATUSES.includes(pcoverage.status)) errors.push(`Project ${pid} has an invalid coverage.`);
     }
     return errors;
   },
