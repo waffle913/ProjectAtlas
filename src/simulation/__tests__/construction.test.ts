@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
-import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, fundConstruction, pauseConstruction, proposeConstruction, resumeConstruction, startWork } from '../assets/runtime';
+import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, completeConstruction, fundConstruction, pauseConstruction, proposeConstruction, resumeConstruction, startWork } from '../assets/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { initializeFiscal } from '../fiscal/runtime';
 import { admitTradeMarket, initializeTrade } from '../trade/runtime';
@@ -10,7 +10,7 @@ import { syntheticTradeMarket } from '../trade/scenario';
 import { assetsInvariant } from '../assets/invariants';
 import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { ASSETS_VERSION, CONSTRUCTION_DAILY_COST_PER_WORKER_USD } from '../assets/model';
+import { ASSETS_VERSION, COMPLETED_ASSET_CAPACITY, CONSTRUCTION_DAILY_COST_PER_WORKER_USD } from '../assets/model';
 
 const countryId = worldCountryIds[0];
 const regionId = worldRegions[0].id;
@@ -314,5 +314,58 @@ describe('0.24.5 construction material inputs', () => {
     // Stock is now exhausted, so the next day produces no further progress.
     const next = advanceConstructionProgress(advanced);
     expect(next.assets.projects['project.00000000'].completedWorkUsd).toBe(project.completedWorkUsd);
+  });
+});
+
+/** A funded + active + started project whose work is already complete (one worker-day). */
+const completableProject = () => {
+  const { state, leaderId, countryId: cid, regionId: rid } = funded();
+  const cost = CONSTRUCTION_DAILY_COST_PER_WORKER_USD; // exactly one worker-day of work
+  const proposed = proposeConstruction(state, { proposerPersonId: leaderId, countryId: cid, regionId: rid, assetTypeId: 'type.dam', title: 'Dam', estimatedCostUsd: cost });
+  const authorized = authorizeConstruction(proposed, { projectId: 'project.00000000', authorizerPersonId: leaderId });
+  const fundedState = fundConstruction(authorized, { projectId: 'project.00000000', funderPersonId: leaderId });
+  const withStock = withRawMaterials(fundedState, cid, 10);
+  const started = startWork(withStock, { projectId: 'project.00000000', personId: leaderId, workers: 1 });
+  const worked = advanceConstructionProgress(started);
+  return { state: worked, leaderId, countryId: cid, regionId: rid };
+};
+
+describe('0.24.6 construction completion and capacity', () => {
+  it('completes a fully-worked project into a distinct asset exactly once', () => {
+    const { state, leaderId } = completableProject();
+    const completed = completeConstruction(state, { projectId: 'project.00000000', personId: leaderId });
+    const project = completed.assets.projects['project.00000000'];
+    expect(project.status).toBe('completed');
+    expect(project.completedOn).toBe(completed.date);
+    expect(project.resultingAssetId).toBe('asset.00000000');
+    expect(project.reservedWorkers).toBeUndefined();
+    const asset = completed.assets.assets['asset.00000000'];
+    expect(asset.assetTypeId).toBe('type.dam');
+    expect(asset.regionId).toBe(project.regionId);
+    expect(asset.operatingStatus).toBe('operational');
+    expect(asset.capacity.amount).toBe(COMPLETED_ASSET_CAPACITY);
+    expect(completed.assets.assetOrder).toEqual(['asset.00000000']);
+    expect(completed.assets.nextAssetSequence).toBe(1);
+  });
+
+  it('refuses to complete before the work is done', () => {
+    const { state, leaderId } = workingProject();
+    expect(() => completeConstruction(state, { projectId: 'project.00000000', personId: leaderId })).toThrow(/not yet complete/);
+  });
+
+  it('refuses to complete a project twice', () => {
+    const { state, leaderId } = completableProject();
+    const completed = completeConstruction(state, { projectId: 'project.00000000', personId: leaderId });
+    expect(() => completeConstruction(completed, { projectId: 'project.00000000', personId: leaderId })).toThrow(/active/);
+  });
+
+  it('rejects a completed project whose asset does not match its site or type via the invariant', () => {
+    const { state, leaderId } = completableProject();
+    const completed = completeConstruction(state, { projectId: 'project.00000000', personId: leaderId });
+    const forged = {
+      ...completed,
+      assets: { ...completed.assets, assets: { ...completed.assets.assets, 'asset.00000000': { ...completed.assets.assets['asset.00000000'], assetTypeId: 'type.other' } } },
+    };
+    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Project project.00000000 resulting asset does not match the project site or type.');
   });
 });
