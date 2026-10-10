@@ -3,7 +3,8 @@ import { hasPoliticalAuthority } from '../governance/runtime';
 import type { AuthorityCapability } from '../governance/model';
 import { reservedPersonnel } from '../military/runtime';
 import type { SimulationScheduler } from '../scheduler';
-import { CONSTRUCTION_DAILY_COST_PER_WORKER_USD, constructionProjectId, type ConstructionProjectRecord } from './model';
+import { CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, type ConstructionProjectRecord } from './model';
+import { availableConstructionMaterials } from './materials';
 import { constructionReservedPersonnel } from './workforce';
 
 const requireActivePerson = (state: SimulationState, personId: string) => {
@@ -214,21 +215,34 @@ export function resumeConstruction(state: SimulationState, input: { projectId: s
 }
 
 /**
- * 0.24.4C — Advance funded work for active projects with reserved workers. Each
- * reserved worker completes CONSTRUCTION_DAILY_COST_PER_WORKER_USD of funded work
- * per day, capped by the remaining committed budget, so progression depends on
- * both labour and funding and construction is never instant.
+ * 0.24.4C + 0.24.5 — Advance funded work for active projects with reserved
+ * workers. Each reserved worker completes CONSTRUCTION_DAILY_COST_PER_WORKER_USD
+ * of funded work per day, capped by the remaining committed budget, and consumes
+ * CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY of the construction-material category
+ * per worker per day, bounded by the Country's available trade stock. Progression
+ * therefore depends on labour, funding and materials, and a material shortage
+ * slows or stops it (no instant construction, no automatic material creation).
  */
 export function advanceConstructionProgress(state: SimulationState): SimulationState {
   const projects = { ...state.assets.projects };
+  const consumedThisPass = new Map<string, number>();
   let changed = false;
   for (const [pid, project] of Object.entries(projects)) {
     if (project.status !== 'active' || project.reservedWorkers === undefined || project.committedUsd === undefined) continue;
     const remaining = project.committedUsd - (project.completedWorkUsd ?? 0);
     if (remaining <= 0) continue;
-    const dailyWork = Math.min(project.reservedWorkers * CONSTRUCTION_DAILY_COST_PER_WORKER_USD, remaining);
+    const available = availableConstructionMaterials(state, project.countryId) - (consumedThisPass.get(project.countryId) ?? 0);
+    const dailyWorkers = Math.min(project.reservedWorkers, Math.floor(available / CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY));
+    if (dailyWorkers <= 0) continue;
+    const dailyWork = Math.min(dailyWorkers * CONSTRUCTION_DAILY_COST_PER_WORKER_USD, remaining);
     if (dailyWork <= 0) continue;
-    projects[pid] = { ...project, completedWorkUsd: (project.completedWorkUsd ?? 0) + dailyWork };
+    const materials = dailyWorkers * CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY;
+    projects[pid] = {
+      ...project,
+      completedWorkUsd: (project.completedWorkUsd ?? 0) + dailyWork,
+      consumedMaterials: (project.consumedMaterials ?? 0) + materials,
+    };
+    consumedThisPass.set(project.countryId, (consumedThisPass.get(project.countryId) ?? 0) + materials);
     changed = true;
   }
   return changed ? { ...state, assets: { ...state.assets, projects } } : state;

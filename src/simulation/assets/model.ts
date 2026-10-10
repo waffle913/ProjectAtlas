@@ -241,6 +241,9 @@ export interface ConstructionProjectRecord {
   /** Cumulative funded work done (0.24.4C), in nominal USD, never exceeding the
    *  committed amount. */
   completedWorkUsd?: number;
+  /** Cumulative physical materials consumed by work (0.24.5C), in units of the
+   *  construction-material category; bounded by the Country's trade stock. */
+  consumedMaterials?: number;
   coverage: AssetCoverageRecord;
 }
 
@@ -254,3 +257,16 @@ export const constructionProjectId = (sequence: number): ConstructionProjectId =
  * work is done without funded labour and no instant construction is possible.
  */
 export const CONSTRUCTION_DAILY_COST_PER_WORKER_USD = 200;
+
+/**
+ * 0.24.5A — The modelled physical input construction consumes: the `raw_materials`
+ * trade category. Its stock gates progression; an absent stock is a shortage,
+ * never free material.
+ */
+export const CONSTRUCTION_MATERIAL_CATEGORY = 'raw_materials' as const;
+
+/**
+ * 0.24.5A — Modelled units of material one reserved worker consumes per day of
+ * work. Central modelling assumption, not an observed bill of materials.
+ */
+export const CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY = 1;

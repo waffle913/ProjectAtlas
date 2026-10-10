@@ -88,6 +88,9 @@ export const assetsInvariant: SimulationInvariant = {
       if (project.completedWorkUsd !== undefined && (!Number.isSafeInteger(project.completedWorkUsd) || project.completedWorkUsd < 0 || (project.committedUsd !== undefined && project.completedWorkUsd > project.committedUsd))) errors.push(`Project ${pid} has invalid work progress.`);
       if (project.status !== 'active' && project.status !== 'paused' && project.reservedWorkers !== undefined) errors.push(`Project ${pid} carries a worker reservation in a non-working status.`);
       if (project.status === 'planned' && project.completedWorkUsd !== undefined) errors.push(`Planned project ${pid} carries work progress before starting.`);
+      // 0.24.5C — cumulative physical materials consumed by work.
+      if (project.consumedMaterials !== undefined && (!Number.isSafeInteger(project.consumedMaterials) || project.consumedMaterials < 0)) errors.push(`Project ${pid} has invalid consumed materials.`);
+      if (project.status === 'planned' && project.consumedMaterials !== undefined) errors.push(`Planned project ${pid} has consumed materials before starting.`);
     }
     return errors;
   },
