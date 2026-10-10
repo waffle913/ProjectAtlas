@@ -377,7 +377,7 @@ const countryIdsFor = (state: { territoryOwnership: Record<string, string | unde
 };
 const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields | 'international' | 'operations' | 'multilateral' | 'constitution' | 'elections' | 'assets'>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
   const countryIds = countryIdsFor(state, regions, context);
-  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
+  const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(state.date), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
   const withPolitics = { ...crisis, politics: initializePolitics(crisis, countryIds, regions), governance: emptyGovernance(crisis.date) };
   return initializeElections(initializeConstitution(initializeOperations(initializeInternational(initializeMultilateral(initializeTrade(initializeMilitary(initializePartyLeaders(withPolitics)))))), [...countryIds]), [...countryIds]);
@@ -448,6 +448,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     // Intra-schema-19 backfill for saves written before pendingAmendments, per-chamber elections
     // and organization banEvents were introduced. Idempotent: present fields are never rewritten.
     restored = backfillSchema19(restored);
+    if (version < 20) restored = upgradeConstructionAuthority(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }
@@ -511,6 +512,24 @@ function upgradeOperationsAuthority(state: SimulationState): SimulationState {
       || person.office.evidence?.authorityBasis === 'institutional_authority_unresolved'
       || person.office.authorityProfile.capabilities.includes('command_military_operations')) continue;
     persons[id] = { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: [...person.office.authorityProfile.capabilities, 'command_military_operations' as const].sort() as typeof person.office.authorityProfile.capabilities } } };
+  }
+  return { ...state, governance: { ...state.governance, persons } };
+}
+
+/** 0.24 — backfill the four construction capabilities into pre-0.24 executive
+ *  offices: every head of government (role-derived) and every source-reconciled
+ *  executive (head of government or head of state) gains propose/authorize/fund/
+ *  cancel construction. Idempotent: capabilities already present are not re-added. */
+function upgradeConstructionAuthority(state: SimulationState): SimulationState {
+  const construction = ['propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction'] as const;
+  const persons = { ...state.governance.persons };
+  for (const [id, person] of Object.entries(persons)) {
+    if (!person.office) continue;
+    const reconciled = person.office.evidence?.authorityBasis && person.office.evidence.authorityBasis !== 'institutional_authority_unresolved';
+    if (person.office.role !== 'head_of_government' && !reconciled) continue;
+    const missing = construction.filter(capability => !person.office!.authorityProfile.capabilities.includes(capability));
+    if (!missing.length) continue;
+    persons[id] = { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: [...person.office.authorityProfile.capabilities, ...missing].sort() as typeof person.office.authorityProfile.capabilities } } };
   }
   return { ...state, governance: { ...state.governance, persons } };
 }

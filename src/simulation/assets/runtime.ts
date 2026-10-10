@@ -367,7 +367,8 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
   const projects = { ...state.assets.projects };
   const consumedThisPass = new Map<string, number>();
   let changed = false;
-  for (const [pid, project] of Object.entries(projects)) {
+  const ordered = Object.entries(projects).sort(([left], [right]) => left.localeCompare(right));
+  for (const [pid, project] of ordered) {
     if (project.status !== 'active' || project.reservedWorkers === undefined || project.committedUsd === undefined) continue;
     const remaining = project.committedUsd - (project.completedWorkUsd ?? 0);
     if (remaining <= 0) continue;
@@ -376,7 +377,9 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
     if (dailyWorkers <= 0) continue;
     const dailyWork = Math.min(dailyWorkers * CONSTRUCTION_DAILY_COST_PER_WORKER_USD, remaining);
     if (dailyWork <= 0) continue;
-    const materials = dailyWorkers * CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY;
+    // Materials are proportional to the work actually credited, so a partial
+    // final worker-day never over-consumes.
+    const materials = Math.ceil(dailyWork / CONSTRUCTION_DAILY_COST_PER_WORKER_USD);
     projects[pid] = {
       ...project,
       completedWorkUsd: (project.completedWorkUsd ?? 0) + dailyWork,

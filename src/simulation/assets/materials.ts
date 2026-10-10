@@ -9,7 +9,7 @@ import { CONSTRUCTION_MATERIAL_CATEGORY } from './model';
 export const constructionMaterialsConsumed = (state: SimulationState, countryId: string): number => {
   let total = 0;
   for (const project of Object.values(state.assets?.projects ?? {})) {
-    if (project.countryId === countryId && project.consumedMaterials !== undefined && (project.status === 'active' || project.status === 'paused')) {
+    if (project.countryId === countryId && project.consumedMaterials !== undefined) {
       total += project.consumedMaterials;
     }
   }
