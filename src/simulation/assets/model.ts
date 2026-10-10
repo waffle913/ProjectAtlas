@@ -162,7 +162,11 @@ export interface AssetPhysicalStateRecord {
 
 /** Canonical record of one physical asset: identity (0.24.1A) plus physical
  *  state (0.24.1B). */
-export interface AssetRecord extends AssetIdentityRecord, AssetPhysicalStateRecord {}
+export interface AssetRecord extends AssetIdentityRecord, AssetPhysicalStateRecord {
+  /** 0.24.7B — the date a scheduled repair completes; while set and in the
+   *  future the asset's capacity stays unavailable. Cleared on restoration. */
+  repairReadyOn?: string;
+}
 
 // ---------------------------------------------------------------------------
 // 0.24.1C — Canonical assets state.
@@ -278,3 +282,11 @@ export const CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY = 1;
  */
 export const COMPLETED_ASSET_CAPACITY = 1;
 export const COMPLETED_ASSET_CAPACITY_UNIT = 'unit';
+
+/**
+ * 0.24.7B — Modelled nominal USD cost of repairing a broken asset, and the
+ * modelled number of days a repair takes. Central modelling assumptions, not
+ * observed prices or schedules; a repair is never free or instantaneous.
+ */
+export const REPAIR_COST_USD = 100;
+export const REPAIR_DURATION_DAYS = 3;

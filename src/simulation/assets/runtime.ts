@@ -3,7 +3,7 @@ import { hasPoliticalAuthority } from '../governance/runtime';
 import type { AuthorityCapability } from '../governance/model';
 import { reservedPersonnel } from '../military/runtime';
 import type { SimulationScheduler } from '../scheduler';
-import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, type AssetRecord, type ConstructionProjectRecord } from './model';
+import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
 import { availableConstructionMaterials } from './materials';
 import { constructionReservedPersonnel } from './workforce';
 
@@ -260,6 +260,70 @@ export function completeConstruction(state: SimulationState, input: { projectId:
   return reconcileConstructionWorkforce(completed);
 }
 
+const addDays = (iso: string, days: number): string => {
+  const date = new Date(`${iso}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
+const updateAsset = (state: SimulationState, assetIdValue: string, patch: Partial<AssetRecord>): SimulationState => ({
+  ...state,
+  assets: { ...state.assets, assets: { ...state.assets.assets, [assetIdValue]: { ...state.assets.assets[assetIdValue], ...patch } } },
+});
+
+/** The sovereign Country owning an asset's Region (canonical ownership, never a second territorial truth). */
+const assetCountry = (state: SimulationState, asset: AssetRecord): string => state.regionOwnership[asset.regionId] ?? '';
+
+/**
+ * 0.24.7A — Report an asset breakdown, making its capacity partially or totally
+ * unavailable. Requires the authorize_construction authority in the sovereign
+ * Country of the asset's Region. Only an operational/degraded asset can break.
+ */
+export function reportAssetBreakdown(state: SimulationState, input: { assetId: string; personId: string; severity: 'degraded' | 'out_of_service' }): SimulationState {
+  requireActivePerson(state, input.personId);
+  const asset = state.assets.assets[input.assetId];
+  if (!asset) throw new Error(`Unknown asset: ${input.assetId}`);
+  const countryId = assetCountry(state, asset);
+  if (!countryId) throw new Error('The asset Region has no sovereign owner.');
+  requireAuthority(state, input.personId, countryId, 'authorize_construction');
+  if (asset.operatingStatus !== 'operational' && asset.operatingStatus !== 'degraded') throw new Error('Only an operational or degraded asset can be reported broken.');
+  if (input.severity === 'degraded') return updateAsset(state, input.assetId, { operatingStatus: 'degraded', availability: 'partial' });
+  return updateAsset(state, input.assetId, { operatingStatus: 'out_of_service', availability: 'unavailable' });
+}
+
+/**
+ * 0.24.7B — Schedule a repair for a broken asset. Requires the
+ * authorize_construction authority and a treasury able to cover the modelled
+ * repair cost. The repair is never instant or free: it completes only when
+ * repairReadyOn arrives (completeDueRepairs). The cost is a read-only treasury
+ * check (soft reservation), consistent with 0.24.3 financing.
+ */
+export function repairAsset(state: SimulationState, input: { assetId: string; personId: string }): SimulationState {
+  requireActivePerson(state, input.personId);
+  const asset = state.assets.assets[input.assetId];
+  if (!asset) throw new Error(`Unknown asset: ${input.assetId}`);
+  const countryId = assetCountry(state, asset);
+  if (!countryId) throw new Error('The asset Region has no sovereign owner.');
+  requireAuthority(state, input.personId, countryId, 'authorize_construction');
+  if (asset.operatingStatus !== 'degraded' && asset.operatingStatus !== 'out_of_service') throw new Error('Only a broken asset can be repaired.');
+  if (asset.repairReadyOn !== undefined) throw new Error('This asset already has a scheduled repair.');
+  if ((state.fiscal.countries[countryId]?.cash ?? 0) < REPAIR_COST_USD) throw new Error('Insufficient treasury funds to repair this asset.');
+  return updateAsset(state, input.assetId, { repairReadyOn: addDays(state.date, REPAIR_DURATION_DAYS) });
+}
+
+/** 0.24.7B — complete repairs whose scheduled date has arrived (scheduler task). */
+export function completeDueRepairs(state: SimulationState): SimulationState {
+  const assets = { ...state.assets.assets };
+  let changed = false;
+  for (const [id, asset] of Object.entries(assets)) {
+    if (asset.repairReadyOn !== undefined && asset.repairReadyOn <= state.date) {
+      assets[id] = { ...asset, operatingStatus: 'operational', availability: 'available', repairReadyOn: undefined };
+      changed = true;
+    }
+  }
+  return changed ? { ...state, assets: { ...state.assets, assets } } : state;
+}
+
 /**
  * 0.24.4C + 0.24.5 — Advance funded work for active projects with reserved
  * workers. Each reserved worker completes CONSTRUCTION_DAILY_COST_PER_WORKER_USD
@@ -295,6 +359,6 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
 }
 
 /** 0.24.4B — construction progression runs on the shared scheduler, never a parallel timer. */
-export const registerConstructionTasks = (scheduler: SimulationScheduler) => scheduler.register({
-  id: 'construction.progress', cadence: 'daily', priority: 60, run: advanceConstructionProgress,
-});
+export const registerConstructionTasks = (scheduler: SimulationScheduler) => scheduler
+  .register({ id: 'construction.progress', cadence: 'daily', priority: 60, run: advanceConstructionProgress })
+  .register({ id: 'construction.repair', cadence: 'daily', priority: 61, run: completeDueRepairs });

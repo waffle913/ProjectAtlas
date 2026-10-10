@@ -49,6 +49,7 @@ export const assetsInvariant: SimulationInvariant = {
       else if ((coverage.status === 'sourced' || coverage.status === 'partial') && (!coverage.provenance || typeof coverage.provenance.publisher !== 'string' || !coverage.provenance.publisher.trim())) {
         errors.push(`Asset ${id} has sourced/partial coverage without provenance.`);
       }
+      if (asset.repairReadyOn !== undefined && !validDate(asset.repairReadyOn)) errors.push(`Asset ${id} has an invalid repair schedule.`);
     }
     const PROJECT_STATUSES = ['planned', 'active', 'paused', 'completed', 'cancelled'];
     const seenProjects = new Set<string>();
