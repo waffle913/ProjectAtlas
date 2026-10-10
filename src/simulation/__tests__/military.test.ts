@@ -465,9 +465,10 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     expect(schema13Fixture.referenceCommit).toBe('ceddc8e04fc470f41155fdc8b6250142fb970705');
     expect(schema13Fixture.state.schemaVersion).toBe(13);
     const restored = restoreSimulationState(JSON.stringify(schema13Fixture.state), militaryRegions, {}, {}, militaryContext);
-    const { schemaVersion, military, trade, international, operations, multilateral, constitution, elections, ...preserved } = restored;
+    const { schemaVersion, military, trade, international, operations, multilateral, constitution, elections, assets, ...preserved } = restored;
     expect(schemaVersion).toBe(20); expect(military.initializedOn).toBe('2028-03-11');
     expect(trade.initializedOn).toBe('2028-03-11'); expect(trade.flows).toEqual([]);
+    expect(assets.initializedOn).toBe('2028-03-11'); expect(assets.assetOrder).toEqual([]); expect(assets.assets).toEqual({});
     // Historical data stays identical; the only admitted deviations are the structural 0.23
     // backfills in governance and politics, each verified explicitly below.
     const { schemaVersion: _legacySchemaVersion, governance: legacyGovernance, politics: legacyPolitics, ...legacyPreserved } = schema13Fixture.state;
