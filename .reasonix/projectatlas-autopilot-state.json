@@ -61,6 +61,22 @@
   "budget_status": "not_observable_to_agent",
   "budget_observation": null,
 
+  "safety_mode": {
+    "mode": "normal",
+    "enabled_by": null,
+    "enabled_at": null,
+    "note": "Unattended safe mode is opt-in and disabled during patch installation; the human enables it explicitly when resuming for the night."
+  },
+  "deferred_defects": [],
+  "defect_triage": {
+    "current_defect_id": null,
+    "disposition": null,
+    "assessed_at": null,
+    "assessed_against_roadmap": null,
+    "downstream_critical_risk": null,
+    "rationale": null
+  },
+
   "stop_reason": "USER_PAUSED_FOR_AUTOPILOT_HARDENING",
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",

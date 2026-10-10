@@ -276,7 +276,9 @@ The Goal continues until one of:
 7. **Destructive/migration ambiguity** (§14 — `BLOCKED_MIGRATION`);
 8. **Repeated root cause** (§13.4 — `REPEATED_ROOT_CAUSE`);
 9. **Review campaign exhausted** (§23/§25 — `REVIEW_CAMPAIGN_EXHAUSTED`);
-10. **Reviewer capability unavailable** (§27 — `BLOCKED_REVIEW_CAPABILITY`).
+10. **Reviewer capability unavailable** (§27 — `BLOCKED_REVIEW_CAPABILITY`);
+11. **Unattended critical defect** (§37 — `UNATTENDED_CRITICAL_DEFECT`);
+12. **Unattended uncertain propagation** (§37 — `UNATTENDED_TRIAGE_UNCERTAIN`).
 
 ---
 
@@ -366,6 +368,8 @@ one wake-up report (§16), then **STOPs**.
 | `BLOCKED_EXTERNAL` | An indispensable source/service/GitHub/provider/dependency is unavailable and the contract does not honestly allow `unavailable`/`partial`/other planned behavior (§14.5). |
 | `REVIEW_CAMPAIGN_EXHAUSTED` | Another broad review would exceed the two-round limit; targeted verification after final corrections still finds a blocker; or a sealed milestone would need more autonomous reopenings than allowed (§23/§25). |
 | `BLOCKED_REVIEW_CAPABILITY` | The required independent reviewer interface cannot be invoked reliably after the bounded adapter resolution attempts (§27). |
+| `UNATTENDED_CRITICAL_DEFECT` | A critical current defect or credible critical downstream/cascade risk was detected while `unattended_safe` is active (§37); no autonomous corrective attempt is made. |
+| `UNATTENDED_TRIAGE_UNCERTAIN` | A detected anomaly cannot be safely classified as local/deferable versus critically propagating while `unattended_safe` is active (§37); no guessing, no speculative repair. |
 
 ### 14.2 Design blocker
 
@@ -679,6 +683,10 @@ A new Safe Zone requires all of:
 9. required `main` CI green;
 10. no known blocking defect.
 
+A sealed Safe Zone may contain documented deferred defects; it never contains an
+unresolved `BLOCKING_CRITICAL` or a `TRIAGE_UNCERTAIN` with plausible critical
+propagation. The Safe-Zone report summarizes the count of open deferred defects.
+
 Only then:
 
 ```text
@@ -931,6 +939,213 @@ In addition to the existing reasons, add:
   a sealed milestone would require more autonomous reopenings than allowed.
 - `BLOCKED_REVIEW_CAPABILITY` — the required independent reviewer interface cannot
   be invoked reliably after bounded adapter resolution.
+- `UNATTENDED_CRITICAL_DEFECT` — a critical current defect or credible critical
+  downstream/cascade risk was detected while `unattended_safe` is active; the
+  Autopilot preserves evidence and stops with zero autonomous corrective attempts.
+- `UNATTENDED_TRIAGE_UNCERTAIN` — a detected anomaly cannot be safely classified as
+  local/deferable versus critically propagating while `unattended_safe` is active;
+  the Autopilot stops instead of guessing or attempting speculative repairs.
 
 Cryo reports include the review campaign counts and review adapter state when
 relevant.
+
+---
+
+# Part C — Unattended Safe Mode + Deferred Defect Register
+
+## 37. Operating safety mode
+
+A persistent `safety_mode` field is separate from the Goal running/paused state:
+
+```text
+safety_mode:
+  mode: normal | unattended_safe
+  enabled_by: human
+  enabled_at
+  note
+```
+
+- `normal` — existing schema-v2 behavior; ordinary autonomous repair cycles apply.
+- `unattended_safe` — the fail-safe rules in this part apply. It is a fail-safe
+  mode, not a budget limiter, and it stays active until the human explicitly
+  changes it.
+
+Unattended mode is **never inferred** from time of day, inactivity, context
+percentage, or absence of messages. Only an explicit human instruction enables or
+disables it. Installing this patch leaves the Goal paused and `safety_mode`
+inactive/normal; the human enables `unattended_safe` when resuming for the night.
+
+## 38. Defect triage model
+
+Every detected anomaly/finding is first assigned exactly one disposition:
+
+```text
+BLOCKING_CRITICAL
+DEFERRED_DEFECT
+TRIAGE_UNCERTAIN
+OPTIONAL_IMPROVEMENT
+```
+
+Detection and disposition are distinct: the Reviewer detects and supplies
+evidence; the Planner/Autopilot evaluates roadmap impact and dependencies; the
+Executor acts only after disposition.
+
+- `BLOCKING_CRITICAL` — critical now, or credible risk of a CRITICAL downstream
+  problem (canonical-state corruption; broken conservation; broken determinism;
+  save corruption or destructive migration risk; compromised permanent IDs; false
+  provenance or unavailable→zero; incoherent sovereignty/control/occupation; a
+  duplicated canonical engine; an invalid contract/API/schema later milestones
+  depend on; incorrect outputs that become canonical inputs; a defect that would
+  require wider/destructive correction later; unreliable tests/invariants; a
+  cross-domain propagation risk; a critical security/data-integrity problem; a
+  core milestone behavior being fundamentally false/incomplete). This is about
+  impact, not merely demonstrability.
+- `DEFERRED_DEFECT` — only with positive evidence that deferral is safe: local and
+  contained, not corrupting canonical state, not feeding false canonical data
+  downstream, not violating a dependency contract, not making a future repair
+  materially harder, not undermining CI/tests/invariants, not hiding a likely
+  critical defect, and not required for the core milestone acceptance contract.
+- `TRIAGE_UNCERTAIN` — cannot establish with reasonable confidence whether the
+  defect is safely local or could cause critical downstream effect. **If critical
+  propagation cannot be ruled out, do not guess that it is minor.**
+- `OPTIONAL_IMPROVEMENT` — not a correctness requirement; may be recorded but does
+  not enter the defect register unless useful.
+
+## 39. Unattended behavior (`unattended_safe`)
+
+- Confident `DEFERRED_DEFECT`: record it in the register with the deferral
+  rationale and a concrete future trigger; do not start a correction campaign,
+  do not reopen a sealed milestone, do not start an extra review; continue.
+- `BLOCKING_CRITICAL`: `CRYO_MODE` with `UNATTENDED_CRITICAL_DEFECT`. STOP
+  immediately before any autonomous repair attempt — no Repair Cycle 1/2, no extra
+  reviewer, no "one obvious fix first", no next block. Preserve branch/work/evidence
+  and wait for the human.
+- `TRIAGE_UNCERTAIN` with plausible critical downstream effect: `CRYO_MODE` with
+  `UNATTENDED_TRIAGE_UNCERTAIN`. STOP; do not guess or downgrade it to keep moving.
+- A correction already in progress when unattended mode is enabled: finish only an
+  atomic write/commit necessary to leave the repository recoverable; record
+  `blocked_head_sha` when committed; never begin a new speculative repair.
+
+## 40. No anomaly may disappear silently
+
+Every actual defect found ends in exactly one of: `fixed`, `deferred`,
+`blocked/cryo`, `disproved`, `human_waived`. Never silently omit it, call it
+optional to avoid blocking, erase it when CI turns green, or lose it across
+milestones/restarts.
+
+## 41. Persistent deferred-defect register
+
+A persistent `deferred_defects: []` register records, per defect: id, status
+(open / trigger_reached / fixed / disproved / human_waived / superseded),
+detected_at, detected_at_sha, milestone_detected, subsystem, summary, evidence,
+source, severity, disposition, reason_deferred, canonical_state_impact,
+propagation_risk, affected_future_milestones, fix_trigger, fix_before,
+related_files, related_tests_or_invariants, last_revalidated_at, resolution.
+
+`fix_trigger` must be concrete where possible (`before_milestone: X`,
+`when_touching_subsystem: Y`, `before_v1_acceptance: true`,
+`when_downstream_dependency_appears: Z`). Never invent a future milestone number
+not in the authorized roadmap; if none is known, use `before_v1_acceptance`.
+
+Do not fabricate historical deferred defects for 0.22/0.23 from memory — only
+populate from actual repository/runtime evidence or future detections.
+
+## 42. Re-evaluate deferred defects at dependency boundaries
+
+A deferred defect is re-evaluated only at a meaningful trigger (its `fix_trigger`;
+a milestone starts consuming the subsystem; the subsystem is materially modified;
+new evidence raises propagation risk; V1 acceptance; explicit human request).
+Outcome: stay deferred / schedule normal corrective work / `BLOCKING_CRITICAL` /
+`TRIAGE_UNCERTAIN`. In unattended mode the last two Cryo immediately. A deferred
+defect by itself never causes spontaneous reopening/re-review before its trigger.
+
+## 43. Roadmap dependency check before deferral
+
+Before classifying a defect as `DEFERRED_DEFECT`, inspect enough of the roadmap and
+contracts to answer: (1) does any remaining authorized milestone consume this
+behavior/state/API; (2) could the defect contaminate canonical inputs to those
+systems; (3) would building on top make correction materially harder; (4) could it
+undermine tests/invariants protecting future work. Only a confident "no critical
+consequence" permits deferral. Keep the check focused — not a full-roadmap audit
+for every typo.
+
+## 44. Reviewer output
+
+The Reviewer reports evidence-rich findings in three groups:
+
+```text
+## DEFECT FINDINGS
+## PROBABLE RISKS
+## OPTIONAL IMPROVEMENTS
+```
+
+Each DEFECT FINDING / PROBABLE RISK includes: evidence/reproduction, affected
+contract/invariant, likely scope, known downstream consumers, propagation
+indicators. The Reviewer never makes the final defer/fix-now decision alone; after
+review the Planner/Autopilot performs `ROADMAP_IMPACT_TRIAGE`. Demonstrable is not
+automatically critical; probable is not automatically blocking; minor is not safe
+to defer unless downstream impact has been checked. This supersedes the earlier
+sentence that all PROBABLE RISKS block until fixed/disproved/human-waived.
+
+## 45. Review-campaign and Safe-Zone interaction
+
+The two-round review bound is unchanged. Round findings go through roadmap-impact
+triage:
+
+- normal mode: blocking → existing correction rules; deferred → register and
+  continue; uncertain → resolve/block per normal protocol; optional → non-blocking.
+- unattended_safe: blocking → immediate Cryo; deferred → register and continue;
+  uncertain-with-critical-propagation → immediate Cryo; optional → continue.
+
+Deferred defects do not consume repair cycles, and recording one does not authorize
+a third review round. A Safe Zone may contain documented deferred defects; it is
+valid when no `BLOCKING_CRITICAL` remains, no unresolved `TRIAGE_UNCERTAIN` with
+plausible critical propagation exists, all deferred defects are recorded with
+justified deferral and triggers, and all review/CI/Safe-Zone requirements are met.
+Never reopen a sealed Safe Zone merely because a recorded deferred defect still
+exists.
+
+## 46. Unattended mode is stricter than repair loops
+
+`MAX_SAME_ROOT_CAUSE_REPAIR_CYCLES = 2` remains for normal mode. In
+`unattended_safe`, a newly detected `BLOCKING_CRITICAL` or `TRIAGE_UNCERTAIN` does
+not enter Repair Cycle 1 — it Cryos immediately. The loop breaker is not the first
+line of defense overnight; the safety stop is.
+
+## 47. Ordinary implementation errors vs discovered defects
+
+A simple deterministic implementation mistake may still be corrected automatically
+in unattended mode only if ALL hold: cause clear; fix mechanically determined by an
+existing contract; no ambiguity; no canonical-state corruption; no cross-domain
+downstream critical risk; no design change; not a recurrence of a previous root
+cause; no new unrelated failure. Examples: typo/import/compiler error, obvious
+fixture mismatch from just-written code, trivial serialization typo, unambiguous
+merge conflict. Otherwise classify through roadmap-impact triage.
+
+## 48. Unattended Cryo report additions
+
+For unattended safety stops, the Cryo report adds:
+
+```text
+Safety mode: unattended_safe
+Defect: <id + summary>
+Disposition: BLOCKING_CRITICAL / TRIAGE_UNCERTAIN
+Critical now: yes/no/unknown
+Critical downstream risk: yes/no/unknown
+Affected future systems/milestones: <known dependencies>
+Evidence: <tests/CI/diff/invariant/file:line>
+Why it was not deferred: <reason>
+Automatic repair attempts after detection: 0
+Repository state: <safe SHA + branch + current/blocked HEAD>
+Human decision needed: <minimal question/action>
+```
+
+## 49. Anti-spin additions
+
+Prohibited unattended behavior: correcting a deferred minor defect "while here
+anyway"; repeatedly reconsidering the same deferred defect before its trigger;
+escalating a local defect merely because it exists; downgrading a potentially
+critical issue to keep progressing; performing "one quick fix" after an unattended
+critical stop; launching extra reviewers to avoid Cryo; converting uncertainty into
+an assumption; continuing downstream implementation while a critical dependency
+defect is unresolved.

@@ -46,25 +46,40 @@ cross-domain regressions; scope creep.
 
 Return exactly three groups, with `file:line` for every finding:
 
-## CERTAIN BUGS
+## DEFECT FINDINGS
 
-Demonstrable defects. Include a minimal reproduction or proof.
+All demonstrable correctness defects.
 
 ## PROBABLE RISKS
 
-Plausible defects needing a fix or sufficient proof. **Every probable risk is
-blocking** unless it is fixed, disproved with sufficient evidence, or explicitly
-waived by the human. Never label a finding "non-blocking probable risk": a
-non-blocking finding is an OPTIONAL IMPROVEMENT or a documented residual
-limitation.
+Plausible issues needing evidence.
 
 ## OPTIONAL IMPROVEMENTS
 
-Quality/refactor/performance not required for milestone conformance. Do not
-block on these.
+Non-correctness quality work; not required for milestone conformance.
 
-Finish with a verdict: whether the milestone may proceed to CI (all CERTAIN BUGS
-fixed and blocking risks handled) or is blocked, and why.
+For every DEFECT FINDING and PROBABLE RISK include:
+
+- evidence / reproduction;
+- affected contract/invariant;
+- likely scope;
+- known downstream consumers if visible;
+- propagation indicators.
+
+The Reviewer **does not make the final defer/fix-now decision alone**. After the
+review, the Planner/Autopilot performs `ROADMAP_IMPACT_TRIAGE` and assigns each
+finding one disposition — `BLOCKING_CRITICAL`, `DEFERRED_DEFECT`,
+`TRIAGE_UNCERTAIN`, or `OPTIONAL_IMPROVEMENT`.
+
+Note the distinctions:
+
+- demonstrable is not automatically critical;
+- probable is not automatically blocking;
+- minor is not safe to defer unless its downstream impact has been checked.
+
+Finish with a verdict of evidence, not a repair instruction: state whether the
+milestone may proceed to CI and list every finding that still needs a triage
+decision.
 
 An interrupted or schema-failed reviewer returns no review verdict and consumes
 no review round; it is an orchestration failure, not a code finding.

@@ -34,8 +34,9 @@ condition in the protocol.
   pre-sync branch is not a current failure signature.
 - **Roles** — separate Planner (read-only), Executor, and Reviewer (independent
   subagent/context) as the installed capabilities allow. The Reviewer inspects
-  the real diff and classifies CERTAIN BUGS / PROBABLE RISKS / OPTIONAL
-  IMPROVEMENTS.
+  the real diff and reports DEFECT FINDINGS / PROBABLE RISKS / OPTIONAL
+  IMPROVEMENTS; the Planner/Autopilot then performs ROADMAP_IMPACT_TRIAGE
+  (BLOCKING_CRITICAL / DEFERRED_DEFECT / TRIAGE_UNCERTAIN / OPTIONAL_IMPROVEMENT).
 - **Milestone phase machine** — every milestone proceeds through
   `BRANCH_SYNC -> IMPLEMENTING -> CONSOLIDATED_REVIEW ->
   CORRECTING_REVIEW_FINDINGS -> FINAL_VERIFICATION_REVIEW ->
@@ -86,10 +87,27 @@ condition in the protocol.
   after schema failures.
 - **Cryo Mode** — on any critical problem / budget / design / contract /
   migration / external blocker / `REVIEW_CAMPAIGN_EXHAUSTED` /
-  `BLOCKED_REVIEW_CAPABILITY`: freeze at the last Safe Zone, produce the CRYO
+  `BLOCKED_REVIEW_CAPABILITY` / `UNATTENDED_CRITICAL_DEFECT` /
+  `UNATTENDED_TRIAGE_UNCERTAIN`: freeze at the last Safe Zone, produce the CRYO
   report, then STOP. Never work around a broken system, mark it TODO, add an
   arbitrary fallback, invent data, disable an invariant, weaken a test, or build
   the next milestone on top of the defect.
+- **Safety mode** — a persistent `safety_mode.mode` is `normal` or
+  `unattended_safe`, enabled only by an explicit human instruction (never inferred
+  from time of day, inactivity, or absence of messages). In `unattended_safe`, a
+  `BLOCKING_CRITICAL` or `TRIAGE_UNCERTAIN` finding triggers immediate CRYO_MODE
+  (`UNATTENDED_CRITICAL_DEFECT` / `UNATTENDED_TRIAGE_UNCERTAIN`) with **zero**
+  autonomous repair attempts; a confident `DEFERRED_DEFECT` is recorded in
+  `deferred_defects` with a deferral rationale and a concrete fix trigger and does
+  not block progression. A simple deterministic implementation error (typo/import,
+  obvious fixture mismatch, trivial serialization typo, unambiguous merge) may
+  still be corrected automatically when the contract determines the fix.
+- **Defect triage** — every detected defect is assigned exactly one disposition
+  (`BLOCKING_CRITICAL` / `DEFERRED_DEFECT` / `TRIAGE_UNCERTAIN` /
+  `OPTIONAL_IMPROVEMENT`) via `ROADMAP_IMPACT_TRIAGE` before any action. No
+  anomaly may disappear silently: each ends in `fixed` / `deferred` /
+  `blocked/cryo` / `disproved` / `human_waived`. Deferred defects are re-evaluated
+  only at their fix trigger or a dependency boundary, never spontaneously.
 - **Budget/quota** — act on observable provider/quota signals only; enter
   CRYO_MODE with `BLOCKED_BUDGET` on provider refusal; no paid retry loops.
   Persist an explicit `budget_status` at milestone boundaries
@@ -106,3 +124,18 @@ condition in the protocol.
 - **End of roadmap** — when every numbered, authorized milestone is complete,
   produce the ROADMAP AUTOPILOT — COMPLETE report and stop; do not convert the
   unnumbered backlog into new versions.
+
+## Resuming in unattended safe mode
+
+A human can resume the authorized roadmap in fail-safe mode with an explicit
+instruction such as:
+
+```text
+Resume the authorized roadmap in UNATTENDED_SAFE_MODE.
+```
+
+On receipt: set persistent `safety_mode.mode = unattended_safe` with
+`enabled_by = human`, continue from the first unfinished roadmap work, and obey
+the unattended-safe rules until the human explicitly returns to normal mode.
+No new milestone authorization is required — the existing roadmap authorization
+remains intact.
