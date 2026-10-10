@@ -139,3 +139,11 @@ On receipt: set persistent `safety_mode.mode = unattended_safe` with
 the unattended-safe rules until the human explicitly returns to normal mode.
 No new milestone authorization is required — the existing roadmap authorization
 remains intact.
+
+## Returning to normal mode
+
+When the human explicitly switches back, set `safety_mode.mode = normal`. Do not
+automatically fix the whole deferred register: inspect any Cryo blocker first,
+report new deferred defects, and continue according to their triggers and roadmap
+impact. Deferred defects alone do not stop normal progression unless a trigger is
+reached or new evidence raises their impact.

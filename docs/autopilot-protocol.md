@@ -1149,3 +1149,17 @@ critical issue to keep progressing; performing "one quick fix" after an unattend
 critical stop; launching extra reviewers to avoid Cryo; converting uncertainty into
 an assumption; continuing downstream implementation while a critical dependency
 defect is unresolved.
+
+## 50. Human return / normal mode
+
+When the human explicitly switches back to normal:
+
+```text
+safety_mode.mode = normal
+```
+
+Do not automatically fix the entire deferred register. Instead: (1) inspect any
+Cryo blocker first; (2) show/report any new deferred defects; (3) continue
+according to their triggers and roadmap impact; (4) preserve history. The
+existence of deferred defects is not itself a reason to stop normal roadmap
+progression unless a trigger has been reached or new evidence raises their impact.
