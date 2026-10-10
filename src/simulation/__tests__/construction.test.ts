@@ -5,7 +5,7 @@ import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runt
 import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, fundConstruction, pauseConstruction, proposeConstruction, resumeConstruction, startWork } from '../assets/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { initializeFiscal } from '../fiscal/runtime';
-import { admitTradeMarket } from '../trade/runtime';
+import { admitTradeMarket, initializeTrade } from '../trade/runtime';
 import { syntheticTradeMarket } from '../trade/scenario';
 import { assetsInvariant } from '../assets/invariants';
 import { assertSimulationInvariants } from '../invariants';
@@ -218,7 +218,7 @@ const workingProject = () => {
 
 /** Admit a raw_materials trade market with the given stock quantity for a Country. */
 const withRawMaterials = (state: SimulationState, countryId: string, quantity: number) =>
-  admitTradeMarket(state, countryId, syntheticTradeMarket('raw_materials', {
+  admitTradeMarket(initializeTrade(state), countryId, syntheticTradeMarket('raw_materials', {
     stock: { opening: quantity, produced: 0, received: 0, consumed: 0, exported: 0, quantity, capacity: quantity, target: quantity },
   }));
 
