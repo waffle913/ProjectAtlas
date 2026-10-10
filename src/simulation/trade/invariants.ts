@@ -70,8 +70,8 @@ export const tradeInvariant: SimulationInvariant = {
           || l.need !== m.domesticNeedPerMonth + m.importNeedPerMonth
           || l.shortage !== l.need - l.domesticConsumed - l.imports
           || l.unspentUsd !== l.purchasingBudgetUsd - l.importPaymentUsd
-          || BigInt(l.production) + BigInt(l.openingStock) !== BigInt(l.domesticConsumed) + BigInt(l.exports) + BigInt(l.closingStock)
-          || BigInt(l.closingStock) !== BigInt(l.openingStock) + BigInt(l.stocked) - BigInt(l.stockConsumed)
+          || BigInt(l.production) + BigInt(l.openingStock) + BigInt(l.received) !== BigInt(l.domesticConsumed) + BigInt(l.exports) + BigInt(l.closingStock)
+          || BigInt(l.closingStock) !== BigInt(l.openingStock) + BigInt(l.stocked) - BigInt(l.stockConsumed) + BigInt(l.received)
           || l.militaryInputConsumed > l.militaryInputAvailable
           || l.militaryInputAvailable !== (m.militaryInputPerFactoryUnit ? l.domesticConsumed + l.imports : 0)
           || (l.openingStock || l.closingStock || l.stocked || l.stockConsumed) && !m.stock

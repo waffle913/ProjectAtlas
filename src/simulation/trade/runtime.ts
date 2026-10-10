@@ -87,7 +87,7 @@ const ledgerFor = (m: TradeMarket): TradeCategoryLedger => ({
   category: m.category, unit: m.unit, priceMicroUsd: m.priceMicroUsd, production: 0, domesticConsumed: 0,
   need: integer(m.domesticNeedPerMonth + m.importNeedPerMonth),
   imports: 0, exports: 0, shortage: 0, openingStock: m.stock?.quantity ?? 0,
-  closingStock: m.stock?.quantity ?? 0, stocked: 0, stockConsumed: 0,
+  closingStock: m.stock?.quantity ?? 0, stocked: 0, stockConsumed: 0, received: 0,
   productionBackingUsd: 0, exportValueUsd: 0, importValueUsd: 0,
   importReferenceUsd: 0,
   importPaymentUsd: 0, logisticsUsd: 0, customsUsd: 0,
@@ -302,7 +302,16 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
       ledger.alternativeCapacity = sum(alternatives.map(a => a.availableQuantity));
       if (m.militaryInputPerFactoryUnit) ledger.militaryInputAvailable = ledger.domesticConsumed + ledger.imports;
       if (m.stock) {
-        m.stock.quantity = ledger.closingStock; m.stock.produced = integer(m.stock.produced + ledger.stocked);
+        // 0.24.5D — delivered imports of a stocked industrial input (construction
+        // materials) are received into the canonical stock buffer, so a shortage can
+        // be closed by imports and consumed downstream. Household and military-input
+        // imports keep their direct-consumption / availability semantics.
+        const stockedImports = m.use === 'industrial' && !m.militaryInputPerFactoryUnit ? ledger.imports : 0;
+        ledger.received = stockedImports;
+        ledger.closingStock = integer(ledger.closingStock + stockedImports);
+        m.stock.received = integer(m.stock.received + stockedImports);
+        m.stock.quantity = ledger.closingStock;
+        m.stock.produced = integer(m.stock.produced + ledger.stocked);
         m.stock.consumed = integer(m.stock.consumed + ledger.stockConsumed);
       }
       if (m.use === 'household') {
