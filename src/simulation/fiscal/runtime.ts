@@ -47,7 +47,7 @@ export function upgradeFiscalStateV1(fiscal: unknown, date: string): FiscalState
       limitation: 'Legacy 0.11 debt had no source provenance; it must not be interpreted as observed sovereign debt.' };
     // The v1 account was booked without residual revenue. Keep its stocks but do not
     // reinterpret that flawed last-period ledger as if the new revenue had existed.
-    return [id, { ...c, constructionCommitted: 0, constructionExecuted: 0, revenueCalibration, debtInitialization, account: undefined }];
+    return [id, { ...c, constructionCommitted: 0, constructionExecuted: 0, assetMaintenanceSpent: 0, revenueCalibration, debtInitialization, account: undefined }];
   }));
   return { ...prior, version: 'fiscal-0.11-v2', countries, reformReceipts: [] } as FiscalState;
 }
@@ -221,7 +221,7 @@ export function initializeFiscal(state: SimulationState): SimulationState {
     const baselineResidualRevenue = Math.max(0, (observedMonthlyRevenue ?? budgetSum(monthly) + initialInterest) - initialKnownTaxRevenue);
     fiscal.countries[id] = { policy, policyHistory: [{ date: state.date, policy }], annualBudget, cash: budgetSum(monthly) * M.initialCashMonths,
       debt: openingDebt, interestRateBps: M.interestRateBps, debtLimit: Math.max(openingDebt, ratio(output, M.debtLimitAnnualOutputBps * 12, 10000)), monthlyBorrowingLimit: ratio(output, M.borrowingMonthlyOutputBps, 10000),
-      arrears: zeroBudget(), interestArrears: 0, constructionCommitted: 0, constructionExecuted: 0, services,
+      arrears: zeroBudget(), interestArrears: 0, constructionCommitted: 0, constructionExecuted: 0, assetMaintenanceSpent: 0, services,
       revenueCalibration: aggregate?.annualRevenueUsd !== undefined
         ? { status: 'sourced', monthlyAmount: baselineResidualRevenue, referenceDate: aggregate.referenceDate, dataset: aggregate.dataset, source: aggregate.source,
           method: 'Fixed residual equals sourced aggregate monthly revenue minus simulated known-tax revenue at initialization, floored at zero.', limitation: aggregate.limitations }
@@ -287,9 +287,18 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     const allObligations = [...obligations, defenseObligation];
     const interestDue = ratio(c.debt, c.interestRateBps, 120000);
     const interestObligation = interestDue + c.interestArrears;
-    const financingNeed = Math.max(0, sum(allObligations) + interestObligation - totalRevenue - c.cash);
+    // 0.24.3B — construction commitments reserve treasury cash: monthly fiscal
+    // execution finances from uncommitted cash only, never spending cash already
+    // committed to a construction project. Construction/repair/maintenance spend
+    // since the last close is booked into this month's totalSpending below.
+    const constructionSpent = c.constructionExecuted - (c.account?.construction?.executedCumulative ?? 0);
+    const maintenanceSpent = c.assetMaintenanceSpent - (c.account?.construction?.maintenanceCumulative ?? 0);
+    const assetSpent = constructionSpent + maintenanceSpent;
+    const committed = c.constructionCommitted;
+    const uncommittedCash = Math.max(0, c.cash - committed);
+    const financingNeed = Math.max(0, sum(allObligations) + interestObligation - totalRevenue - uncommittedCash);
     const borrowed = Math.min(financingNeed, borrowingCapacity(c));
-    const resources = integer(c.cash + totalRevenue + borrowed);
+    const resources = integer(uncommittedCash + totalRevenue + borrowed);
     const interestPaid = Math.min(resources, interestObligation);
     const eligible = [...obligations.map(amount => ids.length ? amount : 0), defenseObligation];
     const allAllocations = allocate(Math.min(resources - interestPaid, sum(eligible)), eligible);
@@ -311,10 +320,11 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     }
     const executed = Object.fromEntries(CATEGORIES.map((k, i) => [k, allocations[i]])) as Budget;
     const arrears = Object.fromEntries(CATEGORIES.map((k, i) => [k, obligations[i] - allocations[i]])) as Budget;
-    const totalSpending = sum(allocations) + defenseExecuted + interestPaid;
+    const recurringSpending = sum(allocations) + defenseExecuted + interestPaid;
+    const totalSpending = recurringSpending + assetSpent;
     const finalResources = integer(resources + (militaryPayroll?.withheldRevenue ?? 0));
-    const repaid = Math.min(finalResources - totalSpending, c.debt + borrowed);
-    const cash = integer(finalResources - totalSpending - repaid), debt = integer(c.debt + borrowed - repaid);
+    const repaid = Math.min(finalResources - recurringSpending, c.debt + borrowed);
+    const cash = integer(finalResources - recurringSpending - repaid + committed), debt = integer(c.debt + borrowed - repaid);
     const population = sum(ids.map(r => state.socioeconomy.regions[r].population ?? 0));
     const services = { health: evolveService(c.services.health, population, executed.health), education: evolveService(c.services.education, population, executed.education), infrastructure: evolveService(c.services.infrastructure, population, executed.infrastructure) };
     distribute(state, ids, regions, executed);
@@ -339,10 +349,10 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
         } } : {}),
         militaryPayroll, financingRevenue: militaryPayroll ? financingRevenue : undefined,
         defensePublicOrders,
-        primaryBalance: totalRevenue - sum(allocations) - defenseExecuted, overallBalance: totalRevenue - totalSpending,
+        primaryBalance: totalRevenue - sum(allocations) - defenseExecuted - assetSpent, overallBalance: totalRevenue - totalSpending,
         defense: state.military.countries[id]?.capability ? { authorized: defenseAuthorized, requested: defenseRequested, obligation: defenseObligation, executed: defenseExecuted, payroll: militaryPayment.costs.payroll, procurement: defenseExecuted - militaryPayment.costs.payroll } : undefined,
-        construction: { committed: c.constructionCommitted - c.constructionExecuted, executed: c.constructionExecuted },
-        openingCash: c.cash, closingCash: cash, openingDebt: c.debt, closingDebt: debt, financingNeed, borrowed, repaid,
+        construction: { committed, executed: constructionSpent, maintenance: maintenanceSpent, executedCumulative: c.constructionExecuted, maintenanceCumulative: c.assetMaintenanceSpent },
+        openingCash: integer(c.cash + assetSpent), closingCash: cash, openingDebt: c.debt, closingDebt: debt, financingNeed, borrowed, repaid,
         arrears, openingArrears: c.arrears, openingInterestArrears: c.interestArrears, interestArrears: interestObligation - interestPaid,
         transferPaid: executed.pensions + executed.incomeSupport,
         stress: { financingBaselineStatus: c.revenueCalibration.status, unpaidCommitments: integer(budgetSum(arrears) + interestObligation - interestPaid + (militaryLedger?.closingPayrollArrears ?? 0)), interestBurdenBps: totalRevenue ? ratio(interestPaid, 10000, totalRevenue) : null, debtToAnnualOutputBps: output ? ratio(debt, 10000, output * 12) : null,

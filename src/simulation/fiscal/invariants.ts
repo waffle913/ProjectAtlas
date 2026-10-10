@@ -50,7 +50,7 @@ export const fiscalInvariant: SimulationInvariant = {
     for (const [id, c] of Object.entries(f.countries)) {
       if (!context.countryIds.has(id)) fail(id, 'Unknown fiscal Country.');
       try { validatePolicy(c.policy, id, state.date); validateBudget(c.annualBudget); validateBudget(c.arrears); } catch (e) { fail(id, String(e)); }
-      if (![c.cash, c.debt, c.interestRateBps, c.debtLimit, c.monthlyBorrowingLimit, c.interestArrears].every(quantity) || c.interestRateBps > 10000) fail(id, 'Invalid fiscal stock/rate.');
+      if (![c.cash, c.debt, c.interestRateBps, c.debtLimit, c.monthlyBorrowingLimit, c.interestArrears, c.constructionCommitted, c.constructionExecuted, c.assetMaintenanceSpent].every(quantity) || c.interestRateBps > 10000) fail(id, 'Invalid fiscal stock/rate.');
       if (c.initialization?.status !== 'modelled' || !dateValid(c.initialization.date) || c.initialization.date > state.date) fail(id, 'Invalid fiscal initialization provenance.');
       for (const provenance of [c.revenueCalibration, c.debtInitialization]) {
         if (!provenance || !['sourced', 'modelled'].includes(provenance.status) || !dateValid(provenance.referenceDate) || provenance.referenceDate > state.date || !provenance.dataset || !provenance.method || !provenance.limitation || provenance.status === 'sourced' && !provenance.source) fail(id, 'Invalid fiscal calibration provenance.');
@@ -59,11 +59,12 @@ export const fiscalInvariant: SimulationInvariant = {
       for (const s of Object.values(c.services)) if (!Object.entries(s).filter(([k]) => k !== 'status' && k !== 'coverageBps').every(([, v]) => quantity(v)) || s.coverageBps !== null && (!quantity(s.coverageBps) || s.coverageBps > 10000) || !['modelled', 'unavailable'].includes(s.status)) fail(id, 'Invalid service capacity/backlog.');
       for (const h of c.policyHistory) { try { validatePolicy(h.policy, id, h.date); if (!dateValid(h.date) || h.date > state.date) fail(id, 'Invalid policy history date.'); } catch (e) { fail(id, String(e)); } }
       const a = c.account; if (!a) continue;
+      const construction = a.construction ?? { committed: 0, executed: 0, maintenance: 0, executedCumulative: 0, maintenanceCumulative: 0 };
       try { validatePolicy(a.policyApplied, id, a.date); } catch (e) { fail(id, String(e)); }
       if (!quantity(a.collectionEfficiencyBps) || a.collectionEfficiencyBps > 10000) fail(id, 'Invalid collection efficiency.');
       if (a.interestDue !== ratio(a.openingDebt, c.interestRateBps, 120000)) fail(id, 'Interest does not match debt stock and rate.');
       if (a.financingRevenue !== undefined && a.financingRevenue !== a.totalRevenue - (a.militaryPayroll?.withheldRevenue ?? 0)) fail(id, 'Military withholding used as circular self-financing.');
-      if (a.financingNeed !== Math.max(0, sum(CATEGORIES.map(k => a.appropriated[k] + a.openingArrears[k])) + (a.defense?.obligation ?? 0) + a.interestDue + a.openingInterestArrears - (a.financingRevenue ?? a.totalRevenue) - a.openingCash)) fail(id, 'Financing need does not reconcile.');
+      if (a.financingNeed !== Math.max(0, sum(CATEGORIES.map(k => a.appropriated[k] + a.openingArrears[k])) + (a.defense?.obligation ?? 0) + a.interestDue + a.openingInterestArrears - (a.financingRevenue ?? a.totalRevenue) - Math.max(0, a.openingCash - construction.executed - construction.maintenance - construction.committed))) fail(id, 'Financing need does not reconcile.');
       if (a.unit !== 'USD_NOMINAL' || a.period !== 'MONTH') fail(id, 'Invalid accounting units.');
       if (!dateValid(a.date) || a.date !== f.lastMonthlyDate) fail(id, 'Account date does not match fiscal boundary.');
       if (![a.knownTaxRevenue, a.otherRevenue, a.totalRevenue, a.interestDue, a.interestPaid, a.totalSpending, a.openingCash, a.closingCash, a.openingDebt, a.closingDebt, a.financingNeed, a.borrowed, a.repaid, a.interestArrears, a.openingInterestArrears, a.transferPaid].every(quantity)) fail(id, 'Invalid fiscal flow.');
@@ -74,10 +75,11 @@ export const fiscalInvariant: SimulationInvariant = {
         || a.customsRevenue.collected !== sum(state.trade.flows.filter(flow => flow.importerId === id).map(flow => flow.customsUsd))
         || a.customsRevenue.unavailableRates !== state.trade.routes.filter(route => route.importerId === id && route.tariffBps === null).length)) fail(id, 'Customs receipts have no exactly-once admitted trade flows.');
       if (a.stress.financingBaselineStatus !== c.revenueCalibration.status) fail(id, 'Fiscal stress lost financing-baseline provenance.');
-      if (a.totalSpending !== sum(Object.values(a.executed)) + (a.defense?.executed ?? 0) + a.interestPaid || a.primaryBalance !== a.totalRevenue - sum(Object.values(a.executed)) - (a.defense?.executed ?? 0) || a.overallBalance !== a.totalRevenue - a.totalSpending) fail(id, 'Spending/balances do not reconcile.');
-      if (a.closingCash !== a.openingCash + a.totalRevenue + a.borrowed - a.totalSpending - a.repaid
-        || a.closingCash - (c.constructionExecuted - (a.construction?.executed ?? 0)) !== c.cash
-        || c.constructionCommitted - c.constructionExecuted > c.cash) fail(id, 'Treasury identity violated.');
+      if (a.totalSpending !== sum(Object.values(a.executed)) + (a.defense?.executed ?? 0) + a.interestPaid + construction.executed + construction.maintenance
+        || a.primaryBalance !== a.totalRevenue - sum(Object.values(a.executed)) - (a.defense?.executed ?? 0) - construction.executed - construction.maintenance
+        || a.overallBalance !== a.totalRevenue - a.totalSpending) fail(id, 'Spending/balances do not reconcile.');
+      if (construction.committed !== c.constructionCommitted || construction.executedCumulative !== c.constructionExecuted || construction.maintenanceCumulative !== c.assetMaintenanceSpent) fail(id, 'Construction accounting does not reconcile.');
+      if (a.closingCash !== a.openingCash + a.totalRevenue + a.borrowed - a.totalSpending - a.repaid || a.closingCash !== c.cash) fail(id, 'Treasury identity violated.');
       if (a.closingDebt !== a.openingDebt + a.borrowed - a.repaid || a.closingDebt !== c.debt) fail(id, 'Debt stock/flow identity violated.');
       if (a.openingInterestArrears + a.interestDue - a.interestPaid !== a.interestArrears || a.interestArrears !== c.interestArrears) fail(id, 'Interest arrears do not reconcile.');
       for (const k of CATEGORIES) if (a.openingArrears[k] + a.appropriated[k] - a.executed[k] !== a.arrears[k] || a.arrears[k] !== c.arrears[k]) fail(id, 'Unpaid commitments do not reconcile.');

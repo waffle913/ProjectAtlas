@@ -449,7 +449,11 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     // and organization banEvents were introduced. Idempotent: present fields are never rewritten.
     restored = backfillSchema19(restored);
     if (version < 20) restored = upgradeConstructionAuthority(restored);
-    if (version < 20) restored = upgradeFiscalConstruction(restored);
+    // 0.24 fiscal-construction backfill runs for every version (idempotent):
+    // schema-20 saves written before the fiscal-construction integration also
+    // lack constructionCommitted/constructionExecuted/assetMaintenanceSpent and
+    // must be backfilled deterministically from the canonical project records.
+    restored = upgradeFiscalConstruction(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }
@@ -536,12 +540,37 @@ function upgradeConstructionAuthority(state: SimulationState): SimulationState {
   return { ...state, governance: { ...state.governance, persons } };
 }
 
-/** 0.24 — backfill the canonical construction financing balances onto pre-0.24 fiscal countries. */
+/** 0.24 — backfill the canonical construction financing balances onto fiscal
+ *  countries. Idempotent and safe for schema-20 saves written before the fields
+ *  existed: the outstanding commitment is reconstructed from the canonical
+ *  project records (the pre-integration source of truth), never invented.
+ *  Executed/maintenance cumulatives start at zero for pre-integration saves
+ *  (spend was tracked per-project, never fiscally), so no historical spend is
+ *  re-booked at the next fiscal close. A pre-integration monthly account that was
+ *  booked without reserving committed cash cannot be reconciled to the new
+ *  accounting identity without replaying history, so it is dropped and
+ *  recomputed at the next fiscal close; all canonical stocks are preserved. */
 function upgradeFiscalConstruction(state: SimulationState): SimulationState {
-  const countries = Object.fromEntries(Object.entries(state.fiscal.countries).map(([id, c]) => [
-    id,
-    { ...c, constructionCommitted: c.constructionCommitted ?? 0, constructionExecuted: c.constructionExecuted ?? 0 },
-  ]));
+  const outstandingByCountry = new Map<string, number>();
+  for (const project of Object.values(state.assets?.projects ?? {})) {
+    if (project.committedUsd === undefined) continue;
+    if (project.status === 'completed' || project.status === 'cancelled') continue;
+    outstandingByCountry.set(project.countryId, (outstandingByCountry.get(project.countryId) ?? 0) + project.committedUsd - (project.completedWorkUsd ?? 0));
+  }
+  const countries = Object.fromEntries(Object.entries(state.fiscal.countries).map(([id, c]) => {
+    const committed = c.constructionCommitted ?? (outstandingByCountry.get(id) ?? 0);
+    const executed = c.constructionExecuted ?? 0;
+    const maintenance = c.assetMaintenanceSpent ?? 0;
+    let account = c.account;
+    if (account && !account.construction) {
+      if (committed === 0) {
+        account = { ...account, construction: { committed: 0, executed: 0, maintenance: 0, executedCumulative: 0, maintenanceCumulative: 0 } };
+      } else {
+        account = undefined;
+      }
+    }
+    return [id, { ...c, constructionCommitted: committed, constructionExecuted: executed, assetMaintenanceSpent: maintenance, ...(account !== c.account ? { account } : {}) }];
+  }));
   return { ...state, fiscal: { ...state.fiscal, countries } };
 }
 
