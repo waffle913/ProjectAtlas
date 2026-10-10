@@ -130,13 +130,15 @@ reasoning as proof. It hunts for:
 - Reality -> Government Information leaks; incorrect institutional authority;
 - a duplicated engine; performance; cross-domain regressions; scope creep.
 
-Findings are classified:
+Findings are classified by the Planner/Autopilot via `ROADMAP_IMPACT_TRIAGE`
+(see §38), never by the Reviewer alone:
 
-| Class | Meaning | Blocks progression? |
+| Disposition | Meaning | Blocks progression? |
 | --- | --- | --- |
-| **CERTAIN BUGS** | Demonstrable defects. | Yes — must be fixed. |
-| **PROBABLE RISKS** | Plausible defects needing a fix or sufficient proof. | Blocking until fixed or disproven. |
-| **OPTIONAL IMPROVEMENTS** | Quality/refactor/performance not required for milestone conformance. | Not automatically blocking. |
+| **BLOCKING_CRITICAL** | Critical now, or credible critical downstream/cascade risk. | Yes — blocks immediately (in `unattended_safe`, Cryo with zero repair attempts). |
+| **DEFERRED_DEFECT** | Local/contained, safely deferrable with positive evidence. | No — recorded in the deferred-defect register with a concrete fix trigger. |
+| **TRIAGE_UNCERTAIN** | Cannot establish local vs critical propagation. | Yes — blocks (in `unattended_safe`, immediate Cryo). |
+| **OPTIONAL_IMPROVEMENT** | Not required for correctness. | Not blocking. |
 
 Do not auto-promote optional improvements to mandatory work.
 
@@ -218,9 +220,10 @@ branch.
 
 ## 9. Merge autonomy
 
-When a milestone is complete, the Reviewer is satisfied, CERTAIN BUGS are fixed,
-blocking risks are handled, and milestone CI is green, Reasonix may advance the
-milestone toward `main` automatically:
+When a milestone is complete, the Reviewer is satisfied, no `BLOCKING_CRITICAL`
+or unresolved `TRIAGE_UNCERTAIN` defect remains, deferred defects are recorded,
+and milestone CI is green, Reasonix may advance the milestone toward `main`
+automatically:
 
 - If the repository uses pull requests: open the PR, wait for required checks, and
   merge when GitHub allows it.
@@ -452,7 +455,9 @@ On Cryo, produce exactly one report complete enough to wake a human:
 
 Status:
 `BLOCKED_CRITICAL / BLOCKED_BUDGET / BLOCKED_DESIGN / BLOCKED_CONTRACT /
-BLOCKED_MIGRATION / BLOCKED_EXTERNAL / REPEATED_ROOT_CAUSE`
+BLOCKED_MIGRATION / BLOCKED_EXTERNAL / REPEATED_ROOT_CAUSE /
+REVIEW_CAMPAIGN_EXHAUSTED / BLOCKED_REVIEW_CAPABILITY /
+UNATTENDED_CRITICAL_DEFECT / UNATTENDED_TRIAGE_UNCERTAIN`
 
 Last safe milestone:
 `0.xx`
@@ -479,13 +484,17 @@ Evidence:
 CI, diff, error, invariant, reproduction.
 
 Repair cycle 1:
-approach + result.
+approach + result — or `none` when the defect was detected while `unattended_safe`
+(an unattended critical/uncertain defect never enters a repair cycle).
 
 Repair cycle 2:
-different approach + result.
+different approach + result — or `none` (same rule).
+
+Automatic repair attempts after detection:
+`0` for any unattended critical/uncertain finding; otherwise the actual count.
 
 Why automatic attempts stopped:
-circuit breaker.
+circuit breaker, or unattended safety stop (zero attempts before stopping).
 
 Repository state:
 safe main + blocked branch.
@@ -632,14 +641,16 @@ MAX_AUTONOMOUS_POST_SEAL_REOPENS = 1
 
 One comprehensive independent milestone review. The reviewer inspects the actual
 milestone delta and attempts to report **all detectable issues in one pass**,
-grouped as CERTAIN BUGS / PROBABLE RISKS / OPTIONAL IMPROVEMENTS. It does not stop
-after the first few findings.
+grouped as DEFECT FINDINGS / PROBABLE RISKS / OPTIONAL IMPROVEMENTS (§44). It does
+not stop after the first few findings.
 
-- All CERTAIN BUGS block.
-- All PROBABLE RISKS block until fixed, disproved with sufficient evidence, or
-  explicitly waived by the human.
-- The contradictory label "non-blocking probable risk" is forbidden: if a finding
-  is non-blocking it is an OPTIONAL IMPROVEMENT or a documented residual limitation.
+Every finding then passes through `ROADMAP_IMPACT_TRIAGE` (§38): a demonstrable
+defect is `BLOCKING_CRITICAL` only when it is critical now or risks a critical
+downstream problem; otherwise it may be `DEFERRED_DEFECT` (with positive evidence
+that deferral is safe), `TRIAGE_UNCERTAIN`, or `OPTIONAL_IMPROVEMENT`. Only
+`BLOCKING_CRITICAL` and `TRIAGE_UNCERTAIN` block progression; deferred defects are
+recorded, never silently ignored, and never called "blocking" merely because they
+are demonstrable.
 
 ### Round 2 — FINAL_VERIFICATION_REVIEW
 
@@ -925,10 +936,11 @@ least the fields listed in §17 of the hardening patch (schema, mode, roadmap_id
 current_milestone, current_block, milestone_phase, last_safe_*, sealed_*,
 current_branch, milestone_scope_base_sha, milestone_branch_head_sha,
 carried_commits, blocked_head_sha, ci_*, review_campaign, review_campaign_history,
-review_capability_adapter, repair_signatures, repair_cycles, budget_status,
-budget_observation, stop_reason, max_same_root_cause_repair_cycles, updated_at,
-notes). Material history remains auditable; review/repair counters are not reset
-merely to make the state look clean.
+review_capability_adapter, repair_signatures, repair_cycles, safety_mode,
+deferred_defects, defect_triage, budget_status, budget_observation, stop_reason,
+max_same_root_cause_repair_cycles, updated_at, notes). Material history remains
+auditable; review/repair counters are not reset merely to make the state look
+clean.
 
 ## 36. Cryo reasons
 
