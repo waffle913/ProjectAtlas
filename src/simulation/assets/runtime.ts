@@ -4,7 +4,7 @@ import type { AuthorityCapability } from '../governance/model';
 import { reservedPersonnel } from '../military/runtime';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import type { SimulationScheduler } from '../scheduler';
-import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, MAINTENANCE_COST_USD, MAINTENANCE_WEAR_MONTHS, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
+import { assetAvailability, assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, MAINTENANCE_COST_USD, MAINTENANCE_MATERIALS, MAINTENANCE_WEAR_MONTHS, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
 import { availableConstructionMaterials, consumeConstructionMaterials } from './materials';
 import { constructionReservedPersonnel, effectiveRegionControl } from './workforce';
 
@@ -363,7 +363,7 @@ export function completeDueRepairs(state: SimulationState): SimulationState {
   let changed = false;
   for (const [id, asset] of Object.entries(assets)) {
     if (asset.repairReadyOn !== undefined && asset.repairReadyOn <= state.date) {
-      assets[id] = { ...asset, operatingStatus: 'operational', availability: 'available', repairReadyOn: undefined };
+      assets[id] = { ...asset, operatingStatus: 'operational', availability: assetAvailability('operational', asset.physicalCondition), repairReadyOn: undefined };
       changed = true;
     }
   }
@@ -457,18 +457,22 @@ export function runAssetMaintenance(state: SimulationState): SimulationState {
     if (!controller) continue;
     const fiscalCountry = next.fiscal.countries[controller];
     const uncommitted = (fiscalCountry?.cash ?? 0) - (fiscalCountry?.constructionCommitted ?? 0);
-    if (uncommitted >= MAINTENANCE_COST_USD) {
+    const materials = availableConstructionMaterials(next, controller);
+    if (uncommitted >= MAINTENANCE_COST_USD && materials >= MAINTENANCE_MATERIALS) {
       next = withFiscalConstruction(next, controller, { maintenance: MAINTENANCE_COST_USD, cash: -MAINTENANCE_COST_USD });
-      next = updateAsset(next, assetId, { lastMaintainedOn: next.date, unfundedMaintenanceMonths: 0, availability: 'available' });
+      next = consumeConstructionMaterials(next, controller, MAINTENANCE_MATERIALS);
+      next = updateAsset(next, assetId, { lastMaintainedOn: next.date, unfundedMaintenanceMonths: 0 });
       continue;
     }
     const canWear = asset.physicalCondition !== undefined && (CONDITION_ORDER as readonly string[]).includes(asset.physicalCondition);
     if (!canWear) continue;
     const unfunded = (asset.unfundedMaintenanceMonths ?? 0) + 1;
-    const patch: Partial<AssetRecord> = unfunded >= MAINTENANCE_WEAR_MONTHS
-      ? { unfundedMaintenanceMonths: 0, physicalCondition: CONDITION_ORDER[Math.min(CONDITION_ORDER.length - 1, CONDITION_ORDER.indexOf(asset.physicalCondition as (typeof CONDITION_ORDER)[number]) + 1)] }
-      : { unfundedMaintenanceMonths: unfunded };
-    next = updateAsset(next, assetId, patch);
+    if (unfunded >= MAINTENANCE_WEAR_MONTHS) {
+      const nextCondition = CONDITION_ORDER[Math.min(CONDITION_ORDER.length - 1, CONDITION_ORDER.indexOf(asset.physicalCondition as (typeof CONDITION_ORDER)[number]) + 1)];
+      next = updateAsset(next, assetId, { unfundedMaintenanceMonths: 0, physicalCondition: nextCondition, availability: assetAvailability('operational', nextCondition) });
+    } else {
+      next = updateAsset(next, assetId, { unfundedMaintenanceMonths: unfunded });
+    }
   }
   return next;
 }

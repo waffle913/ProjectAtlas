@@ -557,8 +557,30 @@ function upgradeFiscalConstruction(state: SimulationState): SimulationState {
     if (project.status === 'completed' || project.status === 'cancelled') continue;
     outstandingByCountry.set(project.countryId, (outstandingByCountry.get(project.countryId) ?? 0) + project.committedUsd - (project.completedWorkUsd ?? 0));
   }
+  // 0.24.3B — a pre-correction save can legitimately carry an outstanding commitment
+  //  larger than cash (ordinary fiscal execution previously reused committed cash).
+  //  The excess is an unfunded over-commitment: deterministically reduce the backing
+  //  project commitments (never fabricate cash, never replay history) so the
+  //  reconstructed commitment is cash-backed and release-on-cancel/complete never
+  //  overshoots.
+  const projects = { ...state.assets.projects };
+  for (const [countryId, outstanding] of outstandingByCountry) {
+    const cash = state.fiscal.countries[countryId]?.cash ?? 0;
+    if (outstanding <= cash) continue;
+    let excess = outstanding - cash;
+    for (const pid of state.assets.projectOrder) {
+      if (excess <= 0) break;
+      const project = projects[pid];
+      if (!project || project.countryId !== countryId || project.committedUsd === undefined) continue;
+      if (project.status === 'completed' || project.status === 'cancelled') continue;
+      const projOutstanding = project.committedUsd - (project.completedWorkUsd ?? 0);
+      const reduction = Math.min(projOutstanding, excess);
+      projects[pid] = { ...project, committedUsd: project.committedUsd - reduction };
+      excess -= reduction;
+    }
+  }
   const countries = Object.fromEntries(Object.entries(state.fiscal.countries).map(([id, c]) => {
-    const committed = c.constructionCommitted ?? (outstandingByCountry.get(id) ?? 0);
+    const committed = c.constructionCommitted ?? Math.min(outstandingByCountry.get(id) ?? 0, c.cash);
     const executed = c.constructionExecuted ?? 0;
     const maintenance = c.assetMaintenanceSpent ?? 0;
     let account = c.account;
@@ -571,7 +593,7 @@ function upgradeFiscalConstruction(state: SimulationState): SimulationState {
     }
     return [id, { ...c, constructionCommitted: committed, constructionExecuted: executed, assetMaintenanceSpent: maintenance, ...(account !== c.account ? { account } : {}) }];
   }));
-  return { ...state, fiscal: { ...state.fiscal, countries } };
+  return { ...state, assets: { ...state.assets, projects }, fiscal: { ...state.fiscal, countries } };
 }
 
 export function serializeSimulationState(state: SimulationState, context?: InvariantContext) {

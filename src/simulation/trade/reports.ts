@@ -115,7 +115,7 @@ export function validateTradeReport(report: GovernmentTradeReport, initializedOn
         || l.productionBackingUsd !== money(l.production - l.exports, l.priceMicroUsd) + l.exportValueUsd
         || l.productionBackingUsd > l.productionCapacityBackingUsd
         || l.productionCapacityBackingUsd !== money(l.productionCapacity, l.priceMicroUsd)
-        || l.need !== m.domesticNeedPerMonth + m.importNeedPerMonth
+        || l.need !== m.domesticNeedPerMonth + m.importNeedPerMonth + (l.constructionNeed ?? 0)
         || l.imports !== sum(imports.map(f => f.quantity)) || l.exports !== sum(exports.map(f => f.quantity))
         || l.shortage !== l.need - l.domesticConsumed - l.imports
         || BigInt(l.production) + BigInt(l.openingStock) + BigInt(l.received ?? 0) !== BigInt(l.domesticConsumed) + BigInt(l.exports) + BigInt(l.closingStock)

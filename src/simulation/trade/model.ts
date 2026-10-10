@@ -61,7 +61,7 @@ export interface TradeCategoryLedger {
   category: TradeCategory; unit: string; priceMicroUsd: number;
   production: number; domesticConsumed: number; need: number;
   imports: number; exports: number; shortage: number;
-  openingStock: number; closingStock: number; stocked: number; stockConsumed: number; received: number;
+  openingStock: number; closingStock: number; stocked: number; stockConsumed: number; received: number; constructionNeed: number;
   productionBackingUsd: number; exportValueUsd: number; importValueUsd: number;
   importReferenceUsd: number;
   importPaymentUsd: number; logisticsUsd: number; customsUsd: number;

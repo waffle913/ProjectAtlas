@@ -51,6 +51,7 @@ export const fiscalInvariant: SimulationInvariant = {
       if (!context.countryIds.has(id)) fail(id, 'Unknown fiscal Country.');
       try { validatePolicy(c.policy, id, state.date); validateBudget(c.annualBudget); validateBudget(c.arrears); } catch (e) { fail(id, String(e)); }
       if (![c.cash, c.debt, c.interestRateBps, c.debtLimit, c.monthlyBorrowingLimit, c.interestArrears, c.constructionCommitted, c.constructionExecuted, c.assetMaintenanceSpent].every(quantity) || c.interestRateBps > 10000) fail(id, 'Invalid fiscal stock/rate.');
+      if (c.constructionCommitted > c.cash) fail(id, 'Committed construction cash exceeds the treasury.');
       if (c.initialization?.status !== 'modelled' || !dateValid(c.initialization.date) || c.initialization.date > state.date) fail(id, 'Invalid fiscal initialization provenance.');
       for (const provenance of [c.revenueCalibration, c.debtInitialization]) {
         if (!provenance || !['sourced', 'modelled'].includes(provenance.status) || !dateValid(provenance.referenceDate) || provenance.referenceDate > state.date || !provenance.dataset || !provenance.method || !provenance.limitation || provenance.status === 'sourced' && !provenance.source) fail(id, 'Invalid fiscal calibration provenance.');

@@ -67,7 +67,7 @@ export const tradeInvariant: SimulationInvariant = {
           || l.importPaymentUsd !== sum(imports.map(f => f.landedUsd)) || l.customsUsd !== sum(imports.map(f => f.customsUsd))
           || l.logisticsUsd !== sum(imports.map(f => f.logisticsUsd))
           || l.importPaymentUsd !== l.importValueUsd + l.customsUsd + l.logisticsUsd
-          || l.need !== m.domesticNeedPerMonth + m.importNeedPerMonth
+          || l.need !== m.domesticNeedPerMonth + m.importNeedPerMonth + (l.constructionNeed ?? 0)
           || l.shortage !== l.need - l.domesticConsumed - l.imports
           || l.unspentUsd !== l.purchasingBudgetUsd - l.importPaymentUsd
           || BigInt(l.production) + BigInt(l.openingStock) + BigInt(l.received ?? 0) !== BigInt(l.domesticConsumed) + BigInt(l.exports) + BigInt(l.closingStock)

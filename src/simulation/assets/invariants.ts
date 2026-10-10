@@ -1,6 +1,6 @@
 import type { SimulationInvariant } from '../invariants';
 import { isSimulationDate as validDate } from '../date';
-import { ASSETS_VERSION, type AssetSourceProvenance } from './model';
+import { ASSETS_VERSION, assetAvailability, type AssetSourceProvenance } from './model';
 
 const OPERATING_STATUSES = ['operational', 'degraded', 'out_of_service', 'under_construction', 'decommissioned', 'unavailable'] as const;
 const PHYSICAL_CONDITIONS = ['excellent', 'good', 'fair', 'poor', 'critical', 'unavailable'] as const;
@@ -69,8 +69,9 @@ export const assetsInvariant: SimulationInvariant = {
           errors.push(`Asset ${id} has not_applicable coverage without an explicit justification.`);
         }
       }
-      // 0.24.7 — operating status and availability stay compatible.
-      const expectedAvailability = asset.operatingStatus === 'operational' ? 'available' : asset.operatingStatus === 'degraded' ? 'partial' : 'unavailable';
+      // 0.24.6D/0.24.7 — operating status, physical condition and availability stay
+      // compatible: a worn (poor/critical) asset loses availability even while operational.
+      const expectedAvailability = assetAvailability(asset.operatingStatus, asset.physicalCondition);
       if (asset.availability !== expectedAvailability) errors.push(`Asset ${id} has incompatible operating status and availability.`);
       if (asset.repairReadyOn !== undefined && !validDate(asset.repairReadyOn)) errors.push(`Asset ${id} has an invalid repair schedule.`);
     }

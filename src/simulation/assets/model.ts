@@ -282,6 +282,12 @@ export const CONSTRUCTION_MATERIAL_CATEGORY = 'raw_materials' as const;
 export const CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY = 1;
 
 /**
+ * 0.24.5A — modelled construction days per month used to express the daily
+ * material requirement of an active project as a monthly Trade import need.
+ */
+export const CONSTRUCTION_DAYS_PER_MONTH = 30;
+
+/**
  * 0.24.6C — Modelled physical capacity a completed asset provides (placeholder).
  * Asset-type-specific capacity mapping arrives with the 0.25 economy registry;
  * capacity is a physical quantity, never a direct GDP multiplier.
@@ -304,3 +310,19 @@ export const REPAIR_DURATION_DAYS = 3;
  */
 export const MAINTENANCE_COST_USD = 10;
 export const MAINTENANCE_WEAR_MONTHS = 12;
+/** 0.24.6D — modelled units of the construction-material category one maintenance
+ *  cycle consumes. Maintenance therefore requires both cash and a real resource. */
+export const MAINTENANCE_MATERIALS = 1;
+
+/**
+ * 0.24.6D/0.24.7 — availability is derived from operating status and physical
+ * condition: a broken asset is unavailable/partial; a worn asset (poor/critical
+ * condition) loses availability even while operational.
+ */
+export const assetAvailability = (operatingStatus: AssetOperatingStatus, physicalCondition?: AssetPhysicalCondition): AssetAvailability => {
+  if (operatingStatus === 'degraded') return 'partial';
+  if (operatingStatus !== 'operational') return 'unavailable';
+  if (physicalCondition === 'poor') return 'partial';
+  if (physicalCondition === 'critical') return 'unavailable';
+  return 'available';
+};

@@ -6,6 +6,7 @@ import { consumptionCollected, netGoodsBudget } from '../fiscal/math';
 import { reservedPersonnel, hasMilitaryManagementAuthority } from '../military/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { CONSTRUCTION_MATERIAL_CATEGORY } from '../assets/model';
+import { constructionMaterialDemandPerMonth } from '../assets/materials';
 import { tradeObservations } from './data';
 import { blockedRouteKeysForDate, routeRestrictionKey } from '../international/runtime';
 import { affordableQuantity, CATEGORY_REGISTRY, emptyTrade, money, quoteFlow, TRADE_CATEGORIES, TRADE_MODEL,
@@ -88,7 +89,7 @@ const ledgerFor = (m: TradeMarket): TradeCategoryLedger => ({
   category: m.category, unit: m.unit, priceMicroUsd: m.priceMicroUsd, production: 0, domesticConsumed: 0,
   need: integer(m.domesticNeedPerMonth + m.importNeedPerMonth),
   imports: 0, exports: 0, shortage: 0, openingStock: m.stock?.quantity ?? 0,
-  closingStock: m.stock?.quantity ?? 0, stocked: 0, stockConsumed: 0, received: 0,
+  closingStock: m.stock?.quantity ?? 0, stocked: 0, stockConsumed: 0, received: 0, constructionNeed: 0,
   productionBackingUsd: 0, exportValueUsd: 0, importValueUsd: 0,
   importReferenceUsd: 0,
   importPaymentUsd: 0, logisticsUsd: 0, customsUsd: 0,
@@ -136,7 +137,8 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
         integer(m.replacementQuantity + Math.min(m.domesticReplacementPerMonth, m.domesticReplacementCapacity - m.replacementQuantity)));
     }
     const wants = categoryMarkets.map(m => {
-      const expectedNeed = integer(m.importNeedPerMonth + Math.max(0, m.domesticNeedPerMonth
+      const constructionDemand = m.category === CONSTRUCTION_MATERIAL_CATEGORY ? constructionMaterialDemandPerMonth(state, countryId) : 0;
+      const expectedNeed = integer(m.importNeedPerMonth + constructionDemand + Math.max(0, m.domesticNeedPerMonth
         - m.productionPerMonth - m.replacementQuantity - (m.stock?.quantity ?? 0)));
       const quotes = state.trade.routes.filter(r => r.importerId === countryId && r.category === m.category && r.tariffBps !== null && routeLegal(r))
         .map(r => quoteFlow(r, state.trade.countries[r.exporterId].markets[m.category]!.priceMicroUsd,
@@ -171,6 +173,12 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
     const productionBudgets = allocate(Math.min(backing, sum(productionWants)), productionWants);
     const categoryLedgers = categoryMarkets.map((m, i) => {
       const k = key(countryId, m.category), ledger = ledgerFor(m);
+      // 0.24.5D — an active project's material requirement causally feeds the
+      // construction-material category's import need (no second material system).
+      if (m.category === CONSTRUCTION_MATERIAL_CATEGORY) {
+        ledger.constructionNeed = constructionMaterialDemandPerMonth(state, countryId);
+        ledger.need = integer(m.domesticNeedPerMonth + m.importNeedPerMonth + ledger.constructionNeed);
+      }
       const produced = affordableQuantity(productionBudgets[i], integer(m.productionPerMonth + m.replacementQuantity), n => money(n, m.priceMicroUsd));
       ledger.productionCapacity = produced; ledger.productionCapacityBackingUsd = money(produced, m.priceMicroUsd);
       const domestic = Math.min(produced, ledger.need);
