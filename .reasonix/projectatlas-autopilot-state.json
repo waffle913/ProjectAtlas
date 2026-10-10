@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
   "current_block": "0.24.11",
-  "milestone_phase": "FINAL_VERIFICATION_REVIEW",
+  "milestone_phase": "BRANCH_CI",
 
   "last_safe_milestone": "0.23",
   "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
@@ -19,14 +19,14 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "5dbdd673f967a4bd255f2ccc961ef3ca2a682b59",
+  "milestone_branch_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38058955169,
-  "ci_head_sha": "5dbdd673f967a4bd255f2ccc961ef3ca2a682b59",
+  "ci_run_id": 38061660886,
+  "ci_head_sha": "b1260ebaea947f1303fa98a598666f531eef4f46",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
@@ -35,9 +35,9 @@
     "milestone": "0.24",
     "full_review_round": 1,
     "max_full_review_rounds": 2,
-    "final_verification_complete": false,
-    "targeted_verification_complete": false,
-    "findings_summary": "Round 1 (CONSOLIDATED_REVIEW) via tool:review found 2 blocking, 5 should-fix, 3 nit. Blocking fixed: (1) capability backfill into pre-0.24 executive offices (with unresolved-office skip); (2) socioeconomic monthly labour conservation now includes construction reservations. Should-fix fixed: consumed materials counted across all statuses; military free-labour subtracts construction; proportional material consumption + sorted deterministic order; legacy v1-v6 assets date. Nits deferred (completed keeps committedUsd; capacity coverage provenance; legacy V2-V6 type omit).",
+    "final_verification_complete": true,
+    "targeted_verification_complete": true,
+    "findings_summary": "Round 1 (CONSOLIDATED_REVIEW): 2 blocking + 5 should-fix + 3 nit, all blocking/should-fix corrected. Round 2 (FINAL_VERIFICATION_REVIEW) via tool:review: 1 remaining should-fix (trade evolve projections omitted construction reservations) + 2 probable-risk + 3 nit; the should-fix and nits were corrected (b1260eb) and CI is green (run 38061660886). No blocking findings remain.",
     "late_blocking_findings": [],
     "reopen_count": 0,
     "max_autonomous_post_seal_reopens": 1
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24 IMPLEMENTING complete (0.24.1-0.24.11 green). Round 1 CONSOLIDATED_REVIEW via tool:review found 2 blocking + 5 should-fix + 3 nit; all blocking and should-fix corrected (9c9936a + 5dbdd67), CI green at 5dbdd67 (run 38058955169). Entering FINAL_VERIFICATION_REVIEW (Round 2)."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24 IMPLEMENTING complete; Round 1 + Round 2 review complete with all blocking/should-fix findings corrected, CI green at b1260eb (run 38061660886). Entering BRANCH_CI: merge the reviewed milestone to main and validate main CI. Deferred (documented V1 limitations, not blocking): soft-reservation material consumption (trade stock not decremented until a later fiscal/trade integration); completed projects keep committedUsd; AssetCapacityRecord has no provenance; legacy SimulationStateV2-V6 types omit assets."
 }
