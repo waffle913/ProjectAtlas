@@ -75,7 +75,9 @@ export const fiscalInvariant: SimulationInvariant = {
         || a.customsRevenue.unavailableRates !== state.trade.routes.filter(route => route.importerId === id && route.tariffBps === null).length)) fail(id, 'Customs receipts have no exactly-once admitted trade flows.');
       if (a.stress.financingBaselineStatus !== c.revenueCalibration.status) fail(id, 'Fiscal stress lost financing-baseline provenance.');
       if (a.totalSpending !== sum(Object.values(a.executed)) + (a.defense?.executed ?? 0) + a.interestPaid || a.primaryBalance !== a.totalRevenue - sum(Object.values(a.executed)) - (a.defense?.executed ?? 0) || a.overallBalance !== a.totalRevenue - a.totalSpending) fail(id, 'Spending/balances do not reconcile.');
-      if (a.closingCash !== a.openingCash + a.totalRevenue + a.borrowed - a.totalSpending - a.repaid || a.closingCash !== c.cash) fail(id, 'Treasury identity violated.');
+      if (a.closingCash !== a.openingCash + a.totalRevenue + a.borrowed - a.totalSpending - a.repaid
+        || a.closingCash - (c.constructionExecuted - (a.construction?.executed ?? 0)) !== c.cash
+        || c.constructionCommitted - c.constructionExecuted > c.cash) fail(id, 'Treasury identity violated.');
       if (a.closingDebt !== a.openingDebt + a.borrowed - a.repaid || a.closingDebt !== c.debt) fail(id, 'Debt stock/flow identity violated.');
       if (a.openingInterestArrears + a.interestDue - a.interestPaid !== a.interestArrears || a.interestArrears !== c.interestArrears) fail(id, 'Interest arrears do not reconcile.');
       for (const k of CATEGORIES) if (a.openingArrears[k] + a.appropriated[k] - a.executed[k] !== a.arrears[k] || a.arrears[k] !== c.arrears[k]) fail(id, 'Unpaid commitments do not reconcile.');

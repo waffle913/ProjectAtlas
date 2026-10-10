@@ -52,6 +52,7 @@ export interface Account {
   militaryPayroll?: import('./militaryPayroll').MilitaryPayroll;
   financingRevenue?: number;
   defense?: { authorized: number; requested: number; obligation: number; executed: number; payroll: number; procurement: number };
+  construction?: { committed: number; executed: number };
   unit: 'USD_NOMINAL'; period: 'MONTH'; policyApplied: Policy; collectionEfficiencyBps: number;
   date: string; taxes: Record<TaxCategory, TaxFlow>;
   knownTaxRevenue: number; otherRevenue: number; totalRevenue: number;
@@ -66,6 +67,7 @@ export interface FiscalCountry {
   policy: Policy; policyHistory: { date: string; policy: Policy }[];
   annualBudget: Budget; cash: number; debt: number; interestRateBps: number;
   debtLimit: number; monthlyBorrowingLimit: number; arrears: Budget; interestArrears: number;
+  constructionCommitted: number; constructionExecuted: number;
   services: Record<'health' | 'education' | 'infrastructure', Service>;
   revenueCalibration: RevenueCalibration;
   debtInitialization: DebtInitialization;

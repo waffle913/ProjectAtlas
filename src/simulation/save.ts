@@ -449,6 +449,7 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     // and organization banEvents were introduced. Idempotent: present fields are never rewritten.
     restored = backfillSchema19(restored);
     if (version < 20) restored = upgradeConstructionAuthority(restored);
+    if (version < 20) restored = upgradeFiscalConstruction(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }
@@ -533,6 +534,15 @@ function upgradeConstructionAuthority(state: SimulationState): SimulationState {
     persons[id] = { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: [...person.office.authorityProfile.capabilities, ...missing].sort() as typeof person.office.authorityProfile.capabilities } } };
   }
   return { ...state, governance: { ...state.governance, persons } };
+}
+
+/** 0.24 — backfill the canonical construction financing balances onto pre-0.24 fiscal countries. */
+function upgradeFiscalConstruction(state: SimulationState): SimulationState {
+  const countries = Object.fromEntries(Object.entries(state.fiscal.countries).map(([id, c]) => [
+    id,
+    { ...c, constructionCommitted: c.constructionCommitted ?? 0, constructionExecuted: c.constructionExecuted ?? 0 },
+  ]));
+  return { ...state, fiscal: { ...state.fiscal, countries } };
 }
 
 export function serializeSimulationState(state: SimulationState, context?: InvariantContext) {

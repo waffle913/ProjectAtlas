@@ -47,7 +47,7 @@ export function upgradeFiscalStateV1(fiscal: unknown, date: string): FiscalState
       limitation: 'Legacy 0.11 debt had no source provenance; it must not be interpreted as observed sovereign debt.' };
     // The v1 account was booked without residual revenue. Keep its stocks but do not
     // reinterpret that flawed last-period ledger as if the new revenue had existed.
-    return [id, { ...c, revenueCalibration, debtInitialization, account: undefined }];
+    return [id, { ...c, constructionCommitted: 0, constructionExecuted: 0, revenueCalibration, debtInitialization, account: undefined }];
   }));
   return { ...prior, version: 'fiscal-0.11-v2', countries, reformReceipts: [] } as FiscalState;
 }
@@ -221,7 +221,7 @@ export function initializeFiscal(state: SimulationState): SimulationState {
     const baselineResidualRevenue = Math.max(0, (observedMonthlyRevenue ?? budgetSum(monthly) + initialInterest) - initialKnownTaxRevenue);
     fiscal.countries[id] = { policy, policyHistory: [{ date: state.date, policy }], annualBudget, cash: budgetSum(monthly) * M.initialCashMonths,
       debt: openingDebt, interestRateBps: M.interestRateBps, debtLimit: Math.max(openingDebt, ratio(output, M.debtLimitAnnualOutputBps * 12, 10000)), monthlyBorrowingLimit: ratio(output, M.borrowingMonthlyOutputBps, 10000),
-      arrears: zeroBudget(), interestArrears: 0, services,
+      arrears: zeroBudget(), interestArrears: 0, constructionCommitted: 0, constructionExecuted: 0, services,
       revenueCalibration: aggregate?.annualRevenueUsd !== undefined
         ? { status: 'sourced', monthlyAmount: baselineResidualRevenue, referenceDate: aggregate.referenceDate, dataset: aggregate.dataset, source: aggregate.source,
           method: 'Fixed residual equals sourced aggregate monthly revenue minus simulated known-tax revenue at initialization, floored at zero.', limitation: aggregate.limitations }
@@ -341,6 +341,7 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
         defensePublicOrders,
         primaryBalance: totalRevenue - sum(allocations) - defenseExecuted, overallBalance: totalRevenue - totalSpending,
         defense: state.military.countries[id]?.capability ? { authorized: defenseAuthorized, requested: defenseRequested, obligation: defenseObligation, executed: defenseExecuted, payroll: militaryPayment.costs.payroll, procurement: defenseExecuted - militaryPayment.costs.payroll } : undefined,
+        construction: { committed: c.constructionCommitted - c.constructionExecuted, executed: c.constructionExecuted },
         openingCash: c.cash, closingCash: cash, openingDebt: c.debt, closingDebt: debt, financingNeed, borrowed, repaid,
         arrears, openingArrears: c.arrears, openingInterestArrears: c.interestArrears, interestArrears: interestObligation - interestPaid,
         transferPaid: executed.pensions + executed.incomeSupport,

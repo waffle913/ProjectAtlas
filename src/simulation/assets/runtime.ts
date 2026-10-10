@@ -52,6 +52,21 @@ const updateProject = (state: SimulationState, projectId: string, patch: Partial
   };
 };
 
+/** Update the canonical fiscal construction balances (committed/executed/cash) for a Country. */
+const withFiscalConstruction = (state: SimulationState, countryId: string, patch: { committed?: number; executed?: number; cash?: number }): SimulationState => {
+  const c = state.fiscal.countries[countryId];
+  if (!c) return state;
+  return {
+    ...state,
+    fiscal: { ...state.fiscal, countries: { ...state.fiscal.countries, [countryId]: {
+      ...c,
+      constructionCommitted: c.constructionCommitted + (patch.committed ?? 0),
+      constructionExecuted: c.constructionExecuted + (patch.executed ?? 0),
+      cash: c.cash + (patch.cash ?? 0),
+    } } },
+  };
+};
+
 /** Reconcile each Region's labour force so civilian employment + unemployment +
  *  military reservations + construction reservations exactly conserve the labour
  *  force. A reserved construction worker is never also employed or unemployed. */
@@ -145,7 +160,8 @@ export function cancelConstruction(state: SimulationState, input: { projectId: s
     committedUsd: undefined,
     reservedWorkers: undefined,
   });
-  return reconcileConstructionWorkforce(cancelled);
+  const unspent = (project.committedUsd ?? 0) - (project.completedWorkUsd ?? 0);
+  return reconcileConstructionWorkforce(withFiscalConstruction(cancelled, project.countryId, { committed: -unspent }));
 }
 
 /**
@@ -162,12 +178,11 @@ export function fundConstruction(state: SimulationState, input: { projectId: str
   if (project.status === 'completed' || project.status === 'cancelled') throw new Error('A completed or cancelled construction project cannot be funded.');
   if (project.estimatedCostUsd === undefined) throw new Error('This construction project has no cost estimate and cannot be funded.');
   if (project.committedUsd !== undefined) throw new Error('This construction project is already funded.');
-  const cash = state.fiscal.countries[project.countryId]?.cash ?? 0;
-  const alreadyCommitted = Object.values(state.assets.projects)
-    .filter(other => other.countryId === project.countryId && other.committedUsd !== undefined)
-    .reduce((sum, other) => sum + (other.committedUsd ?? 0), 0);
-  if (cash - alreadyCommitted < project.estimatedCostUsd) throw new Error('Insufficient treasury funds to commit this construction project.');
-  return updateProject(state, input.projectId, { committedUsd: project.estimatedCostUsd });
+  const fiscalCountry = state.fiscal.countries[project.countryId];
+  const cash = fiscalCountry?.cash ?? 0;
+  const outstanding = (fiscalCountry?.constructionCommitted ?? 0) - (fiscalCountry?.constructionExecuted ?? 0);
+  if (cash - outstanding < project.estimatedCostUsd) throw new Error('Insufficient treasury funds to commit this construction project.');
+  return withFiscalConstruction(updateProject(state, input.projectId, { committedUsd: project.estimatedCostUsd }), project.countryId, { committed: project.estimatedCostUsd });
 }
 
 /**
@@ -263,7 +278,8 @@ export function completeConstruction(state: SimulationState, input: { projectId:
     resultingAssetId: assetIdValue,
     reservedWorkers: undefined,
   });
-  return reconcileConstructionWorkforce(completed);
+  const unspent = (project.committedUsd ?? 0) - (project.completedWorkUsd ?? 0);
+  return reconcileConstructionWorkforce(withFiscalConstruction(completed, project.countryId, { committed: -unspent }));
 }
 
 const addDays = (iso: string, days: number): string => {
@@ -315,7 +331,7 @@ export function repairAsset(state: SimulationState, input: { assetId: string; pe
   if (asset.operatingStatus !== 'degraded' && asset.operatingStatus !== 'out_of_service') throw new Error('Only a broken asset can be repaired.');
   if (asset.repairReadyOn !== undefined) throw new Error('This asset already has a scheduled repair.');
   if ((state.fiscal.countries[countryId]?.cash ?? 0) < REPAIR_COST_USD) throw new Error('Insufficient treasury funds to repair this asset.');
-  return updateAsset(state, input.assetId, { repairReadyOn: addDays(state.date, REPAIR_DURATION_DAYS) });
+  return withFiscalConstruction(updateAsset(state, input.assetId, { repairReadyOn: addDays(state.date, REPAIR_DURATION_DAYS) }), countryId, { executed: REPAIR_COST_USD, cash: -REPAIR_COST_USD });
 }
 
 /** 0.24.7B — complete repairs whose scheduled date has arrived (scheduler task). */
@@ -372,6 +388,7 @@ export function damageAsset(state: SimulationState, input: { assetId: string; pe
 export function advanceConstructionProgress(state: SimulationState): SimulationState {
   const projects = { ...state.assets.projects };
   const consumedThisPass = new Map<string, number>();
+  const fiscalByCountry = new Map<string, number>();
   let changed = false;
   const ordered = Object.entries(projects).sort(([left], [right]) => left.localeCompare(right));
   for (const [pid, project] of ordered) {
@@ -392,9 +409,13 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
       consumedMaterials: (project.consumedMaterials ?? 0) + materials,
     };
     consumedThisPass.set(project.countryId, (consumedThisPass.get(project.countryId) ?? 0) + materials);
+    fiscalByCountry.set(project.countryId, (fiscalByCountry.get(project.countryId) ?? 0) + dailyWork);
     changed = true;
   }
-  return changed ? { ...state, assets: { ...state.assets, projects } } : state;
+  if (!changed) return state;
+  let next = { ...state, assets: { ...state.assets, projects } };
+  for (const [countryId, executed] of fiscalByCountry) next = withFiscalConstruction(next, countryId, { executed, cash: -executed });
+  return next;
 }
 
 /** 0.24.4B — construction progression runs on the shared scheduler, never a parallel timer. */
