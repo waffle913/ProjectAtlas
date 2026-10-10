@@ -1741,6 +1741,10 @@ describe('governance 0.14 player and political decisions', () => {
       'vote_legislation',
       'access_government_information',
       'command_military_operations',
+      'propose_construction',
+      'authorize_construction',
+      'fund_construction',
+      'cancel_construction',
     ]);
     expect(governanceInvariant.check(presidential.state, worldContext, 'save')).toEqual([]);
 
