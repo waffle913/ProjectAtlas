@@ -173,7 +173,7 @@ describe('0.24.9 legacy schema-20 save migration', () => {
     s = authorizeConstruction(s, { projectId: 'project.00000000', authorizerPersonId: leaderId });
     s = fundConstruction(s, { projectId: 'project.00000000', funderPersonId: leaderId });
     // Simulate a schema-20 save written before the fiscal-construction integration.
-    const legacy = structuredClone(s) as Record<string, any>;
+    const legacy = structuredClone(s) as unknown as { fiscal: { countries: Record<string, Record<string, unknown>> } };
     for (const country of Object.values(legacy.fiscal.countries)) {
       delete country.constructionCommitted;
       delete country.constructionExecuted;

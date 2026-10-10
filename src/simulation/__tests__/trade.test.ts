@@ -32,6 +32,21 @@ const stripConstructionCapabilities = (governance: { persons: Record<string, { o
       : person,
   ])),
 });
+
+/** 0.24 fiscal-construction balances and the monthly account's construction line are
+ *  backfilled on migration; strip them before comparing restored fiscal state to the
+ *  historical fixture (an admitted structural backfill, like the construction capabilities). */
+const stripFiscalConstruction = (fiscal: unknown) => {
+  const f = structuredClone(fiscal) as { countries?: Record<string, Record<string, unknown>> } & Record<string, unknown>;
+  for (const country of Object.values(f.countries ?? {})) {
+    delete country.constructionCommitted;
+    delete country.constructionExecuted;
+    delete country.assetMaintenanceSpent;
+    const account = country.account as Record<string, unknown> | undefined;
+    if (account) delete account.construction;
+  }
+  return f;
+};
 import { consumptionCollectedAtRate } from '../fiscal/math';
 import { deterministicFingerprint } from '../fingerprint';
 import { createElement } from 'react';
@@ -332,7 +347,8 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     const context = { regions, countryIds: new Set(Object.keys(schema14.state.engine.fidelityByCountry)), regionIds: new Set(regions.map(r => r.id)) };
     const state = restoreSimulationState(JSON.stringify(schema14.state), regions, {}, {}, context);
     expect(state.date).toBe('2028-04-05'); expect(state.engine.tick).toBe(825); expect(state.trade.initializedOn).toBe(state.date);
-    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(state[field]).toEqual(schema14.state[field]);
+    for (const field of ['socioeconomy', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(state[field]).toEqual(schema14.state[field]);
+    expect(stripFiscalConstruction(state.fiscal)).toEqual(schema14.state.fiscal);
     // The only politics deviation is the honest 0.23 religious-coverage backfill: no religious
     // organization is fabricated, the absence of sourced coverage is stated explicitly.
     const { religiousOrganizationsCoverage, ...politicsPreserved } = state.politics;
@@ -349,7 +365,8 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
     expect(stripConstructionCapabilities(governancePreserved)).toEqual(schema14.state.governance);
     const continued = advanceSimulationDays(state, 90);
-    for (const field of ['socioeconomy', 'fiscal', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
+    for (const field of ['socioeconomy', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
+    expect(stripFiscalConstruction(continued.fiscal)).toEqual(oracle.state.fiscal);
     // The 90-day continuation is still the pre-0.23 oracle for every historical field; only the
     // same structural 0.23 backfills are allowed on top.
     const { religiousOrganizationsCoverage: continuedReligiousCoverage, ...continuedPoliticsPreserved } = continued.politics;
