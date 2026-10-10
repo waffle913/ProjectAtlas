@@ -31,23 +31,28 @@
   "ci_status": "green",
   "ci_last_checked_at": "2026-10-10",
 
-  "review_campaign": {
-    "milestone": "0.23",
-    "full_review_round": 2,
-    "max_full_review_rounds": 2,
-    "final_verification_complete": true,
-    "targeted_verification_complete": true,
-    "findings_summary": "0.23 sealed at 84c09c9 after the historical (pre-schema-v2) review/correction campaign; see notes for the legacy overrun record.",
-    "late_blocking_findings": [],
-    "reopen_count": 0,
-    "max_autonomous_post_seal_reopens": 1
-  },
+  "review_campaign": null,
+  "review_campaign_history": [
+    {
+      "milestone": "0.23",
+      "full_review_round": 2,
+      "max_full_review_rounds": 2,
+      "final_verification_complete": true,
+      "targeted_verification_complete": true,
+      "findings_summary": "0.23 sealed at 84c09c9 after the historical (pre-schema-v2) review/correction campaign; see notes for the legacy overrun record.",
+      "late_blocking_findings": [],
+      "reopen_count": 2,
+      "max_autonomous_post_seal_reopens": 1,
+      "archived_at": "2026-10-10",
+      "note": "Legacy pre-schema-v2 campaign: 4+ general review rounds observed and 2 post-seal reopenings. Sealed based on already obtained evidence; do not rerun to 'make history conform'."
+    }
+  ],
 
   "review_capability_adapter": {
-    "capability_identity": "tool:review",
-    "invocation_parameter": "task",
-    "resolved_at": "2026-10-10",
-    "status": "resolved"
+    "capability_identity": null,
+    "invocation_parameter": null,
+    "resolved_at": null,
+    "status": "resolve_on_resume"
   },
 
   "repair_signatures": [],

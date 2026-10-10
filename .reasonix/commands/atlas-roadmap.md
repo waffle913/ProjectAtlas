@@ -41,7 +41,11 @@ condition in the protocol.
   CORRECTING_REVIEW_FINDINGS -> FINAL_VERIFICATION_REVIEW ->
   FINAL_CORRECTIONS? -> TARGETED_VERIFICATION? -> BRANCH_CI -> MERGE_TO_MAIN ->
   MAIN_CI -> SEALED_SAFE_ZONE -> NEXT_MILESTONE`, persisting each transition.
-  `NEXT_MILESTONE` means the previous milestone is sealed.
+  `NEXT_MILESTONE` means the previous milestone is sealed. On
+  `NEXT_MILESTONE -> BRANCH_SYNC`, archive the previous `review_campaign` into
+  `review_campaign_history` and initialize a fresh campaign for the new
+  milestone (`full_review_round = 0`, flags false, `reopen_count = 0`) without
+  erasing prior history.
 - **Bounded review campaign** — maximum **two** full milestone review rounds
   (`MAX_FULL_MILESTONE_REVIEW_ROUNDS = 2`): one CONSOLIDATED_REVIEW, then one
   FINAL_VERIFICATION_REVIEW. After final corrections, only TARGETED_VERIFICATION
@@ -69,11 +73,12 @@ condition in the protocol.
   `MAX_SAME_ROOT_CAUSE_REPAIR_CYCLES = 2`. Same root cause surviving two repair
   cycles -> CRYO_MODE, reason `REPEATED_ROOT_CAUSE`. This is separate from the
   review-campaign breaker; both are persisted and never reset to look clean.
-- **Reviewer capability negotiation** — resolve one usable reviewer invocation
-  interface at startup (inspect its schema; never hardcode `task` or `arguments`
-  globally), persist the working adapter, and use it consistently. An
-  invocation-schema failure is an orchestration failure, not a code repair
-  cycle; adapt once, and if unresolvable enter CRYO_MODE with
+- **Reviewer capability negotiation** — the adapter is never pre-resolved
+  without proof: while paused it is `resolve_on_resume` (identity/parameter
+  null). At startup/resume, inspect the chosen capability's schema, adapt at
+  most once, and persist `resolved` + identity + `task`/`arguments` only after
+  a successful invocation. An invocation-schema failure is an orchestration
+  failure, not a code repair cycle; if unresolvable enter CRYO_MODE with
   `BLOCKED_REVIEW_CAPABILITY`.
 - **Bounded reviewer fan-out** — one lead consolidated review per round;
   specialist subagents only with non-overlapping scopes

@@ -274,7 +274,9 @@ The Goal continues until one of:
 5. **Contract conflict** (§14 — `BLOCKED_CONTRACT`);
 6. **Indispensable external dependency unavailable** (§14 — `BLOCKED_EXTERNAL`);
 7. **Destructive/migration ambiguity** (§14 — `BLOCKED_MIGRATION`);
-8. **Repeated root cause** (§13.4 — `REPEATED_ROOT_CAUSE`).
+8. **Repeated root cause** (§13.4 — `REPEATED_ROOT_CAUSE`);
+9. **Review campaign exhausted** (§23/§25 — `REVIEW_CAMPAIGN_EXHAUSTED`);
+10. **Reviewer capability unavailable** (§27 — `BLOCKED_REVIEW_CAPABILITY`).
 
 ---
 
@@ -362,6 +364,8 @@ one wake-up report (§16), then **STOPs**.
 | `BLOCKED_CONTRACT` | Milestone cannot reasonably be implemented without breaking a validated contract (§14.3). |
 | `BLOCKED_MIGRATION` | A migration/transformation could lose data, invent history, break saves, or arbitrarily change IDs, and no canonical rule decides (§14.4). |
 | `BLOCKED_EXTERNAL` | An indispensable source/service/GitHub/provider/dependency is unavailable and the contract does not honestly allow `unavailable`/`partial`/other planned behavior (§14.5). |
+| `REVIEW_CAMPAIGN_EXHAUSTED` | Another broad review would exceed the two-round limit; targeted verification after final corrections still finds a blocker; or a sealed milestone would need more autonomous reopenings than allowed (§23/§25). |
+| `BLOCKED_REVIEW_CAPABILITY` | The required independent reviewer interface cannot be invoked reliably after the bounded adapter resolution attempts (§27). |
 
 ### 14.2 Design blocker
 
@@ -601,6 +605,16 @@ BRANCH_SYNC
 cannot receive a spontaneous new general review. Do not set `current_milestone`
 to the next milestone and then continue reviewing the previous milestone.
 
+On the `NEXT_MILESTONE -> BRANCH_SYNC` transition, before any work on the new
+milestone begins: archive the previous milestone's `review_campaign` verbatim
+(counters, findings, reopen record) into `review_campaign_history`, then
+initialize a fresh `review_campaign` for the new milestone with
+`full_review_round = 0`, `final_verification_complete = false`,
+`targeted_verification_complete = false`, `reopen_count = 0`, and empty
+findings/late-blocking lists. The prior history is never erased. The fresh
+campaign is initialized only at this transition (resume/`BRANCH_SYNC`), not
+beforehand and not at pause time.
+
 ## 23. Bounded review campaign
 
 Defaults:
@@ -738,6 +752,16 @@ review_capability_adapter:
   status
 ```
 
+The adapter is **never pre-resolved without proof of a successful invocation**.
+While paused or before the Goal starts, its `status` is `resolve_on_resume` (or
+`unresolved`) and `capability_identity` / `invocation_parameter` are null. Only
+at Goal startup/resume does the Autopilot inspect the schema of the reviewer
+capability it will actually use, perform at most the bounded adaptation below,
+and — only after a **successful** reviewer invocation — persist
+`status = resolved` together with the identity and the exact `task` or
+`arguments` parameter that worked. A `resolved` adapter is never recorded from
+an assumption, a stale run, or a failed/interrupted invocation.
+
 Rules:
 
 1. Never assume globally that the parameter is `task`.
@@ -747,7 +771,8 @@ Rules:
 5. An invocation-schema failure is an **orchestration failure**, not a ProjectAtlas
    code finding and not a code repair cycle.
 6. If the first attempt fails and the runtime explicitly states the accepted
-   parameter, adapt once and persist the working adapter.
+   parameter, adapt once and persist the working adapter only after a successful
+   invocation confirms it.
 7. Do not alternate indefinitely `task -> arguments -> task -> arguments`.
 8. If the same named `review` capability later presents a contradictory/unresolvable
    schema, either switch once to a distinct known reviewer interface and persist
@@ -891,10 +916,11 @@ The state at `.reasonix/projectatlas-autopilot-state.json` uses schema 2 with at
 least the fields listed in §17 of the hardening patch (schema, mode, roadmap_id,
 current_milestone, current_block, milestone_phase, last_safe_*, sealed_*,
 current_branch, milestone_scope_base_sha, milestone_branch_head_sha,
-carried_commits, blocked_head_sha, ci_*, review_campaign, review_capability_adapter,
-repair_signatures, repair_cycles, budget_status, budget_observation, stop_reason,
-max_same_root_cause_repair_cycles, updated_at, notes). Material history remains
-auditable; review/repair counters are not reset merely to make the state look clean.
+carried_commits, blocked_head_sha, ci_*, review_campaign, review_campaign_history,
+review_capability_adapter, repair_signatures, repair_cycles, budget_status,
+budget_observation, stop_reason, max_same_root_cause_repair_cycles, updated_at,
+notes). Material history remains auditable; review/repair counters are not reset
+merely to make the state look clean.
 
 ## 36. Cryo reasons
 
