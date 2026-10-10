@@ -643,6 +643,7 @@ export function formGovernment(state: SimulationState, countryId: string, actorP
   // head-of-state appointment paths both go through this explicit formation procedure.
   const appointmentMode = state.constitution.countries[countryId]?.government.appointmentMode ?? 'unavailable';
   if (appointmentMode === 'elected_directly') throw new Error('The government is directly elected; a nomination cannot replace the elected office.');
+  if (appointmentMode === 'appointed_by_head_of_state' && actor.office.role !== 'head_of_state') throw new Error('The constitution vests government nomination in the head of state; only the head of state may nominate.');
   const person = state.governance.persons[personId];
   if (!person || person.status !== 'active' || person.countryId !== countryId) throw new Error('The nominee must be an active person of the Country.');
   const entry = countryEntry(state, countryId);

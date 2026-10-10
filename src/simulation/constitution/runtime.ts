@@ -617,7 +617,21 @@ function applyConstitutionalAmendment(state: SimulationState, proposal: { id: st
       for (const regionId of sovereigntyTransfer.regionIds) {
         if (next.regionOwnership[regionId] !== proposal.countryId) throw new Error(`Region ${regionId} is not owned by ${proposal.countryId}; its sovereignty cannot be transferred.`);
       }
-      next = { ...next, regionOwnership: { ...next.regionOwnership, ...Object.fromEntries(sovereigntyTransfer.regionIds.map(regionId => [regionId, sovereigntyTransfer.toCountryId])) } };
+      const fromCountryId = proposal.countryId, toCountryId = sovereigntyTransfer.toCountryId, transferredRegionIds = sovereigntyTransfer.regionIds;
+      next = { ...next, regionOwnership: { ...next.regionOwnership, ...Object.fromEntries(transferredRegionIds.map(regionId => [regionId, toCountryId])) } };
+      // Reconcile the politics ownership cache so a save in the transfer tick never captures a
+      // Region still linked to the Country that no longer owns it.
+      const politics = next.politics;
+      const fromRegions = (politics.countries[fromCountryId]?.regionIds ?? []).filter(id => !transferredRegionIds.includes(id));
+      const toRegions = [...new Set([...(politics.countries[toCountryId]?.regionIds ?? []), ...transferredRegionIds])].sort();
+      const regionalOpinion = { ...politics.regionalOpinion };
+      for (const regionId of transferredRegionIds) {
+        if (regionalOpinion[regionId]) regionalOpinion[regionId] = { ...regionalOpinion[regionId], countryId: toCountryId };
+      }
+      const countries = { ...politics.countries };
+      if (countries[fromCountryId]) countries[fromCountryId] = { ...countries[fromCountryId], regionIds: fromRegions };
+      if (countries[toCountryId]) countries[toCountryId] = { ...countries[toCountryId], regionIds: toRegions };
+      next = { ...next, politics: { ...politics, countries, regionalOpinion } };
     }
   }
   if (p.amendmentChanges && Object.keys(p.amendmentChanges).length) {
@@ -691,7 +705,13 @@ function reverseConstitutionalAmendment(state: SimulationState, amendment: Pendi
     government: replayDomain('government', entry.government),
     election: replayDomain('election', entry.election),
     judicialReview: replayDomain('judicialReview', entry.judicialReview),
-    territory: replayDomain('territory', entry.territory),
+    // Devolution is append-only, so the per-field cumulative snapshot cannot drop an annulled
+    // instrument's devolved powers on its own: filter them by the annulled instruments explicitly.
+    territory: (() => {
+      const territory = replayDomain('territory', entry.territory);
+      if (Array.isArray(territory.devolvedPowers)) territory.devolvedPowers = territory.devolvedPowers.filter(power => !annulledInstrumentIds.has(power.instrumentId));
+      return territory;
+    })(),
     amendment: replayDomain('amendment', entry.amendment),
   };
   return { ...state, constitution: { ...state.constitution, countries: { ...state.constitution.countries, [amendment.countryId]: updated } } };

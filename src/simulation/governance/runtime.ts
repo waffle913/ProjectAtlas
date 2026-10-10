@@ -1326,7 +1326,9 @@ export function censureGovernment(state: SimulationState, countryId: string, act
     const leading = Object.entries(seats).sort((a, b) => b[1] - a[1])[0];
     if (leading) {
       const leader = Object.values(next.governance.persons).find(p => p.status === 'active' && p.countryId === countryId && p.partyId === leading[0] && p.isPartyLeader);
-      if (leader && leader.id !== head?.id) {
+      if (leader) {
+        // The leading party's leader takes the office even when they are the just-censured head:
+        // the chamber keeps its confidence in their party, so the Country is never left headless.
         next = transferPoliticalOffice(next, leader.id, { role: 'head_of_government', countryId });
         const coalitionPartyIds = [leading[0]];
         const confidence = leading[1] * 2 > votingSeats ? 'majority' as const : 'minority' as const;

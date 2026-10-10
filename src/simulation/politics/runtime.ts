@@ -381,7 +381,7 @@ export function mergeOrganizations(state: SimulationState, targetId: string, abs
   // The absorbed organization transfers its whole treasury: it keeps no funds, no strike fund and
   // no ledger of its own — nothing remains simultaneously owned by the absorbed organization.
   const absorbedLedger: OrganizationFundingEvent[] = [];
-  return { ...state, governance: { ...state.governance, persons }, politics: { ...state.politics, organizations: { ...state.politics.organizations, [targetId]: { ...target, fundsUsd, strikeFundUsd, fundingEvents, members, internalCurrents, claims, cyberSecurityBps: cyberSecurityBpsFor(targetTreasury, cyberSpentUsd) }, [absorbedId]: { ...absorbed, status: 'dissolved', fundsUsd: undefined, strikeFundUsd: undefined, fundingEvents: absorbedLedger, cyberSecurityBps: undefined } } } };
+  return { ...state, governance: { ...state.governance, persons }, politics: { ...state.politics, organizations: { ...state.politics.organizations, [targetId]: { ...target, fundsUsd, strikeFundUsd, fundingEvents, members, internalCurrents, claims, cyberSecurityBps: cyberSecurityBpsFor(targetTreasury, cyberSpentUsd) }, [absorbedId]: { ...absorbed, status: 'dissolved', members: {}, fundsUsd: undefined, strikeFundUsd: undefined, fundingEvents: absorbedLedger, cyberSecurityBps: undefined } } } };
 }
 
 /** Split an active organization: a deterministic portion of members and funds forms a new dynamic

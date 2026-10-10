@@ -158,6 +158,9 @@ export function proportionalSeats(votes: Record<string, number>, totalSeats: num
   const eligible = Object.entries(votes)
     .filter(([, v]) => v * 10000 >= thresholdBps * total)
     .map(([partyId, v]) => ({ partyId, v: Math.max(0, Math.round(v)) }));
+  // A valid threshold may exclude every party; that never crashes the conversion — it yields
+  // no seats (the seats become explicitly unallocated upstream, never silently re-invented).
+  if (eligible.length === 0) return {};
   const allocated = allocate(totalSeats, eligible.map(e => e.v));
   const result: Record<string, number> = {};
   eligible.forEach((e, i) => { result[e.partyId] = allocated[i]; });
