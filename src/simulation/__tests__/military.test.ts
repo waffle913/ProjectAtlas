@@ -6,6 +6,20 @@ import { emptyConstitution } from '../constitution/model';
 import { emptyElections } from '../elections/model';
 import { emptyAssets } from '../assets/model';
 import { emptyTrade } from '../trade/model';
+
+/** 0.24 construction capabilities are backfilled into saved executive offices on
+ *  migration; strip them before comparing restored governance to the historical
+ *  fixture (an admitted structural backfill, like the 0.23 cabinets backfill). */
+const CONSTRUCTION_CAPABILITIES = ['propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction'];
+const stripConstructionCapabilities = (governance: { persons: Record<string, { office?: { authorityProfile?: { capabilities?: string[] } } }> }) => ({
+  ...governance,
+  persons: Object.fromEntries(Object.entries(governance.persons).map(([id, person]) => [
+    id,
+    person?.office?.authorityProfile
+      ? { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: person.office.authorityProfile.capabilities!.filter(c => !CONSTRUCTION_CAPABILITIES.includes(c)) } } }
+      : person,
+  ])),
+});
 import { describe, expect, it, vi } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { EQUIPMENT_REGISTRY, MILITARY_ITEMS, DEFENSE_COSTS, emptyMilitary, equipmentTotal, militaryReadiness, militarySupportStaff, presentPersonnel, trainingPersonnel, type MilitaryParameters } from '../military/model';
@@ -479,7 +493,7 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     expect(ministerialSuggestions).toEqual([]);
     expect(nextSuggestionSequence).toBe(0);
     expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
-    expect(restoredGovernanceRest).toEqual(legacyGovernance);
+    expect(stripConstructionCapabilities(restoredGovernanceRest)).toEqual(legacyGovernance);
     const { religiousOrganizationsCoverage, ...restoredPoliticsRest } = restoredPolitics;
     expect(religiousOrganizationsCoverage.status).toBe('unavailable');
     expect(typeof religiousOrganizationsCoverage.limitation).toBe('string');

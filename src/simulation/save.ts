@@ -525,7 +525,8 @@ function upgradeConstructionAuthority(state: SimulationState): SimulationState {
   const persons = { ...state.governance.persons };
   for (const [id, person] of Object.entries(persons)) {
     if (!person.office) continue;
-    const reconciled = person.office.evidence?.authorityBasis && person.office.evidence.authorityBasis !== 'institutional_authority_unresolved';
+    if (person.office.evidence?.authorityBasis === 'institutional_authority_unresolved') continue;
+    const reconciled = Boolean(person.office.evidence?.authorityBasis);
     if (person.office.role !== 'head_of_government' && !reconciled) continue;
     const missing = construction.filter(capability => !person.office!.authorityProfile.capabilities.includes(capability));
     if (!missing.length) continue;
