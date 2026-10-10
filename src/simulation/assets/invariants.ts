@@ -6,7 +6,7 @@ const OPERATING_STATUSES = ['operational', 'degraded', 'out_of_service', 'under_
 const PHYSICAL_CONDITIONS = ['excellent', 'good', 'fair', 'poor', 'critical', 'unavailable'] as const;
 const AVAILABILITIES = ['available', 'partial', 'unavailable'] as const;
 const COVERAGE_STATUSES = ['sourced', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable'] as const;
-const hasFullProvenance = (provenance: AssetSourceProvenance | undefined): boolean => Boolean(provenance)
+const hasFullProvenance = (provenance: AssetSourceProvenance | undefined): boolean => provenance !== undefined
   && [provenance.publisher, provenance.dataset, provenance.url, provenance.referenceDate, provenance.retrievedAt, provenance.licence, provenance.attribution, provenance.limitation]
     .every(value => typeof value === 'string' && value.trim() !== '');
 

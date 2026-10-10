@@ -80,7 +80,7 @@ describe('0.24.11 construction integration campaign', () => {
     s = advanceConstructionProgress(s);
     expect(s.fiscal.countries[countryId].constructionExecuted).toBe(CONSTRUCTION_DAILY_COST_PER_WORKER_USD);
     expect(s.fiscal.countries[countryId].cash).toBe(beforeCash - CONSTRUCTION_DAILY_COST_PER_WORKER_USD);
-    expect(s.trade.countries[countryId].markets['raw_materials'].stock!.quantity).toBe(9);
+    expect(s.trade.countries[countryId].markets['raw_materials']!.stock!.quantity).toBe(9);
     s = cancelConstruction(s, { projectId: 'project.00000000', cancellerPersonId: leaderId });
     expect(s.fiscal.countries[countryId].constructionCommitted).toBe(0);
   }, 30_000);
