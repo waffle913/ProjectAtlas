@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import { socioeconomicWorld, worldBase, worldContext, worldCountryIds, worldRegions } from './worldScenario';
 import { assignPoliticalOffice, createPoliticalPerson } from '../governance/runtime';
-import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, completeConstruction, fundConstruction, pauseConstruction, proposeConstruction, resumeConstruction, startWork } from '../assets/runtime';
+import { authorizeConstruction, cancelConstruction, advanceConstructionProgress, completeConstruction, completeDueRepairs, fundConstruction, pauseConstruction, proposeConstruction, repairAsset, reportAssetBreakdown, resumeConstruction, startWork } from '../assets/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { initializeFiscal } from '../fiscal/runtime';
 import { admitTradeMarket, initializeTrade } from '../trade/runtime';
@@ -10,7 +10,8 @@ import { syntheticTradeMarket } from '../trade/scenario';
 import { assetsInvariant } from '../assets/invariants';
 import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { ASSETS_VERSION, COMPLETED_ASSET_CAPACITY, CONSTRUCTION_DAILY_COST_PER_WORKER_USD } from '../assets/model';
+import { advanceSimulationDays } from '../engine';
+import { ASSETS_VERSION, COMPLETED_ASSET_CAPACITY, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, REPAIR_DURATION_DAYS } from '../assets/model';
 
 const countryId = worldCountryIds[0];
 const regionId = worldRegions[0].id;
@@ -367,5 +368,58 @@ describe('0.24.6 construction completion and capacity', () => {
       assets: { ...completed.assets, assets: { ...completed.assets.assets, 'asset.00000000': { ...completed.assets.assets['asset.00000000'], assetTypeId: 'type.other' } } },
     };
     expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Project project.00000000 resulting asset does not match the project site or type.');
+  });
+});
+
+describe('0.24.7 asset breakdown and repair', () => {
+  it('reports a breakdown and degrades the asset availability', () => {
+    const { state, leaderId } = completableProject();
+    const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
+    expect(broken.assets.assets['asset.00000000'].operatingStatus).toBe('out_of_service');
+    expect(broken.assets.assets['asset.00000000'].availability).toBe('unavailable');
+  });
+
+  it('refuses to break an asset that is already broken', () => {
+    const { state, leaderId } = completableProject();
+    const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
+    expect(() => reportAssetBreakdown(broken, { assetId: 'asset.00000000', personId: leaderId, severity: 'degraded' })).toThrow(/Only an operational or degraded/);
+  });
+
+  it('schedules a repair and completes it only when its date arrives', () => {
+    const { state, leaderId } = completableProject();
+    const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
+    const repairing = repairAsset(broken, { assetId: 'asset.00000000', personId: leaderId });
+    const scheduled = repairing.assets.assets['asset.00000000'];
+    expect(scheduled.repairReadyOn).toBeDefined();
+    expect(scheduled.operatingStatus).toBe('out_of_service');
+    // Before the scheduled date the asset stays broken.
+    expect(completeDueRepairs(repairing).assets.assets['asset.00000000'].operatingStatus).toBe('out_of_service');
+    // Once the date arrives the repair restores it.
+    const due = { ...repairing, date: scheduled.repairReadyOn! };
+    const repaired = completeDueRepairs(due);
+    expect(repaired.assets.assets['asset.00000000'].operatingStatus).toBe('operational');
+    expect(repaired.assets.assets['asset.00000000'].availability).toBe('available');
+    expect(repaired.assets.assets['asset.00000000'].repairReadyOn).toBeUndefined();
+  });
+
+  it('refuses to repair an operational asset', () => {
+    const { state, leaderId } = completableProject();
+    expect(() => repairAsset(state, { assetId: 'asset.00000000', personId: leaderId })).toThrow(/Only a broken asset/);
+  });
+
+  it('refuses to repair without treasury funds', () => {
+    const { state, leaderId, countryId: cid } = completableProject();
+    const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
+    const broke = { ...broken, fiscal: { ...broken.fiscal, countries: { ...broken.fiscal.countries, [cid]: { ...broken.fiscal.countries[cid], cash: 0 } } } };
+    expect(() => repairAsset(broke, { assetId: 'asset.00000000', personId: leaderId })).toThrow(/Insufficient treasury funds/);
+  });
+
+  it('completes due repairs through the shared scheduler', () => {
+    const { state, leaderId } = completableProject();
+    const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
+    const repairing = repairAsset(broken, { assetId: 'asset.00000000', personId: leaderId });
+    const advanced = advanceSimulationDays(repairing, REPAIR_DURATION_DAYS);
+    expect(advanced.assets.assets['asset.00000000'].operatingStatus).toBe('operational');
+    expect(advanced.assets.assets['asset.00000000'].repairReadyOn).toBeUndefined();
   });
 });
