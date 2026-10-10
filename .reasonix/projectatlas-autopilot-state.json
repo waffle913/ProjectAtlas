@@ -4,10 +4,10 @@
   "roadmap_id": "projectatlas-roadmap-submilestones",
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
-  "current_milestone": "0.23",
+  "current_milestone": "0.24",
   "current_block": null,
-  "last_safe_milestone": "0.22",
-  "last_safe_sha": "1715290e631ff7ffc29103cbe5614ea25dbc1b80",
+  "last_safe_milestone": "0.23",
+  "last_safe_sha": "465fae96cc8b328b6231b6c746b6ba5766b33498",
   "last_safe_branch": "main",
   "last_safe_ci_status": "green (verify ubuntu-latest + windows-latest success)",
   "current_branch": null,
@@ -18,6 +18,6 @@
   "budget_status": "not_checked",
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
-  "updated_at": "2026-10-09",
-  "notes": "0.22 merged to main and independently reviewed twice. Review 1 (bb3aa64) found 2 PROBABLE RISKS; corrective pass (5e59242, 1715290) fixed the invariant effects-array/null-element dereference and the migration unknown-kind guard, and pinned the intentional engine/player authority split with tests. Review 2 verdict: no CERTAIN BUGS, no blocking PROBABLE RISKS (ship as-is). Main CI green at 1715290. Next: 0.23 (branch waffle913-constitution-institutions-elections-023 @ 8951d46) — ubuntu green, windows red on a test timeout (multilateral.test.ts:295 'Test timed out in 5000ms'); 0.24 branched from 433633f and is missing the final 0.23 fix 8951d46."
+  "updated_at": "2026-10-10",
+  "notes": "0.23 (constitution/institutions/elections/organisations) merged to main (465fae9), schema 19. Synchronized the 0.23 branch onto main (which had gained the 0.22 corrections and the autopilot docs), resolving conflicts in governance/invariants.ts, governance/migration.ts, policyFramework.test.ts and agent-handoff.md. Independent review found 5 CERTAIN BUGS and 6 PROBABLE RISKS; corrective pass fixed all of them (constitution devolution competences, censure governmentStatus + dynamic parties, upheld-ban invariant, head-of-state daily-tick try/catch, dynamic-party winners, censure denominator, cyber-attack unavailable defence, formGovernment appointment gate, dynamic-party seats in censure/dissolution, party-merge single leader), and a re-review cleared it (SHIP). Raised the vitest testTimeout to 30s for full-world integration tests (0.23 invariants run over 252 Countries). Also merged the playable-shell V1 (Tauri) and the 0.22 discriminated-union refinement that the 0.23 branch carried; they are documented as separate deliverables, not 0.23 engine scope. Next: 0.24 (branch waffle913-construction-assets-024 @ 103a6a4, both CI red; branched from 433633f so it is missing the final 0.23 fix 8951d46 which is now superseded by main)."
 }
