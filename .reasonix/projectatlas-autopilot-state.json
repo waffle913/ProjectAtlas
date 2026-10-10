@@ -5,8 +5,8 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.1A",
-  "milestone_phase": "BRANCH_SYNC",
+  "current_block": "0.24.1B",
+  "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
   "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
@@ -19,7 +19,7 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": null,
+  "milestone_branch_head_sha": "a6d588bc1ece90ae87efc447647230367f26b905",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
