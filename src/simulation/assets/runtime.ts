@@ -5,7 +5,7 @@ import { reservedPersonnel } from '../military/runtime';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import type { SimulationScheduler } from '../scheduler';
 import { assetId, COMPLETED_ASSET_CAPACITY, COMPLETED_ASSET_CAPACITY_UNIT, CONSTRUCTION_DAILY_COST_PER_WORKER_USD, CONSTRUCTION_MATERIALS_PER_WORKER_PER_DAY, constructionProjectId, REPAIR_COST_USD, REPAIR_DURATION_DAYS, type AssetRecord, type ConstructionProjectRecord } from './model';
-import { availableConstructionMaterials } from './materials';
+import { availableConstructionMaterials, consumeConstructionMaterials } from './materials';
 import { constructionReservedPersonnel, effectiveRegionControl } from './workforce';
 
 const requireActivePerson = (state: SimulationState, personId: string) => {
@@ -406,7 +406,6 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
     projects[pid] = {
       ...project,
       completedWorkUsd: (project.completedWorkUsd ?? 0) + dailyWork,
-      consumedMaterials: (project.consumedMaterials ?? 0) + materials,
     };
     consumedThisPass.set(project.countryId, (consumedThisPass.get(project.countryId) ?? 0) + materials);
     fiscalByCountry.set(project.countryId, (fiscalByCountry.get(project.countryId) ?? 0) + dailyWork);
@@ -415,6 +414,7 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
   if (!changed) return state;
   let next = { ...state, assets: { ...state.assets, projects } };
   for (const [countryId, executed] of fiscalByCountry) next = withFiscalConstruction(next, countryId, { executed, cash: -executed });
+  for (const [countryId, materials] of consumedThisPass) next = consumeConstructionMaterials(next, countryId, materials);
   return next;
 }
 

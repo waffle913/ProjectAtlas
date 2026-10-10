@@ -260,7 +260,7 @@ describe('0.24.4 construction work and progression', () => {
     const project = advanced.assets.projects['project.00000000'];
     expect(project.completedWorkUsd ?? 0).toBeGreaterThan(before);
     expect(project.completedWorkUsd ?? 0).toBeLessThanOrEqual(project.committedUsd ?? 0);
-    expect(project.consumedMaterials ?? 0).toBeGreaterThan(0);
+    expect(withStock.trade.countries[cid].markets['raw_materials'].stock!.quantity - advanced.trade.countries[cid].markets['raw_materials'].stock!.quantity).toBeGreaterThan(0);
   });
 
   it('stops progression while paused and resumes it after', () => {
@@ -302,7 +302,6 @@ describe('0.24.5 construction material inputs', () => {
     const project = state.assets.projects['project.00000000'];
     const advanced = advanceConstructionProgress(state);
     expect(advanced.assets.projects['project.00000000'].completedWorkUsd).toBe(project.completedWorkUsd ?? 0);
-    expect(advanced.assets.projects['project.00000000'].consumedMaterials).toBeUndefined();
   });
 
   it('consumes materials bounded by the available trade stock', () => {
@@ -310,7 +309,7 @@ describe('0.24.5 construction material inputs', () => {
     const withStock = withRawMaterials(state, cid, 3); // only 3 material units for 10 workers
     const advanced = advanceConstructionProgress(withStock);
     const project = advanced.assets.projects['project.00000000'];
-    expect(project.consumedMaterials).toBe(3);
+    expect(advanced.trade.countries[cid].markets['raw_materials'].stock!.quantity).toBe(0);
     expect(project.completedWorkUsd).toBe(3 * CONSTRUCTION_DAILY_COST_PER_WORKER_USD);
     // Stock is now exhausted, so the next day produces no further progress.
     const next = advanceConstructionProgress(advanced);

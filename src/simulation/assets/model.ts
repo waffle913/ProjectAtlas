@@ -245,9 +245,6 @@ export interface ConstructionProjectRecord {
   /** Cumulative funded work done (0.24.4C), in nominal USD, never exceeding the
    *  committed amount. */
   completedWorkUsd?: number;
-  /** Cumulative physical materials consumed by work (0.24.5C), in units of the
-   *  construction-material category; bounded by the Country's trade stock. */
-  consumedMaterials?: number;
   coverage: AssetCoverageRecord;
 }
 
