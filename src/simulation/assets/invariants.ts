@@ -6,9 +6,15 @@ const OPERATING_STATUSES = ['operational', 'degraded', 'out_of_service', 'under_
 const PHYSICAL_CONDITIONS = ['excellent', 'good', 'fair', 'poor', 'critical', 'unavailable'] as const;
 const AVAILABILITIES = ['available', 'partial', 'unavailable'] as const;
 const COVERAGE_STATUSES = ['sourced', 'derived', 'modelled', 'partial', 'unavailable', 'not_applicable'] as const;
-const hasFullProvenance = (provenance: AssetSourceProvenance | undefined): boolean => provenance !== undefined
+/** Full provenance with coherent, non-future dates (0.24.9D): every field present,
+ *  both dates valid, the reference date not after the retrieval date, and the
+ *  reference date not in the future of the simulation. */
+const hasValidProvenance = (provenance: AssetSourceProvenance | undefined, stateDate: string): boolean => provenance !== undefined
   && [provenance.publisher, provenance.dataset, provenance.url, provenance.referenceDate, provenance.retrievedAt, provenance.licence, provenance.attribution, provenance.limitation]
-    .every(value => typeof value === 'string' && value.trim() !== '');
+    .every(value => typeof value === 'string' && value.trim() !== '')
+  && validDate(provenance.referenceDate) && validDate(provenance.retrievedAt)
+  && provenance.referenceDate <= provenance.retrievedAt
+  && provenance.referenceDate <= stateDate;
 
 /** 0.24.1C — the assets domain is the single canonical owner of physical-asset
  *  records. This invariant guards identity permanence, honest coverage, and the
@@ -44,14 +50,28 @@ export const assetsInvariant: SimulationInvariant = {
       } else if (capacity.coverage === 'unavailable') {
         // unavailable is never zero: an unavailable capacity records no numeric amount.
         if (capacity.amount !== undefined) errors.push(`Asset ${id} records a numeric capacity while its coverage is unavailable.`);
-      } else if (capacity.amount === undefined || !Number.isSafeInteger(capacity.amount) || capacity.amount < 0) {
-        errors.push(`Asset ${id} has an invalid capacity amount.`);
+      } else {
+        if (capacity.amount === undefined || !Number.isSafeInteger(capacity.amount) || capacity.amount < 0) errors.push(`Asset ${id} has an invalid capacity amount.`);
+        if ((capacity.coverage === 'sourced' || capacity.coverage === 'derived' || capacity.coverage === 'partial') && !hasValidProvenance(capacity.provenance, state.date)) {
+          errors.push(`Asset ${id} has sourced/derived/partial capacity without full provenance.`);
+        }
+        if (capacity.coverage === 'not_applicable' && (typeof capacity.limitation !== 'string' || !capacity.limitation.trim())) {
+          errors.push(`Asset ${id} has not_applicable capacity without an explicit justification.`);
+        }
       }
       const coverage = asset.coverage;
       if (!coverage || !COVERAGE_STATUSES.includes(coverage.status)) errors.push(`Asset ${id} has an invalid coverage.`);
-      else if ((coverage.status === 'sourced' || coverage.status === 'derived' || coverage.status === 'partial') && !hasFullProvenance(coverage.provenance)) {
-        errors.push(`Asset ${id} has sourced/derived/partial coverage without full provenance.`);
+      else {
+        if ((coverage.status === 'sourced' || coverage.status === 'derived' || coverage.status === 'partial') && !hasValidProvenance(coverage.provenance, state.date)) {
+          errors.push(`Asset ${id} has sourced/derived/partial coverage without full provenance.`);
+        }
+        if (coverage.status === 'not_applicable' && (typeof coverage.justification !== 'string' || !coverage.justification.trim())) {
+          errors.push(`Asset ${id} has not_applicable coverage without an explicit justification.`);
+        }
       }
+      // 0.24.7 — operating status and availability stay compatible.
+      const expectedAvailability = asset.operatingStatus === 'operational' ? 'available' : asset.operatingStatus === 'degraded' ? 'partial' : 'unavailable';
+      if (asset.availability !== expectedAvailability) errors.push(`Asset ${id} has incompatible operating status and availability.`);
       if (asset.repairReadyOn !== undefined && !validDate(asset.repairReadyOn)) errors.push(`Asset ${id} has an invalid repair schedule.`);
     }
     const PROJECT_STATUSES = ['planned', 'active', 'paused', 'completed', 'cancelled'];
@@ -88,6 +108,14 @@ export const assetsInvariant: SimulationInvariant = {
       }
       const pcoverage = project.coverage;
       if (!pcoverage || !COVERAGE_STATUSES.includes(pcoverage.status)) errors.push(`Project ${pid} has an invalid coverage.`);
+      else {
+        if ((pcoverage.status === 'sourced' || pcoverage.status === 'derived' || pcoverage.status === 'partial') && !hasValidProvenance(pcoverage.provenance, state.date)) {
+          errors.push(`Project ${pid} has sourced/derived/partial coverage without full provenance.`);
+        }
+        if (pcoverage.status === 'not_applicable' && (typeof pcoverage.justification !== 'string' || !pcoverage.justification.trim())) {
+          errors.push(`Project ${pid} has not_applicable coverage without an explicit justification.`);
+        }
+      }
       // 0.24.3A — explicit cost estimate, kept distinct from the committed amount.
       if (project.estimatedCostUsd !== undefined && (!Number.isSafeInteger(project.estimatedCostUsd) || project.estimatedCostUsd < 0)) errors.push(`Project ${pid} has an invalid cost estimate.`);
       if (project.committedUsd !== undefined && (!Number.isSafeInteger(project.committedUsd) || project.committedUsd < 0 || project.estimatedCostUsd === undefined || project.committedUsd > project.estimatedCostUsd)) errors.push(`Project ${pid} has an invalid cost commitment.`);

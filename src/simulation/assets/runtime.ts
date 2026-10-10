@@ -31,6 +31,21 @@ const requireRegion = (state: SimulationState, regionId: string) => {
   if (!(regionId in state.regionOwnership)) throw new Error(`Unknown Region: ${regionId}`);
 };
 
+/** 0.24.8 — a project can only be operated while its Country sovereignly owns AND
+ *  effectively controls the site Region. Sovereignty, occupation and effective
+ *  control stay distinct; a contested or changed controller freezes the project. */
+const hasSiteControl = (state: SimulationState, project: ConstructionProjectRecord): boolean => {
+  if (state.regionOwnership[project.regionId] !== project.countryId) return false;
+  const control = effectiveRegionControl(state, project.regionId);
+  return !control.contested && control.controller === project.countryId;
+};
+
+const requireSiteControl = (state: SimulationState, project: ConstructionProjectRecord) => {
+  if (state.regionOwnership[project.regionId] !== project.countryId) throw new Error('The project Region is no longer sovereignly owned by the Country.');
+  const control = effectiveRegionControl(state, project.regionId);
+  if (control.contested || control.controller !== project.countryId) throw new Error('The Country no longer effectively controls the project Region.');
+};
+
 const insertProject = (state: SimulationState, project: ConstructionProjectRecord): SimulationState => ({
   ...state,
   assets: {
@@ -53,15 +68,16 @@ const updateProject = (state: SimulationState, projectId: string, patch: Partial
 };
 
 /** Update the canonical fiscal construction balances (committed/executed/cash) for a Country. */
-const withFiscalConstruction = (state: SimulationState, countryId: string, patch: { committed?: number; executed?: number; cash?: number }): SimulationState => {
+const withFiscalConstruction = (state: SimulationState, countryId: string, patch: { committed?: number; executed?: number; maintenance?: number; cash?: number }): SimulationState => {
   const c = state.fiscal.countries[countryId];
   if (!c) return state;
   return {
     ...state,
     fiscal: { ...state.fiscal, countries: { ...state.fiscal.countries, [countryId]: {
       ...c,
-      constructionCommitted: c.constructionCommitted + (patch.committed ?? 0),
-      constructionExecuted: c.constructionExecuted + (patch.executed ?? 0),
+      constructionCommitted: (c.constructionCommitted ?? 0) + (patch.committed ?? 0),
+      constructionExecuted: (c.constructionExecuted ?? 0) + (patch.executed ?? 0),
+      assetMaintenanceSpent: (c.assetMaintenanceSpent ?? 0) + (patch.maintenance ?? 0),
       cash: c.cash + (patch.cash ?? 0),
     } } },
   };
@@ -133,6 +149,7 @@ export function authorizeConstruction(state: SimulationState, input: { projectId
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.authorizerPersonId, project.countryId, 'authorize_construction');
   if (project.status !== 'planned') throw new Error('Only a planned construction project can be authorized.');
+  requireSiteControl(state, project);
   return updateProject(state, input.projectId, {
     status: 'active',
     authorizedOn: state.date,
@@ -176,12 +193,13 @@ export function fundConstruction(state: SimulationState, input: { projectId: str
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.funderPersonId, project.countryId, 'fund_construction');
   if (project.status === 'completed' || project.status === 'cancelled') throw new Error('A completed or cancelled construction project cannot be funded.');
+  requireSiteControl(state, project);
   if (project.estimatedCostUsd === undefined) throw new Error('This construction project has no cost estimate and cannot be funded.');
   if (project.committedUsd !== undefined) throw new Error('This construction project is already funded.');
   const fiscalCountry = state.fiscal.countries[project.countryId];
   const cash = fiscalCountry?.cash ?? 0;
-  const outstanding = (fiscalCountry?.constructionCommitted ?? 0) - (fiscalCountry?.constructionExecuted ?? 0);
-  if (cash - outstanding < project.estimatedCostUsd) throw new Error('Insufficient treasury funds to commit this construction project.');
+  const committed = fiscalCountry?.constructionCommitted ?? 0;
+  if (cash - committed < project.estimatedCostUsd) throw new Error('Insufficient treasury funds to commit this construction project.');
   return withFiscalConstruction(updateProject(state, input.projectId, { committedUsd: project.estimatedCostUsd }), project.countryId, { committed: project.estimatedCostUsd });
 }
 
@@ -197,6 +215,7 @@ export function startWork(state: SimulationState, input: { projectId: string; pe
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
   if (project.status !== 'active') throw new Error('Only an active construction project can start work.');
+  requireSiteControl(state, project);
   if (project.committedUsd === undefined || project.committedUsd <= 0) throw new Error('A construction project must be funded before work starts.');
   if (project.reservedWorkers !== undefined) throw new Error('Work has already started on this project.');
   if (!Number.isSafeInteger(input.workers) || input.workers <= 0) throw new Error('Worker count must be a positive integer.');
@@ -219,6 +238,7 @@ export function pauseConstruction(state: SimulationState, input: { projectId: st
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
   if (project.status !== 'active') throw new Error('Only an active construction project can be paused.');
+  requireSiteControl(state, project);
   return updateProject(state, input.projectId, { status: 'paused', pausedOn: state.date });
 }
 
@@ -232,6 +252,7 @@ export function resumeConstruction(state: SimulationState, input: { projectId: s
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
   if (project.status !== 'paused') throw new Error('Only a paused construction project can be resumed.');
+  requireSiteControl(state, project);
   return updateProject(state, input.projectId, { status: 'active', pausedOn: undefined });
 }
 
@@ -249,6 +270,7 @@ export function completeConstruction(state: SimulationState, input: { projectId:
   if (!project) throw new Error(`Unknown construction project: ${input.projectId}`);
   requireAuthority(state, input.personId, project.countryId, 'authorize_construction');
   if (project.status !== 'active') throw new Error('Only an active construction project can be completed.');
+  requireSiteControl(state, project);
   if (project.estimatedCostUsd === undefined || project.committedUsd === undefined) throw new Error('A construction project must be estimated and funded before completion.');
   if ((project.completedWorkUsd ?? 0) < project.estimatedCostUsd) throw new Error('Construction work is not yet complete.');
   if (project.resultingAssetId !== undefined) throw new Error('This construction project has already produced its asset.');
@@ -330,8 +352,9 @@ export function repairAsset(state: SimulationState, input: { assetId: string; pe
   requireAuthority(state, input.personId, countryId, 'authorize_construction');
   if (asset.operatingStatus !== 'degraded' && asset.operatingStatus !== 'out_of_service') throw new Error('Only a broken asset can be repaired.');
   if (asset.repairReadyOn !== undefined) throw new Error('This asset already has a scheduled repair.');
-  if ((state.fiscal.countries[countryId]?.cash ?? 0) < REPAIR_COST_USD) throw new Error('Insufficient treasury funds to repair this asset.');
-  return withFiscalConstruction(updateAsset(state, input.assetId, { repairReadyOn: addDays(state.date, REPAIR_DURATION_DAYS) }), countryId, { executed: REPAIR_COST_USD, cash: -REPAIR_COST_USD });
+  const fiscalCountry = state.fiscal.countries[countryId];
+  if ((fiscalCountry?.cash ?? 0) - (fiscalCountry?.constructionCommitted ?? 0) < REPAIR_COST_USD) throw new Error('Insufficient uncommitted treasury funds to repair this asset.');
+  return withFiscalConstruction(updateAsset(state, input.assetId, { repairReadyOn: addDays(state.date, REPAIR_DURATION_DAYS) }), countryId, { maintenance: REPAIR_COST_USD, cash: -REPAIR_COST_USD });
 }
 
 /** 0.24.7B — complete repairs whose scheduled date has arrived (scheduler task). */
@@ -393,6 +416,7 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
   const ordered = Object.entries(projects).sort(([left], [right]) => left.localeCompare(right));
   for (const [pid, project] of ordered) {
     if (project.status !== 'active' || project.reservedWorkers === undefined || project.committedUsd === undefined) continue;
+    if (!hasSiteControl(state, project)) continue; // contested/changed control freezes progression.
     const remaining = project.committedUsd - (project.completedWorkUsd ?? 0);
     if (remaining <= 0) continue;
     const available = availableConstructionMaterials(state, project.countryId) - (consumedThisPass.get(project.countryId) ?? 0);
@@ -413,34 +437,38 @@ export function advanceConstructionProgress(state: SimulationState): SimulationS
   }
   if (!changed) return state;
   let next = { ...state, assets: { ...state.assets, projects } };
-  for (const [countryId, executed] of fiscalByCountry) next = withFiscalConstruction(next, countryId, { executed, cash: -executed });
+  for (const [countryId, executed] of fiscalByCountry) next = withFiscalConstruction(next, countryId, { committed: -executed, executed, cash: -executed });
   for (const [countryId, materials] of consumedThisPass) next = consumeConstructionMaterials(next, countryId, materials);
   return next;
 }
 
 /** 0.24.4B — construction progression runs on the shared scheduler, never a parallel timer. */
 const CONDITION_ORDER = ['excellent', 'good', 'fair', 'poor', 'critical'] as const;
-/** 0.24.6D — monthly maintenance: funded assets are maintained (availability restored);
- *  unfunded assets degrade availability and, once overdue, wear one condition step. */
+/** 0.24.6D — monthly maintenance: funded operational assets are maintained (wear
+ *  counter reset); unfunded operational assets accrue maintenance debt and wear one
+ *  physical-condition step every MAINTENANCE_WEAR_MONTHS unfunded months. Broken
+ *  assets are never maintained into availability — an out_of_service/degraded asset
+ *  is restored only by its explicit repair (0.24.7B). */
 export function runAssetMaintenance(state: SimulationState): SimulationState {
   let next = state;
   for (const [assetId, asset] of Object.entries(state.assets.assets)) {
+    if (asset.operatingStatus !== 'operational') continue; // broken/retired assets need repair, never maintenance.
     const controller = assetController(next, assetId);
     if (!controller) continue;
-    const cash = next.fiscal.countries[controller]?.cash ?? 0;
-    if (cash >= MAINTENANCE_COST_USD) {
-      next = withFiscalConstruction(next, controller, { executed: MAINTENANCE_COST_USD, cash: -MAINTENANCE_COST_USD });
-      next = updateAsset(next, assetId, { lastMaintainedOn: next.date, availability: 'available' });
-    } else {
-      const availability = asset.availability === 'available' ? 'partial' : 'unavailable';
-      let patch: Partial<AssetRecord> = { availability };
-      const overdue = asset.lastMaintainedOn === undefined || asset.lastMaintainedOn <= addDays(next.date, -MAINTENANCE_WEAR_MONTHS * 30);
-      if (overdue && asset.physicalCondition && (CONDITION_ORDER as readonly string[]).includes(asset.physicalCondition)) {
-        const idx = CONDITION_ORDER.indexOf(asset.physicalCondition as (typeof CONDITION_ORDER)[number]);
-        if (idx < CONDITION_ORDER.length - 1) patch = { ...patch, physicalCondition: CONDITION_ORDER[idx + 1] };
-      }
-      next = updateAsset(next, assetId, patch);
+    const fiscalCountry = next.fiscal.countries[controller];
+    const uncommitted = (fiscalCountry?.cash ?? 0) - (fiscalCountry?.constructionCommitted ?? 0);
+    if (uncommitted >= MAINTENANCE_COST_USD) {
+      next = withFiscalConstruction(next, controller, { maintenance: MAINTENANCE_COST_USD, cash: -MAINTENANCE_COST_USD });
+      next = updateAsset(next, assetId, { lastMaintainedOn: next.date, unfundedMaintenanceMonths: 0, availability: 'available' });
+      continue;
     }
+    const canWear = asset.physicalCondition !== undefined && (CONDITION_ORDER as readonly string[]).includes(asset.physicalCondition);
+    if (!canWear) continue;
+    const unfunded = (asset.unfundedMaintenanceMonths ?? 0) + 1;
+    const patch: Partial<AssetRecord> = unfunded >= MAINTENANCE_WEAR_MONTHS
+      ? { unfundedMaintenanceMonths: 0, physicalCondition: CONDITION_ORDER[Math.min(CONDITION_ORDER.length - 1, CONDITION_ORDER.indexOf(asset.physicalCondition as (typeof CONDITION_ORDER)[number]) + 1)] }
+      : { unfundedMaintenanceMonths: unfunded };
+    next = updateAsset(next, assetId, patch);
   }
   return next;
 }

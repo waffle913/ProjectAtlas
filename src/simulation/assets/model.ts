@@ -96,6 +96,8 @@ export interface AssetSourceProvenance {
 export interface AssetCoverageRecord {
   status: AssetCoverageStatus;
   provenance?: AssetSourceProvenance;
+  /** Required explicit justification when coverage is `'not_applicable'`. */
+  justification?: string;
 }
 
 /**
@@ -148,6 +150,8 @@ export interface AssetCapacityRecord {
   amount?: number;
   unit: string;
   coverage: AssetCoverageStatus;
+  /** Provenance required when coverage is sourced/derived/partial. */
+  provenance?: AssetSourceProvenance;
   limitation?: string;
 }
 
@@ -168,6 +172,9 @@ export interface AssetRecord extends AssetIdentityRecord, AssetPhysicalStateReco
   repairReadyOn?: string;
   /** 0.24.6D — date of the last funded maintenance cycle. */
   lastMaintainedOn?: string;
+  /** 0.24.6D — consecutive months of unfunded maintenance, driving slow physical
+   *  condition wear (one step every MAINTENANCE_WEAR_MONTHS unfunded months). */
+  unfundedMaintenanceMonths?: number;
 }
 
 // ---------------------------------------------------------------------------
