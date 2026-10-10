@@ -279,6 +279,6 @@ describe('0.24.4 construction work and progression', () => {
       ...proposed,
       assets: { ...proposed.assets, projects: { ...proposed.assets.projects, 'project.00000000': { ...planned, reservedWorkers: 5 } } },
     };
-    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('carries a worker reservation in a non-working status');
+    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Project project.00000000 carries a worker reservation in a non-working status.');
   });
 });
