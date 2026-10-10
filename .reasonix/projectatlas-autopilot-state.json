@@ -6,16 +6,16 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
   "current_block": "0.24.11",
-  "milestone_phase": "MAIN_CI",
+  "milestone_phase": "SEALED_SAFE_ZONE",
 
-  "last_safe_milestone": "0.23",
-  "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
+  "last_safe_milestone": "0.24",
+  "last_safe_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
   "last_safe_branch": "main",
-  "last_safe_ci_status": "green: workflow run 97 / run id 38017841830 / ubuntu+windows success",
+  "last_safe_ci_status": "green: run 38079523537 / ubuntu+windows success",
 
-  "sealed_milestone": "0.23",
-  "sealed_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "sealed_ci_run_id": 38017841830,
+  "sealed_milestone": "0.24",
+  "sealed_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
+  "sealed_ci_run_id": 38079523537,
 
   "current_branch": "main",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Consolidated 0.24 corrective campaign complete. All blockers resolved: (1) causal construction-material requirement feeds Trade import need; (2) underfunded legacy commitment reconciled deterministically without fabricating cash; (3) maintenance covers costs+resources+availability+wear; (4) run-134 failures fixed; (5) autopilot state evidence current. Branch CI green (run 38077899157), merged to main at 6b6794e, main CI green (run 38079523537). 0.24 is NOT accepted and NOT sealed; 0.25 must NOT start. STOPPED before SEALED_SAFE_ZONE awaiting explicit human acceptance."
+  "notes": "0.24 accepted by the human. Sealed at 6b6794e (runtime SHA, main CI green run 38079523537). STOPPED before starting 0.25: the human will add autopilot instructions shortly; do not start 0.25 or archive the review campaign until those instructions arrive."
 }
