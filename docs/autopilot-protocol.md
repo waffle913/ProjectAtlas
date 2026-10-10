@@ -555,3 +555,356 @@ progress is made: reduce the problem, identify the root cause, change approach,
 consult a Reviewer, re-read the contract. Configure Reasonix's stall/Goal
 mechanisms where the build provides them. Apparent progress from new patches is
 not real progress if the same invariant stays broken.
+
+The following are all spin and are prohibited autonomously:
+
+- repeated broad reviews after the review campaign is exhausted;
+- repeated post-seal reopenings;
+- alternating reviewer schemas indefinitely;
+- spawning replacement reviewers after repeated schema failures;
+- polling a terminal CI run;
+- repeatedly validating metadata-only Safe-Zone commits with the full runtime suite;
+- repeatedly re-reading the same diff without a new evidence trigger.
+
+"New activity" is not necessarily "material progress".
+
+---
+
+# Hardening (schema v2)
+
+This part tightens the protocol based on the live 0.22–0.23 run. It is normative
+and supersedes the earlier sections wherever they conflict. It does not retroactively
+rewrite how earlier milestones were actually run; it governs every milestone from
+the moment the schema-v2 state is adopted.
+
+## 22. Milestone phase machine
+
+A milestone must progress through this explicit phase machine, and every phase
+transition is persisted in the Autopilot state on material changes:
+
+```text
+BRANCH_SYNC
+-> IMPLEMENTING
+-> CONSOLIDATED_REVIEW
+-> CORRECTING_REVIEW_FINDINGS
+-> FINAL_VERIFICATION_REVIEW
+-> FINAL_CORRECTIONS              (only if needed)
+-> TARGETED_VERIFICATION          (only if FINAL_CORRECTIONS occurred)
+-> BRANCH_CI
+-> MERGE_TO_MAIN
+-> MAIN_CI
+-> SEALED_SAFE_ZONE
+-> NEXT_MILESTONE
+```
+
+`NEXT_MILESTONE` means the previous milestone is **sealed**. A sealed milestone
+cannot receive a spontaneous new general review. Do not set `current_milestone`
+to the next milestone and then continue reviewing the previous milestone.
+
+## 23. Bounded review campaign
+
+Defaults:
+
+```text
+MAX_FULL_MILESTONE_REVIEW_ROUNDS = 2
+MAX_AUTONOMOUS_POST_SEAL_REOPENS = 1
+```
+
+### Round 1 — CONSOLIDATED_REVIEW
+
+One comprehensive independent milestone review. The reviewer inspects the actual
+milestone delta and attempts to report **all detectable issues in one pass**,
+grouped as CERTAIN BUGS / PROBABLE RISKS / OPTIONAL IMPROVEMENTS. It does not stop
+after the first few findings.
+
+- All CERTAIN BUGS block.
+- All PROBABLE RISKS block until fixed, disproved with sufficient evidence, or
+  explicitly waived by the human.
+- The contradictory label "non-blocking probable risk" is forbidden: if a finding
+  is non-blocking it is an OPTIONAL IMPROVEMENT or a documented residual limitation.
+
+### Round 2 — FINAL_VERIFICATION_REVIEW
+
+After the Round-1 correction campaign, one last independent **general** review of
+the milestone. This is the final general review.
+
+If Round 2 finds blocking issues:
+
+1. gather all Round-2 blocking findings;
+2. perform one consolidated `FINAL_CORRECTIONS` campaign;
+3. perform `TARGETED_VERIFICATION`.
+
+`TARGETED_VERIFICATION` may inspect the corrected lines, directly affected
+invariants, direct dependencies, and regression surfaces caused by those
+corrections. It must **not** silently expand into Round 3 of a full milestone
+review.
+
+If targeted verification still demonstrates a blocking defect, or confidence
+requires another general review:
+
+```text
+CRYO_MODE
+reason = REVIEW_CAMPAIGN_EXHAUSTED
+```
+
+No Round 3 / Round 4 / Round 5 general review is permitted autonomously. The fact
+that each new review finds a *different* bug does not bypass this breaker.
+
+## 24. Sealed Safe Zones
+
+A new Safe Zone requires all of:
+
+1. milestone scope complete;
+2. Round 1 complete;
+3. Round-1 corrections complete;
+4. Round 2 complete;
+5. final corrections complete if needed;
+6. targeted verification complete if needed;
+7. milestone branch CI green;
+8. integration into `main`;
+9. required `main` CI green;
+10. no known blocking defect.
+
+Only then:
+
+```text
+milestone_phase = SEALED_SAFE_ZONE
+sealed_milestone = <milestone>
+sealed_sha = <exact green runtime SHA on main>
+last_safe_milestone = <same milestone>
+last_safe_sha = <same exact runtime SHA>
+```
+
+The exact SHA whose required checks are green is the Safe-Zone SHA. Do not record
+an older SHA if later runtime corrections for the same milestone were added. A
+subsequent metadata-only Autopilot commit does **not** replace the runtime
+Safe-Zone SHA.
+
+## 25. Evidence-only reopening
+
+After `SEALED_SAFE_ZONE`, no new general review may start merely because "another
+review could be useful". A sealed milestone may be reopened autonomously only for
+a concrete new event:
+
+- required CI on the sealed runtime state becomes red;
+- the next milestone exposes a reproducible regression in the sealed milestone;
+- a newly triggered invariant/test supplies concrete evidence;
+- synchronization/merge changed validated behavior;
+- a concrete external report demonstrates a critical defect;
+- explicit human request.
+
+Before reopening, persist:
+
+```text
+milestone_phase = REOPENED_BY_EVIDENCE
+reopened_milestone
+reopen_reason
+reopen_evidence
+reopen_count
+```
+
+A post-seal reopening is a **targeted corrective campaign**, not a fresh unlimited
+review campaign. Default `MAX_AUTONOMOUS_POST_SEAL_REOPENS = 1`. If the same sealed
+milestone would need a second autonomous reopening before meaningful progress on
+the next milestone:
+
+```text
+CRYO_MODE
+reason = REVIEW_CAMPAIGN_EXHAUSTED
+```
+
+A human may explicitly authorize another reopening.
+
+## 26. Root-cause breaker remains separate
+
+Preserve `MAX_SAME_ROOT_CAUSE_REPAIR_CYCLES = 2`. This protects against
+`A -> fix A -> A returns`. The review-campaign breaker protects against
+`review -> new A -> review -> new B -> review -> new C -> ...`. These are separate
+counters and both are persisted.
+
+Do not erase repair history merely because the latest CI becomes green. Resolved
+signatures may be marked resolved; they must not disappear from the audit trail
+for the active milestone.
+
+## 27. Reviewer capability negotiation
+
+At Goal startup, resolve **one** usable reviewer invocation interface and persist:
+
+```text
+review_capability_adapter:
+  capability_identity
+  invocation_parameter
+  resolved_at
+  status
+```
+
+Rules:
+
+1. Never assume globally that the parameter is `task`.
+2. Never assume globally that the parameter is `arguments`.
+3. Inspect the capability/runtime schema when available.
+4. Use one selected reviewer interface consistently throughout a review campaign.
+5. An invocation-schema failure is an **orchestration failure**, not a ProjectAtlas
+   code finding and not a code repair cycle.
+6. If the first attempt fails and the runtime explicitly states the accepted
+   parameter, adapt once and persist the working adapter.
+7. Do not alternate indefinitely `task -> arguments -> task -> arguments`.
+8. If the same named `review` capability later presents a contradictory/unresolvable
+   schema, either switch once to a distinct known reviewer interface and persist
+   that identity, or enter Cryo.
+
+Blocker: `BLOCKED_REVIEW_CAPABILITY` — used when an independent reviewer cannot be
+invoked reliably after the bounded adapter resolution attempts. An interrupted
+reviewer does **not** count as a completed review round.
+
+## 28. Reviewer fan-out and subagent cost control
+
+A review round has one lead consolidated review. Specialist subagents may be used
+only when their scopes are explicitly non-overlapping. Default:
+
+```text
+MAX_REVIEW_SUBAGENTS_PER_ROUND = 4
+```
+
+Do not spawn many broad reviewers all independently rereading the same full diff.
+If more than four are genuinely necessary, record why, ensure scopes are distinct,
+and verify budget telemetry if accessible before spawning them. A schema-failed or
+interrupted subagent must not trigger a cascade of replacement subagents.
+
+## 29. Review the milestone delta, not unrelated branch noise
+
+Persist:
+
+```text
+milestone_scope_base_sha
+milestone_branch_head_sha
+carried_commits
+carried_unrelated_scope
+```
+
+Before implementing or reviewing an old milestone branch:
+
+1. start from the current sealed Safe Zone;
+2. identify useful existing milestone commits;
+3. integrate/replay them cleanly;
+4. preserve their authorship/history as reasonably possible;
+5. establish the milestone review base;
+6. only then continue implementation.
+
+Reviewers focus on the actual milestone delta. If an inherited branch carries
+unrelated deliverables, identify them explicitly instead of treating the whole
+noisy merge as newly authored milestone scope. (The 0.23 integration carried
+unrelated playable-shell/Tauri and prior refinements; the 0.24.1A commit lives on
+a stale base and must be replayed, not re-reviewed as new.)
+
+## 30. GitHub CI polling state machine
+
+Never use a blind long wait as the primary CI control. For each CI gate persist:
+
+```text
+ci_run_id
+ci_head_sha
+ci_branch
+ci_status
+ci_last_checked_at
+```
+
+Poll the **specific run for the exact expected head SHA**. Behavior:
+
+```text
+queued / waiting / in_progress
+    -> wait a reasonable polling interval
+    -> poll again
+
+completed + success
+    -> exit polling immediately
+    -> continue
+
+completed + failure / cancelled / timed_out / action_required
+    -> exit polling immediately
+    -> diagnose or apply blocker rules
+```
+
+Do not sleep for hundreds of additional seconds after a terminal status is already
+known. Do not use a short global timeout that treats a legitimate 20–30 minute
+ProjectAtlas verify as hung. If the run id or head SHA changes unexpectedly,
+reconcile that explicitly rather than silently waiting on the wrong run.
+
+## 31. CI failures and repair accounting
+
+A red CI is not automatically the same root cause as the previous red CI. For each
+failure: identify the root-cause signature, persist it, associate the CI run id and
+SHA, and count repairs by root cause. Infrastructure-only failures may be rerun
+without consuming a code repair cycle. Stale CI from a branch created before the
+current Safe Zone does not count as a failure of the synchronized milestone.
+
+## 32. Avoid metadata-only full CI runs
+
+The `.github/workflows/verify.yml` workflow uses `paths-ignore` so that a push/PR
+containing **only** Autopilot/documentation metadata does not run the heavy runtime
+verify. Ignored paths are at least:
+
+```text
+.reasonix/**
+docs/**
+README.md
+AGENTS.md
+.github/copilot-instructions.md
+```
+
+Do **not** ignore runtime/source files, package files, data/scripts, build
+configuration, or `.github/workflows/verify.yml` itself. `paths-ignore` semantics
+must ensure that a commit changing both ignored metadata and runtime code still
+runs verify. The Safe Zone runtime SHA stays the exact runtime code SHA that passed
+CI; a later state-only metadata commit may record that Safe Zone without causing
+another 20–30 minute simulation validation cycle.
+
+## 33. Branch CI vs main CI
+
+Runtime milestone code must be validated before integration, and the integrated
+runtime state must be validated on `main`. Do not remove the `main` gate merely to
+save time. However: do not add extra heavy CI solely because the Autopilot state
+file was updated; do not create repeated "record Safe Zone" runtime-verification
+loops; a state-only metadata commit is not a new runtime Safe Zone.
+
+## 34. Budget state must be explicit
+
+`budget_status = "not_checked"` must not silently persist forever if the runtime
+has an accessible billing/quota capability. At milestone boundaries, persist one of:
+
+```text
+checked_sufficient
+checked_low
+blocked
+not_observable_to_agent
+```
+
+Include the observation source/time when available. If wallet information is
+visible only to the human UI and not programmatically accessible to Reasonix,
+record `not_observable_to_agent`. Do not invent the balance from conversation text
+or stale screenshots. Provider refusal for exhausted funds/quota still immediately
+triggers `BLOCKED_BUDGET`; no paid retry loop.
+
+## 35. Persistent state schema v2
+
+The state at `.reasonix/projectatlas-autopilot-state.json` uses schema 2 with at
+least the fields listed in §17 of the hardening patch (schema, mode, roadmap_id,
+current_milestone, current_block, milestone_phase, last_safe_*, sealed_*,
+current_branch, milestone_scope_base_sha, milestone_branch_head_sha,
+carried_commits, blocked_head_sha, ci_*, review_campaign, review_capability_adapter,
+repair_signatures, repair_cycles, budget_status, budget_observation, stop_reason,
+max_same_root_cause_repair_cycles, updated_at, notes). Material history remains
+auditable; review/repair counters are not reset merely to make the state look clean.
+
+## 36. Cryo reasons
+
+In addition to the existing reasons, add:
+
+- `REVIEW_CAMPAIGN_EXHAUSTED` — another broad review would exceed the two-round
+  limit; targeted verification after final corrections still finds a blocker; or
+  a sealed milestone would require more autonomous reopenings than allowed.
+- `BLOCKED_REVIEW_CAPABILITY` — the required independent reviewer interface cannot
+  be invoked reliably after bounded adapter resolution.
+
+Cryo reports include the review campaign counts and review adapter state when
+relevant.

@@ -1,23 +1,63 @@
 {
-  "schema": 1,
-  "mode": "running",
+  "schema": 2,
+  "mode": "paused_by_user",
   "roadmap_id": "projectatlas-roadmap-submilestones",
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
   "current_block": null,
+  "milestone_phase": "PAUSED_BEFORE_MILESTONE_START",
+
   "last_safe_milestone": "0.23",
-  "last_safe_sha": "31e0e3bb2d8e260fb867db6675276ae20a614624",
+  "last_safe_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
   "last_safe_branch": "main",
-  "last_safe_ci_status": "green (verify ubuntu-latest + windows-latest success)",
-  "current_branch": null,
+  "last_safe_ci_status": "green: workflow run 97 / run id 38017841830 / ubuntu+windows success",
+
+  "sealed_milestone": "0.23",
+  "sealed_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
+  "sealed_ci_run_id": 38017841830,
+
+  "current_branch": "waffle913-construction-assets-024",
+  "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
+  "milestone_branch_head_sha": "103a6a4b885f512ee19b4965685a570fa2c43106",
+  "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
+  "carried_unrelated_scope": [],
+
   "blocked_head_sha": null,
+
+  "ci_run_id": 38017841830,
+  "ci_head_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
+  "ci_branch": "main",
   "ci_status": "green",
+  "ci_last_checked_at": "2026-10-10",
+
+  "review_campaign": {
+    "milestone": "0.23",
+    "full_review_round": 2,
+    "max_full_review_rounds": 2,
+    "final_verification_complete": true,
+    "targeted_verification_complete": true,
+    "findings_summary": "0.23 sealed at 84c09c9 after the historical (pre-schema-v2) review/correction campaign; see notes for the legacy overrun record.",
+    "late_blocking_findings": [],
+    "reopen_count": 0,
+    "max_autonomous_post_seal_reopens": 1
+  },
+
+  "review_capability_adapter": {
+    "capability_identity": "tool:review",
+    "invocation_parameter": "task",
+    "resolved_at": "2026-10-10",
+    "status": "resolved"
+  },
+
   "repair_signatures": [],
   "repair_cycles": {},
-  "budget_status": "not_checked",
-  "stop_reason": null,
+
+  "budget_status": "not_observable_to_agent",
+  "budget_observation": null,
+
+  "stop_reason": "USER_PAUSED_FOR_AUTOPILOT_HARDENING",
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "0.23 (constitution/institutions/elections/organisations) merged to main, schema 19. Three independent review passes: (1) found 5 CERTAIN BUGS + 6 PROBABLE RISKS, fixed; (2) SHIP with 2 non-blocking probable risks, fixed; (3) found 3 CERTAIN BUGS (party-merge membership, sovereignty politics cache, annulment devolved-powers replay) + 3 PROBABLE RISKS (proportionalSeats threshold crash, formGovernment nominator gate, censure headless), all fixed. Main CI green at 31e0e3b. Synchronized the 0.23 branch onto main (0.22 corrections + autopilot docs); conflicts resolved in governance invariants/migration, policyFramework.test.ts, agent-handoff.md. Raised vitest testTimeout to 30s (0.23 invariants run over 252 Countries). The branch also carried the playable-shell V1 (Tauri) and the 0.22 discriminated-union refinement, documented as separate deliverables. Next: 0.24 (branch waffle913-construction-assets-024 @ 103a6a4, both CI red; branched from 433633f which is now superseded by main)."
+  "notes": "User paused the Roadmap Goal to apply the Autopilot hardening patch. 0.23 is SEALED at the latest known green runtime SHA 84c09c9 (workflow run 97 / run id 38017841830, ubuntu+windows success). LEGACY OVERRUN (observed before schema-v2 hardening, do not rerun 0.23 reviews to 'make history conform'): 0.23 general review rounds observed = 4+; post-Safe-Zone reopenings observed = 2; this exceeded the new limits but occurred under the pre-hardening protocol. 0.23 is sealed based on already obtained evidence. 0.24.1A (canonical physical-asset identity and type vocabulary, commit 103a6a4b) must be PRESERVED and replayed onto the sealed Safe Zone after branch synchronization — its source branch waffle913-construction-assets-024 is currently 1 ahead / 18 behind the sealed Safe Zone (merge base 433633f2b2fad43b58951cb8d5dae817616b5ba4); the stale red CI on that pre-sync branch must not be treated as a current failure signature. Do not start 0.24 while applying this patch; the user will explicitly resume the Roadmap Goal."
 }

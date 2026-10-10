@@ -23,34 +23,81 @@ condition in the protocol.
   sub-milestones, or milestones inside the authorized roadmap. Stop only at the
   authorization boundary or a protocol STOP condition.
 - **Startup** — inspect `main`, milestone branches, contracts, commits, CI, and
-  documented status. Distinguish planned / implemented / pushed / CI-green /
-  reviewed / merged / accepted, and start at the first authorized milestone that
-  genuinely still needs work. Never rebuild a milestone already in the Safe Zone.
+  documented state. Distinguish planned / implemented / pushed / CI-green /
+  reviewed / merged / accepted / sealed, and start at the first authorized
+  milestone that genuinely still needs work. Never rebuild a milestone already
+  in the Safe Zone.
+- **Startup branch synchronization** — before implementing or reviewing an old
+  milestone branch, start from the current sealed Safe Zone, identify useful
+  existing milestone commits, integrate/replay them cleanly (preserving their
+  history), and establish the milestone review base. Stale red CI from a
+  pre-sync branch is not a current failure signature.
 - **Roles** — separate Planner (read-only), Executor, and Reviewer (independent
   subagent/context) as the installed capabilities allow. The Reviewer inspects
   the real diff and classifies CERTAIN BUGS / PROBABLE RISKS / OPTIONAL
   IMPROVEMENTS.
+- **Milestone phase machine** — every milestone proceeds through
+  `BRANCH_SYNC -> IMPLEMENTING -> CONSOLIDATED_REVIEW ->
+  CORRECTING_REVIEW_FINDINGS -> FINAL_VERIFICATION_REVIEW ->
+  FINAL_CORRECTIONS? -> TARGETED_VERIFICATION? -> BRANCH_CI -> MERGE_TO_MAIN ->
+  MAIN_CI -> SEALED_SAFE_ZONE -> NEXT_MILESTONE`, persisting each transition.
+  `NEXT_MILESTONE` means the previous milestone is sealed.
+- **Bounded review campaign** — maximum **two** full milestone review rounds
+  (`MAX_FULL_MILESTONE_REVIEW_ROUNDS = 2`): one CONSOLIDATED_REVIEW, then one
+  FINAL_VERIFICATION_REVIEW. After final corrections, only TARGETED_VERIFICATION
+  (corrected lines, direct dependencies, regression surfaces) — never a third
+  broad review. Exceeding this is CRYO_MODE with `REVIEW_CAMPAIGN_EXHAUSTED`.
+- **Sealed Safe Zones** — a Safe Zone requires the full phase chain complete,
+  branch CI green, integration into `main`, required `main` CI green, and no
+  known blocking defect. Record the exact runtime SHA whose required checks are
+  green; a metadata-only commit never replaces the runtime Safe-Zone SHA.
+- **Evidence-only reopening** — after `SEALED_SAFE_ZONE`, no new general review
+  starts merely because "another review could be useful". Reopen only on a
+  concrete new event, persist `REOPENED_BY_EVIDENCE` + reason + evidence, and
+  treat it as a targeted corrective campaign.
+  `MAX_AUTONOMOUS_POST_SEAL_REOPENS = 1`; a second autonomous reopening is
+  CRYO_MODE with `REVIEW_CAMPAIGN_EXHAUSTED`.
 - **GitHub CI is the gate** — push, wait for GitHub Actions, read the real
   result, and only advance on green. No local `npm run verify` / `npm test` /
   build / audit / benchmark by default; use only light local operations (reads,
   search, `git status`, `git diff`, `git diff --check`, Git).
-- **Safe Zones** — maintain `LAST_SAFE_ZONE`; advance it only after a complete,
-  reviewed, corrected milestone is merged to `main` with required checks green
-  and no known critical defect. Progress never passes a known critical defect.
+- **CI polling state machine** — poll the specific run for the exact expected
+  head SHA; exit polling immediately on any terminal status (`completed`
+  with success/failure/cancelled/timed_out/action_required), and treat a
+  legitimate 20–30 minute verify as in-progress rather than hung.
 - **Loop breaker** — track failure signatures by root cause, not error text;
   `MAX_SAME_ROOT_CAUSE_REPAIR_CYCLES = 2`. Same root cause surviving two repair
-  cycles -> CRYO_MODE, reason `REPEATED_ROOT_CAUSE`.
+  cycles -> CRYO_MODE, reason `REPEATED_ROOT_CAUSE`. This is separate from the
+  review-campaign breaker; both are persisted and never reset to look clean.
+- **Reviewer capability negotiation** — resolve one usable reviewer invocation
+  interface at startup (inspect its schema; never hardcode `task` or `arguments`
+  globally), persist the working adapter, and use it consistently. An
+  invocation-schema failure is an orchestration failure, not a code repair
+  cycle; adapt once, and if unresolvable enter CRYO_MODE with
+  `BLOCKED_REVIEW_CAPABILITY`.
+- **Bounded reviewer fan-out** — one lead consolidated review per round;
+  specialist subagents only with non-overlapping scopes
+  (`MAX_REVIEW_SUBAGENTS_PER_ROUND = 4`). Do not cascade replacement reviewers
+  after schema failures.
 - **Cryo Mode** — on any critical problem / budget / design / contract /
-  migration / external blocker: freeze at the last Safe Zone, produce the CRYO
+  migration / external blocker / `REVIEW_CAMPAIGN_EXHAUSTED` /
+  `BLOCKED_REVIEW_CAPABILITY`: freeze at the last Safe Zone, produce the CRYO
   report, then STOP. Never work around a broken system, mark it TODO, add an
   arbitrary fallback, invent data, disable an invariant, weaken a test, or build
   the next milestone on top of the defect.
 - **Budget/quota** — act on observable provider/quota signals only; enter
   CRYO_MODE with `BLOCKED_BUDGET` on provider refusal; no paid retry loops.
+  Persist an explicit `budget_status` at milestone boundaries
+  (`checked_sufficient` / `checked_low` / `blocked` / `not_observable_to_agent`);
+  do not invent a balance from conversation text or stale screenshots.
 - **No unauthorized backlog expansion** — never invent 0.26+; the unnumbered
   post-0.25 backlog is not automatically authorized.
-- **Persistent state** — update `.reasonix/projectatlas-autopilot-state.json` on
-  material changes only; store no secrets in it or in Git.
+- **Metadata-only updates** — state-only/docs-only Autopilot commits do not
+  trigger the heavy runtime verify (`.github/workflows/verify.yml` `paths-ignore`),
+  and are never treated as a new runtime Safe Zone.
+- **Persistent state** — update `.reasonix/projectatlas-autopilot-state.json`
+  (schema v2) on material changes only; store no secrets in it or in Git; keep
+  the audit trail of review/repair counters intact.
 - **End of roadmap** — when every numbered, authorized milestone is complete,
   produce the ROADMAP AUTOPILOT — COMPLETE report and stop; do not convert the
   unnumbered backlog into new versions.

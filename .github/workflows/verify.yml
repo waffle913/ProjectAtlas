@@ -2,7 +2,22 @@ name: verify
 
 on:
   push:
+    # Autopilot/documentation metadata does not run the heavy runtime verify.
+    # If a push changes any runtime/source/data/script/build/workflow file in
+    # addition to these, the workflow still runs.
+    paths-ignore:
+      - '.reasonix/**'
+      - 'docs/**'
+      - 'README.md'
+      - 'AGENTS.md'
+      - '.github/copilot-instructions.md'
   pull_request:
+    paths-ignore:
+      - '.reasonix/**'
+      - 'docs/**'
+      - 'README.md'
+      - 'AGENTS.md'
+      - '.github/copilot-instructions.md'
 
 jobs:
   verify:

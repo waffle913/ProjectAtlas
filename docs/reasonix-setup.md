@@ -60,6 +60,29 @@ Do **not** weaken the destructive-Git protections. Keep `[permissions]` deny
 entries such as `Bash(git push*)` and `Bash(rm -rf*)` unless you deliberately
 configure an explicit, narrow allow-list for the Autopilot's push step.
 
+## Reviewer capability negotiation
+
+The Autopilot resolves one usable reviewer invocation interface at startup and
+persists it as `review_capability_adapter` (capability identity, invocation
+parameter, resolved_at, status). The reviewer capability may be exposed as
+`skill:review`, `tool:review`, a `runAs: subagent` profile, or a dedicated review
+model. The exact invocation parameter is **not** hardcoded: some builds accept
+`task`, others accept `arguments`, and the Autopilot inspects the capability
+schema before invoking. It never assumes globally that the parameter is `task`
+or `arguments`, adapts at most once on an explicit schema error, and uses the one
+selected interface consistently for the whole review campaign.
+
+An invocation-schema failure is an orchestration failure (not a code finding and
+not a code repair cycle). If the interface cannot be resolved after the bounded
+adapter attempts, the Autopilot enters `CRYO_MODE` with
+`BLOCKED_REVIEW_CAPABILITY`. An interrupted reviewer returns no verdict and
+consumes no review round.
+
+If your build exposes the reviewer through `subagent_models = { review = ... }`
+or a `runAs: subagent` profile, record that identity in the adapter. Verify the
+actual capability with `/version`, `reasonix doctor capabilities`, or the
+equivalent for your build before a long run.
+
 ## Starting the Roadmap Autopilot
 
 1. Make sure `main` is clean and pushed.
@@ -103,6 +126,14 @@ insufficient, and it enters `CRYO_MODE` (`BLOCKED_BUDGET`) the moment the provid
 refuses a request for insufficient credits / exhausted quota / spending limit /
 depleted balance. If exact financial telemetry is unavailable, the Autopilot
 documents that limit rather than inventing a credit measure.
+
+The Autopilot records an explicit `budget_status` at milestone boundaries:
+`checked_sufficient`, `checked_low`, `blocked`, or `not_observable_to_agent`,
+with the observation source/time when available. If wallet information is visible
+only to the human UI and not programmatically accessible to Reasonix, record
+`not_observable_to_agent`; do not invent the balance from conversation text or
+stale screenshots. Provider refusal for exhausted funds/quota still immediately
+triggers `BLOCKED_BUDGET`, with no paid retry loop.
 
 ## Exiting Cryo and resuming
 
