@@ -493,11 +493,8 @@ describe('0.24.9 data and migrations', () => {
 
   it('rejects sourced/partial coverage without provenance via the invariant', () => {
     const { state } = completedAsset();
-    const asset = state.assets.assets['asset.00000000'];
-    const forged = {
-      ...state,
-      assets: { ...state.assets, assets: { ...state.assets.assets, 'asset.00000000': { ...asset, coverage: { status: 'sourced' } } } },
-    };
+    const forged = structuredClone(state);
+    forged.assets.assets['asset.00000000'].coverage = { status: 'sourced' };
     expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('sourced/partial coverage without provenance');
   });
 });
