@@ -375,7 +375,7 @@ const countryIdsFor = (state: { territoryOwnership: Record<string, string | unde
   }
   return countryIds;
 };
-const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields | 'international' | 'operations' | 'multilateral' | 'constitution' | 'elections'>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
+const withEngine = (state: Omit<SimulationState, 'schemaVersion' | EngineFields | 'international' | 'operations' | 'multilateral' | 'constitution' | 'elections' | 'assets'>, regions: readonly RegionEntity[], context?: DiplomacyContext): SimulationState => {
   const countryIds = countryIdsFor(state, regions, context);
   const initialized = initializeFiscal(initializeSocioeconomy(initializeInformationState({ ...state, schemaVersion: 20, operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(), constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(), military: emptyMilitary(), information: emptyInformation(state.date), governance: emptyGovernance(state.date), politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(), engine: createEngineState(countryIds) }), regions));
   const crisis = { ...initialized, crisis: initializeCrisisState(initialized.crisis, countryIds, initialized.date) };
