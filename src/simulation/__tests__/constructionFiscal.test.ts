@@ -8,7 +8,7 @@ import { admitTradeMarket, admitTradeRoute, initializeTrade, prepareTradeMonth, 
 import { syntheticTradeMarket, SYNTHETIC_TRADE_SOURCE } from '../trade/scenario';
 import { assertSimulationInvariants } from '../invariants';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { CONSTRUCTION_DAILY_COST_PER_WORKER_USD, MAINTENANCE_COST_USD, MAINTENANCE_WEAR_MONTHS, REPAIR_COST_USD } from '../assets/model';
+import { CONSTRUCTION_DAILY_COST_PER_WORKER_USD, MAINTENANCE_COST_USD, MAINTENANCE_MATERIALS, MAINTENANCE_WEAR_MONTHS, REPAIR_COST_USD } from '../assets/model';
 
 /** A fully-initialized world (real socioeconomic + fiscal treasury) with a head of government. */
 const funded = () => {
@@ -113,34 +113,58 @@ describe('0.24.3 construction execution through the monthly fiscal account', () 
 });
 
 describe('0.24.6D paid maintenance and slow wear', () => {
-  it('pays maintenance from uncommitted cash without touching construction commitments', () => {
+  it('pays maintenance from uncommitted cash and the canonical material stock without touching construction commitments', () => {
     const { state, countryId } = completedAsset();
     const before = state.fiscal.countries[countryId];
+    const stockBefore = state.trade.countries[countryId].markets['raw_materials']!.stock!.quantity;
     const maintained = runAssetMaintenance(state);
     const after = maintained.fiscal.countries[countryId];
     expect(after.cash).toBe(before.cash - MAINTENANCE_COST_USD);
     expect(after.assetMaintenanceSpent).toBe(before.assetMaintenanceSpent + MAINTENANCE_COST_USD);
     expect(after.constructionCommitted).toBe(before.constructionCommitted);
+    // Maintenance consumes the canonical construction-material resource.
+    expect(maintained.trade.countries[countryId].markets['raw_materials']!.stock!.quantity).toBe(stockBefore - MAINTENANCE_MATERIALS);
     expect(maintained.assets.assets['asset.00000000'].lastMaintainedOn).toBe(state.date);
     expect(maintained.assets.assets['asset.00000000'].unfundedMaintenanceMonths).toBe(0);
+  });
+
+  it('refuses maintenance when the material resource is short even if cash is available', () => {
+    const { state, countryId } = completedAsset();
+    // Drain the material stock so maintenance has cash but no resource.
+    const drained = { ...state, trade: { ...state.trade, countries: { ...state.trade.countries, [countryId]: { ...state.trade.countries[countryId], markets: { ...state.trade.countries[countryId].markets, raw_materials: { ...state.trade.countries[countryId].markets['raw_materials']!, stock: { ...state.trade.countries[countryId].markets['raw_materials']!.stock!, quantity: 0 } } } } } } };
+    const maintained = runAssetMaintenance(drained);
+    expect(maintained.fiscal.countries[countryId].assetMaintenanceSpent).toBe(drained.fiscal.countries[countryId].assetMaintenanceSpent);
+    expect(maintained.assets.assets['asset.00000000'].unfundedMaintenanceMonths).toBe(1);
   });
 
   it('wears one physical-condition step every MAINTENANCE_WEAR_MONTHS unfunded months, not sooner', () => {
     const { state, countryId } = completedAsset();
     const broke = { ...state, fiscal: { ...state.fiscal, countries: { ...state.fiscal.countries, [countryId]: { ...state.fiscal.countries[countryId], cash: 0, constructionCommitted: 0 } } } };
     let s = broke;
-    expect(s.assets.assets['asset.00000000'].physicalCondition).toBe('good');
+    const asset = () => s.assets.assets['asset.00000000'];
+    expect(asset().physicalCondition).toBe('good');
+    expect(asset().availability).toBe('available');
     s = runAssetMaintenance(s); // first unfunded month
-    expect(s.assets.assets['asset.00000000'].physicalCondition).toBe('good');
-    expect(s.assets.assets['asset.00000000'].unfundedMaintenanceMonths).toBe(1);
+    expect(asset().physicalCondition).toBe('good');
+    expect(asset().unfundedMaintenanceMonths).toBe(1);
     for (let month = 2; month < MAINTENANCE_WEAR_MONTHS; month += 1) s = runAssetMaintenance(s);
-    expect(s.assets.assets['asset.00000000'].physicalCondition).toBe('good');
+    expect(asset().physicalCondition).toBe('good');
     s = runAssetMaintenance(s); // 12th unfunded month
-    expect(s.assets.assets['asset.00000000'].physicalCondition).toBe('fair');
-    expect(s.assets.assets['asset.00000000'].unfundedMaintenanceMonths).toBe(0);
+    expect(asset().physicalCondition).toBe('fair');
+    expect(asset().availability).toBe('available'); // fair still fully available
+    expect(asset().unfundedMaintenanceMonths).toBe(0);
     s = runAssetMaintenance(s); // 13th month — no immediate second wear
-    expect(s.assets.assets['asset.00000000'].physicalCondition).toBe('fair');
-    expect(s.assets.assets['asset.00000000'].unfundedMaintenanceMonths).toBe(1);
+    expect(asset().physicalCondition).toBe('fair');
+    expect(asset().unfundedMaintenanceMonths).toBe(1);
+    // Prolonged under-maintenance degrades availability: poor -> partial, critical -> unavailable.
+    for (let month = 14; month < 24; month += 1) s = runAssetMaintenance(s);
+    s = runAssetMaintenance(s); // 24th month -> poor
+    expect(asset().physicalCondition).toBe('poor');
+    expect(asset().availability).toBe('partial');
+    for (let month = 25; month < 36; month += 1) s = runAssetMaintenance(s);
+    s = runAssetMaintenance(s); // 36th month -> critical
+    expect(asset().physicalCondition).toBe('critical');
+    expect(asset().availability).toBe('unavailable');
   });
 });
 
@@ -189,6 +213,31 @@ describe('0.24.9 legacy schema-20 save migration', () => {
     expect(() => fundConstruction(second, { projectId: 'project.00000001', funderPersonId: leaderId })).toThrow(/Insufficient treasury funds/);
     expect(assertSimulationInvariants(restored, worldContext, 'save')).toBe(true);
   });
+
+  it('deterministically reconciles a legacy over-commitment greater than cash without fabricating cash', () => {
+    const { state, leaderId, countryId, regionId } = funded();
+    const cash = state.fiscal.countries[countryId].cash;
+    let s = proposeConstruction(state, { proposerPersonId: leaderId, countryId, regionId, assetTypeId: 'type.road', title: 'Road', estimatedCostUsd: cash });
+    s = authorizeConstruction(s, { projectId: 'project.00000000', authorizerPersonId: leaderId });
+    s = fundConstruction(s, { projectId: 'project.00000000', funderPersonId: leaderId }); // commits the whole treasury
+    // Simulate a pre-correction save: ordinary fiscal execution later reused the committed
+    // cash (reducing it), and the fiscal-construction fields did not yet exist.
+    const legacy = structuredClone(s) as unknown as { fiscal: { countries: Record<string, Record<string, unknown>> } };
+    for (const country of Object.values(legacy.fiscal.countries)) {
+      country.cash = cash - 3000;
+      delete country.constructionCommitted;
+      delete country.constructionExecuted;
+      delete country.assetMaintenanceSpent;
+    }
+    const restored = restoreSimulationState(JSON.stringify(legacy), worldRegions, {}, {}, worldContext);
+    const c = restored.fiscal.countries[countryId];
+    expect(c.cash).toBe(cash - 3000); // no cash fabricated
+    expect(c.constructionCommitted).toBeLessThanOrEqual(c.cash);
+    expect(c.constructionCommitted).toBe(cash - 3000);
+    // The backing project commitment is reduced in lockstep so cancel/complete never overshoots.
+    expect(restored.assets.projects['project.00000000'].committedUsd).toBe(c.constructionCommitted);
+    expect(assertSimulationInvariants(restored, worldContext, 'save')).toBe(true);
+  });
 });
 
 describe('0.24.8 territorial control during the project lifecycle', () => {
@@ -228,7 +277,7 @@ describe('0.24.5D material shortage → import → stock → resumed work', () =
       && Object.keys(state.socioeconomy.regions).some(r => state.regionOwnership[r] === id && state.socioeconomy.regions[r].economy))!;
     expect(exporter).toBeDefined();
     let s = admitTradeMarket(initializeTrade(state), countryId, syntheticTradeMarket('raw_materials', {
-      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 10, use: 'industrial',
+      productionPerMonth: 0, domesticNeedPerMonth: 0, importNeedPerMonth: 0, use: 'industrial',
       stock: { opening: 0, produced: 0, received: 0, consumed: 0, exported: 0, quantity: 0, capacity: 100, target: 100 },
     }));
     s = admitTradeMarket(s, exporter, syntheticTradeMarket('raw_materials', {
@@ -245,8 +294,13 @@ describe('0.24.5D material shortage → import → stock → resumed work', () =
     const before = s.assets.projects['project.00000000'].completedWorkUsd ?? 0;
     s = advanceConstructionProgress(s);
     expect(s.assets.projects['project.00000000'].completedWorkUsd).toBe(before);
+    // The active project's material requirement causally feeds the Trade import need.
+    const prepared = prepareTradeMonth(s);
+    const rawLedger = prepared.trade.countries[countryId].ledger!.categories.find(l => l.category === 'raw_materials')!;
+    expect(rawLedger.constructionNeed).toBeGreaterThan(0);
+    expect(rawLedger.need).toBe(rawLedger.constructionNeed); // no preconfigured importNeedPerMonth
     // The Trade month imports the construction material into canonical stock.
-    s = settleTradeMonth(prepareTradeMonth(s));
+    s = settleTradeMonth(prepared);
     expect(s.trade.countries[countryId].markets['raw_materials']!.stock!.quantity).toBeGreaterThan(0);
     // Construction resumes with the delivered stock.
     s = advanceConstructionProgress(s);

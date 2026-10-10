@@ -20,6 +20,21 @@ const stripConstructionCapabilities = (governance: { persons: Record<string, { o
       : person,
   ])),
 });
+
+/** 0.24 fiscal-construction balances and the monthly account's construction line are
+ *  backfilled on migration; strip them before comparing restored fiscal state to the
+ *  historical fixture (an admitted structural backfill). */
+const stripFiscalConstruction = (fiscal: unknown) => {
+  const f = structuredClone(fiscal) as { countries?: Record<string, Record<string, unknown>> } & Record<string, unknown>;
+  for (const country of Object.values(f.countries ?? {})) {
+    delete country.constructionCommitted;
+    delete country.constructionExecuted;
+    delete country.assetMaintenanceSpent;
+    const account = country.account as Record<string, unknown> | undefined;
+    if (account) delete account.construction;
+  }
+  return f;
+};
 import { describe, expect, it, vi } from 'vitest';
 import type { RegionEntity, SimulationState } from '../../types';
 import { EQUIPMENT_REGISTRY, MILITARY_ITEMS, DEFENSE_COSTS, emptyMilitary, equipmentTotal, militaryReadiness, militarySupportStaff, presentPersonnel, trainingPersonnel, type MilitaryParameters } from '../military/model';
@@ -487,7 +502,10 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     // backfills in governance and politics, each verified explicitly below.
     const { schemaVersion: _legacySchemaVersion, governance: legacyGovernance, politics: legacyPolitics, ...legacyPreserved } = schema13Fixture.state;
     const { governance: restoredGovernance, politics: restoredPolitics, ...preservedRest } = preserved;
-    expect(preservedRest).toEqual(legacyPreserved);
+    const { fiscal: restoredFiscal, ...preservedRestNoFiscal } = preservedRest;
+    const { fiscal: legacyFiscal, ...legacyPreservedNoFiscal } = legacyPreserved;
+    expect(preservedRestNoFiscal).toEqual(legacyPreservedNoFiscal);
+    expect(stripFiscalConstruction(restoredFiscal)).toEqual(legacyFiscal);
     const { cabinets, ministerialSuggestions, nextSuggestionSequence, settings, ...restoredGovernanceRest } = restoredGovernance;
     expect(cabinets).toEqual({});
     expect(ministerialSuggestions).toEqual([]);

@@ -417,7 +417,7 @@ describe('0.24.7 asset breakdown and repair', () => {
     const { state, leaderId, countryId: cid } = completedAsset();
     const broken = reportAssetBreakdown(state, { assetId: 'asset.00000000', personId: leaderId, severity: 'out_of_service' });
     const broke = { ...broken, fiscal: { ...broken.fiscal, countries: { ...broken.fiscal.countries, [cid]: { ...broken.fiscal.countries[cid], cash: 0 } } } };
-    expect(() => repairAsset(broke, { assetId: 'asset.00000000', personId: leaderId })).toThrow(/Insufficient treasury funds/);
+    expect(() => repairAsset(broke, { assetId: 'asset.00000000', personId: leaderId })).toThrow(/Insufficient uncommitted treasury funds/);
   });
 
   it('completes due repairs through the shared scheduler', () => {
