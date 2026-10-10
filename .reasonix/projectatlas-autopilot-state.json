@@ -19,16 +19,16 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "654f351c85799b6f02d33c011c716333e647e80f",
+  "milestone_branch_head_sha": "96c708c288e88a36ab93dbc12d25f4244562985f",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38025220236,
-  "ci_head_sha": "03534d41ae0547e175030d6ca1d225d8f1aec759",
+  "ci_run_id": 38028404964,
+  "ci_head_sha": "96c708c288e88a36ab93dbc12d25f4244562985f",
   "ci_branch": "waffle913-construction-assets-024-integration",
-  "ci_status": "failure",
+  "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
 
   "review_campaign": {
@@ -71,7 +71,7 @@
       "first_seen_run": 38022542189,
       "first_seen_sha": "654f351c85799b6f02d33c011c716333e647e80f",
       "disposition": "ordinary deterministic schema-integration error (mechanically determined fix)",
-      "resolution": "in_progress"
+      "resolution": "resolved"
     }
   ],
   "repair_cycles": {
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 A+B+C implemented at 654f351 (canonical physical-asset domain, schema 19->20). Repair cycle 1 for the single root cause 'schema-19->20 propagation incomplete in 654f351': first the TypeScript build errors were fixed (src/App.tsx schemaVersion+assets, src/simulation/save.ts withEngine Omit) in 03534d4; run 38025220236 then passed the build but surfaced the SAME root cause in 11 migration/restore test assertions (crisis/fiscal/governance/international/military/multilateral/socioeconomy .test.ts) still expecting schemaVersion 19 — all mechanically determined to become 20, fixed in a follow-up commit. Both fixes are ordinary deterministic schema-integration corrections with no canonical-state ambiguity and no destructive migration; the root cause did not recur in a new form, it was masked by the build failure until the build passed. Local-only paused 0.24.2 WIP commit 6762f20 was preserved on branch waffle913-construction-assets-024-wip-0242-preserved before resetting the integration branch to 654f351; it will be revisited after 0.24.1 is green."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 A+B+C implemented at 654f351 (canonical physical-asset domain, schema 19->20). Repair cycle 1 for the single root cause 'schema-19->20 propagation incomplete in 654f351' RESOLVED: build errors fixed (src/App.tsx, src/simulation/save.ts in 03534d4), 11 migration/restore test assertions updated to schema 20 (1576049), and the schema13 preserved-subset deep-equality fixed by excluding+asserting the assets backfill (96c708c). Run 38028404964 on 96c708c is GREEN (ubuntu+windows). 0.24.1 is now validated on the integration branch. Local-only paused 0.24.2 WIP commit 6762f20 was preserved on branch waffle913-construction-assets-024-wip-0242-preserved; it is revisited next for 0.24.2."
 }
