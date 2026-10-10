@@ -495,6 +495,6 @@ describe('0.24.9 data and migrations', () => {
     const { state } = completedAsset();
     const forged = structuredClone(state);
     forged.assets.assets['asset.00000000'].coverage = { status: 'sourced' };
-    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('sourced/partial coverage without provenance');
+    expect(assetsInvariant.check(forged, worldContext, 'save')).toContain('Asset asset.00000000 has sourced/partial coverage without provenance.');
   });
 });
