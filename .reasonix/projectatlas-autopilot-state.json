@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.24",
-  "current_block": "0.24.6",
+  "current_block": "0.24.7",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.23",
@@ -19,14 +19,14 @@
 
   "current_branch": "waffle913-construction-assets-024-integration",
   "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "af59962b3b0b30e199004cb9dc035434e0517b2a",
+  "milestone_branch_head_sha": "f48ba4ba7ea9eaf88e63774c951dea6ba272bc10",
   "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
 
-  "ci_run_id": 38040646903,
-  "ci_head_sha": "af59962b3b0b30e199004cb9dc035434e0517b2a",
+  "ci_run_id": 38042375570,
+  "ci_head_sha": "f48ba4ba7ea9eaf88e63774c951dea6ba272bc10",
   "ci_branch": "waffle913-construction-assets-024-integration",
   "ci_status": "success",
   "ci_last_checked_at": "2026-10-10",
@@ -100,5 +100,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-10",
-  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 green at 96c708c; 0.24.2 green at f335eea; 0.24.3 financing green at 49112b1; 0.24.4 work/progression green at 2bf9e1a; 0.24.5 inputs green at af59962 (run 38040646903): raw_materials need per worker/day, consumedMaterials bounded by the (read-only) trade stock, shortage slowdown with no automatic material creation. Next: 0.24.6 completion and capacity (explicit completion criteria, project->asset exactly once, finished asset provides capacity)."
+  "notes": "Roadmap Goal resumed by the user in UNATTENDED_SAFE_MODE (enabled_by=human). 0.23 remains sealed at 84c09c9 — no reopening without concrete evidence. 0.24.1 green at 96c708c; 0.24.2 green at f335eea; 0.24.3 financing green at 49112b1; 0.24.4 work/progression green at 2bf9e1a; 0.24.5 inputs green at af59962; 0.24.6 completion/capacity green at f48ba4b (run 38042375570): explicit completion criteria, exactly-once project->asset, modelled finished-asset capacity. Next: 0.24.7 breakdowns and repairs (capacity may become unavailable; repair costs/takes time, no magic restore)."
 }
