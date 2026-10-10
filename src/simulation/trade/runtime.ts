@@ -5,6 +5,7 @@ import { baseFiscalDemand } from '../fiscal/runtime';
 import { consumptionCollected, netGoodsBudget } from '../fiscal/math';
 import { reservedPersonnel, hasMilitaryManagementAuthority } from '../military/runtime';
 import { constructionReservedPersonnel } from '../assets/workforce';
+import { CONSTRUCTION_MATERIAL_CATEGORY } from '../assets/model';
 import { tradeObservations } from './data';
 import { blockedRouteKeysForDate, routeRestrictionKey } from '../international/runtime';
 import { affordableQuantity, CATEGORY_REGISTRY, emptyTrade, money, quoteFlow, TRADE_CATEGORIES, TRADE_MODEL,
@@ -302,11 +303,13 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
       ledger.alternativeCapacity = sum(alternatives.map(a => a.availableQuantity));
       if (m.militaryInputPerFactoryUnit) ledger.militaryInputAvailable = ledger.domesticConsumed + ledger.imports;
       if (m.stock) {
-        // 0.24.5D — delivered imports of a stocked industrial input (construction
-        // materials) are received into the canonical stock buffer, so a shortage can
-        // be closed by imports and consumed downstream. Household and military-input
-        // imports keep their direct-consumption / availability semantics.
-        const stockedImports = m.use === 'industrial' && !m.militaryInputPerFactoryUnit ? ledger.imports : 0;
+        // 0.24.5D — delivered imports of the construction-material category are
+        // received into the canonical stock buffer (bounded by physical storage), so
+        // a shortage can be closed by imports and consumed downstream. All other
+        // categories keep their existing direct-consumption / availability semantics.
+        const stockedImports = m.category === CONSTRUCTION_MATERIAL_CATEGORY
+          ? Math.min(ledger.imports, Math.max(0, m.stock.capacity - ledger.closingStock))
+          : 0;
         ledger.received = stockedImports;
         ledger.closingStock = integer(ledger.closingStock + stockedImports);
         m.stock.received = integer(m.stock.received + stockedImports);

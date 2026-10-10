@@ -118,13 +118,13 @@ export function validateTradeReport(report: GovernmentTradeReport, initializedOn
         || l.need !== m.domesticNeedPerMonth + m.importNeedPerMonth
         || l.imports !== sum(imports.map(f => f.quantity)) || l.exports !== sum(exports.map(f => f.quantity))
         || l.shortage !== l.need - l.domesticConsumed - l.imports
-        || BigInt(l.production) + BigInt(l.openingStock) !== BigInt(l.domesticConsumed) + BigInt(l.exports) + BigInt(l.closingStock)
+        || BigInt(l.production) + BigInt(l.openingStock) + BigInt(l.received ?? 0) !== BigInt(l.domesticConsumed) + BigInt(l.exports) + BigInt(l.closingStock)
         || l.production > l.productionCapacity || l.productionCapacity > m.productionPerMonth + l.replacementQuantity
         || l.replacementQuantity > m.domesticReplacementCapacity || l.imports > m.importCapacityPerMonth
         || l.exports > m.exportCapacityPerMonth
         || l.exportableCapacity !== Math.min(m.exportCapacityPerMonth, l.productionCapacity - l.domesticConsumed + l.stockConsumed - l.stocked)
         || l.exports > l.exportableCapacity
-        || BigInt(l.closingStock) !== BigInt(l.openingStock) + BigInt(l.stocked) - BigInt(l.stockConsumed)
+        || BigInt(l.closingStock) !== BigInt(l.openingStock) + BigInt(l.stocked) - BigInt(l.stockConsumed) + BigInt(l.received ?? 0)
         || (l.openingStock || l.closingStock || l.stocked || l.stockConsumed) && !m.stock
         || m.stock && l.closingStock !== m.stock.quantity
         || l.importValueUsd !== sum(imports.map(f => f.valueUsd)) || l.exportValueUsd !== sum(exports.map(f => f.valueUsd))
