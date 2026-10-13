@@ -4,9 +4,9 @@
   "roadmap_id": "projectatlas-roadmap-submilestones",
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
-  "current_milestone": "0.24",
-  "current_block": "0.24.11",
-  "milestone_phase": "AWAITING_NEXT_MILESTONE_AUTHORIZATION",
+  "current_milestone": "0.25",
+  "current_block": "0.25.1",
+  "milestone_phase": "BRANCH_SYNC",
 
   "last_safe_milestone": "0.24",
   "last_safe_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
@@ -28,16 +28,16 @@
     "acceptance_context": "Human message accepted 0.24 ('tu as le feu vert') and directed to stop before 0.25. The exact acceptance timestamp was not exposed to the agent; the fact of acceptance is recorded honestly without an invented timestamp."
   },
   "next_milestone_authorization": {
-    "authorized_milestone": null,
-    "authorized_by": null,
-    "authorized_at": null,
-    "context": "0.25 Economy V2 is NOT authorized. A new main milestone begins only after an explicit human authorization is recorded in this field."
+    "authorized_milestone": "0.25",
+    "authorized_by": "human",
+    "authorized_at": "2026-10-13T20:10:05Z",
+    "context": "Human message explicitly authorized milestone 0.25 (Economy V2) and directed the Autopilot to record the authorization, then execute the first sub-milestone 0.25.1 (Contracts and units of account) per the existing protocol. Constraints recorded: preserve accepted 0.24 as the stable reference; reuse the canonical economic engine (no second parallel economy); advance by micro-blocks with tests/invariants/CI; use real data only when properly documented and admissible; use explicitly identified synthetic scenarios for mechanisms lacking historical data; never invent industrial capabilities, stocks or real prices; do not interrupt or modify Work's independent documentary campaign; respect the protocol's authorization/validation barriers. Timestamp derived from the agent runtime clock."
   },
 
   "current_branch": "main",
-  "milestone_scope_base_sha": "84c09c93cea288ac3b79349fe3da0e7574b2132f",
-  "milestone_branch_head_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
-  "carried_commits": ["103a6a4b885f512ee19b4965685a570fa2c43106"],
+  "milestone_scope_base_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
+  "milestone_branch_head_sha": null,
+  "carried_commits": [],
   "carried_unrelated_scope": [],
 
   "blocked_head_sha": null,
@@ -60,14 +60,14 @@
   "ci_last_checked_at": "2026-10-10",
 
   "review_campaign": {
-    "milestone": "0.24",
-    "full_review_round": 1,
+    "milestone": "0.25",
+    "full_review_round": 0,
     "max_full_review_rounds": 2,
     "final_verification_complete": false,
     "targeted_verification_complete": false,
-    "findings_summary": "Round 1 + Round 2 done and corrected. A subsequent independent human review (concrete external evidence) found 10 remaining 0.24 contract violations; the consolidated corrective campaign addressed all ten areas plus the five round-2 blockers (causal construction-material import need, underfunded legacy commitment reconciliation, maintenance resources/availability, run-134 assertion/oracle fixes, autopilot state evidence). Targeted verification passed; branch CI green (run 38077899157), merged to main, main CI green (run 38079523537). 0.24 accepted by the human and sealed at 6b6794e. No third broad review was run.",
+    "findings_summary": "",
     "late_blocking_findings": [],
-    "reopen_count": 1,
+    "reopen_count": 0,
     "max_autonomous_post_seal_reopens": 1
   },
   "review_campaign_history": [
@@ -83,6 +83,19 @@
       "max_autonomous_post_seal_reopens": 1,
       "archived_at": "2026-10-10",
       "note": "Legacy pre-schema-v2 campaign: 4+ general review rounds observed and 2 post-seal reopenings. Sealed based on already obtained evidence; do not rerun to 'make history conform'."
+    },
+    {
+      "milestone": "0.24",
+      "full_review_round": 1,
+      "max_full_review_rounds": 2,
+      "final_verification_complete": false,
+      "targeted_verification_complete": false,
+      "findings_summary": "Round 1 + Round 2 done and corrected. A subsequent independent human review (concrete external evidence) found 10 remaining 0.24 contract violations; the consolidated corrective campaign addressed all ten areas plus the five round-2 blockers (causal construction-material import need, underfunded legacy commitment reconciliation, maintenance resources/availability, run-134 assertion/oracle fixes, autopilot state evidence). Targeted verification passed; branch CI green (run 38077899157), merged to main, main CI green (run 38079523537). 0.24 accepted by the human and sealed at 6b6794e. No third broad review was run.",
+      "late_blocking_findings": [],
+      "reopen_count": 1,
+      "max_autonomous_post_seal_reopens": 1,
+      "archived_at": "2026-10-13",
+      "note": "Archived verbatim on the NEXT_MILESTONE -> BRANCH_SYNC transition into 0.25, per protocol section 22. 0.24 is sealed and accepted; it must not receive a spontaneous new general review."
     }
   ],
 
@@ -127,6 +140,6 @@
 
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
-  "updated_at": "2026-10-10",
-  "notes": "0.24 accepted and sealed at runtime SHA 6b6794e (main CI green run 38079523537). Autopilot hardened before 0.25: milestone_phase = AWAITING_NEXT_MILESTONE_AUTHORIZATION. 0.25 Economy V2 is NOT authorized and must NOT start until an explicit human authorization is recorded. Do not start 0.25, do not archive the 0.24 review campaign, and do not run another 0.24 broad review."
+  "updated_at": "2026-10-13",
+  "notes": "0.25 Economy V2 authorized by explicit human message. Milestone phase advanced AWAITING_NEXT_MILESTONE_AUTHORIZATION -> BRANCH_SYNC; the 0.24 review campaign was archived verbatim into review_campaign_history and a fresh 0.25 campaign initialized (full_review_round 0, reopen_count 0). current_block = 0.25.1 (Contracts and units of account). milestone_scope_base_sha = 0.24 sealed runtime SHA 6b6794e. Runtime Safe Zone unchanged (0.24 / 6b6794e); it advances only after 0.25 is complete, reviewed, corrected, merged and green. 0.25.2+ are not started until 0.25.1 is done."
 }
