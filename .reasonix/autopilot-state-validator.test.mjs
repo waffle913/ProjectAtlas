@@ -35,6 +35,7 @@ test('detects the sealed SHA moved to a metadata-only HEAD', () => {
 
 test('detects ci_status=success against a mismatched CI SHA', () => {
   const s = base();
+  s.ci_status = 'success';
   s.ci_head_sha = '0'.repeat(40);
   assert.ok(validateAutopilotState(s).some((e) => e.includes('ci_head_sha differs')));
 });
