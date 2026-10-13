@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.25",
-  "current_block": "0.25.1",
+  "current_block": "0.25.2",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.24",
@@ -52,12 +52,12 @@
     }
   ],
 
-  "ci_run_id": 38469131256,
-  "ci_head_sha": "661323de9e1d325b9e87bb8dd9e125a3a5950112",
-  "ci_branch": "waffle913-economy-v2-025",
-  "ci_status": "in_progress",
-  "ci_conclusion": null,
-  "ci_last_checked_at": "2026-10-13",
+  "ci_run_id": 38079523537,
+  "ci_head_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
+  "ci_branch": "main",
+  "ci_status": "success",
+  "ci_conclusion": "success",
+  "ci_last_checked_at": "2026-10-10",
 
   "review_campaign": {
     "milestone": "0.25",
@@ -119,7 +119,7 @@
       "first_seen_run": 38462032969,
       "first_seen_sha": "a3d890b01cf86de5e3a38be5381392ed5e063984",
       "disposition": "ordinary deterministic test-discovery error (surfaced by first 0.25 branch CI; latent since metadata-only hardening commit feb22a3 was CI paths-ignored)",
-      "resolution": "fix pushed 661323d (exclude .reasonix/** from vitest); awaiting CI confirmation"
+      "resolution": "resolved"
     }
   ],
   "repair_cycles": {
@@ -149,5 +149,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-13",
-  "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 (Contracts and units of account) implemented on branch waffle913-economy-v2-025: docs/economy-0.25.md, src/simulation/economy/model.ts, src/simulation/economy/ownership.ts, src/simulation/__tests__/economyUnits.test.ts (11 focused tests). No second economy/GDP/population/stock/ownership store; vocabulary only, not integrated into SimulationState/schema/migration/scheduler. Local verification green (validator 11/11, tsc --noEmit, focused test 11/11, tsc -b, data:audit, build). Branch CI run 38462032969 (head a3d890b) FAILED at npm test: vitest's default include collected .reasonix/autopilot-state-validator.test.mjs (a node:test file) -> 'No test suite found'. This is a latent bug surfaced by the first 0.25 runtime CI — the validator was added in the metadata-only hardening commit feb22a3, which CI skipped via paths-ignore. Repair cycle 1: exclude .reasonix/** from vitest discovery (vite.config.ts), pushed as 661323d. New branch CI run 38469131256 in progress. milestone_phase = IMPLEMENTING. Runtime Safe Zone unchanged (0.24 / 6b6794e) and advances only after the full 0.25 milestone is reviewed, corrected, merged and green."
+  "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 (Contracts and units of account) COMPLETE and branch CI green (run 38469131256, head 661323d, ubuntu+windows): docs/economy-0.25.md, src/simulation/economy/model.ts, src/simulation/economy/ownership.ts, src/simulation/__tests__/economyUnits.test.ts (11 focused tests). No second economy/GDP/population/stock/ownership store; vocabulary only, not integrated into SimulationState/schema/migration/scheduler. A surfaced latent bug was fixed: vitest's default include collected .reasonix/autopilot-state-validator.test.mjs (a node:test file) -> 'No test suite found'; fixed by excluding .reasonix/** from vitest discovery (vite.config.ts, commit 661323d), reported separately from 0.25.1. milestone_phase = IMPLEMENTING; current_block = 0.25.2. Top-level ci_* still records the runtime Safe-Zone main gate (0.24 / 6b6794e, run 38079523537); the 0.25 branch CI runs are tracked via milestone_branch_head_sha and these notes. Runtime Safe Zone advances only after the full 0.25 milestone is reviewed, corrected, merged and green."
 }
