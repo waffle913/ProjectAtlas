@@ -7,5 +7,10 @@ export default defineConfig({
     // registry over 252 Countries; on slower CI runners the 5s default is too tight. The timeout
     // only widens the time budget — no assertion or invariant is weakened.
     testTimeout: 30_000,
+    // `.reasonix/**` is autopilot metadata (and is CI `paths-ignore`d). Its `node:test`-based
+    // state validator (`autopilot-state-validator.test.mjs`) must not be collected by vitest's
+    // `**/*.test.mjs` glob — it is run by the documented `node --test` command, not by the app
+    // suite. The two default excludes are restated explicitly so this override stays a superset.
+    exclude: ['**/node_modules/**', '**/.git/**', '.reasonix/**'],
   },
 });
