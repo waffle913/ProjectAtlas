@@ -29,7 +29,7 @@
 import type { SimulationState } from '../../types';
 import type { AssetRecord, AssetCoverageStatus } from '../assets/model';
 import { assetAvailability } from '../assets/model';
-import type { TradeCategory } from '../trade/model';
+import type { TradeCategory, TradeStock } from '../trade/model';
 import type { ActivityId, SectorId } from './model';
 
 // ---------------------------------------------------------------------------
@@ -193,6 +193,76 @@ export function regionalCapitalCapacityUsd(
     capacityUsd += usable * mapping.capacityUsdPerUnit;
   }
   return capacityUsd;
+}
+
+// ---------------------------------------------------------------------------
+// 0.25.3 — input requirements, stock ceilings and stock conservation.
+// ---------------------------------------------------------------------------
+
+export interface InputRequirement {
+  /** Physical stock units consumed per whole USD of production output. */
+  quantityPerOutputUsd: number;
+  unit: string;
+  note: string;
+}
+
+/**
+ * Trade-category -> production-input requirement. EMPTY by design: there is no
+ * admitted real input-coefficient data for 2026-01-01, and no synthetic
+ * coefficient is invented here. Later sub-milestones (or an explicit synthetic
+ * scenario) may admit entries.
+ */
+export const INPUT_REQUIREMENT_REGISTRY: Readonly<Partial<Record<TradeCategory, InputRequirement>>> = Object.freeze({});
+
+/** The production ceiling (USD/month) a Country's admitted input stocks support.
+ *  `undefined` when no admitted input has a known stock (no binding constraint);
+ *  `0` when an admitted input stock is exhausted — production stops. An absent
+ *  store is `unavailable` and never a zero stock. */
+export function countryInputCapacityUsd(
+  state: SimulationState,
+  countryId: string,
+  registry: Readonly<Partial<Record<TradeCategory, InputRequirement>>> = INPUT_REQUIREMENT_REGISTRY,
+): number | undefined {
+  const markets = state.trade.countries[countryId]?.markets ?? {};
+  let bound: number | undefined;
+  for (const [category, requirement] of Object.entries(registry) as Array<[TradeCategory, InputRequirement]>) {
+    const stock = markets[category]?.stock;
+    if (!stock) continue; // no configured store => unavailable, never a zero-binding stock.
+    if (stock.quantity < 0) throw new Error(`Negative input stock for ${category} is not representable.`);
+    const ceiling = Math.floor(stock.quantity / requirement.quantityPerOutputUsd);
+    bound = bound === undefined ? ceiling : Math.min(bound, ceiling);
+  }
+  return bound;
+}
+
+/** Combined concrete ceiling (capital + inputs) for a Country's production, in
+ *  USD/month. `undefined` when neither factor is admitted (no binding). */
+export function countryProductionCeilingUsd(
+  state: SimulationState,
+  countryId: string,
+  capitalRegistry: Readonly<Record<string, AssetCapacityMapping>> = ASSET_TYPE_CAPACITY_REGISTRY,
+  inputRegistry: Readonly<Partial<Record<TradeCategory, InputRequirement>>> = INPUT_REQUIREMENT_REGISTRY,
+): number | undefined {
+  const regionIds = Object.keys(state.socioeconomy.regions).filter(id => state.regionOwnership[id] === countryId).sort();
+  let capitalBound: number | undefined;
+  for (const regionId of regionIds) {
+    const value = regionalCapitalCapacityUsd(state, regionId, capitalRegistry);
+    if (value !== undefined) capitalBound = (capitalBound ?? 0) + value;
+  }
+  const inputBound = countryInputCapacityUsd(state, countryId, inputRegistry);
+  const bounds = [capitalBound, inputBound].filter((value): value is number => value !== undefined);
+  return bounds.length ? Math.min(...bounds) : undefined;
+}
+
+/** 0.25.3 — the single stock-conservation identity: no negative stock, and
+ *  `opening + produced + received - consumed - exported === quantity` exactly. */
+export function assertStockConservation(stock: TradeStock): void {
+  for (const value of [stock.opening, stock.produced, stock.received, stock.consumed, stock.exported, stock.quantity]) {
+    if (!Number.isSafeInteger(value) || value < 0) throw new Error('Stock quantities must be non-negative safe integers.');
+  }
+  if (stock.opening + stock.produced + stock.received - stock.consumed - stock.exported !== stock.quantity) {
+    throw new Error('Stock conservation violated: opening + produced + received - consumed - exported != quantity.');
+  }
 }
 
 // ---------------------------------------------------------------------------

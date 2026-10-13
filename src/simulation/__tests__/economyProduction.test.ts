@@ -19,7 +19,10 @@ import { emptyCrisis } from '../crisis/model';
 import {
   decomposeRegionalProduction, regionalCapitalFactor, totalAttributedOutput,
   ASSET_TYPE_CAPACITY_REGISTRY, regionalCapitalCapacityUsd, type AssetCapacityMapping,
+  countryInputCapacityUsd, countryProductionCeilingUsd, INPUT_REQUIREMENT_REGISTRY,
+  assertStockConservation, type InputRequirement,
 } from '../economy/production';
+import type { TradeStock, TradeMarket, TradeCategory } from '../trade/model';
 
 const base = (): SimulationState => ({
   schemaVersion: 20,
@@ -182,5 +185,46 @@ describe('economy production constraints (0.25.2B)', () => {
     expect(bound.output).toBeLessThanOrEqual(unbound.output);
     expect(bound.output).toBe(bound.consumption + bound.otherDemandRealized);
     expect(bound.shortage).toBe(bound.demand - bound.output);
+  });
+});
+
+describe('economy stocks, inputs and shortages (0.25.3)', () => {
+  const stock = (quantity: number): TradeStock => ({ opening: quantity, produced: 0, received: 0, consumed: 0, exported: 0, quantity, capacity: quantity, target: 0 });
+  const SYNTHETIC_INPUTS: Readonly<Partial<Record<TradeCategory, InputRequirement>>> = {
+    food: { quantityPerOutputUsd: 2, unit: 'tonnes', note: 'synthetic test input' },
+  };
+  const withStock = (quantity: number): SimulationState => {
+    const s = stateWithEconomy(calibratedRegion(1000, 1_200_000));
+    s.trade.countries['c1'] = { coverage: 'partial', limitation: 'test', markets: { food: { stock: stock(quantity) } as unknown as TradeMarket } };
+    return s;
+  };
+
+  it('imposes no input ceiling when no input requirement is admitted', () => {
+    expect(INPUT_REQUIREMENT_REGISTRY).toEqual({});
+    expect(countryInputCapacityUsd(withStock(100), 'c1')).toBeUndefined();
+  });
+
+  it('treats an absent store as unavailable, never a zero-binding stock', () => {
+    const s = stateWithEconomy(calibratedRegion(1000, 1_200_000));
+    expect(countryInputCapacityUsd(s, 'c1', SYNTHETIC_INPUTS)).toBeUndefined();
+  });
+
+  it('derives the input ceiling from stock and stops production when the stock is exhausted', () => {
+    expect(countryInputCapacityUsd(withStock(100), 'c1', SYNTHETIC_INPUTS)).toBe(50);
+    expect(countryInputCapacityUsd(withStock(0), 'c1', SYNTHETIC_INPUTS)).toBe(0);
+  });
+
+  it('combines capital and input ceilings via min (constraint-only)', () => {
+    const s = withStock(100);
+    s.assets.assets = { 'asset.00000001': operationalAsset('asset.00000001', 'r1', 5) };
+    const CAP: Readonly<Record<string, AssetCapacityMapping>> = { 'synthetic.plant': { sectorId: 'sector.synthetic', capacityUsdPerUnit: 100, unit: 'unit', note: 'x' } };
+    expect(countryProductionCeilingUsd(s, 'c1', CAP, SYNTHETIC_INPUTS)).toBe(50);
+  });
+
+  it('validates stock conservation: no negative stock, exact identity', () => {
+    expect(() => assertStockConservation(stock(10))).not.toThrow();
+    expect(() => assertStockConservation({ ...stock(10), quantity: 11 })).toThrow();
+    expect(() => assertStockConservation({ ...stock(10), consumed: 1 })).toThrow();
+    expect(() => assertStockConservation({ ...stock(10), quantity: -1 })).toThrow();
   });
 });
