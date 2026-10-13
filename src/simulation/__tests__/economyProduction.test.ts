@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { SimulationState } from '../../types';
 import { createEngineState } from '../state';
-import { emptySocioeconomy, calibrate, cohortsFor, prior, type SocioRegion } from '../socioeconomy/model';
+import { emptySocioeconomy, calibrate, cohortsFor, prior, projectCapacity, evolve, type SocioRegion } from '../socioeconomy/model';
 import { emptyFiscal } from '../fiscal/model';
 import { emptyTrade } from '../trade/model';
 import { emptyAssets } from '../assets/model';
@@ -18,7 +18,7 @@ import { emptyPolitics } from '../politics/model';
 import { emptyCrisis } from '../crisis/model';
 import {
   decomposeRegionalProduction, regionalCapitalFactor, totalAttributedOutput,
-  ASSET_TYPE_CAPACITY_REGISTRY,
+  ASSET_TYPE_CAPACITY_REGISTRY, regionalCapitalCapacityUsd, type AssetCapacityMapping,
 } from '../economy/production';
 
 const base = (): SimulationState => ({
@@ -137,5 +137,50 @@ describe('economy production factors (0.25.2A)', () => {
 
   it('keeps the asset-type capacity registry empty (no invented industrial capacity)', () => {
     expect(ASSET_TYPE_CAPACITY_REGISTRY).toEqual({});
+  });
+});
+
+describe('economy production constraints (0.25.2B)', () => {
+  const SYNTHETIC_REGISTRY: Readonly<Record<string, AssetCapacityMapping>> = {
+    'synthetic.plant': { sectorId: 'sector.synthetic', capacityUsdPerUnit: 100, unit: 'unit', note: 'synthetic test mapping' },
+  };
+
+  it('imposes no ceiling when no asset type is mapped (baseline unchanged)', () => {
+    const region = calibratedRegion(1000, 1_200_000);
+    const state = stateWithEconomy(region);
+    state.assets.assets = { 'asset.00000001': operationalAsset('asset.00000001', 'r1', 5) };
+    expect(regionalCapitalCapacityUsd(state, 'r1')).toBeUndefined();
+  });
+
+  it('sums usable mapped asset capacity into a USD ceiling', () => {
+    const region = calibratedRegion(1000, 1_200_000);
+    const state = stateWithEconomy(region);
+    state.assets.assets = { 'asset.00000001': operationalAsset('asset.00000001', 'r1', 5) };
+    expect(regionalCapitalCapacityUsd(state, 'r1', SYNTHETIC_REGISTRY)).toBe(500);
+  });
+
+  it('returns a zero ceiling for a mapped-but-unavailable asset (causal, not a fabricated floor)', () => {
+    const region = calibratedRegion(1000, 1_200_000);
+    const state = stateWithEconomy(region);
+    state.assets.assets = { 'asset.00000001': { ...operationalAsset('asset.00000001', 'r1', 5), operatingStatus: 'out_of_service', availability: 'unavailable' } };
+    expect(regionalCapitalCapacityUsd(state, 'r1', SYNTHETIC_REGISTRY)).toBe(0);
+  });
+
+  it('projectCapacity only lowers capacity when a ceiling is present, never raises it', () => {
+    const economy = calibratedRegion(1000, 1_200_000).economy!;
+    const unbound = projectCapacity(economy, 0);
+    expect(projectCapacity(economy, 0, unbound.capacity + 1000).capacity).toBe(unbound.capacity);
+    expect(projectCapacity(economy, 0, 1).capacity).toBe(1);
+  });
+
+  it('evolve reduces output when the capital ceiling binds, conserving the output identity', () => {
+    const region = calibratedRegion(1000, 1_200_000);
+    const state = stateWithEconomy(region);
+    const unbound = evolve(region, undefined, 0).economy!;
+    const bound = evolve(region, undefined, 0, 1).economy!;
+    expect(bound.capacity).toBe(1);
+    expect(bound.output).toBeLessThanOrEqual(unbound.output);
+    expect(bound.output).toBe(bound.consumption + bound.otherDemandRealized);
+    expect(bound.shortage).toBe(bound.demand - bound.output);
   });
 });

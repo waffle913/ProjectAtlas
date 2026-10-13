@@ -94,19 +94,23 @@ export function calibrate(population: number, annualOutput: number, cohorts: Coh
     basicNeedsCoverageBps: 10000, shock: { ...NO_SHOCK },
   };
 }
-/** Pure projection: immediate updates change capacity only, never book another month. */
-export function projectCapacity(e: Economy, reservedLabour = 0): Economy {
+/** Pure projection: immediate updates change capacity only, never book another month.
+ *  `capacityBoundUsd` (0.25.2) is an optional concrete capital/input ceiling: when
+ *  present it can only lower the modelled capacity, never raise it, so a mapped
+ *  asset/input shortage causally reduces output without ever adding output. */
+export function projectCapacity(e: Economy, reservedLabour = 0, capacityBoundUsd?: number): Economy {
   integer(reservedLabour);
+  if (capacityBoundUsd !== undefined) integer(capacityBoundUsd);
   if (reservedLabour > e.labourForce) throw new Error('Reserved labour exceeds existing labour force.');
   const infrastructure = ratio(e.baseOutput, e.shock.capacityBps, 10000);
   const labour = Math.min(ratio(e.baseEmployed, e.shock.labourBps, 10000), e.labourForce - reservedLabour);
   const productivity = ratio(e.baseOutput, e.shock.productivityBps, 10000);
-  const capacity = Math.min(infrastructure, ratio(productivity, labour, e.baseEmployed));
+  const capacity = Math.min(infrastructure, ratio(productivity, labour, e.baseEmployed), capacityBoundUsd ?? Number.MAX_SAFE_INTEGER);
   return { ...e, capacity, productivity: { outputUsd: productivity, workers: e.baseEmployed } };
 }
-export function evolve(region: SocioRegion, fiscal?: { householdRequests: number[]; otherDemand: number }, reservedLabour = 0): SocioRegion {
+export function evolve(region: SocioRegion, fiscal?: { householdRequests: number[]; otherDemand: number }, reservedLabour = 0, capacityBoundUsd?: number): SocioRegion {
   if (!region.economy) return region;
-  const e = { ...projectCapacity(region.economy, reservedLabour), otherDemandResidual: fiscal?.otherDemand ?? region.economy.otherDemandResidual };
+  const e = { ...projectCapacity(region.economy, reservedLabour, capacityBoundUsd), otherDemandResidual: fiscal?.otherDemand ?? region.economy.otherDemandResidual };
   const householdRequests = fiscal?.householdRequests ?? demandByGroup(e.incomeByGroup);
   const householdDemand = householdRequests.reduce((a, b) => a + b, 0);
   const demand = integer(householdDemand + e.otherDemandResidual);

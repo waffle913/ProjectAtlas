@@ -98,17 +98,19 @@ export interface ProductiveActivity {
   outputUsd: number;
 }
 
+export interface AssetCapacityMapping {
+  sectorId: SectorId;
+  capacityUsdPerUnit: number;
+  unit: string;
+  note: string;
+}
+
 /**
  * Asset-type -> capacity mapping. EMPTY by design: there is no admitted real
  * asset-type data for 2026-01-01, and no synthetic mapping is invented here.
  * Later sub-milestones (or an explicit synthetic scenario) may admit entries.
  */
-export const ASSET_TYPE_CAPACITY_REGISTRY: Readonly<Record<string, {
-  sectorId: SectorId;
-  capacityUsdPerUnit: number;
-  unit: string;
-  note: string;
-}>> = Object.freeze({});
+export const ASSET_TYPE_CAPACITY_REGISTRY: Readonly<Record<string, AssetCapacityMapping>> = Object.freeze({});
 
 // ---------------------------------------------------------------------------
 // Factor derivation (pure, read-only).
@@ -163,6 +165,35 @@ export const regionalCapitalFactor = (state: SimulationState, regionId: string):
 
 /** Input factors: no admitted input requirements exist in 0.25.2 (0.25.3 stocks). */
 export const regionalInputFactors = (_state: SimulationState, _regionId: string): InputFactor[] => [];
+
+/**
+ * 0.25.2B — concrete capital ceiling for a Region, in USD/month. Sums the usable
+ * physical capacity of the Region's assets whose asset type is admitted in
+ * `registry` (`capacityUsdPerUnit`), skipping unit mismatches and unavailable
+ * assets. Returns `undefined` when no asset type is mapped — there is no binding
+ * constraint and the modelled baseline capacity applies unchanged. When a mapping
+ * exists it returns a number (possibly 0): a mapped-but-unavailable asset yields a
+ * 0 ceiling, causally reducing production, never a fabricated floor.
+ */
+export function regionalCapitalCapacityUsd(
+  state: SimulationState,
+  regionId: string,
+  registry: Readonly<Record<string, AssetCapacityMapping>> = ASSET_TYPE_CAPACITY_REGISTRY,
+): number | undefined {
+  const mapped = Object.values(state.assets.assets)
+    .filter(asset => asset.regionId === regionId)
+    .map(asset => ({ asset, mapping: registry[asset.assetTypeId] }))
+    .filter((entry): entry is { asset: AssetRecord; mapping: AssetCapacityMapping } => entry.mapping !== undefined);
+  if (mapped.length === 0) return undefined;
+  let capacityUsd = 0;
+  for (const { asset, mapping } of mapped) {
+    if (asset.capacity.unit !== mapping.unit) continue;
+    const usable = usableCapacity(asset);
+    if (usable === undefined) continue;
+    capacityUsd += usable * mapping.capacityUsdPerUnit;
+  }
+  return capacityUsd;
+}
 
 // ---------------------------------------------------------------------------
 // Activity decomposition (conservation-tested).
