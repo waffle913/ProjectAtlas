@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.25",
   "current_block": "0.25.1",
-  "milestone_phase": "BRANCH_SYNC",
+  "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.24",
   "last_safe_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
@@ -34,9 +34,9 @@
     "context": "Human message explicitly authorized milestone 0.25 (Economy V2) and directed the Autopilot to record the authorization, then execute the first sub-milestone 0.25.1 (Contracts and units of account) per the existing protocol. Constraints recorded: preserve accepted 0.24 as the stable reference; reuse the canonical economic engine (no second parallel economy); advance by micro-blocks with tests/invariants/CI; use real data only when properly documented and admissible; use explicitly identified synthetic scenarios for mechanisms lacking historical data; never invent industrial capabilities, stocks or real prices; do not interrupt or modify Work's independent documentary campaign; respect the protocol's authorization/validation barriers. Timestamp derived from the agent runtime clock."
   },
 
-  "current_branch": "main",
+  "current_branch": "waffle913-economy-v2-025",
   "milestone_scope_base_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
-  "milestone_branch_head_sha": null,
+  "milestone_branch_head_sha": "a3d890b01cf86de5e3a38be5381392ed5e063984",
   "carried_commits": [],
   "carried_unrelated_scope": [],
 
@@ -141,5 +141,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-13",
-  "notes": "0.25 Economy V2 authorized by explicit human message. Milestone phase advanced AWAITING_NEXT_MILESTONE_AUTHORIZATION -> BRANCH_SYNC; the 0.24 review campaign was archived verbatim into review_campaign_history and a fresh 0.25 campaign initialized (full_review_round 0, reopen_count 0). current_block = 0.25.1 (Contracts and units of account). milestone_scope_base_sha = 0.24 sealed runtime SHA 6b6794e. Runtime Safe Zone unchanged (0.24 / 6b6794e); it advances only after 0.25 is complete, reviewed, corrected, merged and green. 0.25.2+ are not started until 0.25.1 is done."
+  "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 (Contracts and units of account) implemented on branch waffle913-economy-v2-025: docs/economy-0.25.md (contract + canonical ownership inventory + units of account), src/simulation/economy/model.ts (units-of-account vocabulary reusing trade/fiscal taxonomies), src/simulation/economy/ownership.ts (canonical variable ownership registry), src/simulation/__tests__/economyUnits.test.ts (11 focused tests). No second economy/GDP/population/stock/ownership store; vocabulary only, not integrated into SimulationState/schema/migration/scheduler. Local verification: state validator 11/11, tsc --noEmit clean, focused test 11/11. Pushed (branch tip a3d890b); branch CI pending. milestone_phase = IMPLEMENTING. Runtime Safe Zone unchanged (0.24 / 6b6794e) and advances only after the full 0.25 milestone is reviewed, corrected, merged and green."
 }
