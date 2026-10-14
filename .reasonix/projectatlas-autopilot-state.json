@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.25",
-  "current_block": "0.25.2",
+  "current_block": "0.25.4",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.24",
@@ -36,7 +36,7 @@
 
   "current_branch": "waffle913-economy-v2-025",
   "milestone_scope_base_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
-  "milestone_branch_head_sha": "bacd0f3ca7b76d54190b145c6cb4663342ffbf02",
+  "milestone_branch_head_sha": "0b7ba3da74d58bff82687465005af3cb62882996",
   "carried_commits": [],
   "carried_unrelated_scope": [],
 
@@ -149,5 +149,5 @@
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
   "updated_at": "2026-10-13",
-  "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 (Contracts and units of account) COMPLETE and branch CI green (run 38469131256, head 661323d, ubuntu+windows): docs/economy-0.25.md, src/simulation/economy/model.ts, src/simulation/economy/ownership.ts, src/simulation/__tests__/economyUnits.test.ts (11 focused tests). No second economy/GDP/population/stock/ownership store; vocabulary only, not integrated into SimulationState/schema/migration/scheduler. A surfaced latent bug was fixed: vitest's default include collected .reasonix/autopilot-state-validator.test.mjs (a node:test file) -> 'No test suite found'; fixed by excluding .reasonix/** from vitest discovery (vite.config.ts, commit 661323d), reported separately from 0.25.1. 0.25.2A (productive-activity vocabulary + factor grounding) COMPLETE and branch CI green (run 38472692248, head bacd0f3, ubuntu+windows): src/simulation/economy/production.ts (ProductiveFactors/ProductiveActivity, empty ASSET_TYPE_CAPACITY_REGISTRY, decomposeRegionalProduction conserving the existing economy.output exactly) + src/simulation/__tests__/economyProduction.test.ts (6 tests). Pure derivation, no schema/migration; asset-backed activities attribute zero USD until a real/synthetic capacity mapping is admitted. milestone_phase = IMPLEMENTING; current_block = 0.25.2. Top-level ci_* still records the runtime Safe-Zone main gate (0.24 / 6b6794e, run 38079523537); the 0.25 branch CI runs are tracked via milestone_branch_head_sha and these notes. Runtime Safe Zone advances only after the full 0.25 milestone is reviewed, corrected, merged and green."
+  "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 COMPLETE + green (run 38469131256, head 661323d). Surfaced latent bug fixed: vitest collected .reasonix/autopilot-state-validator.test.mjs -> excluded .reasonix/** (vite.config.ts, 661323d), reported separately. 0.25.2A COMPLETE + green (run 38472692248, head bacd0f3). 0.25.2B COMPLETE + green (run 38480184371, head e01f4d9): projectCapacity/evolve accept an optional concrete capacity ceiling (constraint-only), regionalCapitalCapacityUsd computes it from mapped 0.24 assets (empty registry => baseline byte-identical), wired into the monthly economy task and both trade projections. 0.25.3 (stocks/supply/shortages) COMPLETE + green (run 38483525541, head 0b7ba3d): InputRequirement + empty INPUT_REQUIREMENT_REGISTRY, countryInputCapacityUsd (input-stock production ceiling; absent store = unavailable never zero, exhausted = 0 = production stops), countryProductionCeilingUsd (min of capital+input), assertStockConservation (no negative stock, exact identity). Campaign was paused by the human on 2026-10-13 and resumed on 2026-10-13; the 0.25.3 CI run 38483525541 was confirmed green after the pause. milestone_phase = IMPLEMENTING; current_block = 0.25.4 (next). Top-level ci_* still records the runtime Safe-Zone main gate (0.24 / 6b6794e, run 38079523537); branch CI runs are tracked via milestone_branch_head_sha and these notes. Runtime Safe Zone advances only after the full 0.25 milestone is reviewed, corrected, merged and green. Do not start 0.26."
 }
