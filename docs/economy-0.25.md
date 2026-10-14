@@ -1,10 +1,19 @@
 # Economy V2 — 0.25
 
-**Status:** 0.25 (Economy V2) is explicitly authorized by the user. **0.25.1 —
-Contracts and units of account** is the implemented sub-milestone. Implementation
-is not acceptance: 0.25 as a whole, and each sub-milestone, requires the review /
-correction / GitHub-CI gate and the user's explicit acceptance before the next
-main milestone.
+**Status:** 0.25 (Economy V2) is explicitly authorized by the user. **0.25.1
+through 0.25.8 are implemented** — contracts and units of account (0.25.1),
+activities and productive capacities (0.25.2A/0.25.2B), stocks/supply/shortages
+(0.25.3), employment/wages/income (0.25.4), household needs and spending (0.25.5),
+firms/activity/investment (0.25.6), prices and domestic markets (0.25.7), and
+international trade (0.25.8). Branch CI is green at run 38511139442 (head
+`02039493f80c02fde8973b8fdf474cc36980213a`). The next block is **0.25.9 — Budget /
+fiscal / public services**. Implementation is not acceptance: 0.25 as a whole, and
+each sub-milestone, requires the review / correction / GitHub-CI gate and the
+user's explicit acceptance before the next main milestone. **0.24 remains the last
+accepted Safe Zone; 0.25 is not accepted.** The authoritative autopilot progression
+state is the copy of `.reasonix/projectatlas-autopilot-state.json` maintained on
+`main`; the historical copy on the development branch is a stale snapshot and must
+not be used to resume at 0.25.1.
 
 This document is the canonical contract for 0.25. It complements
 [the roadmap decomposition](roadmap-submilestones.md) and the existing subsystem
@@ -203,18 +212,11 @@ history, and save/reload + determinism + conservation coverage.
 
 ## Deferred (planned, not implemented)
 
-- **0.25.2** Activities and productive capacities (labour/capital/0.24 assets/inputs).
-- **0.25.3** Stocks, supply and shortages (no negative stock; `unavailable` never a null stock).
-- **0.25.4** Employment / wages / income (single canonical population, military and construction reservations preserved).
-- **0.25.5** Household needs and spending (aggregate demand from disposable income, prices, needs).
-- **0.25.6** Firms / activity / investment (aggregated representation).
-- **0.25.7** Prices and domestic markets (causal prices; observed/derived/modelled distinct).
-- **0.25.8** International trade (extends 0.17; never a second trade engine).
 - **0.25.9** Budget / fiscal / public services (extends 0.11; no double fiscal counting).
 - **0.25.10** Cross-system loops (no magic cross-cutting modifier).
 - **0.25.11** Data / migrations / restitution (sources, units, dates, coverage, saves, information, authority-gated commands).
 - **0.25.12** Performance / general review.
 
 These are planned direction, not authorization to implement; each requires the
-same review / correction / CI gate as 0.25.1. 0.25 is accepted only after its
-complete independent audit and the user's explicit acceptance.
+same review / correction / CI gate as the implemented blocks. 0.25 is accepted
+only after its complete independent audit and the user's explicit acceptance.
