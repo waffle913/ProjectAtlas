@@ -1332,6 +1332,20 @@ do not invent success/failure — classify the external validation state honestl
 A long CI wait is a good purge boundary: persist run ID/SHA, purge when the
 threshold warrants it, and after reconstruction query the same run.
 
+The concrete mechanism is `.reasonix/ci-wait.mjs` (invoked as
+`node .reasonix/ci-wait.mjs --run-id <id> --head-sha <40-hex> --branch <name>`
+with an optional `--interval-ms`, default `180000` = 3 minutes, and `--max-checks`
+safety cap). It persists the per-gate wait state to `.reasonix/ci-wait-state.json`
+on every poll, verifies the run's exact `head_sha` before waiting (exit 2 on
+mismatch, refusing to wait on the wrong run), polls at a moderate interval, and —
+on resume — consumes an already-recorded terminal conclusion for the exact
+run+SHA instead of re-polling blindly. Exit codes: `0` terminal success; `1`
+terminal failure/cancelled/timeout; `2` usage or SHA mismatch. Event-based wake
+is not used because this environment provides no webhook/event runtime; if one
+becomes available it may replace (not complement) the poll loop. The terminal
+result is then recorded in the Autopilot state `notes`/`milestone_branch_head_sha`
+as a material change.
+
 ## 59. Blocker cleanup and history
 
 Separate `active_blocker` (current) from `blocker_history` (resolved). When a
