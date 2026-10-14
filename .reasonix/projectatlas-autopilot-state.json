@@ -5,7 +5,7 @@
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.25",
-  "current_block": "0.25.6",
+  "current_block": "0.25.7",
   "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.24",
@@ -36,7 +36,7 @@
 
   "current_branch": "waffle913-economy-v2-025",
   "milestone_scope_base_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
-  "milestone_branch_head_sha": "0b7ba3da74d58bff82687465005af3cb62882996",
+  "milestone_branch_head_sha": "b82398057b5540ec77417fdd2152a815321837ec",
   "carried_commits": [],
   "carried_unrelated_scope": [],
 
@@ -148,6 +148,6 @@
 
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
-  "updated_at": "2026-10-13",
-  "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 COMPLETE + green (run 38469131256, head 661323d). Surfaced latent bug fixed: vitest collected .reasonix/autopilot-state-validator.test.mjs -> excluded .reasonix/** (vite.config.ts, 661323d), reported separately. 0.25.2A COMPLETE + green (run 38472692248, head bacd0f3). 0.25.2B COMPLETE + green (run 38480184371, head e01f4d9). 0.25.3 COMPLETE + green (run 38483525541, head 0b7ba3d). 0.25.4 COMPLETE + green (run 38496505902, head 43403b5): employment.ts labour/wage/income accounting. 0.25.5 COMPLETE + green (run 38499210900 = CI #143, head 51229c7): households.ts demand from disposable income + essential/discretionary split + material shortage indicators. CI-opt (user-directed, 2026-10-14): added .reasonix/ci-wait.mjs (resumable, exact-SHA-verified, 3-minute moderate polling, persistent .reasonix/ci-wait-state.json) and documented it in protocol section 58; commit b824a21 on main. Verified end-to-end (terminal detection, resume-without-repoll, wrong-SHA exit 2). Step timings: Ubuntu verify 20m45s, Windows verify 28m45s (npm test dominates); test-time reduction (sharding/workers) identified as candidates but NOT applied (risk of flakiness/hiding failures). milestone_phase = IMPLEMENTING; current_block = 0.25.6. Top-level ci_* still records the runtime Safe-Zone main gate (0.24 / 6b6794e, run 38079523537); branch CI runs are tracked via milestone_branch_head_sha and these notes. Runtime Safe Zone advances only after the full 0.25 milestone is reviewed, corrected, merged and green. Do not start 0.26."
+  "updated_at": "2026-10-14",
+  "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 COMPLETE + green (run 38469131256, head 661323d). Surfaced latent bug fixed: vitest collected .reasonix/autopilot-state-validator.test.mjs -> excluded .reasonix/** (vite.config.ts, 661323d), reported separately. 0.25.2A COMPLETE + green (run 38472692248, head bacd0f3). 0.25.2B COMPLETE + green (run 38480184371, head e01f4d9). 0.25.3 COMPLETE + green (run 38483525541, head 0b7ba3d). 0.25.4 COMPLETE + green (run 38496505902, head 43403b5): employment.ts labour/wage/income accounting. 0.25.5 COMPLETE + green (run 38499210900 = CI #143, head 51229c7): households.ts demand from disposable income + essential/discretionary split + material shortage indicators. CI-opt (user-directed, 2026-10-14): added .reasonix/ci-wait.mjs (resumable, exact-SHA-verified, 3-minute moderate polling, persistent .reasonix/ci-wait-state.json) and documented it in protocol section 58; commit b824a21 on main. Verified end-to-end. Step timings: Ubuntu verify 20m45s, Windows verify 28m45s (npm test dominates); test-time reduction (sharding/workers) identified as candidates but NOT applied (risk of flakiness/hiding failures). 0.25.6 COMPLETE + green (run 38502555821, head b8239805): firms.ts aggregate firm accounts + retained-surplus investment (bounded, resource-consuming, never free). *** STOPPED AT SAFE CHECKPOINT PER HUMAN INSTRUCTION (2026-10-14): 0.25.1-0.25.6 are implemented and green on the branch; resume at 0.25.7 (prices/domestic markets) -> 0.25.12 then the bounded review campaign and merge. Do not start 0.26. *** milestone_phase = IMPLEMENTING; current_block = 0.25.7 (next). Top-level ci_* still records the runtime Safe-Zone main gate (0.24 / 6b6794e, run 38079523537); branch CI runs are tracked via milestone_branch_head_sha and these notes. Runtime Safe Zone advances only after the full 0.25 milestone is reviewed, corrected, merged and green."
 }
