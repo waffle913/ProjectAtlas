@@ -77,6 +77,7 @@ test('detects a review-round counter exceeding its locked maximum', () => {
 
 test('detects TECHNICALLY_VALIDATED without an autonomous_validation record', () => {
   const s = base();
+  s.autonomous_validation.current = null;
   s.milestone_phase = 'TECHNICALLY_VALIDATED';
   assert.ok(validateAutopilotState(s).some((e) => e.includes('TECHNICALLY_VALIDATED without a complete autonomous_validation.current record')));
 });
@@ -90,6 +91,7 @@ test('detects autonomous validation mislabeled as human acceptance', () => {
 
 test('detects sealed_sha lagging behind runtime_sha without an autonomous record', () => {
   const s = base();
+  s.autonomous_validation.current = null;
   s.runtime_sha = RT;
   s.last_safe_sha = RT;
   assert.ok(validateAutopilotState(s).some((e) => e.includes('sealed_sha differs from runtime_sha')));
