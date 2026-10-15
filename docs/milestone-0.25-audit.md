@@ -83,3 +83,32 @@ mirror matches `taxRegion` line-for-line at region scope.
 Performance: reused the 4 existing world benchmarks (`worldBenchmark.test.ts`); the 0.25
 layer is off the scheduler hot path except `regionalCapitalCapacityUsd` (C9, fixed here).
 CI verify (Ubuntu + Windows) is the reproducible measurement environment.
+
+## Round 2 — FINAL_VERIFICATION_REVIEW (2026-10-15)
+
+One final independent general review of the Round-1 correction batch (commit
+`4f55dde`: `employment.ts`, `production.ts`, `fiscal.ts` + three regression tests),
+via `tool:review` (ref `sa_20261015_151458_000000000_62d9fe065992`).
+
+**Verdict: warn — no blocking defect.** All three Round-1 fixes are correct, and each
+regression test fails against the pre-fix code (non-vacuous):
+
+- A1 employment wage-bill: `allocate(householdIncome, employedPerActivity)` conserves
+  exactly; zero-output/zero-employed cases consistent.
+- B3 production: empty-registry early return is equivalent to the old path; unit-mismatch
+  → `undefined` (no binding) vs mapped-but-unavailable → `0` (binding) correct; no
+  regression in `countryProductionCeilingUsd` or the `socioeconomy/runtime.ts` call.
+- B1 fiscal: `regionTaxDerivation` untouched; country `reconciled` reports `mismatch`
+  exactly when `account.taxes` diverges on the five categories, else `reconciled`.
+
+**Round-2 residual findings (non-blocking, recorded in `deferred_defects`):**
+
+- `fiscal.ts:163` should-fix — a Country with zero economic Regions reports
+  `fiscal_not_yet_run` even when `account` exists (vacuously-true `every`); should be
+  `reconciled`/`mismatch`. Recorded as `deferred-0.25-R2-emptyregions`.
+- Nits (documented, not defects): `production.ts:175` stale docstring; `employment.ts:80`
+  empty `activities` with `employed>0` throws in `allocate` (no production caller);
+  `production.ts:20` header contradiction (pre-existing).
+
+No `FINAL_CORRECTIONS` campaign was required (no blocking Round-2 finding).
+
