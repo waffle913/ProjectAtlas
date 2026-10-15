@@ -1,18 +1,22 @@
 # Economy V2 — 0.25
 
 **Status:** 0.25 (Economy V2) is explicitly authorized by the user. **0.25.1
-through 0.25.10 are implemented** — contracts and units of account (0.25.1),
+through 0.25.11 are implemented** — contracts and units of account (0.25.1),
 activities and productive capacities (0.25.2A/0.25.2B), stocks/supply/shortages
 (0.25.3), employment/wages/income (0.25.4), household needs and spending (0.25.5),
 firms/activity/investment (0.25.6), prices and domestic markets (0.25.7),
-international trade (0.25.8), budget/fiscal/public services (0.25.9), and
-cross-system causal-loop integration tests (0.25.10). Branch CI is green at run
-38662629487 (head `711a8d1ce05de9b02aa1992b3310b4809ab0a130`, ubuntu+windows). The
-next block is **0.25.11 — Data / migrations / restitution**. Implementation is not
-acceptance: 0.25 as a whole, and each sub-milestone, requires the review /
-correction / GitHub-CI gate and the user's explicit acceptance before the next
-main milestone. **0.24 remains the last accepted Safe Zone; 0.25 is not accepted.**
-The authoritative autopilot progression state is the copy of
+international trade (0.25.8), budget/fiscal/public services (0.25.9),
+cross-system causal-loop integration tests (0.25.10), and authority-gated economy
+restitution + save determinism (0.25.11). Branch CI is green at run 38666386707
+(head `e682a18a662b5b54376f3eeb4d52f8c0357bf32b`, ubuntu+windows). The next block
+is **0.25.12 — Performance / general review**. Implementation is not acceptance:
+0.25 as a whole, and each sub-milestone, requires the review / correction /
+GitHub-CI gate and the user's explicit acceptance before the next main milestone.
+**0.24 remains the last accepted Safe Zone; 0.25 is not accepted.** The 0.25
+economy is a read-only derivation layer: it adds no canonical state, so **no
+save-schema migration is required** — old saves stay loadable and the views
+recompute deterministically after restore (`economyRestitution.test.ts`). The
+authoritative autopilot progression state is the copy of
 `.reasonix/projectatlas-autopilot-state.json` maintained on `main`; the historical
 copy on the development branch is a stale snapshot and must not be used to resume
 at 0.25.1.
@@ -214,7 +218,6 @@ history, and save/reload + determinism + conservation coverage.
 
 ## Deferred (planned, not implemented)
 
-- **0.25.11** Data / migrations / restitution (sources, units, dates, coverage, saves, information, authority-gated commands).
 - **0.25.12** Performance / general review.
 
 These are planned direction, not authorization to implement; each requires the
