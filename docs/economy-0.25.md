@@ -1,14 +1,15 @@
 # Economy V2 — 0.25
 
 **Status:** 0.25 (Economy V2) is explicitly authorized by the user. **0.25.1
-through 0.25.9 are implemented** — contracts and units of account (0.25.1),
+through 0.25.10 are implemented** — contracts and units of account (0.25.1),
 activities and productive capacities (0.25.2A/0.25.2B), stocks/supply/shortages
 (0.25.3), employment/wages/income (0.25.4), household needs and spending (0.25.5),
 firms/activity/investment (0.25.6), prices and domestic markets (0.25.7),
-international trade (0.25.8), and budget/fiscal/public services (0.25.9). Branch CI
-is green at run 38634740271 (head `da7ddbd86cd45ad2e3f6e23e386e0246789e2977`,
-ubuntu+windows). The next block is **0.25.10 — Cross-system loops**. Implementation
-is not acceptance: 0.25 as a whole, and each sub-milestone, requires the review /
+international trade (0.25.8), budget/fiscal/public services (0.25.9), and
+cross-system causal-loop integration tests (0.25.10). Branch CI is green at run
+38662629487 (head `711a8d1ce05de9b02aa1992b3310b4809ab0a130`, ubuntu+windows). The
+next block is **0.25.11 — Data / migrations / restitution**. Implementation is not
+acceptance: 0.25 as a whole, and each sub-milestone, requires the review /
 correction / GitHub-CI gate and the user's explicit acceptance before the next
 main milestone. **0.24 remains the last accepted Safe Zone; 0.25 is not accepted.**
 The authoritative autopilot progression state is the copy of
@@ -213,7 +214,6 @@ history, and save/reload + determinism + conservation coverage.
 
 ## Deferred (planned, not implemented)
 
-- **0.25.10** Cross-system loops (no magic cross-cutting modifier).
 - **0.25.11** Data / migrations / restitution (sources, units, dates, coverage, saves, information, authority-gated commands).
 - **0.25.12** Performance / general review.
 
