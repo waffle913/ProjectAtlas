@@ -3,9 +3,9 @@
 **Status:** 0.26 is planned in the approved roadmap 0.26–0.34 and is now under a
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.26.1 and 0.26.3 are implemented**
-(branch CI green, runs 38772265361 / 38777534060); **0.26.4 (loans/bonds
-schedules) is in progress.**
+without its independent review and CI. **0.26.1, 0.26.3 and 0.26.4 are
+implemented** (branch CI green, runs 38772265361 / 38777534060 / 38781950424);
+**0.26.6 (default/solvency) is in progress.**
 The independent parts (single monetary ledger, monetary-surface inventory,
 payments/settlement, public-debt schedules, solvency) proceed now; the
 conditional parts (national currency/FX, commercial-bank credit-created money,
@@ -121,6 +121,25 @@ to the canonical debt stock (`FiscalCountry.debt`), without a second debt book:
 Validated by `src/simulation/__tests__/financeDebt.test.ts`. Restructuring /
 rollover stays deferred (the "if retained" branch); the single-stock fiscal
 debt model remains the canonical owner until admitted obligation data exists.
+
+## 0.26.6 scope — default and solvency
+
+The solvency primitives derive a State's ability to pay from real material
+conditions — never from a random event or a flat modifier
+(`src/simulation/finance/solvency.ts`):
+
+- `assessSolvency` classifies `solvent` / `stressed` / `in_default` strictly
+  from unpaid interest (`interestArrears`), a breached debt limit, unpaid
+  commitments (`arrears`) or an interest burden ≥ 50% of revenue;
+- `unavailable != 0`: absent revenue/output yields a `null` ratio, never a
+  fabricated zero;
+- `creditCeiling` is the causal credit consequence: a default blocks new
+  borrowing (`usable = 0`); otherwise only the debt-limit headroom remains;
+- `defaultedPrincipal` reports the concrete losses (matured but unrepaid
+  obligations) using the 0.26.4 schedule.
+
+Validated by `src/simulation/__tests__/financeSolvency.test.ts`. No banking
+crisis is invented here; bank solvency stays gated by `bank_deposits_balance`.
 
 ## Single monetary unit
 
