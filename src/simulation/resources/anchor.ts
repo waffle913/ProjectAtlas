@@ -47,7 +47,11 @@ export interface RegionAnchor {
 
 export function validateRegionAnchor(a: RegionAnchor): void {
   if (!a || typeof a.subjectId !== 'string' || !a.subjectId.trim()) throw new Error('Anchor needs a non-empty subject id.');
-  if (typeof a.regionId !== 'string' || !a.regionId.trim()) throw new Error('Anchor needs a non-empty permanent Region id.');
+  if (a.precision === 'unavailable') {
+    if (a.regionId !== '') throw new Error('An unavailable anchor must not name a Region.');
+  } else if (typeof a.regionId !== 'string' || !a.regionId.trim()) {
+    throw new Error('Anchor needs a non-empty permanent Region id.');
+  }
   if (!ANCHOR_PRECISIONS.includes(a.precision)) throw new Error(`Unknown anchor precision: ${String(a.precision)}.`);
   if (a.precision === 'documented_intra_region' && (!a.geometryReference || !a.provenance)) {
     throw new Error('documented_intra_region anchoring requires an admitted geometry reference and dated provenance (BLOCKED_DESIGN until the spatial-grid decision).');
