@@ -3,9 +3,9 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1, 0.27.2 and 0.27.3 are
-implemented** (branch CI green, runs 38805512130 / 38812763630 / 38815787349);
-**0.27.4 (refining/primary transformation) is in progress.**
+without its independent review and CI. **0.27.1–0.27.4 are implemented** (branch
+CI green, runs 38805512130 / 38812763630 / 38815787349 / 38819034040);
+**0.27.5 (energy production) is in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -75,6 +75,22 @@ The transformation contract (`src/simulation/resources/transformation.ts`):
 - verified losses and costs are explicit; `unavailable != 0`.
 
 Validated by `src/simulation/__tests__/resourcesTransformation.test.ts`.
+
+## 0.27.5 scope — energy production
+
+The energy-plant contract (`src/simulation/resources/energy.ts`):
+
+- a plant converts a fuel (thermal/nuclear) or a renewable flow
+  (hydro/wind/solar) into electricity with an explicit efficiency and — for
+  intermittent sources — an availability loss;
+- electricity never comes from nothing: a fuelled plant's output is bounded by
+  the fuel's energy content times the efficiency; a renewable plant's output is
+  bounded by capacity and availability;
+- output requires operating status and an admitted capacity; `null` capacity is
+  unavailable, never a fabricated zero; water/other input dependence is
+  represented only when documented.
+
+Validated by `src/simulation/__tests__/resourcesEnergy.test.ts`.
 
 ## Scopes and canonical owners
 
