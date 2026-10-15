@@ -3,7 +3,8 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1 is the current sub-milestone.**
+without its independent review and CI. **0.27.1 is implemented** (branch CI
+green, run 38805512130); **0.27.2 (territorial anchoring) is in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -30,6 +31,21 @@ building any new mechanism (parallel to 0.25.1 and 0.26.1):
 new scheduler task, no new RNG, no migration and no new canonical-state schema.
 The executable counterpart lives in `src/simulation/resources/contract.ts` and
 is validated by `src/simulation/__tests__/resourcesContract.test.ts`.
+
+## 0.27.2 scope — territorial anchoring and geographic evidence
+
+Region-level anchoring (`src/simulation/resources/anchor.ts`):
+
+- a resource or installation is anchored to a permanent Region id — never to a
+  grid cell, point or polygon;
+- 0.27.2 admits whole-Region anchoring only (`precision: 'region'`); intra-region
+  positioning (`documented_intra_region`) requires admitted geometry + dated
+  provenance and stays `BLOCKED_DESIGN` until the spatial-grid decision;
+- `unavailable != 0`: an unknown anchor is explicitly unavailable, never a
+  fabricated Region or position;
+- real geometry references carry dated, traceable provenance.
+
+Validated by `src/simulation/__tests__/resourcesAnchor.test.ts`.
 
 ## Scopes and canonical owners
 
