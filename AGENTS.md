@@ -205,7 +205,7 @@ Autonomous execution of the authorized roadmap is governed by [the Autopilot pro
 - Maintain `LAST_SAFE_ZONE`; advance it only after a complete, reviewed, corrected milestone is merged to `main` with required checks green and no known critical defect.
 - Two-repair loop breaker per root cause (`MAX_SAME_ROOT_CAUSE_REPAIR_CYCLES = 2`).
 - On a critical problem, budget/quota exhaustion, a design/contract/migration/external blocker, or a repeated root cause: `CRYO_MODE` — freeze at the Safe Zone, produce the CRYO report, STOP. Never advance past a known critical defect.
-- Never start a milestone outside the authorized roadmap, and never invent 0.26+.
+- Never start a milestone outside the authorized roadmap. The approved roadmap plans 0.26–0.34 as direction (planning only, not implementation authorization); never invent 0.35+.
 
 This section is a summary; the protocol is authoritative.
 

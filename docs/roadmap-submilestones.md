@@ -5,7 +5,7 @@ This document is the detailed planning reference for ProjectAtlas. It complement
 ## How to read this document
 
 - **Historical milestones are not re-cut retroactively.** 0.1–0.21 keep their original numbering and scope. They are preserved here as context, not as tasks to redo.
-- **New large milestones are split into small units.** 0.24 and 0.25 are decomposed into sub-milestones and micro-blocks to reduce the surface of each change and the cost of corrective loops.
+- **New large milestones are split into small units.** 0.24, 0.25 and the approved 0.26–0.34 are decomposed into sub-milestones and micro-blocks to reduce the surface of each change and the cost of corrective loops.
 - **Presence in this roadmap is not authorization to implement.** Each main milestone still requires explicit user authorization, and no next main milestone starts automatically. Accepting or completing a main milestone never authorizes the next one: the Autopilot persists `AWAITING_NEXT_MILESTONE_AUTHORIZATION` and stops until a human explicitly authorizes the next milestone (see `docs/autopilot-protocol.md` Part D).
 - **Execution method.** How a Roadmap Goal builds this roadmap autonomously (authorization boundary, Planner/Executor/Reviewer roles, GitHub-CI gate, Safe Zones, repair loop breaker, Cryo Mode) is defined by the [Autopilot protocol](autopilot-protocol.md), not by this document.
 - Keep these statuses distinct — an agent's declaration, a commit actually present, a green CI run, an independent review, and user acceptance are five different things:
@@ -28,6 +28,17 @@ authoritative acceptance/sealing state lives in
 evidence (see `docs/autopilot-protocol.md` Part D §51). As of the schema-v3
 hardening, 0.24 is accepted and sealed at runtime SHA `6b6794e`; 0.25 is not
 authorized.
+
+**2026-10-15 update — approved post-0.25 roadmap.** The human officially
+approved the roadmap proposal `ProjectAtlas_Roadmap_0.26-0.34_PROPOSITION.md`
+and directed its integration here. Versions **0.26–0.34** are now planned,
+numbered and decomposed (see below). This is a **documentation/planning**
+decision only: it is **not** an authorization to implement any of 0.26–0.34,
+**not** an acceptance of any milestone, and it does **not** advance the Safe
+Zone. 0.25 remains in `FINAL_VERIFICATION_REVIEW` awaiting human acceptance
+(not accepted); the Safe Zone stays at 0.24. Implementation authorization,
+per-milestone acceptance and Safe-Zone advancement remain separate decisions
+under `docs/autopilot-protocol.md`.
 
 
 - `main` — `75cb45d` — the V1 core (0.8–0.21) plus the accepted 0.15 foundation, and these planning documents.
@@ -221,24 +232,201 @@ Complete world; sectors; stocks; trade; multi-cadence; long simulations; fidelit
 
 ---
 
-## Post-0.25 — unnumbered V2 backlog
+## Post-0.25 — approved roadmap 0.26–0.34 (planned, not implementation-authorized)
 
-Do not invent 0.26, 0.27, etc. Numbers such as 0.32, 0.33 or 0.34 may have been mentioned during size estimates; **a comparative estimate is not a roadmap validation**. Until an explicit decision fixes their order, keep the following directions in an unnumbered register.
+On 2026-10-15 the human officially approved the proposal `ProjectAtlas_Roadmap_0.26-0.34_PROPOSITION.md` and directed its integration into this canonical roadmap. The versions below are now **planned direction** — numbered and decomposed — but this approval is **not** an authorization to implement, **not** an acceptance of any milestone, and does **not** advance the Safe Zone. Implementation authorization, per-milestone acceptance and Safe-Zone advancement remain separate decisions under `docs/autopilot-protocol.md`. Do not invent versions beyond 0.34.
 
-- **Currency / banks / credit / finance**: currency; payments; loans; debts; liquidity; rates; finance; investments; risks. No money created by accounting incoherence.
-- **Energy and resources**: capacities; plants; grids; fuels; resources; geography; costs; shortages; industry; households; military.
-- **Research / technology / innovation**: funding; personnel; time; diffusion; industrial capacity; real effects on productivity/equipment. No magic technological bonus.
-- **Health / housing / public services V2**: access to care; hospitals; housing; supply; rents if decided; pensions; education; aid; infrastructure.
-- **Police / justice / intelligence**: actors; budgets; personnel; law; investigations; powers; constitutional constraints; consequences.
-- **Immigration / demography V2**: entries; exits; statuses; residence; work; families; integration; rights; budgets. No second parallel population.
-- **Diplomacy V2 / deeper trade**: negotiations; requests; claims; guarantees; sanctions; escalation; treaties; organisations; dependencies; multilateral interactions. Extend 0.17–0.20.
-- **Military V2**: enriched logistics; military industry; training; maintenance; ammunition; command; research; AI autonomy; enriched operations. Do not duplicate 0.16/0.19.
-- **Deep products/services economy**: sectors that do not reasonably fit the 0.25 core can be deepened later without artificially bloating 0.25.
-- **Media / information / opinion**: media; statements; credibility; disinformation; censorship when decided; opinion; reactions; political communication. Preserve Reality / Government Information / Public Perception.
-- **Final interface / ergonomics**: see the locked UI decisions below.
-- **Advanced government AI**: competent governments; goals; constraints; limited information; contextual choices; trade-offs; ministers; coalitions; opposition; crises.
-- **Climate / agriculture / environment / competition and monopolies**: keep as possible/expected directions only when genuinely validated, otherwise mark them explicitly as proposals. Do not present them as already approved systems in detail.
-- **Commercial finalization / QA**: licences; attribution; data compliance; desktop build; gameplay QA; performance; save compatibility; distribution.
+### Ordering and dependencies
+
+| Version | Proposed title | Main dependency | Expected exit criterion |
+|---|---|---|---|
+| **0.26** | Finance, banking, credit and money | 0.25 economy/fiscal/trade | Conserved financial balances, coherent payments and credit |
+| **0.27** | Resources, extraction, energy and networks | 0.24 assets + 0.25 stocks/production + 0.26 finance | Causal energy/material flows, localized without invented geology |
+| **0.28** | Deeper industry, goods/services, research and technology | 0.25 activities + 0.27 energy + 0.26 finance | Verifiable input chains, R&D, diffusion and capacities |
+| **0.29** | Health, housing, education, social protection and public services V2 | 0.25 budget/households + 0.24 assets + 0.28 sectors | Services bounded by personnel, equipment, budget, access |
+| **0.30** | Demography/migration V2, police, justice and intelligence | 0.23 institutions + 0.29 health + 0.25 employment | Cohorts without duplication, security/justice powers legally bounded |
+| **0.31** | Diplomacy, strategic trade and military capability/operations V2 | 0.17–0.20 + 0.25–0.30 | Causal crises, negotiations, logistics and military production |
+| **0.32** | Media, political communication, perception and advanced government AI | 0.13–0.15, 0.23, 0.29–0.31 | Competent but non-omniscient governments, contextualized actors |
+| **0.33** | Final interface, playability and cross-cutting integration | Preceding modules | Playable actions and understandable consequences, no fake screens |
+| **0.34** | World historical data, calibration, final audit and human validation V2 | 0.26–0.33 + the Work campaign | Explicit fidelity/coverage balance, validated scenarios and known limits |
+
+> The order sometimes groups two adjacent backlog families to fit nine versions. It must not translate into mass changes: **each sub-milestone is itself split into A/B/C micro-blocks when state surface, migrations or dependencies justify it.**
+
+### 0.26 — Finance, banking, credit and money
+
+**Goal:** enrich the 0.25 economy without minting liquidity or short-circuiting the fiscal system. **Mandatory prior arbitration:** contract 0.25.1 uses whole USD as the canonical unit of account; national currencies, exchange rates or a deposit-creating banking system require an explicit design that keeps USD accounting without a second world register.
+
+- **0.26.1 — Monetary contract and open decisions.** Inventory treasuries, revenues, receivables, obligations, payments, prices and existing debt. Decide explicitly whether national currency/FX, commercial banks and credit-created money are in scope; without a decision, `BLOCKED_DESIGN` on the dependent branches, but not on the independent parts.
+- **0.26.2 — Aggregated financial actors.** Define canonical ownership of banks/counterparties and their commitments; individual accounts only if necessary — no simulation of millions of accounts.
+- **0.26.3 — Payments and settlement.** Orders, counterparties, fund availability, atomic transfer, no double spending, refused transactions and balance conservation.
+- **0.26.4 — Loans, bonds and schedules.** Principal, corresponding debt, interest, maturities, repayment, restructuring if retained; no money without a matching asset/liability.
+- **0.26.5 — Liquidity, funding and rates.** Availability, cost of capital, refinancing, firm and State needs, institutional functioning; distinguish observed rates from modelled rates.
+- **0.26.6 — Default and solvency.** Inability to pay, losses, encumbered assets, consequences on investment and spending; no magical banking crisis.
+- **0.26.7 — Public treasury and credit.** Link to 0.11 and 0.25.9; debt, debt service, bonds, budget flows, prohibition of double fiscal entries.
+- **0.26.8 — Exchange rates / FX (conditional on 0.26.1).** Conversions, display unit vs canonical unit, conservation at documented precision; no fictional FX market imposed without a decision.
+- **0.26.9 — Tests, migrations, performance and review.** Balanced balances; counterparties; save/reload; default; refusal; government-information API; Ubuntu/Windows CI.
+
+### 0.27 — Resources, extraction, energy and networks
+
+**Goal:** production comes from a place, an exploitable resource and installations — **not a bonus attributed to the country**. This milestone extends 0.24 assets, 0.25 production and 0.17 trade; it redraws no Region.
+
+- **0.27.1 — Matter/energy taxonomy and contract.** Resources, fuels, refined products, electricity and capacities, physical units convertible only with justified factors; distinct scopes for reserves/deposits/production/stock.
+- **0.27.2 — Territorial anchoring and geographic evidence.** Resource and installation tied to a permanent Region, geometry/source and precision/uncertainty; intra-regional positions only if sufficiently documented. Choice of a grid, points or extractable polygons = **a distinct design decision**; do not turn the presence of a geological basin into point-by-point exploitable density.
+- **0.27.3 — Extraction and installations.** Mines, wells, quarries per material capacity, personnel, inputs, maintenance and status; ownership/exploitation/control distinct.
+- **0.27.4 — Refining and primary transformation.** Inputs → products/by-products/residues, verified losses, costs, installation saturation, no net creation of matter.
+- **0.27.5 — Energy production.** Plants, fuels, energy conversion, dependence on water/other inputs if documented, maintenance and intermittency if applicable.
+- **0.27.6 — Networks and accessibility.** Energy transport, connections, capacities, bottlenecks, unavailability; localized effects on industry, households and armies.
+- **0.27.7 — Stocks and physical trade.** Links to 0.25.3 stocks and 0.17/0.25.8 trade; effective imports, shortages, substitution only if modelled and authorized.
+- **0.27.8 — War, sovereignty, damage.** Effective control, occupation, exploitation, sanctions, damage/repairs without automatic transfer of sovereignty.
+- **0.27.9 — Validation.** Energy/matter conservation, no extraction without capacity, admissible localization, save/reload, geographic granularity and world performance.
+
+**Awaiting decision and outside the default authorized scope:** detailed agriculture model, climates, deforestation, emissions, environmental effects, fine spatial grid of thousands of cells. Their interest is recognized; their rules are not yet locked by this roadmap.
+
+### 0.28 — Deeper industry, goods/services, research and technology
+
+**Goal:** turn the aggregated economic base into enriched productive chains with causal innovation, without duplicating 0.25 or promising detailed product data where no admissible source exists.
+
+- **0.28.1 — Product, sector and nomenclature contracts.** Correspondence layer between economic categories, products, activities, installations and documentary classifications (without abusively equating ISIC/NACE/HS/CPC/PRODCOM).
+- **0.28.2 — Transformation chains.** Industrial production from capacities, equipment, materials, energy, personnel and time; verifiable batches/ratios, distinct products and by-products.
+- **0.28.3 — Capacities and bottlenecks.** Productivity, time, maintenance, supplies, technical constraints, under-utilization and expansion through 0.24 construction.
+- **0.28.4 — Service sectors.** Activity actually delivered, personnel/capacity, purchases, cost, revenue, availability; do not turn a service into an arbitrary material stock.
+- **0.28.5 — Research projects.** Subject, schedule, spending, researchers, equipment and documented/modelled risk; no instant discovery caused by a budget.
+- **0.28.6 — Diffusion and adoption.** Training, investment, equipment replacement, learning time, supply constraints; effect on material processes, not a global GDP bonus.
+- **0.28.7 — Military/civilian technology.** Prudent link to equipment, production and capacity 0.16/0.24/0.25, without encroaching on 0.31 operations.
+- **0.28.8 — Firms/market structures (conditional).** Detailed competition, concentration or monopoly mechanisms only if market rules and antitrust powers are explicitly validated; otherwise keep in the unnumbered backlog.
+- **0.28.9 — Validation.** Input and value conservation, inter-sector cycles, dated science, testable synthetic economies and partially sourced cases.
+
+### 0.29 — Health, housing, education, social protection and public services V2
+
+**Goal:** public services are no longer only a spend, but capacities effectively available and accessible, dependent on professionals, infrastructure, supplies and the legal framework.
+
+- **0.29.1 — Service/capacity/access contract.** Attach budget, assets, personnel, territories, rights and cohorts to existing systems; no second budget or population.
+- **0.29.2 — Health and establishments.** Personnel, beds or capacities only if sourced/admissible, aggregated care flows, needs, queues/delays, 0.24 establishments; outcome distinct from mere spending.
+- **0.29.3 — Medicines, consumables, energy, maintenance.** Physical needs, purchases, availability, imports and supply ruptures.
+- **0.29.4 — Education and training.** Establishments, personnel, capacities, access, aggregated pathways, cost and temporal effects on skills and labour.
+- **0.29.5 — Housing.** Existing supply, construction, availability/quality, household access and mobility, maintenance costs; **rent rules only after an explicit decision**.
+- **0.29.6 — Pensions and benefits.** Legal eligibility, payments, resources, controls per law, fiscal/disposable-income integration; neither infinite automatic benefits nor invented exclusions.
+- **0.29.7 — Civil transport/infrastructure.** Services from assets, maintenance and capacity, dependence on personnel/energy; do not rebuild 0.24.
+- **0.29.8 — Public policy and reactions.** A law/budget creates real capacities within institutional limits; indirect health/labour/opinion effects with causality and incomplete information.
+- **0.29.9 — Validation.** Executed budget vs service actually delivered, regional variability, asset ageing, rights, migrations and documentary coverage.
+
+### 0.30 — Demography/migration V2, police, justice and intelligence
+
+**Reason for the grouping:** with nine milestones available, population and internal-security mechanisms share identity, rights, institutions and information constraints. They must remain **two distinct technical sub-campaigns**, never one single big change.
+
+- **0.30.1 — Cohort and transition contracts.** Reuse the single 0.10 population; age/statuses/services/people in cohorts without millions of entities; define observed and modelled populations separately.
+- **0.30.2 — Births, deaths and internal movements.** Dated, conserved demographic transitions, correlated with material conditions when supported; no magical population change.
+- **0.30.3 — International migration.** Entries, exits, departures, reception and net flows without double counting across countries/Regions; migration ≠ sovereignty change.
+- **0.30.4 — Legal statuses and integration.** Residence/work/family/rights/service per explicitly documented law; social integration as a contextualized mechanism, never an arbitrary cultural-conformity gauge.
+- **0.30.5 — Police.** Personnel, stations, budgets, legal orders, availability, procedures, limits; power only if the office/institution holds it.
+- **0.30.6 — Justice and guarantees.** Aggregated cases/workloads, evidence, procedure, jurisdictions, delays, judicial review, rights and remedies; no automatic conviction from a bare score.
+- **0.30.7 — Intelligence.** Capabilities, means, partial information, possible errors, authorized collection, guarantees and controls; distinguish secret facts / accessible information / perception, without omniscience.
+- **0.30.8 — Security, events and consequences.** Law enforcement, crises, demonstrations, rights violations and contextualized social/international reactions; no "repression bonus".
+- **0.30.9 — Interconnections.** Population↔employment↔services↔budget; police/justice↔institutions↔opinion; demography and migration at every needed cadence, without a concurrent loop.
+- **0.30.10 — Validation.** Demographic conservations, status errors, refused procedures, constitutional protections, saves, performance.
+
+### 0.31 — Diplomacy / strategic trade and military V2
+
+**Goal:** deepen 0.17–0.20 and 0.16/0.19 by linking negotiations and conflicts to the real resources of systems 0.26–0.30.
+
+- **0.31.1 — Actor and commitment contract.** Actors/mandates, relations, disputes, decisions, clauses and obligations; no second treaty system.
+- **0.31.2 — Negotiations, concessions and guarantees.** Proposals, counterparts, credibility, conditional commitments and deadlines; no automatic agreement because a relation crosses a threshold.
+- **0.31.3 — Sanctions, embargoes and dependencies.** Trade/financial controls, materials, circumvention only if modelled, reciprocal costs, distinct sanctions/condemnation/embargo/intervention.
+- **0.31.4 — Multilateral diplomacy and de-escalation.** 0.20 bodies, commitments, mediation, concrete measures, crisis exit, non-omniscient information.
+- **0.31.5 — Military support chain.** Fuels, ammunition, parts, maintenance, stocks, transport, purchase contracts, personnel and time; military products from 0.28 activities.
+- **0.31.6 — Military industry and acquisition.** Orders, financing, delays, factory capacity, training, equipment limits; no instant unit/strength.
+- **0.31.7 — Training, availability and command.** Preparation, losses and reconstitution, authority constraints; no second military-power table.
+- **0.31.8 — Operations and territorial control.** Extend 0.19 without annexation by pixel movement: control/occupation/sovereignty distinct, logistics, strategic terrain, asset damage and consequences.
+- **0.31.9 — Crises, peace and security.** Wars follow disputes → tensions/crises → decision to use force; truce/peace/guarantees, regional control and respect for law.
+- **0.31.10 — Information, authorities and costs.** Leaders know what their services know, pay the cost of orders, bear domestic/international consequences.
+- **0.31.11 — Validation.** Multi-country chains and long simulations, sanctions on both sides, attrition and material capacity, contradictory treaties, controls and migrations.
+
+### 0.32 — Media, political communication, perception and advanced government AI
+
+**Goal:** competent actors and governments, situated within their constraints and information; no omniscient agent and no AI designed to artificially oppose the player.
+
+- **0.32.1 — Information contract.** Reality, government information, public perception, sources, propagation, credibility, uncertainty and history; no automatic access to hidden state.
+- **0.32.2 — Media and information channels.** Contextual coverage and diffusion, resources, aggregated audience, schedule and sources; do not create information from an interface.
+- **0.32.3 — Statements and political communication.** People, parties, unions/associations, communiqués, reactions per interests and credibility; a statement is not directly a law.
+- **0.32.4 — Disinformation/censorship (conditional on the decided legal framework).** Authorities and means, real access to information, effects/risks, guarantees and reactions, without a free social-control bonus.
+- **0.32.5 — Opinion and mobilization.** Coherent change in population/cohorts/Regions, non-monolithic parties, opposition vs majority, real capacity to act.
+- **0.32.6 — Government-objective model.** Ideology, mandate, coalition, institutional constraints, resources and situational memory; do not duplicate player power or government.
+- **0.32.7 — Political action selection.** Deterministic comparison of choices and costs; proposals and votes through 0.22/0.23; uncertainty cases and the choice not to act.
+- **0.32.8 — Economic and social decisions.** AI governments use finances, resources, employment, services and available information; behaviors compatible with their capacities.
+- **0.32.9 — Diplomacy / crises / opposition.** Graduated responses to disputes, negotiations, institutions, war, opinion, parliamentary opposition; no reaction fixed by "what the player does".
+- **0.32.10 — Validation.** Contradictory scenarios, rational but imperfect adversaries, global computational cost, emergent behaviors, consultable explanations without revealing secrets.
+
+### 0.33 — Final interface, playability and cross-cutting integration
+
+**Goal:** make the preceding systems accessible without betraying their real state. **Follow the latest version of the roadmap, not old mockups:** central map; left rail of advisors/actors/notifications (not a large menu); domain bar at the bottom; context/Tablet at the right; time at the bottom-right.
+
+- **0.33.1 — Interface/state contract.** Available vs unavailable information, public read vs authorized command, simulation state vs UI state; no direct mutation by the interface.
+- **0.33.2 — Map and layers.** Priority map, permanent Regions, economy, politics, resources, trade and logistics layers, visual precision compatible with sourced data.
+- **0.33.3 — Domain bar and navigation.** Politics/economy/finances/services/security/defence/diplomacy/trade domains; function → workspace → tabs; avoid debug screens disguised as gameplay.
+- **0.33.4 — Left rail.** Advisors/actors/notifications, normal/hover/selected/urgency states and proportionate interruptions.
+- **0.33.5 — Right context and Tablet.** Region/actor selection, public news, private briefings, messages, statements and history, Information/Perception compartmentalization.
+- **0.33.6 — Commands and powers.** A person's action per office, majority/opposition, chamber, Constitution and resources; explicit value (no arbitrary slider), explained refusal.
+- **0.33.7 — Decisions and consequences.** Understandable explanations and uncertainty; provenance indicators on demand without overloading the interface; causal and deferred consequences.
+- **0.33.8 — Time and alerts.** Date and time, measured speeds, cadences, timezones/localizations only if resolved, no mandatory general hourly simulation; only grave events may pause.
+- **0.33.9 — Gameplay paths.** Governing, opposition, succession, crisis, war, budget management, consultation without authority, save/load, tutorial/accessibility per proven needs.
+- **0.33.10 — Creative / professional sandbox mode (PROPOSAL TO VALIDATE).** An isolated test layer allowing a domain's hypotheses to be modified without falsifying history or contaminating the canonical campaign could help future experts; do not implement without a user decision.
+- **0.33.11 — UX review and cross-cutting audit.** Test interactions between UI and action contracts, map performance, reports, no lying screens, desktop compatibility.
+
+### 0.34 — World historical data, calibration, final audit and human validation V2
+
+**Goal:** apply and control at scale the documentation collected by Work and the targeted campaigns, measure coverage and submit a playable simulation to human and professional tests. **This milestone is not a promise that all world data exists, nor permission to ship an unvalidated game.**
+
+- **0.34.1 — Admission contract freeze.** Inventory of every variable actually consumed by systems 0.24–0.33, owner, unit, historical horizon, Country/Region/installation level, constraints and admission status; compare to the DataVault.
+- **0.34.2 — Documentary recovery and de-duplication.** Load only complete verified checkpoints (fingerprints, licences, sources, series and codebooks); Work/Reasonix reconciliation, no already-completed extraction redone by default.
+- **0.34.3 — Correspondences and units.** Permanent Country/Region identities, sector/product nomenclatures, national/regional/spatial data, prices/quantities/value, currencies and fiscal years without fictional correspondence.
+- **0.34.4 — Temporal and legal admissibility.** Situation applicable on 2026-01-01, distinct publication/revision date, commercial licences, provenance, attribution, limits. Unresolved incompatibility → explicit exclusion, not silent replacement.
+- **0.34.5 — Historical bootstrap and data migrator.** Feed systems from admissible records; zero vs missing; partial cases; no universal fictional filling; do not rewrite advanced saves to an earlier date.
+- **0.34.6 — Calibration by dimension.** Coherence of physical stocks/balances, trade/production/consumption, financial/fiscal accounting, jobs/wages, energy, health, demography, defence, diplomacy and opinion; `modelled` parameters explicitly identified, without magically adjusting results to hit a target.
+- **0.34.7 — Graduated coverage.** Matrices for 252 entities and Regions: `observed / sourced / derived / modelled / partial / unavailable / not_applicable`; coverage rate **per critical mechanism** (not just raw observation count), census of actually exploitable countries/scenarios.
+- **0.34.8 — Economic and causal validation.** Shock scenarios, fiscal, shortages, wars, sanctions, health/social crises, migrations and investments; counterfactuals, limits, sensitivities, causality and long-term stability.
+- **0.34.9 — Human/professional validation.** Reproducible protocols and scenario sets for economists, diplomats, military/legal specialists, then players. Experts evaluate their own domain without other domains wrongly presenting themselves as factually complete; isolated sandbox mode if and only if approved.
+- **0.34.10 — Performance, migrations and saves.** Whole world, long scenarios, several speeds/modes, CPU/RAM, determinism and conservation, migration of old saves at their real date, Ubuntu/Windows tests and UI feedback.
+- **0.34.11 — Licences and distribution preparation.** Code and datasets verified separately, commercial/attribution terms, compliance and inaccessible sources; identify Steam/distribution obstacles without promising a commercial release.
+- **0.34.12 — Consolidated independent audit and decision.** An as-exhaustive-as-possible campaign, certain bugs / probable risks / optional improvements; targeted and bounded corrections; final CI; honest coverage report, observed accuracies, non-admissible domain, expert tests and recommendations. `0.34 validated` is not `0.34 accepted`, and `0.34 accepted` does not automatically mean "finished game".
+
+### Fidelity matrix to the former post-0.25 backlog
+
+No direction is lost; each former unnumbered direction maps to a numbered version or stays explicitly conditional:
+
+| Former backlog direction | Proposed destination |
+|---|---|
+| Currency / banks / credit / finance | **0.26** |
+| Energy and resources | **0.27** |
+| Research / technology / innovation | **0.28** |
+| Health / housing / public services V2 | **0.29** |
+| Police / justice / intelligence | **0.30** |
+| Immigration / demography V2 | **0.30** |
+| Diplomacy V2 / deeper trade | **0.31** |
+| Military V2 | **0.31** |
+| Deep products/services economy | **0.28** |
+| Media / information / opinion | **0.32** |
+| Final interface / ergonomics | **0.33** |
+| Advanced government AI | **0.32** |
+| Climate / agriculture / environment / competition & monopolies | **Always conditional / not validated**: open questions in 0.27/0.28, stays in the backlog if refused or undecided |
+| Commercial finalization / QA | **0.34**, as validation and preparation, not a guaranteed launch |
+
+### Open design gates (to be decided BEFORE the concerned blocks)
+
+Adopting this roadmap does not turn conditional options into approved decisions. These gates stay open, and a dependent sub-block must raise `BLOCKED_DESIGN` before being started:
+
+1. **0.26 — National currencies and bank credit:** keep nominal USD as the sole accounting unit with an explicit multi-currency representation, or defer FX? Should the bank/deposits/loans balance be simulated, and at what aggregate level?
+2. **0.27 — Intra-regional localisation:** points, cells/grid or asset/deposit geometries, with what size/resolution and what level of proof? The user wants different concentrations depending on position, but this roadmap does not yet lock the technical support.
+3. **0.27/0.28 — Agriculture, environment, climate and competition:** which sub-systems are actually validated, with which causal loops and legal powers? Do not activate anything silently.
+4. **0.29 — Housing:** simulate rents and rental rules in this version?
+5. **0.30 — Justice and intelligence:** what degree of procedural detail and what institutional perimeter per country, without fictional generalization of laws?
+6. **0.33 — Creative mode:** confirm an isolated testing space for professional validation? What modification possibilities and what limits?
+7. **0.34 — Acceptance threshold:** which zones or national scenarios must be historically initializable instead of requiring 252/252 exhaustive entities? What calibration and expert-acceptability criteria?
+
+None of these questions authorizes an agent to invent decisions. Independent blocks may be completed when materially safe, but a dependent block must raise `BLOCKED_DESIGN` first.
+
+### General end-of-milestone criteria (0.26–0.34)
+
+A milestone is a validation candidate when: its approved blocks are implemented; causal mechanisms and invariants are demonstrated; canonical architecture is preserved; old saves migrate from their date; world performance is reasonable for the domain; fidelity differences are conservative; negative tests and cross scenarios exist; the diff is complete; a consolidated independent review groups every detectable defect; corrections are limited and justified; Ubuntu/Windows CI is green on **the exact SHA**; real limitations and coverage are displayed; fictional data is not presented as observed. **Human acceptance is a separate step.**
 
 ---
 

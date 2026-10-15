@@ -51,11 +51,14 @@ between the two.
 The authorization boundary is therefore **the end of the currently authorized
 numbered roadmap**.
 
-- An unnumbered backlog item, or an explicitly not-authorized milestone, is
-  **not** automatically authorized.
-- Reasonix must never invent a new `0.26`, `0.27`, etc. The
-  post-0.25 backlog in [the roadmap](roadmap-submilestones.md) stays an
-  unnumbered register until a human fixes its order and authorizes it.
+- A milestone that is planned in the roadmap but not yet authorized — or an
+  explicitly not-authorized milestone — is **not** automatically authorized.
+- The roadmap now numbers the planned post-0.25 directions as **0.26–0.34**
+  (approved as direction on 2026-10-15). Being numbered in the roadmap is
+  **planning only**: it does not authorize implementation. Reasonix must never
+  invent a version beyond the approved roadmap (no `0.35`, etc.) and must never
+  start 0.26–0.34 without an explicit implementation authorization recorded in
+  `.reasonix/projectatlas-autopilot-state.json`.
 
 ---
 
@@ -558,8 +561,9 @@ no explicit multi-milestone authorization exists, the Autopilot persists
 `AWAITING_NEXT_MILESTONE_AUTHORIZATION` (§22, §63) and STOPs until the human
 explicitly authorizes the next milestone.
 
-When every numbered, authorized milestone is complete: STOP. Do not convert the
-unnumbered backlog into new versions. Produce:
+When every numbered, authorized milestone is complete: STOP. Do not invent new
+milestones beyond the approved roadmap — 0.26–0.34 are the last planned
+versions and there is no 0.35 until a new human-approved roadmap exists. Produce:
 
 ```text
 # PROJECTATLAS ROADMAP AUTOPILOT — COMPLETE
