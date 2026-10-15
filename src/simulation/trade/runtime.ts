@@ -7,6 +7,7 @@ import { reservedPersonnel, hasMilitaryManagementAuthority } from '../military/r
 import { constructionReservedPersonnel } from '../assets/workforce';
 import { CONSTRUCTION_MATERIAL_CATEGORY } from '../assets/model';
 import { constructionMaterialDemandPerMonth } from '../assets/materials';
+import { regionalCapitalCapacityUsd } from '../economy/production';
 import { tradeObservations } from './data';
 import { blockedRouteKeysForDate, routeRestrictionKey } from '../international/runtime';
 import { affordableQuantity, CATEGORY_REGISTRY, emptyTrade, money, quoteFlow, TRADE_CATEGORIES, TRADE_MODEL,
@@ -154,7 +155,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
     let backing = 0;
     ids.forEach((id, i) => {
       const request = { ...demands[i], otherDemand: demands[i].otherDemand - industrialByRegion[i] };
-      const projected = evolve(state.socioeconomy.regions[id], request, reservedPersonnel(state, id) + constructionReservedPersonnel(state, id)).economy!;
+      const projected = evolve(state.socioeconomy.regions[id], request, reservedPersonnel(state, id) + constructionReservedPersonnel(state, id), regionalCapitalCapacityUsd(state, id)).economy!;
       const localPrivate = state.fiscal.regions[id].privateResidual - industrialByRegion[i];
       const realizedPrivate = request.otherDemand ? Number(BigInt(projected.otherDemandRealized) * BigInt(localPrivate) / BigInt(request.otherDemand)) : 0;
       backing = integer(backing + realizedPrivate);
@@ -347,7 +348,7 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
     const backingWeights = ids.map((r, index) => {
       const d = baseFiscalDemand(state, r)!;
       const otherDemand = d.otherDemand - industrial[index];
-      const p = evolve(state.socioeconomy.regions[r], { ...d, otherDemand }, reservedPersonnel(state, r) + constructionReservedPersonnel(state, r)).economy!;
+      const p = evolve(state.socioeconomy.regions[r], { ...d, otherDemand }, reservedPersonnel(state, r) + constructionReservedPersonnel(state, r), regionalCapitalCapacityUsd(state, r)).economy!;
       return otherDemand ? Number(BigInt(p.otherDemandRealized) * BigInt(state.fiscal.regions[r].privateResidual - industrial[index]) / BigInt(otherDemand)) : 0;
     });
     const backings = allocate(productionBacking, backingWeights);
