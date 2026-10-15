@@ -3,9 +3,9 @@
 **Status:** 0.26 is planned in the approved roadmap 0.26–0.34 and is now under a
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.26.1, 0.26.3 and 0.26.4 are
-implemented** (branch CI green, runs 38772265361 / 38777534060 / 38781950424);
-**0.26.6 (default/solvency) is in progress.**
+without its independent review and CI. **0.26.1, 0.26.3, 0.26.4 and 0.26.6 are
+implemented** (branch CI green, runs 38772265361 / 38777534060 / 38781950424 /
+38786787016); **0.26.7 (public treasury/credit) is in progress.**
 The independent parts (single monetary ledger, monetary-surface inventory,
 payments/settlement, public-debt schedules, solvency) proceed now; the
 conditional parts (national currency/FX, commercial-bank credit-created money,
@@ -140,6 +140,25 @@ conditions — never from a random event or a flat modifier
 
 Validated by `src/simulation/__tests__/financeSolvency.test.ts`. No banking
 crisis is invented here; bank solvency stays gated by `bank_deposits_balance`.
+
+## 0.26.7 scope — public treasury and credit
+
+The treasury primitives tie the existing fiscal financing loop (0.11/0.25.9) to
+the 0.26.3 settlement primitives (`src/simulation/finance/treasury.ts`):
+
+- conservation identities mirror `runFiscalMonth`: cash flow
+  `openingCash + totalRevenue + borrowed === totalSpending + repaid + closingCash`
+  and debt stock `openingDebt + borrowed === closingDebt + repaid`; a ledger that
+  violates either is rejected;
+- `debtServiceOrders` expresses the booked debt service as payment orders
+  (interest, then principal); `settleDebtService` settles them against closing
+  cash with interest paid before principal;
+- `borrowingCapacity` is the causal ceiling (monthly limit bounded by the
+  remaining debt-limit headroom);
+- no double fiscal entries: the treasury view reads the canonical fiscal
+  `account` and never writes it.
+
+Validated by `src/simulation/__tests__/financeTreasury.test.ts`.
 
 ## Single monetary unit
 
