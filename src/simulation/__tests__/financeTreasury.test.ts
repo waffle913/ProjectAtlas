@@ -7,7 +7,7 @@ import {
 import { assertSettlementConservation } from '../finance/settlement';
 
 const balanced = (): TreasuryLedger => ({
-  openingCash: 1000, closingCash: 700, openingDebt: 5000, closingDebt: 5200,
+  openingCash: 1000, closingCash: 700, committed: 0, openingDebt: 5000, closingDebt: 5200,
   totalRevenue: 2000, borrowed: 500, repaid: 300, totalSpending: 2500,
   interestPaid: 100, interestDue: 100, financingNeed: 300, debtLimit: 6000, monthlyBorrowingLimit: 1000,
 });
@@ -56,5 +56,16 @@ describe('finance public treasury and credit (0.26.7)', () => {
     const result = settleDebtService(t, '2026-03-01');
     expect(result.settled.map(o => o.id)).toEqual(['interest-2026-03-01']);
     expect(result.refused.map(r => r.order.id)).toEqual(['principal-2026-03-01']);
+  });
+
+  it('settles debt service against UNCOMMITTED cash only (committed cash is reserved)', () => {
+    const t = { ...balanced(), closingCash: 1000, committed: 400 };
+    const result = settleDebtService(t, '2026-03-01');
+    expect(result.paidUsd).toBe(400);          // interest 100 + principal 300
+    expect(result.remainingAvailable).toBe(200); // 1000 - 400 committed - 400 paid
+  });
+
+  it('rejects committed cash exceeding closing cash', () => {
+    expect(() => validateTreasuryLedger({ ...balanced(), committed: 800 })).toThrow(/cannot exceed closing cash/);
   });
 });

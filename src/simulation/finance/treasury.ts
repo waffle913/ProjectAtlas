@@ -20,6 +20,8 @@ import { isWholeUsd, settlePayments, type PaymentOrder, type TreasuryBalance, ty
 export interface TreasuryLedger {
   readonly openingCash: number;
   readonly closingCash: number;
+  /** Cash already reserved (e.g. committed construction funding) inside closingCash. */
+  readonly committed: number;
   readonly openingDebt: number;
   readonly closingDebt: number;
   readonly totalRevenue: number;
@@ -35,13 +37,14 @@ export interface TreasuryLedger {
 
 export function validateTreasuryLedger(t: TreasuryLedger): void {
   const values = [
-    t.openingCash, t.closingCash, t.openingDebt, t.closingDebt, t.totalRevenue,
+    t.openingCash, t.closingCash, t.committed, t.openingDebt, t.closingDebt, t.totalRevenue,
     t.borrowed, t.repaid, t.totalSpending, t.interestPaid, t.interestDue,
     t.financingNeed, t.debtLimit, t.monthlyBorrowingLimit,
   ];
   for (const value of values) {
     if (!isWholeUsd(value)) throw new Error('Treasury ledger values must be non-negative whole-USD safe integers.');
   }
+  if (t.committed > t.closingCash) throw new Error('Committed cash cannot exceed closing cash.');
 }
 
 export function treasuryConservation(t: TreasuryLedger): boolean {
@@ -71,8 +74,10 @@ export function borrowingCapacity(t: TreasuryLedger): number {
   return Math.min(t.monthlyBorrowingLimit, Math.max(0, t.debtLimit - t.closingDebt));
 }
 
-/** Settle the treasury's debt service against its closing cash (links 0.26.3 to the treasury). */
+/** Settle the treasury's debt service against its UNCOMMITTED closing cash (links 0.26.3 to the treasury). */
 export function settleDebtService(t: TreasuryLedger, date: string): SettlementResult {
-  const balance: TreasuryBalance = { available: t.closingCash, cash: t.closingCash, committed: 0 };
+  validateTreasuryLedger(t);
+  const available = t.closingCash - t.committed;
+  const balance: TreasuryBalance = { available, cash: t.closingCash, committed: t.committed };
   return settlePayments(balance, debtServiceOrders(t, date));
 }

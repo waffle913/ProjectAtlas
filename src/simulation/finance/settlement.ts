@@ -97,18 +97,26 @@ export function settlePayments(balance: TreasuryBalance, orders: readonly Paymen
   for (const order of orders) validatePaymentOrder(order);
 
   const ordered = [...orders].sort((a, b) => a.id.localeCompare(b.id));
-  const seen = new Set<string>();
+  const seen = new Map<string, PaymentOrder>();
   const settled: PaymentOrder[] = [];
   const refused: { order: PaymentOrder; reason: 'insufficient_funds' | 'duplicate_id' }[] = [];
   let remaining = balance.available;
   let paidUsd = 0;
 
   for (const order of ordered) {
-    if (seen.has(order.id)) {
+    const prior = seen.get(order.id);
+    if (prior) {
+      // An id names a single logical payment. A repeated id must repeat the same
+      // order; conflicting duplicates would make the settled amount depend on
+      // input order, so they are rejected rather than settled ambiguously.
+      if (prior.amount !== order.amount || prior.payer !== order.payer || prior.payee !== order.payee
+        || prior.date !== order.date || prior.purpose !== order.purpose) {
+        throw new Error(`Ambiguous duplicate payment id ${order.id}: the same id carries conflicting orders.`);
+      }
       refused.push({ order, reason: 'duplicate_id' });
       continue;
     }
-    seen.add(order.id);
+    seen.set(order.id, order);
     if (order.amount > remaining) {
       refused.push({ order, reason: 'insufficient_funds' });
       continue;

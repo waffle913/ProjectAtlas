@@ -68,4 +68,8 @@ describe('finance loans/bonds and debt schedules (0.26.4)', () => {
   it('rejects duplicate obligation ids in a schedule', () => {
     expect(() => validateDebtSchedule(sched([ob('a', 1000, 200), ob('a', 500, 200)]))).toThrow(/Duplicate obligation id/);
   });
+
+  it('rejects an invalid schedule inside amortization', () => {
+    expect(() => amortizePrincipal(sched([ob('a', 1000, 200), ob('a', 500, 200)]), 100)).toThrow(/Duplicate obligation id/);
+  });
 });

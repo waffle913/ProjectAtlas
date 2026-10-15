@@ -69,17 +69,20 @@ export function validateDebtSchedule(schedule: DebtSchedule): void {
 
 /** Total outstanding principal (whole USD). */
 export function schedulePrincipalOutstanding(schedule: DebtSchedule): number {
+  validateDebtSchedule(schedule);
   return schedule.obligations.reduce((sum, o) => integer(sum + o.outstanding), 0);
 }
 
 /** Monthly interest across all outstanding obligations (matches the fiscal `ratio(debt, rateBps, 120000)` formula). */
 export function scheduleInterestDue(schedule: DebtSchedule): number {
+  validateDebtSchedule(schedule);
   return schedule.obligations.reduce((sum, o) => integer(sum + ratio(o.outstanding, o.rateBps, 120000)), 0);
 }
 
 /** Total principal of obligations whose maturity is on or before `date`. */
 export function scheduleMaturitiesDue(schedule: DebtSchedule, date: string): number {
   if (!isSimulationDate(date)) throw new Error('Maturity query needs a valid simulation date.');
+  validateDebtSchedule(schedule);
   return schedule.obligations
     .filter((o) => o.maturityDate <= date)
     .reduce((sum, o) => integer(sum + o.outstanding), 0);
@@ -88,6 +91,7 @@ export function scheduleMaturitiesDue(schedule: DebtSchedule, date: string): num
 /** Obligations already matured but not fully repaid (the 0.26.6 default surface). */
 export function maturedOutstanding(schedule: DebtSchedule, date: string): DebtObligation[] {
   if (!isSimulationDate(date)) throw new Error('Maturity query needs a valid simulation date.');
+  validateDebtSchedule(schedule);
   return schedule.obligations
     .filter((o) => o.maturityDate <= date && o.outstanding > 0)
     .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate) || a.id.localeCompare(b.id));
@@ -95,6 +99,7 @@ export function maturedOutstanding(schedule: DebtSchedule, date: string): DebtOb
 
 /** Require the schedule to reconcile exactly with the canonical debt stock (no money without a matching liability). */
 export function reconcileSchedule(schedule: DebtSchedule, debtStock: number): void {
+  validateDebtSchedule(schedule);
   integer(debtStock);
   const outstanding = schedulePrincipalOutstanding(schedule);
   if (outstanding !== debtStock) {
@@ -111,6 +116,7 @@ export interface AmortizationResult {
 /** Deterministic principal amortization: earliest maturity first, then id. Conserves principal exactly. */
 export function amortizePrincipal(schedule: DebtSchedule, paymentUsd: number): AmortizationResult {
   if (!isWholeUsd(paymentUsd)) throw new Error('Principal payment must be a non-negative whole-USD safe integer.');
+  validateDebtSchedule(schedule);
   const ordered = [...schedule.obligations].sort((a, b) => a.maturityDate.localeCompare(b.maturityDate) || a.id.localeCompare(b.id));
   let remaining = paymentUsd;
   const obligations = ordered.map((o) => {

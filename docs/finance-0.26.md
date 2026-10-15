@@ -67,7 +67,6 @@ present.
 | revenue | known tax revenue | `account.knownTaxRevenue` | USD_PER_MONTH | flow |
 | revenue | other/baseline revenue | `account.otherRevenue` | USD_PER_MONTH | flow |
 | revenue | total revenue | `account.totalRevenue` | USD_PER_MONTH | flow |
-| revenue | financing revenue | `account.financingRevenue` | USD_PER_MONTH | flow |
 | revenue | customs revenue | `account.customsRevenue.collected` | USD_PER_MONTH | flow |
 | receivable | arrears | `account.arrears` (with `openingArrears`) | USD_NOMINAL | stock |
 | receivable | interest arrears | `account.interestArrears` (with `openingInterestArrears`) | USD_NOMINAL | stock |

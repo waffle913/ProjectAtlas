@@ -144,14 +144,6 @@ export const MONEY_SURFACES: readonly MoneySurfaceEntry[] = Object.freeze([
     read: (state, countryId) => state.fiscal.countries[countryId]?.account?.totalRevenue,
   },
   {
-    variable: 'financing_revenue',
-    kind: 'revenue', measure: 'flow', unit: 'USD_PER_MONTH', scope: 'country',
-    ownerPath: 'state.fiscal.countries[countryId].account.financingRevenue',
-    ownerSubsystem: 'fiscal',
-    rationale: 'Financing proceeds are `account.financingRevenue`, a financing item distinct from operating revenue.',
-    read: (state, countryId) => state.fiscal.countries[countryId]?.account?.financingRevenue,
-  },
-  {
     variable: 'customs_revenue',
     kind: 'revenue', measure: 'flow', unit: 'USD_PER_MONTH', scope: 'country',
     ownerPath: 'state.fiscal.countries[countryId].account.customsRevenue.collected',
@@ -260,7 +252,7 @@ export const MONEY_SURFACES: readonly MoneySurfaceEntry[] = Object.freeze([
 /** Required monetary surfaces the inventory must cover (docs/finance-0.26.md). */
 export const REQUIRED_SURFACES = Object.freeze([
   'treasury_cash', 'debt_stock', 'debt_limit', 'monthly_borrowing_limit', 'interest_rate',
-  'tax_revenue', 'other_revenue', 'total_revenue', 'financing_revenue', 'customs_revenue',
+  'tax_revenue', 'other_revenue', 'total_revenue', 'customs_revenue',
   'arrears', 'interest_arrears', 'interest_due', 'interest_paid', 'defense_obligation',
   'construction_committed', 'borrowed', 'repaid', 'financing_need', 'transfer_paid',
   'trade_price', 'trade_payment',

@@ -51,6 +51,11 @@ describe('finance payments and settlement (0.26.3)', () => {
     expect(a.paidUsd).toBe(bRes.paidUsd);
   });
 
+  it('rejects ambiguous duplicate ids (same id, conflicting amounts) instead of settling order-dependently', () => {
+    const b = balance(1000, 1000, 0);
+    expect(() => settlePayments(b, [order('p1', 200), order('p1', 500)])).toThrow(/Ambiguous duplicate payment id/);
+  });
+
   it('rejects malformed orders (id, self-payment, amount, date, purpose)', () => {
     expect(() => validatePaymentOrder(order('', 100))).toThrow(/non-empty id/);
     expect(() => validatePaymentOrder({ ...order('p1', 100), payee: 'treasury-a' })).toThrow(/distinct payer and payee/);
