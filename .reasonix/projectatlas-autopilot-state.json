@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.25",
   "current_block": "0.25.12",
-  "milestone_phase": "IMPLEMENTING",
+  "milestone_phase": "FINAL_VERIFICATION_REVIEW",
 
   "last_safe_milestone": "0.24",
   "last_safe_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
@@ -61,11 +61,11 @@
 
   "review_campaign": {
     "milestone": "0.25",
-    "full_review_round": 0,
+    "full_review_round": 1,
     "max_full_review_rounds": 2,
-    "final_verification_complete": false,
+    "final_verification_complete": true,
     "targeted_verification_complete": false,
-    "findings_summary": "",
+    "findings_summary": "Round 1 consolidated independent audit (tool:review subagent, verdict warn) over the full 0.25 delta: 1 defect (A1 employment.ts wage-bill conservation), 3 risks (B1 fiscal country-reconciled overclaim, B2 firms pre-fiscal fallback, B3 production unit-mismatch zero-binding), 9 optional findings. A1+B1+B3 corrected with regression tests; B2 deferred. Full report: docs/milestone-0.25-audit.md.",
     "late_blocking_findings": [],
     "reopen_count": 0,
     "max_autonomous_post_seal_reopens": 1
@@ -133,7 +133,54 @@
     "enabled_at": "2026-10-10T15:30:00Z",
     "note": "Human explicitly switched back to normal mode to authorize the consolidated 0.24 corrective campaign."
   },
-  "deferred_defects": [],
+  "deferred_defects": [
+    {
+      "id": "deferred-0.25-B2",
+      "status": "open",
+      "detected_at": "2026-10-15",
+      "detected_at_sha": "4f55dde7dd3c65845123ac03eb0e4c861467ec49",
+      "milestone_detected": "0.25",
+      "subsystem": "economy/firms",
+      "summary": "aggregateFirmAccount pre-fiscal fallback (labourCostUsd=householdIncome, businessSurplusUsd=output-labourCost) omits FISCAL_MODEL.wageIncomeBps/surplusBps, so the pre-fiscal surplus view is ~2x the canonical value and drops discontinuously at fiscal init.",
+      "evidence": "Round 1 consolidated audit B2; src/simulation/economy/firms.ts:42-44; economyFirms.test.ts asserts the fallback explicitly.",
+      "source": "0.25.12 Round 1 consolidated audit",
+      "severity": "low",
+      "disposition": "deferred",
+      "reason_deferred": "Only affects the transient pre-fiscal view (before initializeFiscal/runFiscalMonth); the canonical businessSurplus lives in fiscal.regions[].businessSurplus once fiscal initializes. Intentional and tested; no downstream canonical accounting reads the fallback.",
+      "canonical_state_impact": "none (read-only derivation view)",
+      "propagation_risk": "low",
+      "affected_future_milestones": [],
+      "fix_trigger": "when_touching_subsystem: economy/firms",
+      "fix_before": null,
+      "related_files": ["src/simulation/economy/firms.ts", "src/simulation/__tests__/economyFirms.test.ts"],
+      "related_tests_or_invariants": ["economyFirms.test.ts"],
+      "last_revalidated_at": "2026-10-15",
+      "resolution": null
+    },
+    {
+      "id": "deferred-0.25-R2-emptyregions",
+      "status": "open",
+      "detected_at": "2026-10-15",
+      "detected_at_sha": "4f55dde7dd3c65845123ac03eb0e4c861467ec49",
+      "milestone_detected": "0.25",
+      "subsystem": "economy/fiscal",
+      "summary": "countryFiscalDerivation with zero economic Regions: regions.every(...) is vacuously true, so the noLedger branch reports fiscal_not_yet_run even when account exists; should report reconciled (zero) or mismatch (military-payroll divergence).",
+      "evidence": "Round 2 FINAL_VERIFICATION_REVIEW; src/simulation/economy/fiscal.ts:163.",
+      "source": "0.25.12 Round 2 final verification review",
+      "severity": "low",
+      "disposition": "deferred",
+      "reason_deferred": "Non-blocking edge (fiscal Country whose sovereign Regions all have unavailable economics); view flag only. Round 2 found no blocking defect, so no FINAL_CORRECTIONS campaign was authorized.",
+      "canonical_state_impact": "none (view flag only)",
+      "propagation_risk": "low",
+      "affected_future_milestones": [],
+      "fix_trigger": "when_touching_subsystem: economy/fiscal",
+      "fix_before": null,
+      "related_files": ["src/simulation/economy/fiscal.ts"],
+      "related_tests_or_invariants": ["economyFiscal.test.ts"],
+      "last_revalidated_at": "2026-10-15",
+      "resolution": null
+    }
+  ],
   "defect_triage": {
     "current_defect_id": null,
     "disposition": null,
@@ -148,6 +195,6 @@
 
   "stop_reason": null,
   "max_same_root_cause_repair_cycles": 2,
-  "updated_at": "2026-10-14",
+  "updated_at": "2026-10-15",
   "notes": "0.25 Economy V2 authorized by explicit human message. 0.25.1 COMPLETE + green (run 38469131256, head 661323d). Surfaced latent bug fixed: vitest collected .reasonix/autopilot-state-validator.test.mjs -> excluded .reasonix/** (vite.config.ts, 661323d), reported separately. 0.25.2A COMPLETE + green (run 38472692248, head bacd0f3). 0.25.2B COMPLETE + green (run 38480184371, head e01f4d9). 0.25.3 COMPLETE + green (run 38483525541, head 0b7ba3d). 0.25.4 COMPLETE + green (run 38496505902, head 43403b5): employment.ts labour/wage/income accounting. 0.25.5 COMPLETE + green (run 38499210900 = CI #143, head 51229c7): households.ts demand from disposable income + essential/discretionary split + material shortage indicators. CI-opt (user-directed, 2026-10-14): added .reasonix/ci-wait.mjs (resumable, exact-SHA-verified, 3-minute moderate polling, persistent .reasonix/ci-wait-state.json) and documented it in protocol section 58; commit b824a21 on main. Verified end-to-end. Step timings: Ubuntu verify 20m45s, Windows verify 28m45s (npm test dominates); test-time reduction (sharding/workers) identified as candidates but NOT applied (risk of flakiness/hiding failures). 0.25.6 COMPLETE + green (run 38502555821, head b8239805): firms.ts aggregate firm accounts + retained-surplus investment (bounded, resource-consuming, never free). *** STOPPED AT SAFE CHECKPOINT PER HUMAN INSTRUCTION (2026-10-14): 0.25.1-0.25.6 are implemented and green on the branch; resume at 0.25.7 (prices/domestic markets) -> 0.25.12 then the bounded review campaign and merge. Do not start 0.26. *** milestone_phase = IMPLEMENTING; current_block = 0.25.7 (next). Top-level ci_* still records the runtime Safe-Zone main gate (0.24 / 6b6794e, run 38079523537); branch CI runs are tracked via milestone_branch_head_sha and these notes. Runtime Safe Zone advances only after the full 0.25 milestone is reviewed, corrected, merged and green. *** C1 ADMINISTRATIVE RECONCILIATION (2026-10-14): GitHub confirms no newer work than 0.25.8 on the branch (remote head = 02039493f80c02fde8973b8fdf474cc36980213a). 0.25.7 (prices/domestic markets, head bca4693) and 0.25.8 (international trade integration view, head 0203949) are implemented; branch CI green at run 38511139442 (completed success, head 0203949). 0.25.7's first run 38505524704 failed on a Windows benchmark timeout and was repaired by 121e2a6 (green run 38508347676) before 0.25.8. Next block: 0.25.9 (budget/fiscal/public services). AUTHORITATIVE PROGRESSION STATE: this file on main is the single source of truth for checkpoint progression; the historical copy on the development branch (waffle913-economy-v2-025, still at 3ecaee7 / 0.25.1 / BRANCH_SYNC) is a stale snapshot and must NOT trigger a resume at 0.25.1. 0.24 remains the last accepted Safe Zone; 0.25 is NOT accepted. *** 0.25.9 COMPLETE + green (run 38634740271, head da7ddbd, ubuntu+windows): economy/fiscal.ts pure derivation view — economic transactions (wage income, business surplus, household consumption, imported consumption) map to the five documented tax categories under the current legal rules, reconciled exactly against the canonical fiscal ledger (no double counting, unavailable != zero, known/other revenue kept distinct). New test economyFiscal.test.ts (3 cases incl. a full initializeFiscal reconciliation). Followed by docs commit 3eafa95 (0.25.9 status, next 0.25.10). *** 0.25.10 COMPLETE + green (run 38662629487, head 711a8d1, ubuntu+windows): cross-system causal-loop integration tests (crossSystemLoops.test.ts, 4 loops) — construction->employment->income->consumption->fiscal; shortage->price-pressure->opinion (material-only); sanction->blocked logistics->stock->military factory capacity; fiscal reform->disposable->consumption (control-vs-reform). No engine change, no magic modifier, no double counting; conservation asserted via assertSimulationInvariants. Followed by docs commit dd8aec6 (0.25.10 status, next 0.25.11). *** 0.25.11 COMPLETE + green (run 38666386707, head e682a18, ubuntu+windows): economy/inspect.ts authority-gated restitution (hasGovernmentInformationAccess; opposition/legislator see nothing; head-of-government sees derived/modelled views, never observed) + economyRestitution.test.ts (authority gating, no state mutation, provenance honesty, save/reload determinism). No save-schema migration required: the 0.25 economy is a read-only derivation layer over existing canonical state; old saves stay loadable. Followed by docs commit e2667e5 (0.25.11 status, next 0.25.12). *** 0.25.12 COMPLETE + green (run 38681076649, head 4f55dde, ubuntu+windows): consolidated independent audit (tool:review subagent, verdict warn) over the full 0.25 delta produced 1 defect (A1 employment.ts wage-bill conservation), 3 risks (B1 fiscal country-reconciled overclaim, B2 firms pre-fiscal fallback, B3 production unit-mismatch zero-binding) and 9 optional findings; triage fixed A1+B1+B3 (with regression tests) and deferred B2 (documented limitation). Report: docs/milestone-0.25-audit.md. Followed by docs commit b888c66 (0.25.12 status, awaiting human acceptance). 0.25 is IMPLEMENTED + REVIEWED + CORRECTED + CI-GREEN and now AWAITS THE HUMAN ACCEPTANCE DECISION — NOT accepted, Safe Zone stays 0.24, no next milestone started."
 }
