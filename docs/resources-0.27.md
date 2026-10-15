@@ -3,9 +3,9 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1–0.27.4 are implemented** (branch
-CI green, runs 38805512130 / 38812763630 / 38815787349 / 38819034040);
-**0.27.5 (energy production) is in progress.**
+without its independent review and CI. **0.27.1–0.27.5 are implemented** (branch
+CI green, runs 38805512130 / 38812763630 / 38815787349 / 38819034040 /
+38822106721); **0.27.6 (networks/accessibility) is in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -91,6 +91,20 @@ The energy-plant contract (`src/simulation/resources/energy.ts`):
   represented only when documented.
 
 Validated by `src/simulation/__tests__/resourcesEnergy.test.ts`.
+
+## 0.27.6 scope — networks and accessibility
+
+The network contract (`src/simulation/resources/network.ts`):
+
+- a network is a set of directed links between permanent Regions, each with a
+  capacity (MWh/month) and availability;
+- no flow without a connection: a requested delivery with no link is curtailed
+  entirely, never fabricated;
+- `delivered <= requested` and `delivered <= available path capacity`; the
+  shortfall is the bottleneck curtailment;
+- `null` capacity is unavailable, never a fabricated zero.
+
+Validated by `src/simulation/__tests__/resourcesNetwork.test.ts`.
 
 ## Scopes and canonical owners
 
