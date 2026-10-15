@@ -3,8 +3,9 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1 is implemented** (branch CI
-green, run 38805512130); **0.27.2 (territorial anchoring) is in progress.**
+without its independent review and CI. **0.27.1 and 0.27.2 are implemented**
+(branch CI green, runs 38805512130 / 38812763630); **0.27.3
+(extraction/installations) is in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -46,6 +47,21 @@ Region-level anchoring (`src/simulation/resources/anchor.ts`):
 - real geometry references carry dated, traceable provenance.
 
 Validated by `src/simulation/__tests__/resourcesAnchor.test.ts`.
+
+## 0.27.3 scope — extraction installations
+
+The installation contract (`src/simulation/resources/installation.ts`):
+
+- an `ExtractionInstallation` is a mine/well/quarry anchored to one permanent
+  Region, extracting one resource, with an admitted `capacityPerMonth`
+  (`null` = unavailable, never a fabricated zero);
+- output requires operating status AND an admitted capacity; personnel, inputs
+  and maintenance are validated required fields the engine later matches
+  against the canonical labour/stock owners;
+- ownership (sovereign owner), exploitation (operator) and effective control
+  are three distinct concepts kept as three distinct ids — never conflated.
+
+Validated by `src/simulation/__tests__/resourcesInstallation.test.ts`.
 
 ## Scopes and canonical owners
 
