@@ -3,8 +3,9 @@
 **Status:** 0.26 is planned in the approved roadmap 0.26–0.34 and is now under a
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.26.1 is implemented** (branch CI
-green, run 38772265361); **0.26.3 (payments and settlement) is in progress.**
+without its independent review and CI. **0.26.1 and 0.26.3 are implemented**
+(branch CI green, runs 38772265361 / 38777534060); **0.26.4 (loans/bonds
+schedules) is in progress.**
 The independent parts (single monetary ledger, monetary-surface inventory,
 payments/settlement, public-debt schedules, solvency) proceed now; the
 conditional parts (national currency/FX, commercial-bank credit-created money,
@@ -99,6 +100,27 @@ The executable layer is pure and deterministic (order-invariant), validated by
 `src/simulation/__tests__/financeSettlement.test.ts`. It reads the canonical
 `FiscalCountry.cash` / `constructionCommitted` (uncommitted cash) exactly as
 named in the monetary-surface inventory; it writes nothing and adds no schema.
+
+## 0.26.4 scope — loans, bonds and debt schedules
+
+The debt-schedule primitives formalize dated public obligations that reconcile
+to the canonical debt stock (`FiscalCountry.debt`), without a second debt book:
+
+- a `DebtObligation` is a dated liability (id, principal, annual rate in bps,
+  issue date, maturity date, outstanding principal) — `src/simulation/finance/debt.ts`;
+- monthly interest accrues per obligation with the same fiscal formula
+  (`outstanding × rateBps / 120000`), so a schedule and the fiscal ledger stay consistent;
+- no money without a matching liability: `reconcileSchedule` requires
+  `sum(outstanding) === debtStock`, and rejects any mismatch;
+- amortization is deterministic (earliest maturity first, then id) and conserves
+  principal exactly;
+- obligation-level schedules require admitted (sourced) or explicitly synthetic
+  obligation data — this module never fabricates real issue/maturity dates,
+  coupons or creditors for 2026-01-01.
+
+Validated by `src/simulation/__tests__/financeDebt.test.ts`. Restructuring /
+rollover stays deferred (the "if retained" branch); the single-stock fiscal
+debt model remains the canonical owner until admitted obligation data exists.
 
 ## Single monetary unit
 
