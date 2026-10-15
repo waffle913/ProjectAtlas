@@ -99,7 +99,7 @@ export function settlePayments(balance: TreasuryBalance, orders: readonly Paymen
   const ordered = [...orders].sort((a, b) => a.id.localeCompare(b.id));
   const seen = new Set<string>();
   const settled: PaymentOrder[] = [];
-  const refused: SettlementResult['refused'] = [];
+  const refused: { order: PaymentOrder; reason: 'insufficient_funds' | 'duplicate_id' }[] = [];
   let remaining = balance.available;
   let paidUsd = 0;
 
