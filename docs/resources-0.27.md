@@ -3,9 +3,9 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1 and 0.27.2 are implemented**
-(branch CI green, runs 38805512130 / 38812763630); **0.27.3
-(extraction/installations) is in progress.**
+without its independent review and CI. **0.27.1, 0.27.2 and 0.27.3 are
+implemented** (branch CI green, runs 38805512130 / 38812763630 / 38815787349);
+**0.27.4 (refining/primary transformation) is in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -62,6 +62,19 @@ The installation contract (`src/simulation/resources/installation.ts`):
   are three distinct concepts kept as three distinct ids — never conflated.
 
 Validated by `src/simulation/__tests__/resourcesInstallation.test.ts`.
+
+## 0.27.4 scope — refining and primary transformation
+
+The transformation contract (`src/simulation/resources/transformation.ts`):
+
+- a batch consumes `inputPerBatch` and produces `productPerBatch` +
+  `byProductPerBatch` + `residuePerBatch` + `lossPerBatch`; the four outputs sum
+  exactly to the input — **no net creation of matter**;
+- output is bounded by the installation's batch capacity (saturation) and by the
+  available input;
+- verified losses and costs are explicit; `unavailable != 0`.
+
+Validated by `src/simulation/__tests__/resourcesTransformation.test.ts`.
 
 ## Scopes and canonical owners
 
