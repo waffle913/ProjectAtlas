@@ -156,9 +156,15 @@ export function countryFiscalDerivation(state: SimulationState, countryId: strin
   }
   const derivedKnownTaxRevenueUsd = sum(TAXES.map(k => taxes[k].collected));
   const account = country.account;
-  const reconciled = regions.every(r => r.reconciled === 'reconciled')
-    ? 'reconciled'
-    : regions.every(r => r.reconciled === 'fiscal_not_yet_run') ? 'fiscal_not_yet_run' : 'mismatch';
+  const regionReconciled = regions.every(r => r.reconciled === 'reconciled');
+  const noLedger = regions.every(r => r.reconciled === 'fiscal_not_yet_run');
+  let reconciled: CountryFiscalDerivation['reconciled'];
+  if (!regionReconciled && !noLedger) reconciled = 'mismatch';
+  else if (noLedger) reconciled = 'fiscal_not_yet_run';
+  else if (account && TAXES.some(k => account.taxes[k].base !== taxes[k].base || account.taxes[k].liability !== taxes[k].liability || account.taxes[k].collected !== taxes[k].collected)) {
+    // Military-payroll tax is folded into account.taxes but excluded from this transaction view.
+    reconciled = 'mismatch';
+  } else reconciled = 'reconciled';
   return {
     countryId,
     regions,
@@ -172,6 +178,6 @@ export function countryFiscalDerivation(state: SimulationState, countryId: strin
       ledgerDebtUsd: account.closingDebt,
     } : {}),
     reconciled,
-    note: 'Derived tax liabilities from the 0.25 economic transactions under the current legal rules, reconciled against the single canonical fiscal ledger (no double counting). Observed knownTaxRevenue, modelled/other revenue, spending and debt remain distinct; customs/tariff revenue is booked separately by the trade engine.',
+    note: 'Derived tax liabilities from the 0.25 economic transactions under the current legal rules, reconciled against the single canonical fiscal ledger (no double counting). Observed knownTaxRevenue, modelled/other revenue, spending and debt remain distinct; customs/tariff revenue (trade engine) and military-payroll tax (fiscal engine) are booked separately and are excluded from this transaction view.',
   };
 }

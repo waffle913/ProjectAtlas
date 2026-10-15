@@ -180,16 +180,17 @@ export function regionalCapitalCapacityUsd(
   regionId: string,
   registry: Readonly<Record<string, AssetCapacityMapping>> = ASSET_TYPE_CAPACITY_REGISTRY,
 ): number | undefined {
+  if (Object.keys(registry).length === 0) return undefined; // no admitted mapping -> no binding, avoid the per-region asset scan
   const mapped = Object.values(state.assets.assets)
     .filter(asset => asset.regionId === regionId)
     .map(asset => ({ asset, mapping: registry[asset.assetTypeId] }))
     .filter((entry): entry is { asset: AssetRecord; mapping: AssetCapacityMapping } => entry.mapping !== undefined);
-  if (mapped.length === 0) return undefined;
+  const unitMatched = mapped.filter(entry => entry.asset.capacity.unit === entry.mapping.unit);
+  if (unitMatched.length === 0) return undefined; // only unit-incompatible mapped assets: no binding, never a fabricated zero ceiling
   let capacityUsd = 0;
-  for (const { asset, mapping } of mapped) {
-    if (asset.capacity.unit !== mapping.unit) continue;
+  for (const { asset, mapping } of unitMatched) {
     const usable = usableCapacity(asset);
-    if (usable === undefined) continue;
+    if (usable === undefined) continue; // mapped but currently unavailable -> contributes 0 (causal reduction)
     capacityUsd += usable * mapping.capacityUsdPerUnit;
   }
   return capacityUsd;

@@ -16,6 +16,7 @@ import { emptyInformation } from '../information/model';
 import { emptyPolitics } from '../politics/model';
 import { emptyCrisis } from '../crisis/model';
 import { decomposeLabour } from '../economy/employment';
+import type { ProductiveActivity } from '../economy/production';
 
 const base = (): SimulationState => ({
   schemaVersion: 20,
@@ -109,5 +110,18 @@ describe('economy employment, wages and income (0.25.4)', () => {
     const { accounts } = decomposeLabour(state, 'r1', 0, 0);
     const totalEmployed = accounts.reduce((sum, a) => sum + a.employedPersons, 0);
     expect(totalEmployed).toBe(economy.employed);
+  });
+
+  it('conserves the wage bill across multiple activities (largest remainder, no rounding loss)', () => {
+    const region = calibratedRegion(1000, 1_200_000);
+    const economy = region.economy!;
+    const state = stateWithEconomy(region);
+    const activities = [
+      { activityId: 'activity.a', outputUsd: 10 },
+      { activityId: 'activity.b', outputUsd: 10 },
+      { activityId: 'activity.c', outputUsd: 10 },
+    ] as unknown as ProductiveActivity[];
+    const { accounts } = decomposeLabour(state, 'r1', 0, 0, activities);
+    expect(accounts.reduce((sum, a) => sum + a.wageBillUsd, 0)).toBe(economy.householdIncome);
   });
 });

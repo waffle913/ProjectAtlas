@@ -138,4 +138,30 @@ describe('economy budget/fiscal derivation (0.25.9)', () => {
     expect(country.taxes).toEqual(deriv.taxes);
     expect(country.regions).toHaveLength(1);
   });
+
+  it('reports country-level mismatch when the canonical account taxes diverge (military/customs excluded)', () => {
+    const ids = ['country.u6myyj'];
+    const regions: RegionEntity[] = [{ id: 'r-country.u6myyj', parentCountryId: ids[0], initialOwnerCountryId: ids[0], commonName: ids[0], administrativeLevel: 1, externalIds: {}, geographyMapping: { status: 'mapped', datasetId: 'test', sourceFeatureIds: ['t'] } }];
+    const state = initializeFiscal(initializeSocioeconomy({
+      schemaVersion: 20,
+      operations: emptyOperations(), international: emptyInternational(), multilateral: emptyMultilateral(),
+      constitution: emptyConstitution(), elections: emptyElections(), assets: emptyAssets(), trade: emptyTrade(),
+      military: emptyMilitary(), governance: emptyGovernance('2026-01-01'), information: emptyInformation('2026-01-01'),
+      politics: emptyPolitics(), crisis: emptyCrisis(), fiscal: emptyFiscal(), socioeconomy: emptySocioeconomy(),
+      date: '2026-01-01', paused: false, speed: 1, territoryOwnership: {},
+      regionOwnership: { [regions[0].id]: ids[0] },
+      populationByRegion: { [regions[0].id]: 10000 },
+      economicOutputByRegion: { [regions[0].id]: 1200000000 },
+      bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {},
+      engine: createEngineState(ids),
+    }, regions));
+    const derived = countryFiscalDerivation(state, ids[0])!;
+    expect(derived.reconciled).toBe('reconciled');
+    // Fold a divergent (e.g. military-payroll) tax into the canonical account: the
+    // transaction view must then report mismatch, never claim full reconciliation.
+    const divergentTaxes = structuredClone(derived.taxes);
+    divergentTaxes.personal.base += 1;
+    state.fiscal.countries[ids[0]].account = { taxes: divergentTaxes } as never;
+    expect(countryFiscalDerivation(state, ids[0])!.reconciled).toBe('mismatch');
+  });
 });

@@ -169,6 +169,13 @@ describe('economy production constraints (0.25.2B)', () => {
     expect(regionalCapitalCapacityUsd(state, 'r1', SYNTHETIC_REGISTRY)).toBe(0);
   });
 
+  it('returns no binding (never a zero ceiling) when mapped assets are unit-incompatible', () => {
+    const region = calibratedRegion(1000, 1_200_000);
+    const state = stateWithEconomy(region);
+    state.assets.assets = { 'asset.00000001': { ...operationalAsset('asset.00000001', 'r1', 5), capacity: { amount: 5, unit: 'different_unit', coverage: 'modelled', limitation: 'unit mismatch test' } } };
+    expect(regionalCapitalCapacityUsd(state, 'r1', SYNTHETIC_REGISTRY)).toBeUndefined();
+  });
+
   it('projectCapacity only lowers capacity when a ceiling is present, never raises it', () => {
     const economy = calibratedRegion(1000, 1_200_000).economy!;
     const unbound = projectCapacity(economy, 0);

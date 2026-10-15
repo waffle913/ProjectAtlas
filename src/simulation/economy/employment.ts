@@ -75,9 +75,12 @@ export function decomposeLabour(
   const employedPerActivity = totalOutput > 0
     ? allocate(employed, acts.map(activity => activity.outputUsd))
     : acts.map((_activity, index) => index === 0 ? employed : 0);
+  // Largest-remainder wage bill: sum(wageBillUsd) === householdIncome exactly, so the
+  // multi-activity decomposition never fabricates or loses income through rounding.
+  const wageBillByActivity = employed > 0 ? allocate(householdIncome, employedPerActivity) : acts.map(() => 0);
   const accounts = acts.map((activity, index) => {
     const employedPersons = employedPerActivity[index];
-    const wageBillUsd = employed > 0 ? ratio(householdIncome, employedPersons, employed) : 0;
+    const wageBillUsd = wageBillByActivity[index];
     return {
       activityId: activity.activityId,
       regionId,
