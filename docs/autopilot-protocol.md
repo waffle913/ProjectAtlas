@@ -620,12 +620,20 @@ BRANCH_SYNC
 -> BRANCH_CI
 -> MERGE_TO_MAIN
 -> MAIN_CI
+-> TECHNICALLY_VALIDATED          (autonomous technical validation; NOT acceptance — Part E)
 -> AWAITING_HUMAN_ACCEPTANCE      (green CI / merge is NOT acceptance)
 -> SEALED_SAFE_ZONE               (only after explicit human acceptance)
 -> AWAITING_NEXT_MILESTONE_AUTHORIZATION
--> NEXT_MILESTONE                 (only after explicit human authorization)
+-> NEXT_MILESTONE
 -> BRANCH_SYNC                    (next milestone)
 ```
+
+`TECHNICALLY_VALIDATED` (Part E) is the autonomous technical-validation
+transition: it records that every technical gate passed, but it is **not** human
+acceptance. When a standing multi-milestone authorization (§64) covers the next
+milestone, `TECHNICALLY_VALIDATED -> NEXT_MILESTONE` proceeds without
+`AWAITING_HUMAN_ACCEPTANCE`; otherwise the Autopilot persists
+`AWAITING_HUMAN_ACCEPTANCE` and STOPs.
 
 `NEXT_MILESTONE` means the previous milestone is **sealed**. A sealed milestone
 cannot receive a spontaneous new general review. Do not set `current_milestone`
@@ -966,7 +974,9 @@ clean.
 
 Schema 3 (Part D) extends this with: `runtime_sha`, `metadata_head_sha`,
 `human_acceptance`, `next_milestone_authorization`, `active_blocker`,
-`blocker_history`, and `ci_conclusion`. The consistency of all these fields is
+`blocker_history`, and `ci_conclusion`. Schema 4 (Part E) further extends this
+with `standing_authorization` and `autonomous_validation`, and adds the
+`TECHNICALLY_VALIDATED` phase. The consistency of all these fields is
 checked by `.reasonix/autopilot-state-validator.mjs` (§61).
 
 ## 36. Cryo reasons
@@ -1424,4 +1434,111 @@ and STOP.
 
 A new main milestone begins only after explicit human authorization, persisted in
 `next_milestone_authorization`. A future human may explicitly grant broader
-authorization; it is never inferred. This hardening task does not authorize 0.25.
+authorization; it is never inferred. The standing multi-milestone authorization
+for the 0.26–0.34 campaign (§64) is exactly such an explicit grant, in effect
+since 2026-10-15; it is recorded in `standing_authorization`, never in
+`human_acceptance`. This hardening task does not authorize 0.25.
+
+---
+
+# Part E — Autonomous technical validation (extended 0.26–0.34 authorization)
+
+On 2026-10-15 the human granted a single standing multi-milestone execution
+authorization covering the completion of 0.25 and the full 0.26–0.34 range,
+together with `unattended_safe` mode. This Part adds an **autonomous
+technical-validation transition** so the Autopilot can progress through the
+authorized range without a per-milestone human acceptance, while keeping human
+acceptance an entirely separate concept. It does **not** relax review, CI,
+conservation, determinism, migration or runtime-integrity requirements, and it
+does **not** authorize ignoring defects.
+
+## 64. Standing multi-milestone authorization
+
+A persistent record, separate from per-milestone acceptance and from the roadmap
+itself:
+
+```text
+standing_authorization:
+  authorized_range        ("0.26–0.34")
+  authorized_by           (human)
+  authorized_at           (null when the runtime cannot reliably establish it)
+  context
+  scope                   (ordered list of authorized milestone numbers)
+```
+
+This is **implementation authorization**, not roadmap approval and not
+acceptance. It never substitutes for `human_acceptance`, never writes
+`accepted_by = human`, and never seals a milestone. It is never inferred: only
+an explicit human instruction creates or extends it.
+
+## 65. Autonomous technical validation
+
+After a milestone passes every technical gate (§24 items 1–10: scope complete,
+Round 1, Round-1 corrections, Round 2, final corrections/targeted verification
+if needed, milestone branch CI green, integration into `main`, required `main`
+CI green, no known blocking defect), and only when `standing_authorization.scope`
+contains that milestone, the Autopilot records an autonomous
+technical-validation entry:
+
+```text
+autonomous_validation:
+  current:
+    milestone
+    runtime_sha          (exact green runtime SHA on main)
+    review_evidence      (rounds run, findings summary, disposition)
+    ci_run_id            (required main-CI run)
+    validated_at
+  history: [ ... ]       (append-only, never rewritten)
+```
+
+and advances the build-on baseline:
+
+```text
+last_safe_milestone = <milestone>
+last_safe_sha        = <runtime_sha>
+runtime_sha          = <runtime_sha>
+milestone_phase      = TECHNICALLY_VALIDATED
+```
+
+This is **technical validation only**. It is not acceptance: it never sets
+`human_acceptance`, never sets `sealed_*`, and never writes
+`accepted_by = human`. The `sealed_*` fields and the `SEALED_SAFE_ZONE` phase
+remain reserved for a later, individual human acceptance (§52, §24). Never
+mislabel autonomous technical validation as human approval.
+
+## 66. Autonomous progression gate
+
+After `TECHNICALLY_VALIDATED`:
+
+- If `standing_authorization.scope` contains the next milestone, the Autopilot
+  proceeds `NEXT_MILESTONE -> BRANCH_SYNC` for that milestone — no per-milestone
+  human acceptance and no `AWAITING_HUMAN_ACCEPTANCE`.
+- Otherwise it persists `AWAITING_HUMAN_ACCEPTANCE` (or
+  `AWAITING_NEXT_MILESTONE_AUTHORIZATION`) and STOPs.
+
+A later human acceptance of an already technically-validated milestone seals it
+(`SEALED_SAFE_ZONE`), records `human_acceptance`, and sets `sealed_milestone` /
+`sealed_sha` to that milestone's runtime SHA — without rewriting or erasing the
+autonomous-validation history.
+
+## 67. Sealing may lag behind validation
+
+`sealed_sha` (human-accepted) may lag behind `runtime_sha` / `last_safe_sha`
+(autonomously validated) across the authorized range. The validator permits this
+only when an `autonomous_validation` entry for a milestone later than the sealed
+milestone is recorded. `runtime_sha` and `last_safe_sha` must always agree. A
+human seal never rewrites an older autonomous validation; a sealed milestone's
+SHA is its own validated runtime SHA.
+
+## 68. Schema 4 and consistency
+
+Schema 4 adds `standing_authorization` and `autonomous_validation` and the
+`TECHNICALLY_VALIDATED` phase. The validator (§61) checks: schema = 4; valid
+phase; `runtime_sha == last_safe_sha`; `sealed_sha` may differ from
+`runtime_sha` only with a recorded autonomous validation for a later milestone;
+`TECHNICALLY_VALIDATED` carries a complete `autonomous_validation.current`
+record; autonomous validation never records `accepted_by = human`;
+`NEXT_MILESTONE` requires either (sealed + human-accepted) or (standing
+authorization + previous milestone technically validated); and
+`safety_mode.mode` is `normal` or `unattended_safe`. Run the validator after
+every state-machine or persistent-metadata change.
