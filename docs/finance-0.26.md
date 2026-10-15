@@ -3,11 +3,13 @@
 **Status:** 0.26 is planned in the approved roadmap 0.26–0.34 and is now under a
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.26.1 is the current sub-milestone.**
-The independent parts (single monetary ledger, monetary-surface inventory, open
-design gates) proceed now; the conditional parts (national currency/FX,
-commercial-bank credit-created money, bank deposits balance) are **not** decided
-and stay `BLOCKED_DESIGN` until a human answers the gates below.
+without its independent review and CI. **0.26.1 is implemented** (branch CI
+green, run 38772265361); **0.26.3 (payments and settlement) is in progress.**
+The independent parts (single monetary ledger, monetary-surface inventory,
+payments/settlement, public-debt schedules, solvency) proceed now; the
+conditional parts (national currency/FX, commercial-bank credit-created money,
+bank deposits balance) are **not** decided and stay `BLOCKED_DESIGN` until a
+human answers the gates below.
 
 This document is the canonical contract for 0.26. It complements
 [the roadmap decomposition](roadmap-submilestones.md) and the existing subsystem
@@ -78,6 +80,25 @@ present.
 | payment | transfers paid | `account.transferPaid` | USD_PER_MONTH | flow |
 | price | trade prices | `state.trade.countries[countryId].markets[category].{priceMicroUsd,baselinePriceMicroUsd}` | microUSD / unit | state |
 | payment | trade payments | `state.trade.flows[]` (`valueUsd`, `logisticsUsd`, `customsUsd`, `landedUsd`) and the category ledger (`importPaymentUsd`, `exportValueUsd`, `purchasingBudgetUsd`, `unspentUsd`) | USD | flow |
+
+## 0.26.3 scope — payments and settlement
+
+The payments/settlement primitives formalize the atomic money-movement rules
+over the canonical treasury balance, without introducing a second ledger:
+
+- a payment order names a payer, a payee, a whole-USD amount, a date and a
+  purpose (`PaymentOrder` in `src/simulation/finance/settlement.ts`);
+- settlement is atomic: an order is settled exactly once or refused, never
+  partially; insufficient funds produce a `refused` order, never silent loss and
+  never created money;
+- no double spending: an order id settles at most once (duplicates are refused);
+- balance conservation: `paidUsd + remainingAvailable === available` for every
+  batch; settlement never over-spends the available balance.
+
+The executable layer is pure and deterministic (order-invariant), validated by
+`src/simulation/__tests__/financeSettlement.test.ts`. It reads the canonical
+`FiscalCountry.cash` / `constructionCommitted` (uncommitted cash) exactly as
+named in the monetary-surface inventory; it writes nothing and adds no schema.
 
 ## Single monetary unit
 
