@@ -3,9 +3,9 @@
 **Status:** 0.28 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.28.1 and 0.28.2 are implemented**
-(branch CI green, runs 38845742726 / 38848441311); **0.28.3
-(capacities/bottlenecks) is in progress.**
+without its independent review and CI. **0.28.1–0.28.3 are implemented** (branch
+CI green, runs 38845742726 / 38848441311 / 38850692395); **0.28.4 (service
+sectors) is in progress.**
 The independent parts (product/sector/nomenclature vocabulary, transformation
 chains, capacities, service sectors, research, diffusion, military/civilian
 technology) proceed now; the conditional part (detailed competition/monopoly
@@ -58,6 +58,18 @@ The capacity contract (`src/simulation/industry/capacity.ts`):
 - expansion happens through 0.24 construction, never magically.
 
 Validated by `src/simulation/__tests__/industryCapacity.test.ts`.
+
+## 0.28.4 scope — service sectors
+
+The service-sector contract (`src/simulation/industry/service.ts`):
+
+- a service is delivered, not stocked: it has no material inventory, only
+  capacity, personnel, cost, revenue and material purchases;
+- delivery is bounded by capacity and available personnel; undelivered demand is
+  a shortfall, never a stored quantity;
+- `null` capacity is unavailable, never a fabricated zero.
+
+Validated by `src/simulation/__tests__/industryService.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
