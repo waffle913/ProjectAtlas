@@ -22,12 +22,18 @@ describe('education and training (0.29.4)', () => {
 
   it('enrols bounded by capacity and personnel; the shortfall is a backlog', () => {
     const r = enrol(school(), 150, 800);
+    expect(r.status).toBe('computed');
     expect(r.enrolled).toBe(150);
     expect(r.backlog).toBe(0);
     expect(r.personnelUsed).toBe(600);
     const r2 = enrol(school(), 200, 40); // 40 / 4 = 10
     expect(r2.enrolled).toBe(10);
     expect(r2.backlog).toBe(190);
+  });
+
+  it('A7: unavailable capacity is typed unavailable, never a fabricated shortage', () => {
+    const r = enrol(school({ capacity: null }), 100, 800);
+    expect(r).toMatchObject({ status: 'unavailable', enrolled: 0, backlog: null });
   });
 
   it('validates a pathway and graduates only after the full duration', () => {

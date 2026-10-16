@@ -18,6 +18,7 @@ describe('civil transport/infrastructure (0.29.7)', () => {
 
   it('delivers bounded by capacity, energy and personnel; the shortfall is a backlog', () => {
     const r = deliverTransport(asset(), 300, 1000, 500);
+    expect(r.status).toBe('computed');
     expect(r.delivered).toBe(300);
     expect(r.shortfall).toBe(0);
     expect(r.energyUsed).toBe(600);
@@ -30,8 +31,10 @@ describe('civil transport/infrastructure (0.29.7)', () => {
     expect(r.shortfall).toBe(450);
   });
 
-  it('delivers nothing when not operating or capacity unavailable', () => {
-    expect(deliverTransport(asset({ status: 'paused' }), 50, 1000, 500).delivered).toBe(0);
-    expect(deliverTransport(asset({ capacityPerMonth: null }), 50, 1000, 500).delivered).toBe(0);
+  it('A7: unavailable capacity is typed unavailable, never a fabricated shortage', () => {
+    const paused = deliverTransport(asset({ status: 'paused' }), 50, 1000, 500);
+    expect(paused).toMatchObject({ status: 'paused', delivered: 0, shortfall: null });
+    const unknown = deliverTransport(asset({ capacityPerMonth: null }), 50, 1000, 500);
+    expect(unknown).toMatchObject({ status: 'unavailable', delivered: 0, shortfall: null });
   });
 });

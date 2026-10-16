@@ -5,7 +5,9 @@ import {
 } from '../industry/contract';
 
 const mapping = (over: Partial<Parameters<typeof validateNomenclatureMapping>[0]> = {}) => ({
-  subjectId: 'p1', nomenclature: 'hs' as const, code: '8703', coverage: 'sourced' as const, note: 'dated provenance',
+  subjectId: 'p1', nomenclature: 'hs' as const, code: '8703', coverage: 'sourced' as const,
+  source: 'UN Comtrade', publishedOn: '2025-12-01', referenceDate: '2026-01-01',
+  admissibility: 'admissible' as const, note: 'dated provenance',
   ...over,
 });
 
@@ -28,8 +30,15 @@ describe('industry product/sector/nomenclature contract (0.28.1)', () => {
     expect(() => validateNomenclatureMapping(mapping({ nomenclature: 'iso' as never }))).toThrow(/Unknown nomenclature/);
     expect(() => validateNomenclatureMapping(mapping({ code: '' }))).toThrow(/non-empty nomenclature code/);
     expect(() => validateNomenclatureMapping(mapping({ coverage: 'bogus' as never }))).toThrow(/Unknown coverage/);
-    expect(() => validateNomenclatureMapping(mapping({ coverage: 'sourced', note: '' }))).toThrow(/provenance note/);
     expect(() => validateNomenclatureMapping(mapping({ note: 5 as unknown as string }))).toThrow(/string note/);
+  });
+
+  it('A12: a sourced mapping requires structured provenance, not a bare note', () => {
+    expect(() => validateNomenclatureMapping(mapping({ source: '' }))).toThrow(/source/);
+    expect(() => validateNomenclatureMapping(mapping({ publishedOn: null }))).toThrow(/publication date/);
+    expect(() => validateNomenclatureMapping(mapping({ referenceDate: null }))).toThrow(/reference date/);
+    expect(() => validateNomenclatureMapping(mapping({ publishedOn: 'not-a-date' }))).toThrow(/publication date/);
+    expect(() => validateNomenclatureMapping(mapping({ admissibility: 'inadmissible' }))).toThrow(/cannot be inadmissible/);
   });
 
   it('keeps competition/market-structure mechanisms undecided (BLOCKED_DESIGN)', () => {

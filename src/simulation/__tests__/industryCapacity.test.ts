@@ -8,7 +8,7 @@ const profile = (over: Partial<CapacityProfile> = {}): CapacityProfile => ({
   nominalBatchesPerMonth: 100, utilizationBps: 10000, maintenanceOutageBps: 0, ...over,
 });
 const process: IndustrialProcess = {
-  id: 'p', inputs: { steel: 10 }, outputs: { widget: 8 }, byProducts: {},
+  id: 'p', unitOfAccount: 'unit', inputs: { steel: 10 }, outputs: { widget: 8 }, byProducts: {},
   residues: 0, materialLoss: 2, energyPerBatch: 0, personnelPerBatch: 0, costPerBatch: 0, capacityPerBatch: null,
 };
 

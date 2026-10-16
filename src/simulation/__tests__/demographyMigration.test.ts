@@ -21,8 +21,25 @@ describe('international migration (0.30.3)', () => {
     expect(netMigration(flows, 'country-b')).toBe(60);
   });
 
+  it('A9: fails closed on a duplicate flow id (never double-counts)', () => {
+    expect(() => netMigration([flow(), flow()], 'country-b')).toThrow(/duplicate migration flow id/i);
+  });
+
   it('applies migration with conservation; origin never negative', () => {
-    expect(applyMigration(1000, 500, flow())).toEqual({ origin: 900, destination: 600 });
-    expect(() => applyMigration(50, 500, flow({ count: 100 }))).toThrow(/negative/);
+    expect(applyMigration({ id: 'country-a', population: 1000 }, { id: 'country-b', population: 500 }, flow())).toEqual({ origin: 900, destination: 600 });
+    expect(() => applyMigration({ id: 'country-a', population: 50 }, { id: 'country-b', population: 500 }, flow({ count: 100 }))).toThrow(/negative/);
+  });
+
+  it('A9: applies a flow only when the endpoints match the flow origin/destination', () => {
+    expect(() => applyMigration({ id: 'country-x', population: 1000 }, { id: 'country-b', population: 500 }, flow())).toThrow(/match the flow origin/);
+    expect(() => applyMigration({ id: 'country-a', population: 1000 }, { id: 'country-x', population: 500 }, flow())).toThrow(/match the flow destination/);
+  });
+
+  it('A10: fails closed on safe-integer overflow at the destination', () => {
+    expect(() => applyMigration(
+      { id: 'country-a', population: 100 },
+      { id: 'country-b', population: Number.MAX_SAFE_INTEGER },
+      flow({ count: 1 }),
+    )).toThrow(/overflow/);
   });
 });

@@ -30,9 +30,11 @@ institutional perimeter per country, without fictional generalization of laws?
 ## 0.30.2 scope — births, deaths and internal movements
 
 The transition contract (`src/simulation/demography/transition.ts`): dated,
-conserved transitions (birth/death/move_in/move_out); population never changes
-magically and never goes negative. Validated by
-`src/simulation/__tests__/demographyTransition.test.ts`.
+conserved transitions — `birth`/`death` change a cohort intrinsically, and an
+internal movement is an atomic, conserved `move` transfer between two cohorts
+(never two independent `move_in`/`move_out` deltas that could create
+population). Population never changes magically and never goes negative.
+Validated by `src/simulation/__tests__/demographyTransition.test.ts`.
 
 ## 0.30.3 scope — international migration
 

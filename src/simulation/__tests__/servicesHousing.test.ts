@@ -18,8 +18,21 @@ describe('housing (0.29.5)', () => {
 
   it('allocates bounded by available units; the shortfall is a backlog', () => {
     expect(availableUnits(stock())).toBe(100);
-    expect(allocateHousing(stock(), 80)).toEqual({ allocated: 80, backlog: 0 });
-    expect(allocateHousing(stock(), 150)).toEqual({ allocated: 100, backlog: 50 });
+    const a = allocateHousing(stock(), 80);
+    expect(a.allocated).toBe(80);
+    expect(a.backlog).toBe(0);
+    expect(a.next.occupiedUnits).toBe(480);
+    const b = allocateHousing(stock(), 150);
+    expect(b.allocated).toBe(100);
+    expect(b.backlog).toBe(50);
+  });
+
+  it('A14: threading the committed stock prevents double-allocating the same units', () => {
+    const first = allocateHousing(stock(), 80);
+    const second = allocateHousing(first.next, 80);
+    expect(second.allocated).toBe(20); // only 20 of the original 100 remain
+    expect(second.backlog).toBe(60);
+    expect(second.next.occupiedUnits).toBe(500);
   });
 
   it('fails closed on rent rules while BLOCKED_DESIGN', () => {

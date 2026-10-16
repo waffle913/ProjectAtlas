@@ -22,7 +22,7 @@ describe('legal statuses and integration (0.30.4)', () => {
   it('treats unavailable as unknown, never zero rights/services', () => {
     expect(() => validateLegalStatusRule(rule({ basis: 'unavailable', legalInstrumentRef: null, serviceAccess: null }))).not.toThrow();
     expect(() => validateLegalStatusRule(rule({ basis: 'unavailable', legalInstrumentRef: 'law:x', serviceAccess: null }))).toThrow(/fabricate/);
-    expect(() => validateLegalStatusRule(rule({ basis: 'unavailable', serviceAccess: ['health'] }))).toThrow(/unavailable != zero/);
+    expect(() => validateLegalStatusRule(rule({ basis: 'unavailable', legalInstrumentRef: null, serviceAccess: ['health'] }))).toThrow(/unavailable != zero/);
   });
 
   it('assesses integration contextually and bounds it to [0, 10000] bps', () => {

@@ -5,9 +5,14 @@
  * stocked; capacity is admitted seats (`null` = unavailable); a pathway takes
  * time — skills/labour effects are temporal, never instant from spending. No
  * new canonical state, no scheduler, no RNG, no migration.
+ *
+ * A result is typed by availability: `unavailable` capacity yields an
+ * `unavailable` result with no asserted backlog (unknown is not a shortage).
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedMul } from '../safeMath';
+import type { AvailabilityStatus } from '../availability';
 
 export interface EducationEstablishment {
   readonly id: string;
@@ -27,8 +32,10 @@ export function validateEducationEstablishment(e: EducationEstablishment): void 
 }
 
 export interface EnrolmentResult {
+  readonly status: AvailabilityStatus;
   readonly enrolled: number;
-  readonly backlog: number;
+  /** Meaningful only when status === 'computed'; null means "not asserted". */
+  readonly backlog: number | null;
   readonly personnelUsed: number;
 }
 
@@ -37,10 +44,11 @@ export function enrol(e: EducationEstablishment, demandUnits: number, availableP
   validateEducationEstablishment(e);
   if (!isWholeUsd(demandUnits)) throw new Error('Demand must be a non-negative whole number.');
   if (!isWholeUsd(availablePersonnel)) throw new Error('Available personnel must be a non-negative whole number.');
-  if (e.status !== 'operating' || e.capacity === null) return { enrolled: 0, backlog: demandUnits, personnelUsed: 0 };
+  if (e.status === 'paused') return { status: 'paused', enrolled: 0, backlog: null, personnelUsed: 0 };
+  if (e.status === 'unavailable' || e.capacity === null) return { status: 'unavailable', enrolled: 0, backlog: null, personnelUsed: 0 };
   const personnelBound = e.personnelPerUnit > 0 ? Math.floor(availablePersonnel / e.personnelPerUnit) : e.capacity;
   const enrolled = Math.min(demandUnits, e.capacity, personnelBound);
-  return { enrolled, backlog: demandUnits - enrolled, personnelUsed: enrolled * e.personnelPerUnit };
+  return { status: 'computed', enrolled, backlog: demandUnits - enrolled, personnelUsed: checkedMul(enrolled, e.personnelPerUnit) };
 }
 
 export interface Pathway {

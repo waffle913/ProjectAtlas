@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  validateTransition, applyTransition, type DemographicTransition,
+  validateTransition, applyTransition, validatePopulationMove, applyMove,
+  type DemographicTransition, type PopulationMove,
 } from '../demography/transition';
 
 const t = (over: Partial<DemographicTransition> = {}): DemographicTransition => ({
@@ -8,22 +9,37 @@ const t = (over: Partial<DemographicTransition> = {}): DemographicTransition => 
   ...over,
 });
 
+const move = (over: Partial<PopulationMove> = {}): PopulationMove => ({
+  id: 'm1', originCohortKey: 'low-left', destinationCohortKey: 'low-right', count: 10, date: '2026-02-01',
+  ...over,
+});
+
 describe('demographic transitions (0.30.2)', () => {
-  it('validates a transition and rejects malformed ones', () => {
+  it('validates an intrinsic transition and rejects malformed ones', () => {
     expect(() => validateTransition(t())).not.toThrow();
-    expect(() => validateTransition(t({ kind: 'zombie' as never }))).toThrow(/Unknown transition kind/);
+    expect(() => validateTransition(t({ kind: 'move' as never }))).toThrow(/Unknown transition kind/);
     expect(() => validateTransition(t({ count: 0 }))).toThrow(/positive whole number/);
     expect(() => validateTransition(t({ date: 'bad' }))).toThrow(/valid simulation date/);
   });
 
-  it('applies conserved transitions (birth/move_in add, death/move_out subtract)', () => {
+  it('applies conserved intrinsic transitions (birth adds, death subtracts)', () => {
     expect(applyTransition(100, t())).toBe(110);
     expect(applyTransition(100, t({ kind: 'death' }))).toBe(90);
-    expect(applyTransition(100, t({ kind: 'move_in' }))).toBe(110);
-    expect(applyTransition(100, t({ kind: 'move_out' }))).toBe(90);
   });
 
   it('never makes a cohort population negative', () => {
     expect(() => applyTransition(5, t({ kind: 'death', count: 10 }))).toThrow(/negative/);
+  });
+
+  it('A8: internal movements are atomic, conserved transfers between two cohorts', () => {
+    expect(() => validatePopulationMove(move())).not.toThrow();
+    expect(() => validatePopulationMove(move({ destinationCohortKey: 'low-left' }))).toThrow(/distinct/);
+    const r = applyMove(100, 50, move());
+    expect(r).toEqual({ origin: 90, destination: 60 });
+    expect(r.origin + r.destination).toBe(150); // conserved (100 + 50)
+  });
+
+  it('A8: a move never makes the origin cohort negative', () => {
+    expect(() => applyMove(5, 50, move({ count: 10 }))).toThrow(/negative/);
   });
 });

@@ -2,10 +2,12 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1–0.29.8 are implemented** (branch CI green); **0.29.9 (consolidated
-review) is in progress.** The
-independent parts proceed now; the conditional part (rent rules) is **not**
-decided and stays `BLOCKED_DESIGN`.
+authorization, not acceptance**. **0.29.1–0.29.8 are implemented** as a pure
+contract/vocabulary layer and **technically validated** (Round 2 pass; merged to
+`main`, main CI green run 38902843527). The conditional part (rent rules) is
+**not** decided and stays `BLOCKED_DESIGN`. Engine integration (canonical state,
+scheduler, save, invariants) is deferred to the roadmap validation milestones
+(0.29.9 → 0.33), not implemented here.
 
 This document is the canonical contract for 0.29. It complements
 [the roadmap decomposition](roadmap-submilestones.md) and the existing subsystem
@@ -95,7 +97,11 @@ Validated by `src/simulation/__tests__/servicesTransport.test.ts`.
 The policy-effect contract (`src/simulation/services/policy.ts`):
 
 - a law/budget creates real service capacity through existing mechanisms,
-  bounded by institutional limits — never a magic multiplier.
+  bounded by institutional limits — never a magic multiplier;
+- a capacity change is applied only once its causal chain is complete (dated
+  authorization + funding/construction/personnel gates confirmed); until then
+  `applyServicePolicy` fails closed — a bare note plus a delta can never raise
+  capacity.
 
 Validated by `src/simulation/__tests__/servicesPolicy.test.ts`.
 
@@ -113,7 +119,9 @@ version? Do not activate without an explicit decision.
 
 ## Deferred (not implemented)
 
-Health/education/pensions/incomeSupport/infrastructure/administration mechanisms
-(0.29.2–0.29.8), rent rules (0.29.5, `BLOCKED_DESIGN`) and validation (0.29.9)
-are deferred until their micro-blocks. 0.29 is accepted only after its complete
-independent audit and green CI.
+- Rent rules (0.29.5, `BLOCKED_DESIGN`).
+- Engine integration: the 0.29 primitives are a pure contract layer with no
+  canonical state, scheduler, save or migration; wiring them into
+  `SimulationState` (the one budget/population/asset store) is deferred to the
+  roadmap validation milestones (0.29.9 → 0.33). 0.29 is accepted only after its
+  complete independent audit and green CI.

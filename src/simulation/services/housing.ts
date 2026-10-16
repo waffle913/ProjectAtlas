@@ -6,9 +6,13 @@
  * availability and the shortfall is a backlog, never a fabricated unit. Rent
  * rules stay out of scope until the human decides the gate. No new canonical
  * state, no scheduler, no RNG, no migration.
+ *
+ * Allocation returns the *next* stock (occupied units advanced), so a caller
+ * that threads the returned stock forward cannot allocate the same units twice.
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedAdd } from '../safeMath';
 import { isRentRulesInScope } from './contract';
 
 export interface HousingStock {
@@ -35,14 +39,17 @@ export const availableUnits = (h: HousingStock): number => h.totalUnits - h.occu
 export interface HousingAllocation {
   readonly allocated: number;
   readonly backlog: number;
+  /** The stock after this allocation is committed (occupied units advanced). */
+  readonly next: HousingStock;
 }
 
-/** Allocate up to `demand`, bounded by available units; the shortfall is a backlog. */
+/** Allocate up to `demand`, bounded by available units; returns the committed next stock (no double-allocation when threaded). */
 export function allocateHousing(h: HousingStock, demandUnits: number): HousingAllocation {
   validateHousingStock(h);
   if (!isWholeUsd(demandUnits)) throw new Error('Demand must be a non-negative whole number.');
   const allocated = Math.min(demandUnits, availableUnits(h));
-  return { allocated, backlog: demandUnits - allocated };
+  const next: HousingStock = { ...h, occupiedUnits: checkedAdd(h.occupiedUnits, allocated) };
+  return { allocated, backlog: demandUnits - allocated, next };
 }
 
 /** Rent rules are BLOCKED_DESIGN until the human decides the gate; any rent application must fail closed. */

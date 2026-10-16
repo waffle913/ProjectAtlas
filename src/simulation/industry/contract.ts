@@ -17,8 +17,12 @@
  * Nomenclature rule: ISIC/NACE/HS/CPC/PRODCOM are external documentary
  * classifications. A mapping to a product is a dated, traceable correspondence;
  * it never equates two nomenclatures abusively (an HS code is not a sector, a
- * NACE class is not a PRODCOM product).
+ * NACE class is not a PRODCOM product). A `sourced` mapping carries structured
+ * provenance (source, publication date, reference date, admissibility), never a
+ * bare free-text note.
  */
+
+import { isSimulationDate } from '../date';
 
 export const INDUSTRY_VERSION = 'industry-0.28-v1' as const;
 
@@ -33,6 +37,9 @@ export type Nomenclature = typeof NOMENCLATURES[number];
 export const COVERAGE_STATUSES = Object.freeze(['sourced', 'derived', 'modelled', 'synthetic', 'unavailable'] as const);
 export type Coverage = typeof COVERAGE_STATUSES[number];
 
+export const ADMISSIBILITY = Object.freeze(['admissible', 'requires_confirmation', 'inadmissible'] as const);
+export type Admissibility = typeof ADMISSIBILITY[number];
+
 export interface ProductRecord {
   readonly id: string;
   readonly coverage: Coverage;
@@ -46,6 +53,14 @@ export interface NomenclatureMapping {
   /** The admitted external classification code (e.g. HS 6-digit). */
   readonly code: string;
   readonly coverage: 'sourced' | 'derived' | 'modelled' | 'unavailable';
+  /** Publisher/document name; required and non-empty for `sourced`. */
+  readonly source: string | null;
+  /** Publication date (YYYY-MM-DD); required for `sourced`. */
+  readonly publishedOn: string | null;
+  /** The date the datum documents (scenario-date applicability); required for `sourced`. */
+  readonly referenceDate: string | null;
+  /** Admission status; a `sourced` mapping must not be `inadmissible`. */
+  readonly admissibility: Admissibility;
   readonly note: string;
 }
 
@@ -60,8 +75,19 @@ export function validateNomenclatureMapping(m: NomenclatureMapping): void {
   if (!NOMENCLATURES.includes(m.nomenclature)) throw new Error(`Unknown nomenclature: ${String(m.nomenclature)}.`);
   if (typeof m.code !== 'string' || !m.code.trim()) throw new Error('Mapping needs a non-empty nomenclature code.');
   if (!['sourced', 'derived', 'modelled', 'unavailable'].includes(m.coverage)) throw new Error(`Unknown coverage: ${String(m.coverage)}.`);
+  if (!ADMISSIBILITY.includes(m.admissibility)) throw new Error(`Unknown admissibility: ${String(m.admissibility)}.`);
   if (typeof m.note !== 'string') throw new Error('Mapping needs a string note.');
-  if (m.coverage === 'sourced' && !m.note.trim()) throw new Error('A sourced mapping needs a provenance note.');
+
+  if (m.coverage === 'sourced') {
+    if (typeof m.source !== 'string' || !m.source.trim()) throw new Error('A sourced mapping needs a non-empty source (publisher/document).');
+    if (!isSimulationDate(m.publishedOn)) throw new Error('A sourced mapping needs a valid publication date (publishedOn).');
+    if (!isSimulationDate(m.referenceDate)) throw new Error('A sourced mapping needs a valid reference date (referenceDate).');
+    if (m.admissibility === 'inadmissible') throw new Error('A sourced mapping cannot be inadmissible.');
+  } else {
+    if (m.source !== null && (typeof m.source !== 'string' || !m.source.trim())) throw new Error('A non-sourced mapping with a source must use a non-empty string or null.');
+    if (m.publishedOn !== null && !isSimulationDate(m.publishedOn)) throw new Error('publishedOn must be a valid simulation date or null.');
+    if (m.referenceDate !== null && !isSimulationDate(m.referenceDate)) throw new Error('referenceDate must be a valid simulation date or null.');
+  }
 }
 
 // ---------------------------------------------------------------------------

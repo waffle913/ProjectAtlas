@@ -6,9 +6,16 @@
  * outcome is distinct from mere spending (delivery is bounded by capacity and
  * personnel, the shortfall becomes a queue/backlog). No new canonical state, no
  * scheduler, no RNG, no migration.
+ *
+ * A result is typed by availability: `unavailable` capacity yields an
+ * `unavailable` result with no asserted backlog (unknown is not a shortage);
+ * `paused` yields no delivery for a known non-capacity reason; only a `computed`
+ * result asserts material delivered/backlog figures.
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedMul } from '../safeMath';
+import type { AvailabilityStatus } from '../availability';
 
 export interface HealthEstablishment {
   readonly id: string;
@@ -30,8 +37,10 @@ export function validateHealthEstablishment(h: HealthEstablishment): void {
 }
 
 export interface CareDelivery {
+  readonly status: AvailabilityStatus;
   readonly delivered: number;
-  readonly backlog: number;
+  /** Meaningful only when status === 'computed'; null means "not asserted" (unavailable/paused). */
+  readonly backlog: number | null;
   readonly personnelUsed: number;
 }
 
@@ -40,8 +49,9 @@ export function deliverCare(h: HealthEstablishment, demandUnits: number, availab
   validateHealthEstablishment(h);
   if (!isWholeUsd(demandUnits)) throw new Error('Demand must be a non-negative whole number.');
   if (!isWholeUsd(availablePersonnel)) throw new Error('Available personnel must be a non-negative whole number.');
-  if (h.status !== 'operating' || h.capacity === null) return { delivered: 0, backlog: demandUnits, personnelUsed: 0 };
+  if (h.status === 'paused') return { status: 'paused', delivered: 0, backlog: null, personnelUsed: 0 };
+  if (h.status === 'unavailable' || h.capacity === null) return { status: 'unavailable', delivered: 0, backlog: null, personnelUsed: 0 };
   const personnelBound = h.personnelPerUnit > 0 ? Math.floor(availablePersonnel / h.personnelPerUnit) : h.capacity;
   const delivered = Math.min(demandUnits, h.capacity, personnelBound);
-  return { delivered, backlog: demandUnits - delivered, personnelUsed: delivered * h.personnelPerUnit };
+  return { status: 'computed', delivered, backlog: demandUnits - delivered, personnelUsed: checkedMul(delivered, h.personnelPerUnit) };
 }

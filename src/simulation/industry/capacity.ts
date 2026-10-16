@@ -5,9 +5,15 @@
  * bounded by utilization, maintenance outage and the available material inputs;
  * expansion happens through 0.24 construction, never magically. No new
  * canonical state, no scheduler, no RNG, no migration.
+ *
+ * `planBatches` is a material/capacity plan: the effective capacity profile
+ * bounds the plan, and a known process-level batch cap (`capacityPerBatch`)
+ * only further bounds it. Energy/personnel/funds are runtime resources applied
+ * by `runProcess` (0.28.2), not part of this material plan.
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedMul } from '../safeMath';
 import { validateProcess, type IndustrialProcess } from './process';
 
 export interface CapacityProfile {
@@ -26,11 +32,11 @@ export function validateCapacityProfile(c: CapacityProfile): void {
   }
 }
 
-/** Effective batches per month after utilization and maintenance outage. Never negative. */
+/** Effective batches per month after utilization and maintenance outage. Never negative. Overflow fails closed. */
 export function effectiveBatchesPerMonth(c: CapacityProfile): number {
   validateCapacityProfile(c);
   const net = Math.max(0, c.utilizationBps - c.maintenanceOutageBps);
-  return Math.floor((c.nominalBatchesPerMonth * net) / 10000);
+  return Math.floor(checkedMul(c.nominalBatchesPerMonth, net) / 10000);
 }
 
 export interface BatchPlan {
@@ -43,7 +49,10 @@ export interface BatchPlan {
 export function planBatches(process: IndustrialProcess, availableInputs: Readonly<Record<string, number>>, profile: CapacityProfile): BatchPlan {
   validateProcess(process);
   validateCapacityProfile(profile);
-  let batches = Math.min(effectiveBatchesPerMonth(profile), process.capacityPerBatch ?? Infinity);
+  let batches = effectiveBatchesPerMonth(profile);
+  // A known process-level cap further bounds the plan; an unavailable (null)
+  // process cap does not — the profile already provides the finite bound.
+  if (process.capacityPerBatch !== null) batches = Math.min(batches, process.capacityPerBatch);
   let binding: BatchPlan['binding'] = 'capacity';
   for (const [id, perBatch] of Object.entries(process.inputs)) {
     const avail = availableInputs[id] ?? 0;
