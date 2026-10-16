@@ -3,10 +3,8 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1–0.27.7 are implemented** (branch
-CI green, runs 38805512130 / 38812763630 / 38815787349 / 38819034040 /
-38822106721 / 38825249363 / 38828776243); **0.27.8 (war/sovereignty/damage) is
-in progress.**
+without its independent review and CI. **0.27.1–0.27.8 are implemented** (branch
+CI green); **0.27.9 (consolidated review) is in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -189,8 +187,7 @@ coverage.
 
 ## Deferred (not implemented)
 
-Intra-regional spatial grid, extraction/installations (0.27.3), refining
-(0.27.4), energy production (0.27.5), networks (0.27.6), and the
-agriculture/climate/environment sub-systems are deferred until their
-micro-blocks. 0.27 is accepted only after its complete independent audit and
-green CI.
+Only the conditional gates — intra-regional spatial grid and the detailed
+agriculture/climate/environment sub-systems — remain deferred (`BLOCKED_DESIGN`),
+together with the 0.27.9 consolidated review. 0.27 is accepted only after its
+complete independent audit and green CI.

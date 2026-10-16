@@ -90,7 +90,7 @@ export interface ScopeOwnerEntry {
   readonly ownerPath: string;
   readonly ownerSubsystem: ScopeOwnerSubsystem;
   readonly rationale: string;
-  readonly read: (state: SimulationState, countryId: string) => unknown;
+  readonly read: (state: SimulationState, regionId: string, countryId: string) => unknown;
 }
 
 /**
@@ -104,14 +104,14 @@ export const SCOPE_OWNERS: readonly ScopeOwnerEntry[] = Object.freeze([
     ownerPath: 'state.socioeconomy.regions[regionId].economy.output',
     ownerSubsystem: 'socioeconomy',
     rationale: 'Extracted/produced flow is the one socioeconomic output engine; trade category production is an attribution inside that private-residual envelope, never a second production engine.',
-    read: (state, _countryId) => state.socioeconomy.regions,
+    read: (state, regionId) => state.socioeconomy.regions[regionId]?.economy?.output,
   },
   {
     scope: 'stock',
     ownerPath: 'state.trade.countries[countryId].markets[category].stock',
     ownerSubsystem: 'trade',
     rationale: '`TradeStock` is the sole physical stock store; construction consumes it directly, no parallel material store.',
-    read: (state, countryId) => state.trade.countries[countryId]?.markets,
+    read: (state, _regionId, countryId) => state.trade.countries[countryId]?.markets,
   },
   {
     scope: 'reserve',

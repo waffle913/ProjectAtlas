@@ -28,9 +28,16 @@ describe('resources territorial anchoring (0.27.2)', () => {
     expect(() => validateRegionAnchor(anchorToRegion('mine-a', ''))).toThrow(/non-empty permanent Region id/);
   });
 
-  it('blocks documented intra-region anchoring without geometry + provenance (BLOCKED_DESIGN)', () => {
+  it('blocks documented intra-region anchoring while the spatial-grid gate is undecided (BLOCKED_DESIGN)', () => {
     expect(() => validateRegionAnchor({ subjectId: 'mine-a', regionId: 'region-7', precision: 'documented_intra_region', geometryReference: null }))
-      .toThrow(/documented_intra_region anchoring requires/);
+      .toThrow(/BLOCKED_DESIGN/);
+    expect(() => validateRegionAnchor({ subjectId: 'mine-a', regionId: 'region-7', precision: 'documented_intra_region', geometryReference: 'https://example.invalid/g', provenance: provenance() }))
+      .toThrow(/BLOCKED_DESIGN/);
+  });
+
+  it('requires dated provenance whenever a geometry reference is present', () => {
+    expect(() => validateRegionAnchor({ subjectId: 'mine-a', regionId: 'region-7', precision: 'region', geometryReference: 'https://example.invalid/g' }))
+      .toThrow(/geometry reference requires dated provenance/);
   });
 
   it('keeps an unavailable anchor free of any fabricated geometry or provenance', () => {

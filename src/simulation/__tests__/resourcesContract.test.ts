@@ -89,15 +89,15 @@ describe('resources/energy taxonomy and contract (0.27.1)', () => {
   it('reads the production and stock owners without throwing on an empty state', () => {
     const state = emptyState();
     for (const entry of SCOPE_OWNERS) {
-      expect(() => entry.read(state, 'country-a')).not.toThrow();
+      expect(() => entry.read(state, 'region-a', 'country-a')).not.toThrow();
     }
   });
 
   it('keeps reserve and deposit unavailable (read returns undefined, never a zero)', () => {
     const state = emptyState();
     const byScope = Object.fromEntries(SCOPE_OWNERS.map(e => [e.scope, e]));
-    expect(byScope.reserve.read(state, 'country-a')).toBeUndefined();
-    expect(byScope.deposit.read(state, 'country-a')).toBeUndefined();
+    expect(byScope.reserve.read(state, 'region-a', 'country-a')).toBeUndefined();
+    expect(byScope.deposit.read(state, 'region-a', 'country-a')).toBeUndefined();
   });
 
   it('keeps the open design gates undecided (spatial grid, agriculture/climate/environment)', () => {

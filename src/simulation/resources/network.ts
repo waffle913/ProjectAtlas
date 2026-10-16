@@ -58,6 +58,7 @@ export interface DeliveryResult {
 /** Deliver energy from a source to a target Region along direct links, bounded by path capacity. */
 export function deliverEnergy(links: readonly NetworkLink[], sourceId: string, targetId: string, requestedMwh: number, months = 1): DeliveryResult {
   if (!isWholeUsd(requestedMwh)) throw new Error('Requested MWh must be a non-negative whole number.');
+  if (!isWholeUsd(months) || months <= 0) throw new Error('Months must be a positive whole number.');
   for (const l of links) validateNetworkLink(l);
   const path = links.filter((l) => l.fromRegionId === sourceId && l.toRegionId === targetId);
   const totalCapacity = path.reduce((sum, l) => sum + linkCapacity(l, months), 0);

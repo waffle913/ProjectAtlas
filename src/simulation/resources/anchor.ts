@@ -18,6 +18,7 @@
  */
 
 import { isSimulationDate } from '../date';
+import { isSpatialGridInScope } from './contract';
 
 export const ANCHOR_PRECISIONS = Object.freeze(['region', 'documented_intra_region', 'unavailable'] as const);
 export type AnchorPrecision = typeof ANCHOR_PRECISIONS[number];
@@ -47,17 +48,18 @@ export interface RegionAnchor {
 
 export function validateRegionAnchor(a: RegionAnchor): void {
   if (!a || typeof a.subjectId !== 'string' || !a.subjectId.trim()) throw new Error('Anchor needs a non-empty subject id.');
+  if (!ANCHOR_PRECISIONS.includes(a.precision)) throw new Error(`Unknown anchor precision: ${String(a.precision)}.`);
   if (a.precision === 'unavailable') {
     if (a.regionId !== '') throw new Error('An unavailable anchor must not name a Region.');
-  } else if (typeof a.regionId !== 'string' || !a.regionId.trim()) {
-    throw new Error('Anchor needs a non-empty permanent Region id.');
+    if (a.geometryReference !== null || a.provenance) throw new Error('An unavailable anchor must not carry a geometry reference or provenance.');
+    return;
   }
-  if (!ANCHOR_PRECISIONS.includes(a.precision)) throw new Error(`Unknown anchor precision: ${String(a.precision)}.`);
-  if (a.precision === 'documented_intra_region' && (!a.geometryReference || !a.provenance)) {
-    throw new Error('documented_intra_region anchoring requires an admitted geometry reference and dated provenance (BLOCKED_DESIGN until the spatial-grid decision).');
+  if (typeof a.regionId !== 'string' || !a.regionId.trim()) throw new Error('Anchor needs a non-empty permanent Region id.');
+  if (a.precision === 'documented_intra_region' && !isSpatialGridInScope()) {
+    throw new Error('documented_intra_region anchoring is BLOCKED_DESIGN until the intra-region spatial-grid decision.');
   }
-  if (a.precision === 'unavailable' && (a.geometryReference !== null || a.provenance)) {
-    throw new Error('An unavailable anchor must not carry a geometry reference or provenance.');
+  if (a.geometryReference !== null && !a.provenance) {
+    throw new Error('A geometry reference requires dated provenance.');
   }
   if (a.provenance) {
     if (![a.provenance.publisher, a.provenance.dataset, a.provenance.url, a.provenance.licence, a.provenance.attribution, a.provenance.limitation].every(v => typeof v === 'string' && v.trim())) {

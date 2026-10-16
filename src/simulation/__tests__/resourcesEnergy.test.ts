@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ENERGY_PLANT_KINDS, validateEnergyPlant, energyOutput, fuelRequired,
+  ENERGY_PLANT_KINDS, validateEnergyPlant, energyOutput, fuelRequired, energyOutputFromFuel,
   type EnergyPlant,
 } from '../resources/energy';
 
@@ -43,5 +43,14 @@ describe('resources energy production (0.27.5)', () => {
     expect(fuel).toBe(2500);
     expect(Math.floor((fuel * thermal().efficiencyBps) / 10000)).toBe(1000); // conservation
     expect(fuelRequired(thermal({ kind: 'solar', fuelInputId: null }), 1000)).toBe(0);
+  });
+
+  it('bounds fuelled output by fuel availability (no electricity from nothing)', () => {
+    const p = thermal();
+    expect(energyOutputFromFuel(p, 0, 1)).toBe(0);       // no fuel -> no output
+    expect(energyOutputFromFuel(p, 2500, 1)).toBe(1000); // fuel 2500 × 40% = 1000, capacity 1000
+    expect(energyOutputFromFuel(p, 250, 1)).toBe(100);   // fuel 250 × 40% = 100 (fuel-bound)
+    const wind = thermal({ kind: 'wind', fuelInputId: null, capacityMwhPerMonth: 1000, intermittencyBps: 3000 });
+    expect(energyOutputFromFuel(wind, 0, 1)).toBe(700);  // renewables ignore fuel
   });
 });

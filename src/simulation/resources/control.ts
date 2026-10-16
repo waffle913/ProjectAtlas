@@ -56,9 +56,9 @@ export function exploitAuthorized(c: InstallationControl): boolean {
 
 /** Apply war damage as a basis-point reduction (0–10,000 bps); capacity never goes negative, null stays null. */
 export function applyDamage(capacity: number | null, damageBps: number): number | null {
+  if (!Number.isInteger(damageBps) || damageBps < 0 || damageBps > 10000) throw new Error('damageBps must be an integer in [0, 10000].');
   if (capacity === null) return null;
   if (!isWholeUsd(capacity)) throw new Error('Capacity must be a non-negative whole quantity or null.');
-  if (!Number.isInteger(damageBps) || damageBps < 0 || damageBps > 10000) throw new Error('damageBps must be an integer in [0, 10000].');
   return Math.floor((capacity * (10000 - damageBps)) / 10000);
 }
 

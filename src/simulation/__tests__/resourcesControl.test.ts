@@ -46,4 +46,8 @@ describe('resources war/sovereignty/damage (0.27.8)', () => {
     expect(repairCapacity(1000, 950, 100)).toBe(1000);  // bounded
     expect(() => repairCapacity(1000, 1200, 10)).toThrow(/cannot exceed the original capacity/);
   });
+
+  it('validates damageBps even when capacity is null', () => {
+    expect(() => applyDamage(null, 20000)).toThrow(/damageBps/);
+  });
 });

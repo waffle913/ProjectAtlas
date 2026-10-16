@@ -75,3 +75,14 @@ export function fuelRequired(p: EnergyPlant, outputMwh: number): number {
   if (outputMwh === 0) return 0;
   return Math.ceil((outputMwh * 10000) / p.efficiencyBps);
 }
+
+/** Electricity output bounded by BOTH capacity×availability and the fuel's energy content (fuel × efficiency). Renewables ignore fuel. */
+export function energyOutputFromFuel(p: EnergyPlant, fuelQuantity: number, months = 1): number {
+  validateEnergyPlant(p);
+  if (!isWholeUsd(fuelQuantity)) throw new Error('Fuel quantity must be a non-negative whole quantity.');
+  const capacityOutput = energyOutput(p, months);
+  if (capacityOutput === 0) return 0;
+  if (!FUELED.has(p.kind)) return capacityOutput;
+  const fuelOutput = Math.floor((fuelQuantity * p.efficiencyBps) / 10000);
+  return Math.min(capacityOutput, fuelOutput);
+}
