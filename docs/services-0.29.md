@@ -2,7 +2,8 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1 is the current sub-milestone.** The
+authorization, not acceptance**. **0.29.1 is implemented** (branch CI green, run 38870564763); **0.29.2
+(health/establishments) is in progress.** The
 independent parts proceed now; the conditional part (rent rules) is **not**
 decided and stays `BLOCKED_DESIGN`.
 
@@ -24,6 +25,18 @@ building a second budget or population (parallel to 0.25.1/0.26.1/0.27.1/0.28.1)
 
 The executable counterpart lives in `src/simulation/services/contract.ts` and is
 validated by `src/simulation/__tests__/servicesContract.test.ts`.
+
+## 0.29.2 scope — health and establishments
+
+The health contract (`src/simulation/services/health.ts`):
+
+- care is delivered, never stocked; capacity is beds/admitted capacity
+  (`null` = unavailable);
+- delivery is bounded by capacity and available personnel; the shortfall is a
+  queue/backlog;
+- outcome is distinct from mere spending.
+
+Validated by `src/simulation/__tests__/servicesHealth.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
