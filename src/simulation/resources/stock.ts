@@ -70,9 +70,14 @@ export function consumeFromStock(s: StockLedger, amount: number): ConsumptionRes
 }
 
 /** Open design gate: cross-resource substitution is not decided and stays out of scope. */
-export const STOCK_SUBSTITUTION = Object.freeze({
+export const STOCK_SUBSTITUTION: Readonly<{
+  id: 'stock_substitution';
+  status: 'undecided' | 'decided';
+  question: string;
+  note: string;
+}> = Object.freeze({
   id: 'stock_substitution',
-  status: 'undecided' as const,
+  status: 'undecided',
   question: 'Is cross-resource substitution modelled, with which causal rules and legal powers?',
   note: 'Until decided, substitution is unavailable — a shortage is a shortage, never a silent replacement.',
 });
