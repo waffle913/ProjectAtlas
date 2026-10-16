@@ -3,9 +3,9 @@
 **Status:** 0.28 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.28.1–0.28.3 are implemented** (branch
-CI green, runs 38845742726 / 38848441311 / 38850692395); **0.28.4 (service
-sectors) is in progress.**
+without its independent review and CI. **0.28.1–0.28.4 are implemented** (branch
+CI green, runs 38845742726 / 38848441311 / 38850692395 / 38853385325); **0.28.5
+(research projects) is in progress.**
 The independent parts (product/sector/nomenclature vocabulary, transformation
 chains, capacities, service sectors, research, diffusion, military/civilian
 technology) proceed now; the conditional part (detailed competition/monopoly
@@ -70,6 +70,17 @@ The service-sector contract (`src/simulation/industry/service.ts`):
 - `null` capacity is unavailable, never a fabricated zero.
 
 Validated by `src/simulation/__tests__/industryService.test.ts`.
+
+## 0.28.5 scope — research projects
+
+The research contract (`src/simulation/industry/research.ts`):
+
+- a project advances only with schedule, funding and researchers; no instant
+  discovery caused by a budget;
+- completion is schedule-only (full duration elapsed);
+- risk is a documented/modelled bps figure, never a hidden random roll.
+
+Validated by `src/simulation/__tests__/industryResearch.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
