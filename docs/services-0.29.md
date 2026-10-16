@@ -2,9 +2,9 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1–0.29.5 are implemented** (branch CI green, runs 38870564763 /
-38874174997 / 38877076958 / 38880735870 / 38883713458); **0.29.6
-(pensions/benefits) is in progress.** The
+authorization, not acceptance**. **0.29.1–0.29.6 are implemented** (branch CI green, runs 38870564763 /
+38874174997 / 38877076958 / 38880735870 / 38883713458 / 38887272401); **0.29.7
+(civil transport/infrastructure) is in progress.** The
 independent parts proceed now; the conditional part (rent rules) is **not**
 decided and stays `BLOCKED_DESIGN`.
 
@@ -81,6 +81,15 @@ The benefit contract (`src/simulation/services/benefits.ts`):
 - the unserved eligible population is a shortfall.
 
 Validated by `src/simulation/__tests__/servicesBenefits.test.ts`.
+
+## 0.29.7 scope — civil transport/infrastructure
+
+The transport contract (`src/simulation/services/transport.ts`):
+
+- transport is a service delivered from a 0.24 asset (never a second asset
+  store), bounded by capacity, energy and personnel; the shortfall is a backlog.
+
+Validated by `src/simulation/__tests__/servicesTransport.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
