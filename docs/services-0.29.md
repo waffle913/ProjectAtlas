@@ -2,8 +2,9 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1 is implemented** (branch CI green, run 38870564763); **0.29.2
-(health/establishments) is in progress.** The
+authorization, not acceptance**. **0.29.1 and 0.29.2 are implemented** (branch CI green, runs 38870564763 /
+38874174997); **0.29.3 (medicines/consumables/energy/maintenance) is in
+progress.** The
 independent parts proceed now; the conditional part (rent rules) is **not**
 decided and stays `BLOCKED_DESIGN`.
 
@@ -37,6 +38,15 @@ The health contract (`src/simulation/services/health.ts`):
 - outcome is distinct from mere spending.
 
 Validated by `src/simulation/__tests__/servicesHealth.test.ts`.
+
+## 0.29.3 scope — medicines, consumables, energy, maintenance
+
+The supply contract (`src/simulation/services/supplies.ts`):
+
+- a service's physical needs are met from available stock (the canonical
+  `TradeStock`); the shortfall is a supply rupture, never a fabricated quantity.
+
+Validated by `src/simulation/__tests__/servicesSupplies.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
