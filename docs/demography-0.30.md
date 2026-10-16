@@ -1,0 +1,33 @@
+# Demography/migration V2, police, justice and intelligence — 0.30
+
+**Status:** 0.30 is planned in the approved roadmap 0.26–0.34 and is under the
+standing multi-milestone implementation authorization. This is **implementation
+authorization, not acceptance**. **0.30.1 is the current sub-milestone.** The
+independent parts proceed now; the conditional parts (judicial detail degree,
+intelligence perimeter) stay `BLOCKED_DESIGN`.
+
+## 0.30.1 scope — cohort and transition contracts
+
+The first sub-milestone reuses the single 0.10 population (nine income×orientation
+cohorts) — never a second population — and names cohort transition statuses
+(resident / migrant_in / migrant_out / deceased / born) and the
+observed/modelled/unavailable distinction. `unavailable != 0`.
+
+Executable counterpart: `src/simulation/demography/contract.ts`; validated by
+`src/simulation/__tests__/demographyContract.test.ts`.
+
+## Open design decisions (BLOCKED_DESIGN)
+
+**Judicial detail degree (0.30.6).** What degree of procedural detail and what
+institutional perimeter per country, without fictional generalization of laws?
+**Intelligence perimeter (0.30.7).** What collection perimeter and guarantees?
+
+## Non-duplication invariants
+
+1. **One population** — `state.socioeconomy` cohorts are the sole population.
+2. **`unavailable != 0`** everywhere.
+
+## Deferred (not implemented)
+
+0.30.2–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
+after its complete independent audit and green CI.
