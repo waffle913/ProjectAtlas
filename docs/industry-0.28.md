@@ -3,7 +3,8 @@
 **Status:** 0.28 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.28.1 is the current sub-milestone.**
+without its independent review and CI. **0.28.1 is implemented** (branch CI
+green, run 38845742726); **0.28.2 (transformation chains) is in progress.**
 The independent parts (product/sector/nomenclature vocabulary, transformation
 chains, capacities, service sectors, research, diffusion, military/civilian
 technology) proceed now; the conditional part (detailed competition/monopoly
@@ -32,6 +33,18 @@ vocabulary** and the **admission rule**, without building any mechanism
 second stock store. The executable counterpart lives in
 `src/simulation/industry/contract.ts` and is validated by
 `src/simulation/__tests__/industryContract.test.ts`.
+
+## 0.28.2 scope — transformation chains
+
+The industrial-process contract (`src/simulation/industry/process.ts`):
+
+- a batch conserves matter exactly: sum of input quantities === sum of output +
+  by-product + residue quantities + documented material loss (no net creation);
+- production is bounded by available inputs and batch capacity; energy and
+  personnel are validated requirements, never part of the matter identity;
+- `null` capacity is unavailable, never a fabricated zero.
+
+Validated by `src/simulation/__tests__/industryProcess.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
