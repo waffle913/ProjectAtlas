@@ -3,9 +3,10 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1–0.27.6 are implemented** (branch
+without its independent review and CI. **0.27.1–0.27.7 are implemented** (branch
 CI green, runs 38805512130 / 38812763630 / 38815787349 / 38819034040 /
-38822106721 / 38825249363); **0.27.7 (stocks/physical trade) is in progress.**
+38822106721 / 38825249363 / 38828776243); **0.27.8 (war/sovereignty/damage) is
+in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -120,6 +121,20 @@ canonical `TradeStock`:
 - `null` capacity is unavailable, never a fabricated zero.
 
 Validated by `src/simulation/__tests__/resourcesStock.test.ts`.
+
+## 0.27.8 scope — war, sovereignty and damage
+
+The control/damage contract (`src/simulation/resources/control.ts`):
+
+- sovereignty (owner), exploitation (operator) and effective control
+  (controller) are three distinct ids; military occupation is a fourth, distinct
+  fact — occupation is not sovereignty;
+- the operator may exploit an installation only as the effective controller;
+  sovereignty alone does not authorize exploitation under occupation;
+- damage reduces capacity and is never auto-repaired at war's end; repair is
+  explicit and bounded by the original capacity.
+
+Validated by `src/simulation/__tests__/resourcesControl.test.ts`.
 
 ## Scopes and canonical owners
 
