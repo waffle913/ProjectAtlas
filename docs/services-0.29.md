@@ -2,9 +2,8 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1 and 0.29.2 are implemented** (branch CI green, runs 38870564763 /
-38874174997); **0.29.3 (medicines/consumables/energy/maintenance) is in
-progress.** The
+authorization, not acceptance**. **0.29.1–0.29.3 are implemented** (branch CI green, runs 38870564763 /
+38874174997 / 38877076958); **0.29.4 (education/training) is in progress.** The
 independent parts proceed now; the conditional part (rent rules) is **not**
 decided and stays `BLOCKED_DESIGN`.
 
@@ -47,6 +46,18 @@ The supply contract (`src/simulation/services/supplies.ts`):
   `TradeStock`); the shortfall is a supply rupture, never a fabricated quantity.
 
 Validated by `src/simulation/__tests__/servicesSupplies.test.ts`.
+
+## 0.29.4 scope — education and training
+
+The education contract (`src/simulation/services/education.ts`):
+
+- enrolment is delivered, never stocked; capacity is admitted seats
+  (`null` = unavailable);
+- enrolment is bounded by capacity and personnel; the shortfall is a backlog;
+- a pathway graduates only after its full duration — skills/labour effects are
+  temporal, never instant from spending.
+
+Validated by `src/simulation/__tests__/servicesEducation.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
