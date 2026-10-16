@@ -2,7 +2,7 @@
 
 **Status:** 0.30 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.30.1 is the current sub-milestone.** The
+authorization, not acceptance**. **0.30.4 is the current sub-milestone.** The
 independent parts proceed now; the conditional parts (judicial detail degree,
 intelligence perimeter) stay `BLOCKED_DESIGN`.
 
@@ -41,7 +41,17 @@ flows between origin and destination (entries/exits, net migration), no double
 counting; migration never changes sovereignty. Validated by
 `src/simulation/__tests__/demographyMigration.test.ts`.
 
+## 0.30.4 scope — legal statuses and integration
+
+The legal-status contract (`src/simulation/demography/legalStatus.ts`): a legal
+status is only asserted against an explicitly documented legal instrument
+(citizenship / residence / work / family / protection); an unknown rule is
+`unavailable`, never zero rights and never zero service access. Social
+integration is a contextualized material mechanism (residence duration,
+employment, service access), never an arbitrary cultural-conformity gauge.
+Validated by `src/simulation/__tests__/demographyLegalStatus.test.ts`.
+
 ## Deferred (not implemented)
 
-0.30.2–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
+0.30.5–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
 after its complete independent audit and green CI.
