@@ -3,9 +3,9 @@
 **Status:** 0.28 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.28.1–0.28.4 are implemented** (branch
-CI green, runs 38845742726 / 38848441311 / 38850692395 / 38853385325); **0.28.5
-(research projects) is in progress.**
+without its independent review and CI. **0.28.1–0.28.5 are implemented** (branch
+CI green, runs 38845742726 / 38848441311 / 38850692395 / 38853385325 /
+38856137452); **0.28.6 (diffusion/adoption) is in progress.**
 The independent parts (product/sector/nomenclature vocabulary, transformation
 chains, capacities, service sectors, research, diffusion, military/civilian
 technology) proceed now; the conditional part (detailed competition/monopoly
@@ -81,6 +81,16 @@ The research contract (`src/simulation/industry/research.ts`):
 - risk is a documented/modelled bps figure, never a hidden random roll.
 
 Validated by `src/simulation/__tests__/industryResearch.test.ts`.
+
+## 0.28.6 scope — diffusion and adoption
+
+The diffusion contract (`src/simulation/industry/diffusion.ts`):
+
+- adoption advances through investment and equipment replacement over time,
+  bounded by supply and the 10,000 bps ceiling;
+- adoption affects material processes, never a global GDP bonus.
+
+Validated by `src/simulation/__tests__/industryDiffusion.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
