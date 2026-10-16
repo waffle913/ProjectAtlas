@@ -3,8 +3,9 @@
 **Status:** 0.28 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.28.1 is implemented** (branch CI
-green, run 38845742726); **0.28.2 (transformation chains) is in progress.**
+without its independent review and CI. **0.28.1 and 0.28.2 are implemented**
+(branch CI green, runs 38845742726 / 38848441311); **0.28.3
+(capacities/bottlenecks) is in progress.**
 The independent parts (product/sector/nomenclature vocabulary, transformation
 chains, capacities, service sectors, research, diffusion, military/civilian
 technology) proceed now; the conditional part (detailed competition/monopoly
@@ -45,6 +46,18 @@ The industrial-process contract (`src/simulation/industry/process.ts`):
 - `null` capacity is unavailable, never a fabricated zero.
 
 Validated by `src/simulation/__tests__/industryProcess.test.ts`.
+
+## 0.28.3 scope — capacities and bottlenecks
+
+The capacity contract (`src/simulation/industry/capacity.ts`):
+
+- effective batches per month are bounded by utilization and maintenance
+  outage, never negative;
+- `planBatches` bounds production by effective capacity AND material inputs, and
+  reports which constraint binds (capacity or a specific input);
+- expansion happens through 0.24 construction, never magically.
+
+Validated by `src/simulation/__tests__/industryCapacity.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
