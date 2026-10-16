@@ -47,6 +47,7 @@ describe('international migration (0.30.3)', () => {
     expect(() => netMigration([
       flow({ id: 'f1', originId: 'country-b', destinationId: 'country-a', count: Number.MAX_SAFE_INTEGER }),
       flow({ id: 'f2', originId: 'country-b', destinationId: 'country-a', count: 2 }),
+      flow({ id: 'f3', originId: 'country-a', destinationId: 'country-b', count: 2 }),
     ], 'country-a')).toThrow(/overflow/);
   });
 });
