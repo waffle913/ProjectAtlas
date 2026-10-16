@@ -3,9 +3,10 @@
 **Status:** 0.28 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.28.1–0.28.5 are implemented** (branch
+without its independent review and CI. **0.28.1–0.28.6 are implemented** (branch
 CI green, runs 38845742726 / 38848441311 / 38850692395 / 38853385325 /
-38856137452); **0.28.6 (diffusion/adoption) is in progress.**
+38856137452 / 38857847524); **0.28.7 (military/civilian technology) is in
+progress.**
 The independent parts (product/sector/nomenclature vocabulary, transformation
 chains, capacities, service sectors, research, diffusion, military/civilian
 technology) proceed now; the conditional part (detailed competition/monopoly
@@ -91,6 +92,18 @@ The diffusion contract (`src/simulation/industry/diffusion.ts`):
 - adoption affects material processes, never a global GDP bonus.
 
 Validated by `src/simulation/__tests__/industryDiffusion.test.ts`.
+
+## 0.28.7 scope — military/civilian technology
+
+The technology-link contract (`src/simulation/industry/technology.ts`):
+
+- a technology links to the production capacity of equipment/goods (0.16
+  military, 0.24 assets, 0.25 production);
+- it applies a production-capacity effect, never a military-readiness change
+  (that stays in 0.31);
+- `null` capacity stays unavailable.
+
+Validated by `src/simulation/__tests__/industryTechnology.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
