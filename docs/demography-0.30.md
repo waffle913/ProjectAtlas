@@ -18,9 +18,16 @@ Executable counterpart: `src/simulation/demography/contract.ts`; validated by
 
 ## Open design decisions (BLOCKED_DESIGN)
 
+0.30.6 and 0.30.7 are **not implemented** in this milestone. Both are gated on a
+human design decision (roadmap open design gate #5) and cannot be started without
+inventing a procedural/institutional perimeter:
+
 **Judicial detail degree (0.30.6).** What degree of procedural detail and what
 institutional perimeter per country, without fictional generalization of laws?
+→ `BLOCKED_DESIGN`: no justice primitives are added until this is decided.
+
 **Intelligence perimeter (0.30.7).** What collection perimeter and guarantees?
+→ `BLOCKED_DESIGN`: no intelligence primitives are added until this is decided.
 
 ## Non-duplication invariants
 
@@ -67,5 +74,6 @@ unavailable or paused station never fabricates a shortage. Validated by
 
 ## Deferred (not implemented)
 
-0.30.6–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
-after its complete independent audit and green CI.
+0.30.6 (justice) and 0.30.7 (intelligence) are `BLOCKED_DESIGN` (see above).
+0.30.8–0.30.10 remain to be assessed/implemented. 0.30 is accepted only after
+its complete independent audit and green CI.
