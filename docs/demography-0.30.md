@@ -2,7 +2,7 @@
 
 **Status:** 0.30 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.30.4 is the current sub-milestone.** The
+authorization, not acceptance**. **0.30.5 is the current sub-milestone.** The
 independent parts proceed now; the conditional parts (judicial detail degree,
 intelligence perimeter) stay `BLOCKED_DESIGN`.
 
@@ -53,7 +53,19 @@ integration is a contextualized material mechanism (residence duration,
 employment, service access), never an arbitrary cultural-conformity gauge.
 Validated by `src/simulation/__tests__/demographyLegalStatus.test.ts`.
 
+## 0.30.5 scope — police
+
+The police contract (`src/simulation/security/police.ts`): police resources stay
+in their canonical owners (personnel = socioeconomy, stations = 0.24 assets,
+budget = fiscal — no second population/asset/budget). A legal order is authorized
+only by the office/institution that actually holds police power under the
+0.14/0.23 model (parliamentary head of government, presidential head of state, or
+the interior-portfolio minister); unresolved authority fails closed. Deployment
+is bounded by real personnel availability and typed by availability — an
+unavailable or paused station never fabricates a shortage. Validated by
+`src/simulation/__tests__/police.test.ts`.
+
 ## Deferred (not implemented)
 
-0.30.5–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
+0.30.6–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
 after its complete independent audit and green CI.
