@@ -2,7 +2,7 @@
 
 **Status:** 0.30 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.30.5 is the current sub-milestone.** The
+authorization, not acceptance**. **0.30.9 is the current sub-milestone.** The
 independent parts proceed now; the conditional parts (judicial detail degree,
 intelligence perimeter) stay `BLOCKED_DESIGN`.
 
@@ -72,8 +72,27 @@ is bounded by real personnel availability and typed by availability — an
 unavailable or paused station never fabricates a shortage. Validated by
 `src/simulation/__tests__/police.test.ts`.
 
+## 0.30.8 scope — security, events and consequences (deferred)
+
+0.30.8 is **not implemented** in this milestone. It depends on 0.30.6 (justice —
+rights violations) and on demonstrations (reserved for a later public-actions
+milestone, per `AGENTS.md`); its independent law-enforcement core is already
+covered by 0.30.5. No security-event or "repression" mechanism is added until
+those dependencies are decided.
+
+## 0.30.9 scope — interconnections
+
+Contract-level interconnection coverage
+(`src/simulation/__tests__/demographyInterconnections.test.ts`): population
+conservation across births/deaths/internal moves/international migration; legal
+status → service access → contextual integration; police order authority gating
+and availability-typed deployment. Engine wiring of these contracts (cadences,
+scheduler, opinion) stays deferred to the 0.33 integration milestone — no
+concurrent loop is introduced here.
+
 ## Deferred (not implemented)
 
-0.30.6 (justice) and 0.30.7 (intelligence) are `BLOCKED_DESIGN` (see above).
-0.30.8–0.30.10 remain to be assessed/implemented. 0.30 is accepted only after
-its complete independent audit and green CI.
+0.30.6 (justice), 0.30.7 (intelligence) and 0.30.8 (security/events) are
+`BLOCKED_DESIGN`/deferred (see above). 0.30.10 (validation) is the consolidated
+independent review. 0.30 is accepted only after its complete independent audit
+and green CI.
