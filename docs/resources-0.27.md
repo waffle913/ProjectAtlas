@@ -3,9 +3,9 @@
 **Status:** 0.27 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.27.1–0.27.5 are implemented** (branch
+without its independent review and CI. **0.27.1–0.27.6 are implemented** (branch
 CI green, runs 38805512130 / 38812763630 / 38815787349 / 38819034040 /
-38822106721); **0.27.6 (networks/accessibility) is in progress.**
+38822106721 / 38825249363); **0.27.7 (stocks/physical trade) is in progress.**
 The independent parts (matter/energy taxonomy, canonical-owner inventory, open
 design gates) proceed now; the conditional parts (intra-regional spatial grid,
 detailed agriculture/climate/environment) are **not** decided and stay
@@ -105,6 +105,21 @@ The network contract (`src/simulation/resources/network.ts`):
 - `null` capacity is unavailable, never a fabricated zero.
 
 Validated by `src/simulation/__tests__/resourcesNetwork.test.ts`.
+
+## 0.27.7 scope — stocks and physical trade
+
+The stock contract (`src/simulation/resources/stock.ts`) reconciles to the
+canonical `TradeStock`:
+
+- conservation: `opening + produced + received === consumed + exported + closing`
+  exactly — no net creation or destruction by accounting;
+- no negative stock: consumption is bounded by the closing stock, and the
+  shortfall is a shortage, never a fabricated quantity;
+- cross-resource substitution stays out of scope (`undecided` gate); a shortage
+  is a shortage, never a silent replacement;
+- `null` capacity is unavailable, never a fabricated zero.
+
+Validated by `src/simulation/__tests__/resourcesStock.test.ts`.
 
 ## Scopes and canonical owners
 
