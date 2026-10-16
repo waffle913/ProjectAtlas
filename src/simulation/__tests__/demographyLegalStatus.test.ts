@@ -16,7 +16,8 @@ describe('legal statuses and integration (0.30.4)', () => {
     expect(() => validateLegalStatusRule(rule({ kind: 'noble' as never }))).toThrow(/Unknown legal status kind/);
     expect(() => validateLegalStatusRule(rule({ basis: 'documented_law', legalInstrumentRef: null }))).toThrow(/legal instrument/);
     expect(() => validateLegalStatusRule(rule({ basis: 'documented_law', serviceAccess: null }))).toThrow(/explicit service access/);
-    expect(() => validateLegalStatusRule(rule({ serviceAccess: ['health', 'magic' as never] }))).toThrow(/unknown service family/);
+    expect(() => validateLegalStatusRule(rule({ serviceAccess: ['health', 'magic' as never] }))).toThrow(/known service families/);
+    expect(() => validateLegalStatusRule(rule({ serviceAccess: 'health' as never }))).toThrow(/array of known service families/);
   });
 
   it('treats unavailable as unknown, never zero rights/services', () => {

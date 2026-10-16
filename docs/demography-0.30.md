@@ -66,8 +66,9 @@ The police contract (`src/simulation/security/police.ts`): police resources stay
 in their canonical owners (personnel = socioeconomy, stations = 0.24 assets,
 budget = fiscal — no second population/asset/budget). A legal order is authorized
 only by the office/institution that actually holds police power under the
-0.14/0.23 model (parliamentary head of government, presidential head of state, or
-the interior-portfolio minister); unresolved authority fails closed. Deployment
+0.14/0.23 model (parliamentary head of government or presidential head of state);
+ministers — including the interior portfolio — hold no police power under the
+current model; unresolved authority fails closed. Deployment
 is bounded by real personnel availability and typed by availability — an
 unavailable or paused station never fabricates a shortage. Validated by
 `src/simulation/__tests__/police.test.ts`.

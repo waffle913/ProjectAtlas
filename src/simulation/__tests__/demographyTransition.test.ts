@@ -42,4 +42,9 @@ describe('demographic transitions (0.30.2)', () => {
   it('A8: a move never makes the origin cohort negative', () => {
     expect(() => applyMove(5, 50, move({ count: 10 }))).toThrow(/negative/);
   });
+
+  it('A10: fails closed on safe-integer overflow (birth and move destination)', () => {
+    expect(() => applyTransition(Number.MAX_SAFE_INTEGER, t({ count: 1 }))).toThrow(/overflow/);
+    expect(() => applyMove(0, Number.MAX_SAFE_INTEGER, move({ count: 1 }))).toThrow(/overflow/);
+  });
 });

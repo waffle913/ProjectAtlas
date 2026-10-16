@@ -39,7 +39,7 @@ export function validateLegalStatusRule(r: LegalStatusRule): void {
       throw new Error('A documented_law status needs a legal instrument reference.');
     }
     if (r.serviceAccess === null) throw new Error('A documented_law status needs explicit service access (may be empty, never null).');
-    if (!r.serviceAccess.every((f) => SERVICE_FAMILIES.includes(f))) throw new Error('serviceAccess contains an unknown service family.');
+    if (!Array.isArray(r.serviceAccess) || !r.serviceAccess.every((f) => SERVICE_FAMILIES.includes(f))) throw new Error('serviceAccess must be an array of known service families.');
   } else {
     if (r.legalInstrumentRef !== null) throw new Error('An unavailable status must not fabricate a legal instrument reference.');
     if (r.serviceAccess !== null) throw new Error('An unavailable status must not assert service access (unavailable != zero).');
@@ -79,10 +79,10 @@ export function assessIntegration(ctx: IntegrationContext): IntegrationAssessmen
   if (!Number.isSafeInteger(ctx.serviceAccessCount) || ctx.serviceAccessCount < 0 || ctx.serviceAccessCount > SERVICE_FAMILIES.length) {
     throw new Error(`serviceAccessCount must be a whole number between 0 and ${SERVICE_FAMILIES.length}.`);
   }
-  const residenceBps = Math.min(1, ctx.residenceMonths / RESIDENCE_WINDOW_MONTHS) * RESIDENCE_WEIGHT_BPS;
+  const residenceBps = Math.round(Math.min(1, ctx.residenceMonths / RESIDENCE_WINDOW_MONTHS) * RESIDENCE_WEIGHT_BPS);
   const employmentBps = ctx.employed ? EMPLOYMENT_WEIGHT_BPS : 0;
-  const serviceBps = (ctx.serviceAccessCount / SERVICE_FAMILIES.length) * SERVICE_WEIGHT_BPS;
-  const indexBps = Math.round(residenceBps + employmentBps + serviceBps);
+  const serviceBps = Math.round((ctx.serviceAccessCount / SERVICE_FAMILIES.length) * SERVICE_WEIGHT_BPS);
+  const indexBps = residenceBps + employmentBps + serviceBps;
   return {
     indexBps: Math.max(0, Math.min(10000, indexBps)),
     components: { residenceBps, employmentBps, serviceBps },

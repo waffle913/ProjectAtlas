@@ -15,20 +15,18 @@ const station = (over: Partial<PoliceStation> = {}): PoliceStation => ({
 });
 
 describe('police (0.30.5)', () => {
-  it('resolves authority only from the office that holds it; unresolved fails closed', () => {
+  it('resolves authority only from the real executive office; unresolved fails closed', () => {
     expect(canDirectPolice(authority())).toBe(true);
     expect(canDirectPolice(authority({ basis: 'presidential_head_of_state' }))).toBe(true);
-    expect(canDirectPolice(authority({ basis: 'interior_portfolio', portfolioId: 'interior' }))).toBe(true);
     expect(canDirectPolice(authority({ basis: 'unresolved' }))).toBe(false);
-    expect(() => validatePoliceAuthority(authority({ basis: 'interior_portfolio', portfolioId: '' }))).toThrow(/portfolio id/);
     expect(() => validatePoliceAuthority(authority({ basis: 'rebel' as never }))).toThrow(/Unknown police authority basis/);
   });
 
-  it('validates an order and gates emergency enforcement on real active powers', () => {
+  it('validates an order only with a resolved authority, and gates emergency enforcement on real active powers', () => {
     expect(() => validatePoliceOrder(order())).not.toThrow();
     expect(() => validatePoliceOrder(order({ kind: 'emergency_enforcement', emergencyPowersActive: true }))).not.toThrow();
     expect(() => validatePoliceOrder(order({ kind: 'emergency_enforcement', emergencyPowersActive: false }))).toThrow(/active emergency police powers/);
-    expect(() => validatePoliceOrder(order({ authority: authority({ basis: 'unresolved' }) }))).not.toThrow(); // unresolved authority is representable, just never directs
+    expect(() => validatePoliceOrder(order({ authority: authority({ basis: 'unresolved' }) }))).toThrow(/fails closed/);
     expect(() => validatePoliceOrder(order({ kind: 'arrest' as never }))).toThrow(/Unknown police order kind/);
     expect(() => validatePoliceOrder(order({ date: 'bad' }))).toThrow(/valid simulation date/);
   });
@@ -39,15 +37,20 @@ describe('police (0.30.5)', () => {
     expect(deployPolice(station(), 10, 5)).toEqual({ status: 'computed', deployed: 5, backlog: 5 });
   });
 
-  it('never fabricates a shortage for unavailable/paused stations', () => {
+  it('never fabricates a shortage for unavailable/paused stations or unknown personnel pools', () => {
     expect(deployPolice(station({ personnel: null }), 10, 50)).toEqual({ status: 'unavailable', deployed: 0, backlog: null });
     expect(deployPolice(station({ status: 'unavailable' }), 10, 50)).toEqual({ status: 'unavailable', deployed: 0, backlog: null });
     expect(deployPolice(station({ status: 'paused' }), 10, 50)).toEqual({ status: 'paused', deployed: 0, backlog: null });
+    expect(deployPolice(station(), 10, null)).toEqual({ status: 'unavailable', deployed: 0, backlog: null });
+  });
+
+  it('treats a documented zero-strength station as a real (computed) shortage, not unavailable', () => {
+    expect(() => validatePoliceStation(station({ personnel: 0 }))).not.toThrow();
+    expect(deployPolice(station({ personnel: 0 }), 10, 50)).toEqual({ status: 'computed', deployed: 0, backlog: 10 });
   });
 
   it('rejects malformed stations', () => {
-    expect(() => validatePoliceStation(station({ personnel: 0 }))).toThrow(/positive whole number or null/);
+    expect(() => validatePoliceStation(station({ personnel: -1 }))).toThrow(/non-negative whole number or null/);
     expect(() => validatePoliceStation(station({ status: 'destroyed' as never }))).toThrow(/Unknown status/);
-    expect(() => deployPolice(station({ personnel: 0 }), 10, 50)).toThrow(/positive whole number or null/);
   });
 });

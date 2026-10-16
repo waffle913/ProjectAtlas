@@ -42,10 +42,15 @@ export function netMigration(flows: readonly MigrationFlow[], countryId: string)
     validateMigrationFlow(f);
     if (seen.has(f.id)) throw new Error(`Duplicate migration flow id ${f.id}; a flow id must be counted at most once.`);
     seen.add(f.id);
-    if (f.destinationId === countryId) net += f.count;
-    if (f.originId === countryId) net -= f.count;
+    if (f.destinationId === countryId) {
+      net += f.count;
+      if (!Number.isSafeInteger(net)) throw new Error('Net migration overflowed the safe-integer range.');
+    }
+    if (f.originId === countryId) {
+      net -= f.count;
+      if (!Number.isSafeInteger(net)) throw new Error('Net migration overflowed the safe-integer range.');
+    }
   }
-  if (!Number.isSafeInteger(net)) throw new Error('Net migration overflowed the safe-integer range.');
   return net;
 }
 

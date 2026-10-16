@@ -42,4 +42,11 @@ describe('international migration (0.30.3)', () => {
       flow({ count: 1 }),
     )).toThrow(/overflow/);
   });
+
+  it('A10: netMigration fails closed on intermediate overflow that cancels back', () => {
+    expect(() => netMigration([
+      flow({ id: 'f1', originId: 'country-b', destinationId: 'country-a', count: Number.MAX_SAFE_INTEGER }),
+      flow({ id: 'f2', originId: 'country-b', destinationId: 'country-a', count: 2 }),
+    ], 'country-a')).toThrow(/overflow/);
+  });
 });

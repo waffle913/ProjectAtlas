@@ -21,8 +21,6 @@ export interface DemographicTransition {
   readonly date: string;
 }
 
-const DELTA: Record<TransitionKind, -1 | 1> = { birth: 1, death: -1 };
-
 export function validateTransition(t: DemographicTransition): void {
   if (!t || typeof t.id !== 'string' || !t.id.trim()) throw new Error('Transition needs a non-empty id.');
   if (typeof t.cohortKey !== 'string' || !t.cohortKey.trim()) throw new Error('Transition needs a non-empty cohort key.');
