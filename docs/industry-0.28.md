@@ -124,8 +124,6 @@ silently.
 
 ## Deferred (not implemented)
 
-Transformation chains (0.28.2), capacities/bottlenecks (0.28.3), service sectors
-(0.28.4), research projects (0.28.5), diffusion/adoption (0.28.6),
-military/civilian technology (0.28.7), competition/market structures (0.28.8,
-`BLOCKED_DESIGN`) and validation (0.28.9) are deferred until their micro-blocks.
+Only the conditional gate — detailed competition/monopoly market structures
+(0.28.8, `BLOCKED_DESIGN`) — and the 0.28.9 consolidated review remain deferred.
 0.28 is accepted only after its complete independent audit and green CI.

@@ -43,7 +43,7 @@ export interface BatchPlan {
 export function planBatches(process: IndustrialProcess, availableInputs: Readonly<Record<string, number>>, profile: CapacityProfile): BatchPlan {
   validateProcess(process);
   validateCapacityProfile(profile);
-  let batches = effectiveBatchesPerMonth(profile);
+  let batches = Math.min(effectiveBatchesPerMonth(profile), process.capacityPerBatch ?? Infinity);
   let binding: BatchPlan['binding'] = 'capacity';
   for (const [id, perBatch] of Object.entries(process.inputs)) {
     const avail = availableInputs[id] ?? 0;

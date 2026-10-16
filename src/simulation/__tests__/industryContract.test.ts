@@ -29,6 +29,7 @@ describe('industry product/sector/nomenclature contract (0.28.1)', () => {
     expect(() => validateNomenclatureMapping(mapping({ code: '' }))).toThrow(/non-empty nomenclature code/);
     expect(() => validateNomenclatureMapping(mapping({ coverage: 'bogus' as never }))).toThrow(/Unknown coverage/);
     expect(() => validateNomenclatureMapping(mapping({ coverage: 'sourced', note: '' }))).toThrow(/provenance note/);
+    expect(() => validateNomenclatureMapping(mapping({ note: 5 as unknown as string }))).toThrow(/string note/);
   });
 
   it('keeps competition/market-structure mechanisms undecided (BLOCKED_DESIGN)', () => {

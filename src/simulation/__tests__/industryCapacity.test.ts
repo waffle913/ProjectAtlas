@@ -31,6 +31,11 @@ describe('industry capacities and bottlenecks (0.28.3)', () => {
     expect(planBatches(process, { steel: 35 }, profile({ nominalBatchesPerMonth: 100 }))).toEqual({ batches: 3, binding: 'steel' });
   });
 
+  it('bounds by the process batch capacity when present', () => {
+    const capped = { ...process, capacityPerBatch: 5 };
+    expect(planBatches(capped, { steel: 1000 }, profile({ nominalBatchesPerMonth: 100 }))).toEqual({ batches: 5, binding: 'capacity' });
+  });
+
   it('rejects fractional available inputs', () => {
     expect(() => planBatches(process, { steel: 1.5 }, profile())).toThrow(/non-negative whole quantity/);
   });

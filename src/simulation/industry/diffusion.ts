@@ -36,19 +36,23 @@ export function validateAdoption(a: TechnologyAdoption): void {
   }
   if (!Number.isInteger(a.diffusionBpsPerStep) || a.diffusionBpsPerStep <= 0 || a.diffusionBpsPerStep > 10000) throw new Error('diffusionBpsPerStep must be an integer in (0, 10000].');
   if (!isWholeUsd(a.fundedInvestment)) throw new Error('fundedInvestment must be a non-negative whole-USD amount.');
+  for (const [id, qty] of Object.entries(a.availableEquipment)) {
+    if (!id.trim()) throw new Error('Available equipment needs non-empty product ids.');
+    if (!isWholeUsd(qty)) throw new Error(`Available equipment ${id} must be a non-negative whole quantity.`);
+  }
 }
 
-/** Steps feasible from funded investment. */
-export const investmentSteps = (a: TechnologyAdoption): number => (a.investmentPerStep > 0 ? Math.floor(a.fundedInvestment / a.investmentPerStep) : 0);
+/** Steps feasible from funded investment; Infinity when investment is not a binding constraint. */
+export const investmentSteps = (a: TechnologyAdoption): number => (a.investmentPerStep > 0 ? Math.floor(a.fundedInvestment / a.investmentPerStep) : Infinity);
 
-/** Steps feasible from available equipment (the most-binding equipment input). */
+/** Steps feasible from available equipment; Infinity when equipment is not a binding constraint. */
 export function equipmentSteps(a: TechnologyAdoption): number {
   let steps = Infinity;
   for (const [id, perStep] of Object.entries(a.equipmentPerStep)) {
     if (perStep === 0) continue;
     steps = Math.min(steps, Math.floor((a.availableEquipment[id] ?? 0) / perStep));
   }
-  return Number.isFinite(steps) ? steps : 0;
+  return steps;
 }
 
 /** Advance adoption bounded by investment, equipment and the 10,000 bps ceiling. */

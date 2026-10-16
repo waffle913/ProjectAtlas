@@ -60,6 +60,7 @@ export function validateNomenclatureMapping(m: NomenclatureMapping): void {
   if (!NOMENCLATURES.includes(m.nomenclature)) throw new Error(`Unknown nomenclature: ${String(m.nomenclature)}.`);
   if (typeof m.code !== 'string' || !m.code.trim()) throw new Error('Mapping needs a non-empty nomenclature code.');
   if (!['sourced', 'derived', 'modelled', 'unavailable'].includes(m.coverage)) throw new Error(`Unknown coverage: ${String(m.coverage)}.`);
+  if (typeof m.note !== 'string') throw new Error('Mapping needs a string note.');
   if (m.coverage === 'sourced' && !m.note.trim()) throw new Error('A sourced mapping needs a provenance note.');
 }
 

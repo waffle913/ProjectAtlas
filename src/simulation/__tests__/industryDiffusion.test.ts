@@ -37,6 +37,10 @@ describe('industry diffusion and adoption (0.28.6)', () => {
   it('computes investment and equipment steps', () => {
     expect(investmentSteps(adoption())).toBe(10);
     expect(equipmentSteps(adoption())).toBe(5);
-    expect(equipmentSteps(adoption({ equipmentPerStep: {} }))).toBe(0);
+    expect(equipmentSteps(adoption({ equipmentPerStep: {} }))).toBe(Infinity); // non-binding
+  });
+
+  it('rejects negative available equipment quantities', () => {
+    expect(() => advanceAdoption(adoption({ availableEquipment: { machines: -5 } }))).toThrow(/non-negative whole quantity/);
   });
 });
