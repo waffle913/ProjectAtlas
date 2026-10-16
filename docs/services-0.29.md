@@ -2,8 +2,9 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1–0.29.3 are implemented** (branch CI green, runs 38870564763 /
-38874174997 / 38877076958); **0.29.4 (education/training) is in progress.** The
+authorization, not acceptance**. **0.29.1–0.29.4 are implemented** (branch CI green, runs 38870564763 /
+38874174997 / 38877076958 / 38880735870); **0.29.5 (housing) is in
+progress.** The
 independent parts proceed now; the conditional part (rent rules) is **not**
 decided and stays `BLOCKED_DESIGN`.
 
@@ -58,6 +59,18 @@ The education contract (`src/simulation/services/education.ts`):
   temporal, never instant from spending.
 
 Validated by `src/simulation/__tests__/servicesEducation.test.ts`.
+
+## 0.29.5 scope — housing
+
+The housing contract (`src/simulation/services/housing.ts`):
+
+- housing is a stock of dwelling units with availability, quality and
+  maintenance; allocation is bounded by availability and the shortfall is a
+  backlog, never a fabricated unit;
+- rent rules stay out of scope (`BLOCKED_DESIGN`) until the human decides the
+  gate; `applyRent` fails closed.
+
+Validated by `src/simulation/__tests__/servicesHousing.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
