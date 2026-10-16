@@ -34,6 +34,13 @@ conserved transitions (birth/death/move_in/move_out); population never changes
 magically and never goes negative. Validated by
 `src/simulation/__tests__/demographyTransition.test.ts`.
 
+## 0.30.3 scope — international migration
+
+The migration contract (`src/simulation/demography/migration.ts`): conserved
+flows between origin and destination (entries/exits, net migration), no double
+counting; migration never changes sovereignty. Validated by
+`src/simulation/__tests__/demographyMigration.test.ts`.
+
 ## Deferred (not implemented)
 
 0.30.2–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
