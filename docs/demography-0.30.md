@@ -27,6 +27,13 @@ institutional perimeter per country, without fictional generalization of laws?
 1. **One population** — `state.socioeconomy` cohorts are the sole population.
 2. **`unavailable != 0`** everywhere.
 
+## 0.30.2 scope — births, deaths and internal movements
+
+The transition contract (`src/simulation/demography/transition.ts`): dated,
+conserved transitions (birth/death/move_in/move_out); population never changes
+magically and never goes negative. Validated by
+`src/simulation/__tests__/demographyTransition.test.ts`.
+
 ## Deferred (not implemented)
 
 0.30.2–0.30.10 are deferred until their micro-blocks. 0.30 is accepted only
