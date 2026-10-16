@@ -2,9 +2,9 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1–0.29.4 are implemented** (branch CI green, runs 38870564763 /
-38874174997 / 38877076958 / 38880735870); **0.29.5 (housing) is in
-progress.** The
+authorization, not acceptance**. **0.29.1–0.29.5 are implemented** (branch CI green, runs 38870564763 /
+38874174997 / 38877076958 / 38880735870 / 38883713458); **0.29.6
+(pensions/benefits) is in progress.** The
 independent parts proceed now; the conditional part (rent rules) is **not**
 decided and stays `BLOCKED_DESIGN`.
 
@@ -71,6 +71,16 @@ The housing contract (`src/simulation/services/housing.ts`):
   gate; `applyRent` fails closed.
 
 Validated by `src/simulation/__tests__/servicesHousing.test.ts`.
+
+## 0.29.6 scope — pensions and benefits
+
+The benefit contract (`src/simulation/services/benefits.ts`):
+
+- benefits are paid per documented legal eligibility, bounded by budget — never
+  infinite automatic benefits and never an invented exclusion;
+- the unserved eligible population is a shortfall.
+
+Validated by `src/simulation/__tests__/servicesBenefits.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
