@@ -8,13 +8,14 @@
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { SERVICE_FAMILIES, type ServiceFamily } from './contract';
 
 export interface ServicePolicy {
   readonly id: string;
   /** The proposal/law that authorized the change (0.14/0.22 governance). */
   readonly sourceProposalId: string;
   /** The service family the policy affects. */
-  readonly serviceFamily: string;
+  readonly serviceFamily: ServiceFamily;
   /** Signed whole-unit capacity delta. */
   readonly capacityDelta: number;
   /** Institutional ceiling for this capacity (never exceeded). */
@@ -25,7 +26,7 @@ export interface ServicePolicy {
 export function validateServicePolicy(p: ServicePolicy): void {
   if (!p || typeof p.id !== 'string' || !p.id.trim()) throw new Error('Policy needs a non-empty id.');
   if (typeof p.sourceProposalId !== 'string' || !p.sourceProposalId.trim()) throw new Error('Policy needs a non-empty source proposal id.');
-  if (typeof p.serviceFamily !== 'string' || !p.serviceFamily.trim()) throw new Error('Policy needs a non-empty service family.');
+  if (!SERVICE_FAMILIES.includes(p.serviceFamily)) throw new Error(`Unknown service family: ${String(p.serviceFamily)}.`);
   if (!Number.isSafeInteger(p.capacityDelta)) throw new Error('capacityDelta must be a safe integer.');
   if (!isWholeUsd(p.institutionalLimit)) throw new Error('institutionalLimit must be a non-negative whole number.');
   if (typeof p.note !== 'string' || !p.note.trim()) throw new Error('Policy needs a note describing the causal effect.');

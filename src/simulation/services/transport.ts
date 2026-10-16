@@ -1,11 +1,4 @@
-/**
- * 0.29.7 — Public services V2: civil transport/infrastructure.
- *
- * Pure transport contract (docs/services-0.29.md). Transport is a service
- * delivered from a 0.24 asset, bounded by capacity, maintenance, energy and
- * personnel — it never rebuilds the 0.24 asset store. No new canonical state,
- * no scheduler, no RNG, no migration.
- */
+/** Deliver transport bounded by capacity, energy and personnel; the shortfall is a backlog. */
 
 import { isWholeUsd } from '../finance/settlement';
 
