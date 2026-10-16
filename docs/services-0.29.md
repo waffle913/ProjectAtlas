@@ -2,9 +2,9 @@
 
 **Status:** 0.29 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.29.1–0.29.6 are implemented** (branch CI green, runs 38870564763 /
-38874174997 / 38877076958 / 38880735870 / 38883713458 / 38887272401); **0.29.7
-(civil transport/infrastructure) is in progress.** The
+authorization, not acceptance**. **0.29.1–0.29.7 are implemented** (branch CI green, runs 38870564763 /
+38874174997 / 38877076958 / 38880735870 / 38883713458 / 38887272401 /
+38890782342); **0.29.8 (public policy/reactions) is in progress.** The
 independent parts proceed now; the conditional part (rent rules) is **not**
 decided and stays `BLOCKED_DESIGN`.
 
@@ -90,6 +90,15 @@ The transport contract (`src/simulation/services/transport.ts`):
   store), bounded by capacity, energy and personnel; the shortfall is a backlog.
 
 Validated by `src/simulation/__tests__/servicesTransport.test.ts`.
+
+## 0.29.8 scope — public policy and reactions
+
+The policy-effect contract (`src/simulation/services/policy.ts`):
+
+- a law/budget creates real service capacity through existing mechanisms,
+  bounded by institutional limits — never a magic multiplier.
+
+Validated by `src/simulation/__tests__/servicesPolicy.test.ts`.
 
 ## Open design decisions (BLOCKED_DESIGN)
 
