@@ -5,7 +5,7 @@ import {
 } from '../resources/control';
 
 const control = (over: Partial<InstallationControl> = {}): InstallationControl => ({
-  installationId: 'mine-a', sovereignOwnerId: 'country-x', operatorId: 'actor-y',
+  installationId: 'mine-a', sovereignOwnerId: 'country-x', operatorId: 'country-x',
   controllerId: 'country-x', occupierId: null,
   ...over,
 });
