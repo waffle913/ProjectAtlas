@@ -26,6 +26,7 @@ describe('negotiations, concessions and guarantees (0.31.2)', () => {
     expect(() => validateNegotiationProposal(proposal({ extendedDeadline: '2026-03-01' }))).toThrow(/not earlier than the original deadline/);
     expect(() => validateNegotiationProposal(proposal({ extendedDeadline: '2026-06-01', extendedOn: null }))).toThrow(/authorized on a valid date/);
     expect(() => validateNegotiationProposal(proposal({ extendedDeadline: null, extendedOn: '2026-02-01' }))).toThrow(/must be null/);
+    expect(() => validateNegotiationProposal(proposal({ extendedDeadline: '2026-06-01', extendedOn: '2026-01-01' }))).toThrow(/between the proposal date/);
   });
 
   it('resolves only by explicit decision or deadline — never from a relation threshold', () => {

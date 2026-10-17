@@ -52,7 +52,7 @@ export function validateNegotiationProposal(p: NegotiationProposal): void {
     if (p.extendedOn !== null) throw new Error('extendedOn must be null when there is no extended deadline.');
   } else {
     if (!isSimulationDate(p.extendedDeadline) || p.extendedDeadline < p.deadline) throw new Error('An extended deadline must be a valid simulation date not earlier than the original deadline.');
-    if (p.extendedOn === null || !isSimulationDate(p.extendedOn) || p.extendedOn > p.deadline) throw new Error('An extension must be authorized on a valid date not after the original deadline.');
+    if (p.extendedOn === null || !isSimulationDate(p.extendedOn) || p.extendedOn > p.deadline || p.extendedOn < p.date) throw new Error('An extension must be authorized on a valid date between the proposal date and the original deadline.');
   }
   if (typeof p.note !== 'string' || !p.note.trim()) throw new Error('Negotiation proposal needs a note.');
 }

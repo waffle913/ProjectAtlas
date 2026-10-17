@@ -30,7 +30,9 @@ export function internationalActionKindFor(kind: CoercionKind, direction: 'impor
   switch (kind) {
     case 'condemnation': return 'condemnation';
     case 'sanction':
-    case 'embargo': return direction === 'export' ? 'export_restriction' : 'import_restriction';
+    case 'embargo':
+      if (direction !== 'import' && direction !== 'export') throw new Error('A sanction or embargo needs an import or export direction.');
+      return direction === 'export' ? 'export_restriction' : 'import_restriction';
     case 'intervention': return null;
     default: throw new Error(`Unknown coercion kind: ${String(kind)}.`);
   }

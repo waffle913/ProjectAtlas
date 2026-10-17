@@ -96,8 +96,9 @@ Validated by `src/simulation/__tests__/territorialControl.test.ts`.
 The conflict/peace contract (`src/simulation/operations/crisisPeace.ts`): force
 follows the real causal chain — a dispute, a tension episode, a crisis, then an
 explicit decision to use force — never a relation-score threshold. A peace
-agreement is explicit (truce / peace / guarantee instantiating the existing 0.20
-defensive-guarantee clause). Validated by
+agreement is explicit (truce / peace / guarantee). Only a `guarantee` instantiates
+the existing 0.20 defensive-guarantee clause; truce and peace are forward-looking
+(their clause kinds are deferred). Validated by
 `src/simulation/__tests__/crisisPeace.test.ts`.
 
 ## 0.31.10 scope — information, authorities and costs

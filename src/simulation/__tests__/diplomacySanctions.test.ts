@@ -21,6 +21,7 @@ describe('sanctions, embargoes and dependencies (0.31.3)', () => {
     expect(internationalActionKindFor('embargo', 'export')).toBe('export_restriction');
     expect(internationalActionKindFor('condemnation', null)).toBe('condemnation');
     expect(internationalActionKindFor('intervention', null)).toBeNull();
+    expect(() => internationalActionKindFor('sanction', null)).toThrow(/import or export direction/);
   });
 
   it('validates a trade control with a direction, categories and a real mandate', () => {
