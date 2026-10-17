@@ -518,6 +518,11 @@ export default function App() {
             {(() => { const episodes = Object.values(sim.crisis.countries[selected]?.currentByType ?? {}).filter(episode => episode.activatedOn && !episode.endedOn); return episodes.length > 0 ? <section><strong>Active crises</strong>{episodes.map(episode => <p key={episode.id}>{episode.type}: {episode.severity} (pressure {episode.currentPressure})</p>)}</section> : null; })()}
             <p>Further security systems are not represented in the current build.</p>
           </aside>
+        ) : activePage === 'services' && selected ? (
+          <aside className="panel"><h2>Public services</h2>
+            {(() => { const fiscal = sim.fiscal.countries[selected]; return fiscal ? <section><strong>Annual budget allocations (USD)</strong>{(['health', 'education', 'pensions', 'incomeSupport', 'infrastructure'] as const).map(cat => <p key={cat}>{cat}: {fiscal.annualBudget[cat]}</p>)}</section> : <p>Fiscal service data is unavailable for this Country.</p>; })()}
+            <p>Service delivery backlogs are reported through the fiscal engine where available.</p>
+          </aside>
         ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <>
   <p>Active recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}.</p>
   {(() => { const actions = publicInternationalActions(sim, selected).filter(action => action.status === 'active'); return actions.length > 0 ? <section><strong>Recorded international actions</strong>{actions.map(action => <p key={action.id}>{action.actorCountryId} → {action.targetCountryId}: {action.kind}{action.categories.length > 0 ? ` (${action.categories.join(', ')})` : ''}</p>)}</section> : null; })()}
