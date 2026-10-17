@@ -7,6 +7,7 @@ export function SaveManager({ onLoad, onBack }: {
 }) {
   const [saves, setSaves] = useState<SaveEntry[]>(() => listSaves());
   const [pendingDelete, setPendingDelete] = useState<string>();
+  const [deleteError, setDeleteError] = useState<string>();
   const refresh = () => setSaves(listSaves());
 
   return (
@@ -33,8 +34,11 @@ export function SaveManager({ onLoad, onBack }: {
                   {pendingDelete === entry.id ? (
                     <>
                       <span className="confirm-text">Delete permanently?</span>
-                      <button className="danger" onClick={() => { deleteSave(entry.id); setPendingDelete(undefined); refresh(); }}>Confirm</button>
-                      <button onClick={() => setPendingDelete(undefined)}>Cancel</button>
+                      <button className="danger" onClick={async () => {
+                        try { await deleteSave(entry.id); setPendingDelete(undefined); refresh(); }
+                        catch (error) { setDeleteError(`Delete failed: ${error instanceof Error ? error.message : String(error)}`); }
+                      }}>Confirm</button>
+                      <button onClick={() => { setPendingDelete(undefined); setDeleteError(undefined); }}>Cancel</button>
                     </>
                   ) : (
                     <button className="danger" onClick={() => setPendingDelete(entry.id)}>Delete</button>
@@ -44,6 +48,7 @@ export function SaveManager({ onLoad, onBack }: {
             ))}
           </ul>
         )}
+        {deleteError && <p className="save-error">{deleteError}</p>}
       </div>
     </main>
   );

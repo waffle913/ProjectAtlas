@@ -1,6 +1,10 @@
 // Application preferences: presentation/desktop settings kept OUTSIDE the canonical
 // SimulationState. The desktop release uses the Tauri backend; the browser build uses
 // localStorage. Both implement the same narrow StorageBackend interface.
+//
+// Writes are Promise-returning so callers can observe the actual storage outcome.
+// The browser backend rejects on quota/unavailability instead of silently
+// discarding the failure.
 
 export type DisplayMode = 'windowed' | 'borderless' | 'fullscreen';
 
@@ -48,16 +52,29 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 export interface StorageBackend {
   get(key: string): string | null;
-  set(key: string, value: string): void;
-  remove(key: string): void;
+  set(key: string, value: string): Promise<void>;
+  remove(key: string): Promise<void>;
+}
+
+function settingsStorageError(action: string, error: unknown): Error {
+  const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  return new Error(`Settings storage is full or unavailable while ${action} (${detail}).`);
 }
 
 function browserBackend(): StorageBackend {
-  if (typeof localStorage === 'undefined') return { get: () => null, set: () => {}, remove: () => {} };
+  if (typeof localStorage === 'undefined') {
+    return { get: () => null, set: async () => {}, remove: async () => {} };
+  }
   return {
     get: (key) => localStorage.getItem(key),
-    set: (key, value) => { try { localStorage.setItem(key, value); } catch { /* storage full/unavailable */ } },
-    remove: (key) => localStorage.removeItem(key),
+    set: async (key, value) => {
+      try { localStorage.setItem(key, value); }
+      catch (error) { throw settingsStorageError('saving settings', error); }
+    },
+    remove: async (key) => {
+      try { localStorage.removeItem(key); }
+      catch (error) { throw settingsStorageError('clearing settings', error); }
+    },
   };
 }
 
@@ -97,8 +114,9 @@ export function loadSettings(): AppSettings {
   try { return sanitize(JSON.parse(raw)); } catch { return structuredClone(DEFAULT_SETTINGS); }
 }
 
-export function saveSettings(settings: AppSettings): void {
-  backend.set(SETTINGS_KEY, JSON.stringify(settings));
+/** Persists settings. Resolves only after the medium accepted the write; rejects on failure. */
+export function saveSettings(settings: AppSettings): Promise<void> {
+  return backend.set(SETTINGS_KEY, JSON.stringify(settings));
 }
 
 export function applyUiScale(settings: AppSettings): void {

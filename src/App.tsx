@@ -1,6 +1,7 @@
 import { emptyAssets } from './simulation/assets/model';
 import { emptyOperations } from './simulation/operations/model';
 import { emptyInternational } from './simulation/international/model';
+import { publicInternationalActions } from './simulation/international/runtime';
 import { emptyMultilateral } from './simulation/multilateral/model';
 import { emptyConstitution } from './simulation/constitution/model';
 import { emptyElections } from './simulation/elections/model';
@@ -15,6 +16,7 @@ import { configureSyntheticTradeScenario } from './simulation/trade/scenario';
 import { configureSyntheticMilitaryScenario } from './simulation/military/scenario';
 import { BriefingTablet } from './components/BriefingTablet';
 import { FiscalPolicy } from './components/FiscalPolicy';
+import { EconomyPanel } from './components/EconomyPanel';
 import { emptyFiscal } from './simulation/fiscal/model';
 import { emptyCrisis } from './simulation/crisis/model';
 import { emptyPolitics } from './simulation/politics/model';
@@ -46,7 +48,10 @@ import { SettingsMenu } from "./components/SettingsMenu";
 import { SaveManager } from "./components/SaveManager";
 import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
-import { initDesktopBackends, exitApplication, applyNativeDisplayMode } from "./app/desktop";
+import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
+import { countryColour, regionLayerColour, MAP_LAYERS, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
+import { newUrgentBriefingCount } from "./app/urgency";
+import { controlledActor, governmentAdvisors, orderedNotifications } from "./app/leftRail";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
@@ -77,12 +82,6 @@ function ZoomReporter({ onZoom }: { onZoom: (zoom: number) => void }) {
   useEffect(() => onZoom(map.getZoom()), [map, onZoom]);
   return null;
 }
-const palette = ["#6f8791", "#75856e", "#8a7c69", "#7b7890", "#668b83", "#8a7376", "#7d8667", "#6d7f99", "#8b8064", "#728b79"];
-const countryColour = (id?: string) => {
-  let hash = 2166136261;
-  for (const char of id ?? "") hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
-  return palette[(hash >>> 0) % palette.length];
-};
 export default function App() {
   const [world, setWorld] = useState<{
     countries: Map<string, Country>;
@@ -105,15 +104,45 @@ export default function App() {
   const [sim, setSim] = useState(initialState);
   const [loadError, setLoadError] = useState<string>();
   const [activePage, setActivePage] = useState('overview');
+  const [mapLayer, setMapLayer] = useState<MapLayer>('ownership');
   const [screen, setScreen] = useState<MenuScreen>('menu');
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
   const [pauseOpen, setPauseOpen] = useState(false);
   const [saves, setSaves] = useState(() => listSaves());
+  const [storageState, setStorageState] = useState<'initializing' | 'ready' | 'error'>(() => (isTauri() ? 'initializing' : 'ready'));
+  const [storageError, setStorageError] = useState<string>();
+  const [saveError, setSaveError] = useState<string>();
   useEffect(() => { applyUiScale(settings); }, [settings]);
-  useEffect(() => { void initDesktopBackends(); }, []);
+  useEffect(() => {
+    let active = true;
+    if (!isTauri()) { setStorageState('ready'); return; }
+    initDesktopBackends()
+      .then((result) => {
+        if (!active) return;
+        // Read errors (a corrupt settings file or an unreadable save) are surfaced
+        // as warnings, never a hard block: the native backend is installed and the
+        // successfully-read saves remain usable.
+        if (result.error) setStorageError(result.error);
+        setStorageState('ready');
+        // Reload settings and save listings from the native backend, so the
+        // application never silently keeps reading the browser localStorage.
+        setSettings(loadSettings());
+        setSaves(listSaves());
+      })
+      .catch((error) => {
+        if (!active) return;
+        setStorageError(error instanceof Error ? error.message : String(error));
+        setStorageState('error');
+      });
+    return () => { active = false; };
+  }, []);
   useEffect(() => { void applyNativeDisplayMode(settings.graphics.displayMode); }, [settings.graphics.displayMode]);
-  const persistSettings = (next: AppSettings) => { setSettings(next); saveSettings(next); };
+  const persistSettings = (next: AppSettings) => {
+    setSettings(next);
+    void saveSettings(next).catch((error) => setStorageError(`Settings could not be saved: ${error instanceof Error ? error.message : String(error)}`));
+  };
+  const storageReady = storageState === 'ready';
   const clock = useRef(new SimulationClock(initialState));
   useEffect(() => {
     let active = true;
@@ -214,12 +243,23 @@ export default function App() {
     let previous = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
+      const before = clock.current.snapshot();
       const next = clock.current.advanceIfChanged(now - previous);
-      if (next) setSim(next);
+      if (next) {
+        setSim(next);
+        // Interruption policy: only a newly-visible urgent briefing (a grave
+        // event) may pause the simulation, and only when the player asked for it.
+        const controlledPersonId = next.governance.player.controlledPersonId;
+        const countryId = controlledPersonId ? next.governance.persons[controlledPersonId]?.countryId : undefined;
+        if (settings.gameplay.pauseOnUrgent && controlledPersonId && countryId && newUrgentBriefingCount(before, next, countryId, controlledPersonId) > 0) {
+          clock.current.setPaused(true);
+          setSim(clock.current.snapshot());
+        }
+      }
       previous = now;
     }, 250);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [settings.gameplay.pauseOnUrgent]);
   const selectedCountry = selected ? world?.countries.get(selected) : undefined;
   const selectedRegionEntity = selectedRegion ? regionData?.regionsById.get(selectedRegion) : undefined;
   const selectedRegionOwnerId = selectedRegion ? sim.regionOwnership[selectedRegion] : undefined;
@@ -264,6 +304,36 @@ export default function App() {
   const applyState = (next: SimulationState) => { clock.current = new SimulationClock(next); setSim(clock.current.snapshot()); };
   const ctrlPersonId = sim.governance.player.controlledPersonId;
   const ctrlPerson = ctrlPersonId ? sim.governance.persons[ctrlPersonId] : undefined;
+  // Autosave is a wall-clock feature, never a simulation scheduler. The ref holds
+  // the latest render's state so the interval effect does not need `sim` (which
+  // changes every tick) in its dependency array.
+  const autosaveRef = useRef<{ sim: SimulationState; ctrlPerson: typeof ctrlPerson; registryContext: typeof registryContext; world: typeof world } | undefined>(undefined);
+  useEffect(() => { autosaveRef.current = { sim, ctrlPerson, registryContext, world }; });
+  useEffect(() => {
+    if (!settings.gameplay.autosave || !storageReady) return;
+    const intervalMinutes = Math.max(1, Number(settings.gameplay.autosaveIntervalMinutes) || 15);
+    let inFlight = false;
+    const timer = window.setInterval(() => {
+      const snapshot = autosaveRef.current;
+      if (!snapshot || inFlight || !snapshot.registryContext || !snapshot.ctrlPerson || snapshot.sim.paused) return;
+      inFlight = true;
+      const { sim: current, ctrlPerson: person, registryContext: context, world: currentWorld } = snapshot;
+      const country = person.countryId ? currentWorld?.countries.get(person.countryId) : undefined;
+      const json = serializeSimulationState(current, context);
+      saveGame('__autosave__', 'Autosave', json, {
+        countryId: person.countryId,
+        countryName: country?.commonName ?? '—',
+        controlledPersonName: person.displayName ?? '—',
+        office: person.office?.role ?? null,
+        simulationDate: current.date,
+        schemaVersion: current.schemaVersion,
+      })
+        .then(() => setSaves(listSaves()))
+        .catch((error) => setSaveError(`Autosave failed: ${error instanceof Error ? error.message : String(error)}`))
+        .finally(() => { inFlight = false; });
+    }, intervalMinutes * 60_000);
+    return () => window.clearInterval(timer);
+  }, [settings.gameplay.autosave, settings.gameplay.autosaveIntervalMinutes, storageReady]);
   const loadSlot = (id: string) => {
     if (!registryContext) return;
     const json = loadSave(id);
@@ -276,23 +346,33 @@ export default function App() {
     }
   };
   const continueGame = () => { const recent = mostRecentSave(); if (recent) loadSlot(recent.id); };
-  const saveCurrent = (name: string) => {
-    if (!registryContext) return;
+  const saveCurrent = async (name: string): Promise<boolean> => {
+    if (!registryContext) return false;
+    if (!storageReady) { setSaveError('Storage is still initializing — please wait a moment and try again.'); return false; }
     const country = ctrlPerson?.countryId ? world?.countries.get(ctrlPerson.countryId) : undefined;
     const json = serializeSimulationState(sim, registryContext);
-    saveGame(saveIdFor(name), name, json, {
-      countryId: ctrlPerson?.countryId ?? '',
-      countryName: country?.commonName ?? '—',
-      controlledPersonName: ctrlPerson?.displayName ?? '—',
-      office: ctrlPerson?.office?.role ?? null,
-      simulationDate: sim.date,
-      schemaVersion: sim.schemaVersion,
-    });
-    setSaves(listSaves());
+    try {
+      await saveGame(saveIdFor(name), name, json, {
+        countryId: ctrlPerson?.countryId ?? '',
+        countryName: country?.commonName ?? '—',
+        controlledPersonName: ctrlPerson?.displayName ?? '—',
+        office: ctrlPerson?.office?.role ?? null,
+        simulationDate: sim.date,
+        schemaVersion: sim.schemaVersion,
+      });
+      setSaves(listSaves());
+      setSaveError(undefined);
+      return true;
+    } catch (error) {
+      setSaveError(`Save failed: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
   };
   const exitApp = () => { void exitApplication(); };
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
-  if (screen === 'load') return <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
+  if (screen === 'load') return storageReady
+    ? <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />
+    : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button></main>;
   if (screen === 'credits') return (
     <main className="load-state credits">
       <h1>ProjectAtlas</h1>
@@ -321,8 +401,11 @@ export default function App() {
   const controlledPerson = controlledPersonId ? sim.governance.persons[controlledPersonId] : undefined;
   const playerCountryId = controlledPerson?.countryId;
   const playerCanReadGovernment = Boolean(controlledPerson && playerCountryId && hasGovernmentInformationAccess(sim, controlledPerson.id, playerCountryId));
+  const railActor = controlledActor(sim, controlledPersonId);
+  const railAdvisors = governmentAdvisors(sim, playerCountryId);
+  const railNotifications = controlledPersonId && playerCountryId ? orderedNotifications(sim, playerCountryId, controlledPersonId) : [];
   const commitCommand = (next: SimulationState) => {
-    clock.current = new SimulationClock(next);
+    clock.current.replaceState(next);
     setSim(clock.current.snapshot());
   };
   const startAs = (personId: string, syntheticMilitary = false, syntheticTrade = false) => {
@@ -358,6 +441,20 @@ export default function App() {
         <nav className="nav-rail" aria-label="Main navigation">
           {navItems.map(([id, label, icon]) => <button key={id} className={activePage === id ? 'active' : ''} title={label} aria-label={label} onClick={() => setActivePage(id)}><span>{icon}</span><small>{label}</small></button>)}
         </nav>
+        {controlledPerson && (
+          <aside className="left-rail" aria-label="Actors, advisors and notifications">
+            {railActor && <section className="rail-actor"><strong>{railActor.displayName}</strong><small>{railActor.officeTitle ?? 'No public office'}{railActor.isPartyLeader ? ' · party leader' : ''}</small></section>}
+            <section className="rail-notifications">
+              <h3>Notifications</h3>
+              {railNotifications.length ? railNotifications.slice(0, 8).map(note => (
+                <button key={note.id} className="rail-note" title={note.headline} onClick={() => setActivePage(note.destination)}>
+                  <span className={`severity severity-${note.severity}`}>{note.severity}</span><small>{note.headline}</small>
+                </button>
+              )) : <p className="muted">No notifications.</p>}
+            </section>
+            {railAdvisors.length > 0 && <details className="rail-advisors"><summary>Advisors ({railAdvisors.length})</summary>{railAdvisors.map(advisor => <p key={advisor.portfolioId}><strong>{advisor.portfolioName}</strong> · {advisor.ministerName}</p>)}</details>}
+          </aside>
+        )}
         <section className="map">
           <MapContainer
             center={[20, 0]}
@@ -447,11 +544,10 @@ export default function App() {
                 data={regionGeometry}
                 style={(feature) => {
                   const regionId = feature?.properties?.regionId as string;
-                  const owner = sim.regionOwnership[regionId] ?? selected;
                   return {
                   color: selectedRegion === regionId ? "#efc781" : "#46545a",
                   weight: selectedRegion === regionId ? 2.2 : mapZoom >= 5 ? 0.9 : 0.55,
-                    fillColor: countryColour(owner),
+                    fillColor: regionLayerColour(mapLayer, regionId, sim),
                     fillOpacity: selectedRegion === regionId ? 0.82 : 0.56,
                   };
                 }}
@@ -467,7 +563,13 @@ export default function App() {
             )}
           </MapContainer>
           <div className="map-note">
-            Local Natural Earth · select a country, then zoom to inspect Admin-1 Regions
+            <div className="layer-control" role="toolbar" aria-label="Map layers">
+              {MAP_LAYERS.map(({ id, label }) => (
+                <button key={id} type="button" className={mapLayer === id ? 'active' : ''} onClick={() => setMapLayer(id)}>{label}</button>
+              ))}
+              <span className="layer-unavailable">Unavailable: {UNAVAILABLE_LAYER_LABELS.join(' · ')}</span>
+            </div>
+            <p>Admin-1 Region boundaries at zoom ≥ 4. Select a country, then zoom to inspect Regions.</p>
           </div>
         </section>
         {activePage === 'fiscal' && controlledPerson && playerCountryId ? (
@@ -484,7 +586,10 @@ export default function App() {
           <aside className="panel"><TradeInspection state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} /></aside>
         ) : activePage === 'economy' ? (
           <aside className="panel"><h2>Economic information</h2>
-            {playerCanReadGovernment && playerCountryId && controlledPerson ? inspectGovernmentReports(sim, playerCountryId, controlledPerson.id).map(report => <section key={report.id}><strong>Labour report · {report.asOfDate}</strong><p>{report.valueBps === undefined ? 'Unavailable' : `Unemployment ${(report.valueBps / 100).toFixed(2)}%`}</p><small>{report.coverage} · {report.limitation}</small></section>) : <p>Current internal economic reports are not available to an opposition person. No public unemployment report is currently implemented.</p>}
+            {playerCanReadGovernment && playerCountryId && controlledPerson ? <>
+              {inspectGovernmentReports(sim, playerCountryId, controlledPerson.id).map(report => <section key={report.id}><strong>Labour report · {report.asOfDate}</strong><p>{report.valueBps === undefined ? 'Unavailable' : `Unemployment ${(report.valueBps / 100).toFixed(2)}%`}</p><small>{report.coverage} · {report.limitation}</small></section>)}
+              <EconomyPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} />
+            </> : <p>Current internal economic reports are not available to an opposition person. No public unemployment report is currently implemented.</p>}
           </aside>
         ) : activePage === 'politics' ? (
           <aside className="panel"><h2>Public political institutions</h2>
@@ -510,7 +615,27 @@ export default function App() {
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
           />
-        ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <p>Current recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}. Further diplomacy decisions are not implemented.</p>}</aside>}
+        ) : activePage === 'security' && selected ? (
+          <aside className="panel"><h2>Security</h2>
+            {(() => { const entry = sim.constitution.countries[selected]; return entry ? <section><strong>State of emergency</strong><p>{entry.emergency.status}{entry.emergency.restrictions.policePowersEnhanced ? ' · enhanced police powers' : ''}</p></section> : <p>Constitutional emergency status is unavailable for this Country.</p>; })()}
+            {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length > 0 && <p>This Country is party to an active war.</p>}
+            {playerCanReadGovernment && selected === playerCountryId
+              ? (() => { const episodes = Object.values(sim.crisis.countries[selected]?.currentByType ?? {}).filter(episode => episode.activatedOn && !episode.endedOn); return episodes.length > 0 ? <section><strong>Active crises</strong>{episodes.map(episode => <p key={episode.id}>{episode.type}: {episode.severity} (pressure {episode.currentPressure})</p>)}</section> : <p>No active crises are recorded for this Country.</p>; })()
+              : <p>Crisis severity and pressure are internal government assessments, not public information.</p>}
+            <p>Further security systems are not represented in the current build.</p>
+          </aside>
+        ) : activePage === 'services' && selected ? (
+          <aside className="panel"><h2>Public services</h2>
+            {playerCanReadGovernment && selected === playerCountryId
+              ? (() => { const fiscal = sim.fiscal.countries[selected]; return fiscal ? <section><strong>Annual budget allocations (USD)</strong>{(['health', 'education', 'pensions', 'incomeSupport', 'infrastructure'] as const).map(cat => <p key={cat}>{cat}: {fiscal.annualBudget[cat]}</p>)}</section> : <p>Fiscal service data is unavailable for this Country.</p>; })()
+              : <p>Annual budget allocations are government information, not public.</p>}
+            <p>Service delivery backlogs are reported through the fiscal engine where available.</p>
+          </aside>
+        ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <>
+  <p>Active recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}.</p>
+  {(() => { const actions = publicInternationalActions(sim, selected).filter(action => action.status === 'active'); return actions.length > 0 ? <section><strong>Recorded international actions</strong>{actions.map(action => <p key={action.id}>{action.actorCountryId} → {action.targetCountryId}: {action.kind}{action.categories.length > 0 ? ` (${action.categories.join(', ')})` : ''}</p>)}</section> : null; })()}
+  <p>Further diplomacy decisions are not implemented.</p>
+</>}</aside>}
       </div>
       {pauseOpen && (
         <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Pause menu">
@@ -531,8 +656,9 @@ export default function App() {
           <div className="pause-menu">
             <h1>{savePrompt.mode === 'saveAs' ? 'Save As' : 'Save Game'}</h1>
             <input value={savePrompt.name} onChange={e => setSavePrompt({ ...savePrompt, name: e.target.value })} placeholder="Save name" autoFocus />
-            <button onClick={() => { saveCurrent(savePrompt.name || 'ProjectAtlas'); setSavePrompt(null); setPauseOpen(false); }}>Save</button>
-            <button onClick={() => setSavePrompt(null)}>Cancel</button>
+            <button disabled={!storageReady} onClick={async () => { if (await saveCurrent(savePrompt.name || 'ProjectAtlas')) { setSavePrompt(null); setPauseOpen(false); } }}>Save</button>
+            <button onClick={() => { setSavePrompt(null); setSaveError(undefined); }}>Cancel</button>
+            {(saveError || storageError) && <p className="save-error">{saveError ?? storageError}</p>}
           </div>
         </div>
       )}
