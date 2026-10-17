@@ -468,7 +468,7 @@ export default function App() {
             )}
           </MapContainer>
           <div className="map-note">
-            Local Natural Earth · select a country, then zoom to inspect Admin-1 Regions
+            Layers: Country ownership · Admin-1 Region boundaries (zoom ≥ 4). Select a country, then zoom to inspect Regions.
           </div>
         </section>
         {activePage === 'fiscal' && controlledPerson && playerCountryId ? (
