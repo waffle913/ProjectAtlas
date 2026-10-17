@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.33",
   "current_block": "0.33.1",
-  "milestone_phase": "BRANCH_SYNC",
+  "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.32",
   "last_safe_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
@@ -102,7 +102,7 @@
   },
 
   "current_branch": "waffle913-interface-033",
-  "milestone_scope_base_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
+  "milestone_scope_base_sha": "ee82bb918e7a1d093d723a4408bb0f1bd197f1c9",
   "milestone_branch_head_sha": null,
   "carried_commits": [],
   "carried_unrelated_scope": [],
