@@ -3,7 +3,7 @@
  *
  * Pure frame contract (docs/interface-0.33.md). A decision's consequences are
  * explained with uncertainty and provenance; time is displayed without a
- * mandatory hourly simulation, and only grave events may pause. Gameplay paths
+ * mandatory hourly simulation, and only grave or urgent events may pause. Gameplay paths
  * (governing, opposition, succession, crisis, war, budget) are named without
  * exposing non-existent engine functions. No `SimulationState` integration, no
  * schema/migration, no scheduler.
