@@ -9,7 +9,7 @@
  */
 
 import type { AvailabilityStatus } from '../availability';
-import { canPropagate, type AccessBasis, type InformationLayer } from './contract';
+import { canPropagate, INFORMATION_LAYERS, type AccessBasis, type InformationLayer } from './contract';
 
 export const CHANNEL_KINDS = Object.freeze(['news', 'statement', 'social', 'broadcast'] as const);
 export type ChannelKind = typeof CHANNEL_KINDS[number];
@@ -60,6 +60,8 @@ export interface RelayItem {
  */
 export function diffuse(channel: MediaChannel, item: RelayItem, toLayer: InformationLayer, access: AccessBasis): DiffusionResult {
   validateMediaChannel(channel);
+  if (!item || !INFORMATION_LAYERS.includes(item.layer)) throw new Error(`Relay item needs a known information layer: ${String(item?.layer)}.`);
+  if (typeof item.sourceId !== 'string' || !item.sourceId.trim()) throw new Error('Relay item needs a non-empty source id.');
   if (!canPropagate(item.layer, toLayer, access)) return { status: 'unavailable', reachBps: null };
   if (item.sourceId !== channel.sourceId) return { status: 'unavailable', reachBps: null };
   if (channel.reachBps === null) return { status: 'unavailable', reachBps: null };
