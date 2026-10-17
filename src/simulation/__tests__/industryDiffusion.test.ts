@@ -18,11 +18,17 @@ describe('industry diffusion and adoption (0.28.6)', () => {
     expect(() => validateAdoption(adoption({ equipmentPerStep: { '': 1 } }))).toThrow(/non-empty product ids/);
   });
 
+  it('A5: rejects free adoption (no investment and no equipment requirement)', () => {
+    expect(() => validateAdoption(adoption({ investmentPerStep: 0, equipmentPerStep: {} }))).toThrow(/causal constraint/);
+    expect(() => advanceAdoption(adoption({ investmentPerStep: 0, equipmentPerStep: {} }))).toThrow(/causal constraint/);
+  });
+
   it('advances bounded by investment, equipment and the bps ceiling (no global GDP bonus)', () => {
     const r = advanceAdoption(adoption()); // investment 10 steps, equipment 5 steps -> 5
     expect(r.steps).toBe(5);
     expect(r.adoptionBps).toBe(2500);
     expect(r.investmentSpent).toBe(500);
+    expect(r.equipmentSpent.machines).toBe(10); // 5 steps x 2 machines
   });
 
   it('caps adoption at 10,000 bps', () => {

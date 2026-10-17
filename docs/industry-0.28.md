@@ -3,14 +3,13 @@
 **Status:** 0.28 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization (2026-10-15). This is
 **implementation authorization, not acceptance**; no milestone is accepted
-without its independent review and CI. **0.28.1–0.28.6 are implemented** (branch
-CI green, runs 38845742726 / 38848441311 / 38850692395 / 38853385325 /
-38856137452 / 38857847524); **0.28.7 (military/civilian technology) is in
-progress.**
-The independent parts (product/sector/nomenclature vocabulary, transformation
-chains, capacities, service sectors, research, diffusion, military/civilian
-technology) proceed now; the conditional part (detailed competition/monopoly
-market structures) is **not** decided and stays `BLOCKED_DESIGN`.
+without its independent review and CI. **0.28.1–0.28.7 are implemented** as a
+pure contract/vocabulary layer and **technically validated** (Round 2 pass;
+merged to `main`, main CI green run 38866968841). The conditional part (detailed
+competition/monopoly market structures, 0.28.8) is **not** decided and stays
+`BLOCKED_DESIGN`. Engine integration (canonical state, scheduler, save,
+invariants) is deferred to the roadmap validation milestones (0.28.9 → 0.33),
+not implemented here.
 
 This document is the canonical contract for 0.28. It complements
 [the roadmap decomposition](roadmap-submilestones.md) and the existing subsystem
@@ -42,9 +41,13 @@ The industrial-process contract (`src/simulation/industry/process.ts`):
 
 - a batch conserves matter exactly: sum of input quantities === sum of output +
   by-product + residue quantities + documented material loss (no net creation);
-- production is bounded by available inputs and batch capacity; energy and
-  personnel are validated requirements, never part of the matter identity;
-- `null` capacity is unavailable, never a fabricated zero.
+  every quantity shares the process's single declared `unitOfAccount`, so
+  incompatible units are never summed implicitly;
+- production is bounded by available inputs, batch capacity and the available
+  energy/personnel/funds; energy/personnel/cost are validated requirements,
+  never part of the matter identity;
+- `null` capacity is unavailable: `runProcess` fails closed rather than producing
+  unbounded batches; results are safe integers (overflow fails closed).
 
 Validated by `src/simulation/__tests__/industryProcess.test.ts`.
 
@@ -66,9 +69,12 @@ The service-sector contract (`src/simulation/industry/service.ts`):
 
 - a service is delivered, not stocked: it has no material inventory, only
   capacity, personnel, cost, revenue and material purchases;
-- delivery is bounded by capacity and available personnel; undelivered demand is
-  a shortfall, never a stored quantity;
-- `null` capacity is unavailable, never a fabricated zero.
+- delivery is bounded by capacity, available personnel, available funds (the
+  monthly operating cost) and the availability of the declared purchases — a
+  service cannot operate through a budget or purchase shortage; undelivered
+  demand is a shortfall, never a stored quantity;
+- `null` capacity is unavailable and yields an `unavailable` result, never a
+  fabricated zero or shortage.
 
 Validated by `src/simulation/__tests__/industryService.test.ts`.
 
@@ -89,6 +95,9 @@ The diffusion contract (`src/simulation/industry/diffusion.ts`):
 
 - adoption advances through investment and equipment replacement over time,
   bounded by supply and the 10,000 bps ceiling;
+- adoption is never free or instant: a record must carry at least one causal
+  constraint (positive investment or equipment requirement) and each step
+  actually consumes that investment/equipment;
 - adoption affects material processes, never a global GDP bonus.
 
 Validated by `src/simulation/__tests__/industryDiffusion.test.ts`.
@@ -124,6 +133,8 @@ silently.
 
 ## Deferred (not implemented)
 
-Only the conditional gate — detailed competition/monopoly market structures
-(0.28.8, `BLOCKED_DESIGN`) — and the 0.28.9 consolidated review remain deferred.
-0.28 is accepted only after its complete independent audit and green CI.
+- Detailed competition/monopoly market structures (0.28.8, `BLOCKED_DESIGN`).
+- Engine integration: the 0.28 primitives are a pure contract layer with no
+  canonical state, scheduler, save or migration; wiring them into
+  `SimulationState` is deferred to the roadmap validation milestones (0.28.9 →
+  0.33). 0.28 is accepted only after its complete independent audit and green CI.

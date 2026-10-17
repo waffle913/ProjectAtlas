@@ -29,6 +29,32 @@ describe('service supplies (0.29.3)', () => {
     ]);
   });
 
+  it('A4: never double-attributes a shared stock across requirements on the same item', () => {
+    const outcomes = meetSupplies(
+      [req({ id: 'r1', requiredPerMonth: 70 }), req({ id: 'r2', requiredPerMonth: 70 })],
+      { insulin: 80 },
+    );
+    expect(outcomes).toEqual([
+      { itemId: 'insulin', delivered: 70, rupture: 0 },
+      { itemId: 'insulin', delivered: 10, rupture: 60 },
+    ]);
+  });
+
+  it('A4: serves essential requirements before non-essential ones (deterministic)', () => {
+    const outcomes = meetSupplies(
+      [req({ id: 'r1', requiredPerMonth: 70, essential: false }), req({ id: 'r2', requiredPerMonth: 70, essential: true })],
+      { insulin: 80 },
+    );
+    expect(outcomes).toEqual([
+      { itemId: 'insulin', delivered: 10, rupture: 60 },   // non-essential served second
+      { itemId: 'insulin', delivered: 70, rupture: 0 },    // essential served first
+    ]);
+  });
+
+  it('A4: fails closed on an ambiguous duplicate requirement id', () => {
+    expect(() => meetSupplies([req({ id: 'r1' }), req({ id: 'r1' })], { insulin: 200 })).toThrow(/duplicate/);
+  });
+
   it('rejects fractional available stock', () => {
     expect(() => meetSupply(req(), 1.5)).toThrow(/non-negative whole quantity/);
   });

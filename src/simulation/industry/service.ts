@@ -9,11 +9,16 @@
  * Contract:
  * - a service is never turned into an arbitrary material stock; undelivered
  *   demand is a shortfall, not a stored quantity;
- * - delivery is bounded by service capacity and available personnel;
- * - `null` capacity is unavailable, never a fabricated zero.
+ * - delivery is bounded by service capacity, available personnel, available
+ *   funds (the monthly operating cost) and the availability of the declared
+ *   material purchases — a service cannot operate through a shortage;
+ * - `null` capacity is unavailable and yields an `unavailable` result, never a
+ *   fabricated zero or shortage.
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedMul } from '../safeMath';
+import type { AvailabilityStatus } from '../availability';
 import { INSTALLATION_STATUSES, type InstallationStatus } from '../resources/installation';
 
 export interface ServiceSector {
@@ -44,19 +49,57 @@ export function validateServiceSector(s: ServiceSector): void {
 }
 
 export interface ServiceDelivery {
+  readonly status: AvailabilityStatus;
   readonly delivered: number;
-  readonly shortfall: number;
+  /** Meaningful only when status === 'computed'; null means "not asserted". */
+  readonly shortfall: number | null;
   readonly revenue: number;
   readonly personnelUsed: number;
+  /** Material purchases actually consumed this month (zero when the service could not operate). */
+  readonly purchasesUsed: Readonly<Record<string, number>>;
 }
 
-/** Deliver up to `demandUnits`, bounded by capacity and available personnel; the rest is a shortfall, never stock. */
-export function deliverService(s: ServiceSector, demandUnits: number, availablePersonnel: number): ServiceDelivery {
+/** Available non-material resources for a service month. */
+export interface ServiceResources {
+  /** Whole-USD funds available to cover the monthly operating cost. */
+  readonly funds: number;
+  /** Known available quantities of the service's material purchases. */
+  readonly purchases: Readonly<Record<string, number>>;
+}
+
+const emptyPurchases = (s: ServiceSector): Record<string, number> => Object.fromEntries(Object.keys(s.purchases).map((id) => [id, 0]));
+
+/**
+ * Deliver up to `demandUnits`, bounded by capacity, personnel, funds (monthly
+ * operating cost) and material purchases; the rest is a shortfall, never stock.
+ * A service cannot operate through a budget or purchase shortage.
+ */
+export function deliverService(s: ServiceSector, demandUnits: number, availablePersonnel: number, resources: ServiceResources): ServiceDelivery {
   validateServiceSector(s);
   if (!isWholeUsd(demandUnits)) throw new Error('Demand must be a non-negative whole number.');
   if (!isWholeUsd(availablePersonnel)) throw new Error('Available personnel must be a non-negative whole number.');
-  if (s.status !== 'operating' || s.capacityPerMonth === null) return { delivered: 0, shortfall: demandUnits, revenue: 0, personnelUsed: 0 };
+  if (!resources || !isWholeUsd(resources.funds)) throw new Error('Available funds must be a non-negative whole-USD amount.');
+  for (const [id, qty] of Object.entries(resources.purchases)) {
+    if (!isWholeUsd(qty)) throw new Error(`Available purchase ${id} must be a non-negative whole quantity.`);
+  }
+
+  if (s.status === 'paused' || s.status === 'planned') return { status: 'paused', delivered: 0, shortfall: null, revenue: 0, personnelUsed: 0, purchasesUsed: emptyPurchases(s) };
+  if (s.status === 'decommissioned' || s.status === 'unavailable') return { status: 'unavailable', delivered: 0, shortfall: null, revenue: 0, personnelUsed: 0, purchasesUsed: emptyPurchases(s) };
+  if (s.capacityPerMonth === null) return { status: 'unavailable', delivered: 0, shortfall: null, revenue: 0, personnelUsed: 0, purchasesUsed: emptyPurchases(s) };
+
+  // Causal gates: the service cannot operate without its monthly cost or material purchases.
+  const fundsOk = resources.funds >= s.costPerMonth;
+  const purchasesOk = Object.entries(s.purchases).every(([id, qty]) => (resources.purchases[id] ?? 0) >= qty);
+  if (!fundsOk || !purchasesOk) return { status: 'computed', delivered: 0, shortfall: demandUnits, revenue: 0, personnelUsed: 0, purchasesUsed: emptyPurchases(s) };
+
   const capacityBound = s.personnelPerUnit > 0 ? Math.floor(availablePersonnel / s.personnelPerUnit) : s.capacityPerMonth;
   const delivered = Math.min(demandUnits, s.capacityPerMonth, capacityBound);
-  return { delivered, shortfall: demandUnits - delivered, revenue: delivered * s.pricePerUnit, personnelUsed: delivered * s.personnelPerUnit };
+  return {
+    status: 'computed',
+    delivered,
+    shortfall: demandUnits - delivered,
+    revenue: checkedMul(delivered, s.pricePerUnit),
+    personnelUsed: checkedMul(delivered, s.personnelPerUnit),
+    purchasesUsed: { ...s.purchases },
+  };
 }

@@ -6,6 +6,12 @@
  * discovery caused by a budget, and risk is a documented/modelled bps figure,
  * never a hidden random roll. No new canonical state, no scheduler, no RNG, no
  * migration.
+ *
+ * A project must carry at least one real research resource (positive monthly
+ * spending or positive researchers required): zero spending with zero
+ * researchers cannot advance. `status` and `monthsElapsed` must be coherent —
+ * `completed` requires the full duration, and any other status must not yet
+ * have elapsed the full duration.
  */
 
 import { isWholeUsd } from '../finance/settlement';
@@ -20,7 +26,7 @@ export interface ResearchProject {
   readonly monthlySpending: number;
   /** Researchers required (persons). */
   readonly researchersRequired: number;
-  /** Documented/modelled failure risk in bps (0–10,000). */
+  /** Documented/modelled failure risk in bps (0–10,000); no mechanical effect yet (no RNG). */
   readonly riskBps: number;
   readonly status: ResearchStatus;
   readonly monthsElapsed: number;
@@ -36,6 +42,11 @@ export function validateResearchProject(p: ResearchProject): void {
   if (!['planned', 'active', 'paused', 'completed'].includes(p.status)) throw new Error(`Unknown status: ${String(p.status)}.`);
   if (!isWholeUsd(p.monthsElapsed)) throw new Error('monthsElapsed must be a non-negative whole number.');
   if (p.monthsElapsed > p.durationMonths) throw new Error('monthsElapsed cannot exceed durationMonths.');
+  // A13: at least one real research resource is required; research cannot be free.
+  if (p.monthlySpending === 0 && p.researchersRequired === 0) throw new Error('Research project needs at least one real resource: positive monthlySpending or positive researchersRequired.');
+  // B5: status and elapsed months must be coherent.
+  if (p.status === 'completed' && p.monthsElapsed < p.durationMonths) throw new Error('A completed project must have elapsed its full duration.');
+  if (p.status !== 'completed' && p.monthsElapsed >= p.durationMonths) throw new Error('A non-completed project cannot have elapsed its full duration.');
 }
 
 /** Completion is schedule-only: a project completes when its full duration has elapsed. */

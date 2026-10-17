@@ -1,6 +1,14 @@
-/** Deliver transport bounded by capacity, energy and personnel; the shortfall is a backlog. */
+/**
+ * 0.29.7 — Public services V2: civil transport/infrastructure.
+ *
+ * Deliver transport bounded by capacity, energy and personnel; the shortfall is
+ * a backlog. A result is typed by availability: `unavailable` capacity yields an
+ * `unavailable` result with no asserted shortfall (unknown is not a shortage).
+ */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedMul } from '../safeMath';
+import type { AvailabilityStatus } from '../availability';
 
 export interface TransportAsset {
   readonly id: string;
@@ -24,8 +32,10 @@ export function validateTransportAsset(t: TransportAsset): void {
 }
 
 export interface TransportDelivery {
+  readonly status: AvailabilityStatus;
   readonly delivered: number;
-  readonly shortfall: number;
+  /** Meaningful only when status === 'computed'; null means "not asserted". */
+  readonly shortfall: number | null;
   readonly energyUsed: number;
   readonly personnelUsed: number;
 }
@@ -36,9 +46,16 @@ export function deliverTransport(t: TransportAsset, demandUnits: number, energyA
   if (!isWholeUsd(demandUnits) || !isWholeUsd(energyAvailable) || !isWholeUsd(personnelAvailable)) {
     throw new Error('Demand, energy and personnel must be non-negative whole numbers.');
   }
-  if (t.status !== 'operating' || t.capacityPerMonth === null) return { delivered: 0, shortfall: demandUnits, energyUsed: 0, personnelUsed: 0 };
+  if (t.status === 'paused') return { status: 'paused', delivered: 0, shortfall: null, energyUsed: 0, personnelUsed: 0 };
+  if (t.status === 'unavailable' || t.capacityPerMonth === null) return { status: 'unavailable', delivered: 0, shortfall: null, energyUsed: 0, personnelUsed: 0 };
   const energyBound = t.energyPerUnit > 0 ? Math.floor(energyAvailable / t.energyPerUnit) : t.capacityPerMonth;
   const personnelBound = t.personnelPerUnit > 0 ? Math.floor(personnelAvailable / t.personnelPerUnit) : t.capacityPerMonth;
   const delivered = Math.min(demandUnits, t.capacityPerMonth, energyBound, personnelBound);
-  return { delivered, shortfall: demandUnits - delivered, energyUsed: delivered * t.energyPerUnit, personnelUsed: delivered * t.personnelPerUnit };
+  return {
+    status: 'computed',
+    delivered,
+    shortfall: demandUnits - delivered,
+    energyUsed: checkedMul(delivered, t.energyPerUnit),
+    personnelUsed: checkedMul(delivered, t.personnelPerUnit),
+  };
 }

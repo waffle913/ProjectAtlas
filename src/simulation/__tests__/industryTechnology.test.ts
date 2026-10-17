@@ -13,7 +13,7 @@ describe('industry military/civilian technology (0.28.7)', () => {
     expect(() => validateTechnologyLink(link())).not.toThrow();
     expect(() => validateTechnologyLink(link({ id: '' }))).toThrow(/non-empty id/);
     expect(() => validateTechnologyLink(link({ domain: 'space' as never }))).toThrow(/Unknown domain/);
-    expect(() => validateTechnologyLink(link({ capacityMultiplierBps: -1 }))).toThrow(/non-negative integer bps/);
+    expect(() => validateTechnologyLink(link({ capacityMultiplierBps: -1 }))).toThrow(/non-negative/);
   });
 
   it('applies a production-capacity effect (never a readiness change)', () => {
@@ -24,6 +24,10 @@ describe('industry military/civilian technology (0.28.7)', () => {
 
   it('keeps null capacity unavailable', () => {
     expect(applyCapacityEffect(null, 12000)).toBeNull();
+  });
+
+  it('A10: fails closed on safe-integer overflow', () => {
+    expect(() => applyCapacityEffect(Number.MAX_SAFE_INTEGER, 2)).toThrow(/overflow/);
   });
 
   it('rejects fractional base capacity', () => {

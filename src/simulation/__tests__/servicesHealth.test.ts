@@ -18,6 +18,7 @@ describe('health establishments (0.29.2)', () => {
 
   it('delivers care bounded by capacity and personnel; the shortfall is a backlog, never stock', () => {
     const r = deliverCare(hospital(), 80, 300);
+    expect(r.status).toBe('computed');
     expect(r.delivered).toBe(80);
     expect(r.backlog).toBe(0);
     expect(r.personnelUsed).toBe(240);
@@ -29,9 +30,11 @@ describe('health establishments (0.29.2)', () => {
     expect(r.backlog).toBe(70);
   });
 
-  it('delivers nothing when not operating or capacity unavailable', () => {
-    expect(deliverCare(hospital({ status: 'paused' }), 50, 300).delivered).toBe(0);
-    expect(deliverCare(hospital({ capacity: null }), 50, 300).delivered).toBe(0);
+  it('A7: unavailable capacity is typed unavailable, never a fabricated shortage', () => {
+    const r = deliverCare(hospital({ capacity: null }), 50, 300);
+    expect(r).toMatchObject({ status: 'unavailable', delivered: 0, backlog: null });
+    const paused = deliverCare(hospital({ status: 'paused' }), 50, 300);
+    expect(paused).toMatchObject({ status: 'paused', delivered: 0, backlog: null });
   });
 
   it('rejects fractional demand or personnel', () => {

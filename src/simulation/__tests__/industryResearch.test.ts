@@ -17,6 +17,15 @@ describe('industry research projects (0.28.5)', () => {
     expect(() => validateResearchProject(project({ monthsElapsed: 30 }))).toThrow(/cannot exceed durationMonths/);
   });
 
+  it('A13: rejects research with no real resource (zero spending and zero researchers)', () => {
+    expect(() => validateResearchProject(project({ monthlySpending: 0, researchersRequired: 0 }))).toThrow(/at least one real resource/);
+  });
+
+  it('B5: rejects an incoherent status/monthsElapsed pair', () => {
+    expect(() => validateResearchProject(project({ status: 'completed', monthsElapsed: 0 }))).toThrow(/full duration/);
+    expect(() => validateResearchProject(project({ status: 'active', monthsElapsed: 24 }))).toThrow(/full duration/);
+  });
+
   it('advances only with funding and researchers (no instant discovery from a budget)', () => {
     const r = advanceResearch(project(), 6, 1000, 5);
     expect(r.monthsAdvanced).toBe(6);

@@ -5,9 +5,15 @@
  * through training, investment, equipment replacement and time; it affects
  * material processes, never a global GDP bonus. No new canonical state, no
  * scheduler, no RNG, no migration.
+ *
+ * Adoption can never be free or instant: a record must carry at least one real
+ * causal constraint (a positive investment per step or a positive equipment
+ * requirement per step), and each step actually consumes that investment and
+ * equipment. There is no multi-period jump without a verifiable, funded step.
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedAdd, checkedMul } from '../safeMath';
 
 export interface TechnologyAdoption {
   readonly id: string;
@@ -40,6 +46,10 @@ export function validateAdoption(a: TechnologyAdoption): void {
     if (!id.trim()) throw new Error('Available equipment needs non-empty product ids.');
     if (!isWholeUsd(qty)) throw new Error(`Available equipment ${id} must be a non-negative whole quantity.`);
   }
+  // A5: at least one causal constraint is required; otherwise adoption is free.
+  const hasCost = a.investmentPerStep > 0;
+  const hasEquipment = Object.values(a.equipmentPerStep).some((q) => q > 0);
+  if (!hasCost && !hasEquipment) throw new Error('Adoption needs at least one causal constraint: a positive investmentPerStep or a positive equipment requirement.');
 }
 
 /** Steps feasible from funded investment; Infinity when investment is not a binding constraint. */
@@ -55,15 +65,27 @@ export function equipmentSteps(a: TechnologyAdoption): number {
   return steps;
 }
 
-/** Advance adoption bounded by investment, equipment and the 10,000 bps ceiling. */
-export function advanceAdoption(a: TechnologyAdoption): { adoptionBps: number; steps: number; investmentSpent: number } {
+export interface AdoptionResult {
+  readonly adoptionBps: number;
+  readonly steps: number;
+  readonly investmentSpent: number;
+  /** Equipment actually consumed (product id -> quantity). */
+  readonly equipmentSpent: Readonly<Record<string, number>>;
+}
+
+/** Advance adoption bounded by investment, equipment and the 10,000 bps ceiling; each step consumes real resources. */
+export function advanceAdoption(a: TechnologyAdoption): AdoptionResult {
   validateAdoption(a);
   const steps = Math.min(investmentSteps(a), equipmentSteps(a));
   const room = Math.max(0, 10000 - a.adoptionBps);
   const applicable = Math.min(steps, Math.ceil(room / a.diffusionBpsPerStep));
+  const equipmentSpent = Object.fromEntries(
+    Object.entries(a.equipmentPerStep).filter(([, qty]) => qty > 0).map(([id, qty]) => [id, checkedMul(applicable, qty)]),
+  );
   return {
-    adoptionBps: Math.min(10000, a.adoptionBps + applicable * a.diffusionBpsPerStep),
+    adoptionBps: Math.min(10000, checkedAdd(a.adoptionBps, checkedMul(applicable, a.diffusionBpsPerStep))),
     steps: applicable,
-    investmentSpent: applicable * a.investmentPerStep,
+    investmentSpent: checkedMul(applicable, a.investmentPerStep),
+    equipmentSpent,
   };
 }
