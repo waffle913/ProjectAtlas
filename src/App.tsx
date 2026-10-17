@@ -515,6 +515,7 @@ export default function App() {
           <aside className="panel"><h2>Security</h2>
             {(() => { const entry = sim.constitution.countries[selected]; return entry ? <section><strong>State of emergency</strong><p>{entry.emergency.status}{entry.emergency.restrictions.policePowersEnhanced ? ' · enhanced police powers' : ''}</p></section> : <p>Constitutional emergency status is unavailable for this Country.</p>; })()}
             {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length > 0 && <p>This Country is party to an active war.</p>}
+            {(() => { const episodes = Object.values(sim.crisis.countries[selected]?.currentByType ?? {}).filter(episode => episode.activatedOn && !episode.endedOn); return episodes.length > 0 ? <section><strong>Active crises</strong>{episodes.map(episode => <p key={episode.id}>{episode.type}: {episode.severity} (pressure {episode.currentPressure})</p>)}</section> : null; })()}
             <p>Further security systems are not represented in the current build.</p>
           </aside>
         ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <>
