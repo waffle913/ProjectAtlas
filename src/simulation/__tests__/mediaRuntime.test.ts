@@ -49,9 +49,14 @@ describe('media 0.32 runtime integration (opinion shift -> politics)', () => {
 
   it('applies a whole-region shift to every cohort and clamps at the canonical bound', () => {
     const { state } = fixture();
-    const shifted = applyOpinionShiftToPolitics(state, { id: 'shift.2', regionId: regionA, cohortKey: null, deltaBps: -20000, causeId: 'crisis:material', date: state.date, note: 'Synthetic clamping shift' });
+    let shifted = applyOpinionShiftToPolitics(state, { id: 'shift.2', regionId: regionA, cohortKey: null, deltaBps: -10000, causeId: 'crisis:material', date: state.date, note: 'Synthetic clamping shift' });
     for (const opinion of Object.values(shifted.politics.regionalOpinion[regionA].cohorts)) {
-      expect(opinion[COHORT.sentiment]).toBe(-10000); // clamped, never beyond the signed bound
+      expect(opinion[COHORT.sentiment]).toBe(-10000);
+    }
+    // A further negative shift clamps at the bound, never below it.
+    shifted = applyOpinionShiftToPolitics(shifted, { id: 'shift.2b', regionId: regionA, cohortKey: null, deltaBps: -1, causeId: 'crisis:material', date: state.date, note: 'Clamp check' });
+    for (const opinion of Object.values(shifted.politics.regionalOpinion[regionA].cohorts)) {
+      expect(opinion[COHORT.sentiment]).toBe(-10000);
     }
   });
 

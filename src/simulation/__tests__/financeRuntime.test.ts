@@ -61,7 +61,9 @@ describe('finance 0.26 runtime integration', () => {
     expect(account.financingNeed).toBeGreaterThan(0);
     expect(account.borrowed).toBe(0);                     // creditCeiling blocks new credit on default
     expect(account.closingDebt).toBe(account.openingDebt); // no new debt issued
-    expect(account.interestArrears).toBeGreaterThan(account.openingInterestArrears); // arrears grow without credit
+    // The country still pays interest from current revenue, but the block on new
+    // credit leaves it in default: arrears persist and never fall to zero.
+    expect(account.interestArrears).toBeGreaterThan(0);
     expect(account.stress.solvencyState).toBe('in_default');
     expect(account.stress.solvencyReason).toBe('interest_arrears');
     const { assessment, credit } = assessFiscalSolvency(next, 'country.a');

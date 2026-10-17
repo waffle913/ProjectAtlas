@@ -18,8 +18,8 @@ import { initializeSocioeconomy } from '../socioeconomy/initialization';
 import { initializeFiscal } from '../fiscal/runtime';
 import { initializeMilitary, admitMilitaryBaseline } from '../military/runtime';
 import type { MilitaryParameters } from '../military/model';
-import { initializeTrade, admitTradeRoute } from '../trade/runtime';
-import { SYNTHETIC_TRADE_SOURCE } from '../trade/scenario';
+import { initializeTrade, admitTradeMarket, admitTradeRoute } from '../trade/runtime';
+import { syntheticTradeMarket, SYNTHETIC_TRADE_SOURCE } from '../trade/scenario';
 import { initializeInternational, sanctionBlocksRoute } from '../international/runtime';
 import { initializeInformationState } from '../information/runtime';
 import { initializePolitics } from '../politics/initialization';
@@ -49,6 +49,8 @@ function fixture(): SimulationState {
   state = initializeTrade(state);
   state = initializeInternational(state);
   state = admitMilitaryBaseline(state, { countryId: A, source, parameters, authorized: 100, present: 50, trainees: 0, equipment: { personal: { operational: 100, unavailable: 0, maintenance: 0, reserve: 0 }, truck: { operational: 10, unavailable: 0, maintenance: 0, reserve: 0 } }, consumables: { ammunition: { quantity: 400, capacity: 10000 }, fuel: { quantity: 300, capacity: 10000 } }, industrialMaterials: 1000 });
+  state = admitTradeMarket(state, A, syntheticTradeMarket('food'));
+  state = admitTradeMarket(state, B, syntheticTradeMarket('food'));
   state = admitTradeRoute(state, { id: 'route.dip:food', exporterId: A, importerId: B, category: 'food', source: { ...SYNTHETIC_TRADE_SOURCE }, capacityPerMonth: 100, establishedCapacity: 60, expansionPerMonth: 10, logisticsBps: 250, tariffBps: 500 });
   state = createPoliticalPerson(state, { countryId: A, displayName: 'Synthetic diplomacy executive' });
   const person = Object.keys(state.governance.persons)[0];
@@ -60,11 +62,15 @@ const person = (state: SimulationState) => state.governance.player.controlledPer
 describe('diplomacy/military 0.31 runtime integration', () => {
   it('applies a sanction with an explicit import direction and blocks the route', () => {
     const state = fixture();
-    const next = applyCoercionMeasure(state, { id: 'coercion.1', actorCountryId: B, mandate, targetCountryId: A, kind: 'sanction', direction: 'import', categories: ['food'], date: state.date, note: 'Synthetic import sanction' }, person(state));
+    const next = applyCoercionMeasure(state, { id: 'coercion.1', actorCountryId: A, mandate, targetCountryId: B, kind: 'sanction', direction: 'import', categories: ['food'], date: state.date, note: 'Synthetic import sanction' }, person(state));
     const action = Object.values(next.international.actions).find(a => a.kind === 'import_restriction')!;
     expect(action).toBeTruthy();
+    expect(action.actorCountryId).toBe(A);
+    expect(action.targetCountryId).toBe(B);
     expect(action.categories).toEqual(['food']);
-    expect(sanctionBlocksRoute(next, { exporterId: A, importerId: B, category: 'food' })).toBe(true);
+    // An import restriction by A on B blocks B's exports into A once effective
+    // (the canonical restriction takes effect the day after declaration).
+    expect(sanctionBlocksRoute(next, { exporterId: B, importerId: A, category: 'food' }, '2026-01-02')).toBe(true);
   });
 
   it('applies an export-direction sanction without misclassifying it', () => {

@@ -28,9 +28,10 @@ export function applyOpinionShiftToPolitics(state: SimulationState, shift: Opini
   if (keys.some((key) => !regional.cohorts[key])) throw new Error('Unknown political cohort.');
   const cohorts = { ...regional.cohorts };
   for (const key of keys) {
-    const opinion = [...regional.cohorts[key]];
-    opinion[COHORT.sentiment] = clampSentiment(opinion[COHORT.sentiment] + shift.deltaBps);
-    cohorts[key] = opinion as CohortPoliticalOpinion;
+    const previous = regional.cohorts[key];
+    const sentiment = clampSentiment(previous[COHORT.sentiment] + shift.deltaBps);
+    const opinion: CohortPoliticalOpinion = [previous[0], previous[1], previous[2], previous[3], sentiment, previous[5], previous[6]];
+    cohorts[key] = opinion;
   }
   return {
     ...state,

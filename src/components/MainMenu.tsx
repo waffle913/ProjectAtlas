@@ -2,7 +2,7 @@ import type { AppSettings } from '../app/preferences';
 
 export type MenuScreen = 'menu' | 'new-game' | 'load' | 'settings' | 'credits' | 'game';
 
-export function MainMenu({ onContinue, onNewGame, onLoad, onSettings, onCredits, onExit, hasSave, ready, settings }: {
+export function MainMenu({ onContinue, onNewGame, onLoad, onSettings, onCredits, onExit, hasSave, ready = true, settings }: {
   onContinue: () => void;
   onNewGame: () => void;
   onLoad: () => void;
@@ -10,7 +10,7 @@ export function MainMenu({ onContinue, onNewGame, onLoad, onSettings, onCredits,
   onCredits: () => void;
   onExit: () => void;
   hasSave: boolean;
-  ready: boolean;
+  ready?: boolean;
   settings: AppSettings;
 }) {
   return (
