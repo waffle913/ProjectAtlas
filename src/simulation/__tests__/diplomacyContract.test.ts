@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  validateDiplomaticMandate, canConductDiplomacy, validateDiplomaticActor,
+  validateDiplomaticMandate, canConductDiplomacy, canonicalAuthorityBasisFor, validateDiplomaticActor,
   validateDiplomaticCommitment, DIPLOMACY_OWNERS, type DiplomaticMandate, type DiplomaticCommitment,
 } from '../diplomacy/contract';
 
@@ -24,6 +24,14 @@ describe('diplomacy actor and commitment contract (0.31.1)', () => {
     expect(canConductDiplomacy(mandate({ basis: 'presidential_head_of_state' }))).toBe(true);
     expect(canConductDiplomacy(mandate({ basis: 'unresolved' }))).toBe(false);
     expect(() => validateDiplomaticMandate(mandate({ basis: 'foreign_portfolio' as never }))).toThrow(/Unknown diplomatic mandate basis/);
+  });
+
+  it('maps each mandate to its canonical reconciled authority and rejects offices without diplomatic power', () => {
+    expect(canonicalAuthorityBasisFor(mandate())).toBe('sourced_parliamentary_head_of_government');
+    expect(canonicalAuthorityBasisFor(mandate({ basis: 'presidential_head_of_state' }))).toBe('sourced_presidential_head_of_state');
+    expect(canonicalAuthorityBasisFor(mandate({ basis: 'unresolved' }))).toBeNull();
+    expect(() => validateDiplomaticMandate(mandate({ basis: 'minister' as never }))).toThrow(/Unknown diplomatic mandate basis/);
+    expect(() => validateDiplomaticMandate(mandate({ basis: 'legislator' as never }))).toThrow(/Unknown diplomatic mandate basis/);
   });
 
   it('validates an actor and a commitment, and rejects malformed ones', () => {

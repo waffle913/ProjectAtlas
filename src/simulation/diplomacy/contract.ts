@@ -57,6 +57,20 @@ export function canConductDiplomacy(m: DiplomaticMandate): boolean {
   return m.basis !== 'unresolved';
 }
 
+/**
+ * The canonical 0.14 reconciled authority basis this mandate corresponds to;
+ * null for unresolved. This is the exact institutional authority a future
+ * engine integration must verify against — a mandate never grants power the
+ * canonical model does not already give to that office, and it never adds a new
+ * capability.
+ */
+export function canonicalAuthorityBasisFor(m: DiplomaticMandate): 'sourced_parliamentary_head_of_government' | 'sourced_presidential_head_of_state' | null {
+  validateDiplomaticMandate(m);
+  if (m.basis === 'head_of_government') return 'sourced_parliamentary_head_of_government';
+  if (m.basis === 'presidential_head_of_state') return 'sourced_presidential_head_of_state';
+  return null;
+}
+
 /** Mirrors the 0.20 `TreatyClause` kinds exactly — a commitment never invents a new clause type. */
 export const COMMITMENT_KINDS = Object.freeze([
   'defensive_guarantee', 'non_aggression', 'trade_commitment', 'sanctions_commitment', 'recognition',

@@ -3,17 +3,21 @@
  *
  * Pure negotiation contract (docs/diplomacy-0.31.md). A proposal is resolved
  * only by an explicit accept/reject decision or by its deadline — never
- * automatically from a relation score crossing a threshold. A concession is a
- * dated, validated unilateral give from a mandated actor. Credibility is causal
- * (honored vs violated obligations) and unavailable-safe (`unavailable != 0`).
- * No `SimulationState` integration, no schema/migration, no scheduler, no RNG.
+ * automatically from a relation score crossing a threshold. An unanswered
+ * proposal stays `pending` until its (possibly extended) deadline, then becomes
+ * `expired`; an acceptance after expiry is refused unless an explicitly recorded
+ * extension authorized it. A concession is a dated, validated unilateral give
+ * from a mandated actor. Credibility is causal (honored vs violated obligations),
+ * safe-integer checked, and unavailable-safe (`unavailable != 0`). No
+ * `SimulationState` integration, no schema/migration, no scheduler, no RNG.
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import { checkedAdd } from '../safeMath';
 import { isSimulationDate } from '../date';
 import { canConductDiplomacy, COMMITMENT_KINDS, type CommitmentKind, type DiplomaticMandate } from './contract';
 
-export type NegotiationDecision = 'accepted' | 'rejected' | 'expired';
+export type NegotiationDecision = 'pending' | 'accepted' | 'rejected' | 'expired';
 
 export interface NegotiationProposal {
   readonly id: string;
@@ -25,6 +29,8 @@ export interface NegotiationProposal {
   /** Explicit condition for the commitment; null = unconditional. */
   readonly condition: string | null;
   readonly deadline: string;
+  /** An explicitly recorded, authorized extension of the deadline; null = no extension. */
+  readonly extendedDeadline: string | null;
   readonly date: string;
   readonly note: string;
 }
@@ -40,21 +46,30 @@ export function validateNegotiationProposal(p: NegotiationProposal): void {
   if (!isSimulationDate(p.date)) throw new Error('Proposal date must be a valid simulation date.');
   if (!isSimulationDate(p.deadline)) throw new Error('Proposal deadline must be a valid simulation date.');
   if (p.deadline < p.date) throw new Error('Proposal deadline must not precede its date.');
+  if (p.extendedDeadline !== null && (!isSimulationDate(p.extendedDeadline) || p.extendedDeadline < p.deadline)) {
+    throw new Error('An extended deadline must be a valid simulation date not earlier than the original deadline.');
+  }
   if (typeof p.note !== 'string' || !p.note.trim()) throw new Error('Negotiation proposal needs a note.');
 }
 
 /**
  * Resolve a proposal from an explicit decision and the current date. A proposal
- * is never auto-accepted from a relation score: `decision` is `null` while open,
- * and an undecided proposal past its deadline is `expired`.
+ * is never auto-accepted from a relation score. An unanswered proposal is
+ * `pending` until its effective deadline (the recorded extension, if any), then
+ * `expired`. An acceptance after expiry is refused — it requires an explicitly
+ * recorded extension before the original deadline lapsed.
  */
 export function resolveNegotiation(p: NegotiationProposal, decision: 'accept' | 'reject' | null, onDate: string): NegotiationDecision {
   validateNegotiationProposal(p);
   if (!isSimulationDate(onDate)) throw new Error('Resolution date must be a valid simulation date.');
-  if (decision === 'accept') return 'accepted';
+  const effectiveDeadline = p.extendedDeadline ?? p.deadline;
+  if (decision === 'accept') {
+    if (onDate > effectiveDeadline) throw new Error('A proposal cannot be accepted after its deadline without an authorized extension.');
+    return 'accepted';
+  }
   if (decision === 'reject') return 'rejected';
-  if (onDate > p.deadline) return 'expired';
-  return decision === null ? 'expired' : decision; // unreachable; kept exhaustive
+  if (onDate > effectiveDeadline) return 'expired';
+  return 'pending';
 }
 
 export type ConcessionKind = 'relation_adjustment' | 'tariff_reduction';
@@ -94,7 +109,7 @@ export interface CredibilityRecord {
 export function credibilityBps(record: CredibilityRecord): number | null {
   if (!record || record.coverage === 'unavailable') return null;
   if (!isWholeUsd(record.honoredObligations) || !isWholeUsd(record.violatedObligations)) throw new Error('Obligation counts must be non-negative whole numbers.');
-  const total = record.honoredObligations + record.violatedObligations;
+  const total = checkedAdd(record.honoredObligations, record.violatedObligations);
   if (total === 0) return null;
   return Math.round((record.honoredObligations / total) * 10000);
 }
