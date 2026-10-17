@@ -2,7 +2,7 @@
 
 **Status:** 0.32 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.32.3 is the current sub-milestone.**
+authorization, not acceptance**. **0.32.5 is the current sub-milestone.**
 
 ## 0.32.1 scope — information contract
 
@@ -36,7 +36,22 @@ is never a law — it has no policy effect and never mutates canonical state. It
 reach is bounded by credibility and audience interest, availability-typed.
 Validated by `src/simulation/__tests__/mediaStatements.test.ts`.
 
+## 0.32.4 scope — disinformation/censorship (BLOCKED_DESIGN)
+
+0.32.4 is **not implemented** in this milestone. It is conditional on a decided
+legal framework (roadmap open design gate — authorities, means, guarantees and
+reactions without a free social-control bonus); that framework is not yet
+decided, so no disinformation/censorship primitives are added.
+
+## 0.32.5 scope — opinion and mobilization
+
+The opinion/mobilization contract (`src/simulation/media/opinion.ts`): opinion
+shifts are dated, bounded and causal (they carry the material event/statement
+that caused them, never a magic modifier); mobilization capacity is bounded by
+real support and networks, availability-typed. Validated by
+`src/simulation/__tests__/mediaOpinion.test.ts`.
+
 ## Deferred (not implemented)
 
-0.32.4–0.32.10 are deferred until their micro-blocks. 0.32 is accepted only
+0.32.6–0.32.10 are deferred until their micro-blocks. 0.32 is accepted only
 after its complete independent audit and green CI.
