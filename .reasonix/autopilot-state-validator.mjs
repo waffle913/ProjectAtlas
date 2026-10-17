@@ -5,11 +5,14 @@
 // human-acceptance record, autonomous technical-validation record, runtime-vs-metadata SHA
 // distinction, standing authorization, blocker state and CI wait state.
 //
+// Run the validator directly (validates the real persisted state; exit 0 = consistent,
+// 1 = violation, 2 = invalid JSON):
+//   node .reasonix/autopilot-state-validator.mjs
 // Run the tests with:
 //   node --test .reasonix/autopilot-state-validator.test.mjs
 
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const STATE_PATH = join(dirname(fileURLToPath(import.meta.url)), 'projectatlas-autopilot-state.json');
@@ -33,6 +36,10 @@ export const VALID_PHASES = [
 ];
 
 export const VALID_SAFETY_MODES = ['normal', 'unattended_safe'];
+export const VALID_MODES = ['running', 'paused_by_user', 'complete', 'blocked'];
+// Phases in which the Autopilot is waiting (on a human or the next milestone) rather
+// than actively implementing; `mode = running` is contradictory with these.
+const WAITING_PHASES = ['SEALED_SAFE_ZONE', 'AWAITING_HUMAN_ACCEPTANCE', 'AWAITING_NEXT_MILESTONE_AUTHORIZATION'];
 
 // Milestones whose ordering matters for the "sealing may lag behind validation" rule.
 const ORDERED_MILESTONES = [
@@ -53,6 +60,12 @@ export function validateAutopilotState(state) {
   if (state.safety_mode && !VALID_SAFETY_MODES.includes(state.safety_mode.mode)) {
     push(`Invalid safety_mode.mode: ${String(state.safety_mode.mode)}.`);
   }
+  if (state.mode !== undefined && !VALID_MODES.includes(state.mode)) {
+    push(`Invalid mode: ${String(state.mode)}.`);
+  }
+  if (state.mode === 'running' && WAITING_PHASES.includes(state.milestone_phase)) {
+    push(`milestone_phase ${String(state.milestone_phase)} while mode is running (contradictory execution state).`);
+  }
 
   const sealed = typeof state.sealed_milestone === 'string' && state.sealed_milestone.length > 0;
   const acceptance = Boolean(state.human_acceptance && typeof state.human_acceptance.accepted_milestone === 'string' && state.human_acceptance.accepted_milestone.length > 0);
@@ -66,7 +79,9 @@ export function validateAutopilotState(state) {
     if (!sealed) push(`${state.milestone_phase} without a sealed milestone.`);
   }
   // A green CI / merge is not human acceptance.
-  if (state.milestone_phase === 'AWAITING_HUMAN_ACCEPTANCE' && acceptance) push('AWAITING_HUMAN_ACCEPTANCE while acceptance is already recorded.');
+  if (state.milestone_phase === 'AWAITING_HUMAN_ACCEPTANCE' && acceptance && state.human_acceptance.accepted_milestone === state.current_milestone) {
+    push('AWAITING_HUMAN_ACCEPTANCE while acceptance is already recorded for the current milestone.');
+  }
 
   // accepted milestone must match the sealed milestone.
   if (acceptance && sealed && state.human_acceptance.accepted_milestone !== state.sealed_milestone) {
@@ -158,4 +173,24 @@ export function validateAutopilotState(state) {
 
 export function loadAutopilotState(path = STATE_PATH) {
   return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+// CLI entry — `node .reasonix/autopilot-state-validator.mjs` validates the real state.
+// Exit codes: 0 = consistent; 1 = consistency violation; 2 = invalid JSON.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  let state;
+  try {
+    state = loadAutopilotState();
+  } catch (error) {
+    console.error(`Autopilot state is invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(2);
+  }
+  const errors = validateAutopilotState(state);
+  if (errors.length > 0) {
+    for (const error of errors) console.error(`- ${error}`);
+    console.error(`${errors.length} autopilot-state violation(s).`);
+    process.exit(1);
+  }
+  console.log('Autopilot state is consistent.');
+  process.exit(0);
 }

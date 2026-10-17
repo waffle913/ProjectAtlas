@@ -16,9 +16,12 @@ test('detects a sealed phase without a recorded human acceptance', () => {
   assert.ok(validateAutopilotState(s).some((e) => e.includes('without a recorded human acceptance')));
 });
 
-test('detects AWAITING_HUMAN_ACCEPTANCE while acceptance is already recorded', () => {
+test('detects AWAITING_HUMAN_ACCEPTANCE while acceptance is already recorded for the current milestone', () => {
   const s = base();
   s.milestone_phase = 'AWAITING_HUMAN_ACCEPTANCE';
+  s.human_acceptance.accepted_milestone = s.current_milestone;
+  s.sealed_milestone = s.current_milestone;
+  s.sealed_sha = s.runtime_sha;
   assert.ok(validateAutopilotState(s).some((e) => e.includes('acceptance is already recorded')));
 });
 
@@ -126,4 +129,17 @@ test('detects an invalid safety_mode', () => {
   const s = base();
   s.safety_mode.mode = 'yolo';
   assert.ok(validateAutopilotState(s).some((e) => e.includes('safety_mode.mode')));
+});
+
+test('detects an invalid mode', () => {
+  const s = base();
+  s.mode = 'yolo';
+  assert.ok(validateAutopilotState(s).some((e) => e.includes('Invalid mode')));
+});
+
+test('detects a waiting phase while mode is running (contradictory execution state)', () => {
+  const s = base();
+  s.mode = 'running';
+  s.milestone_phase = 'AWAITING_HUMAN_ACCEPTANCE';
+  assert.ok(validateAutopilotState(s).some((e) => e.includes('contradictory execution state')));
 });
