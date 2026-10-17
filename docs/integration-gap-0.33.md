@@ -19,7 +19,7 @@ navigation link cannot be confused with a working gameplay subsystem.
 | 0.33.1 | Interface/state integration | `n/a` | `✓` | `✓` | `✓` | `✓` | `—` |
 | 0.33.2 | Map and layers | `✓` | `partial` | `—` | `—` | `—` | `—` |
 | 0.33.3 | Domain navigation | `✓` | `✓` | `partial` | `partial` | `partial` | `—` |
-| 0.33.4 | Left rail (advisors/actors/notifications, urgency) | `—` | `—` | `—` | `—` | `—` | `—` |
+| 0.33.4 | Left rail (advisors/actors/notifications, urgency) | `✓` | `✓` | `—` | `—` | `✓` | `—` |
 | 0.33.5 | Context panels and Tablet | `partial` | `partial` | `—` | `—` | `partial` | `—` |
 | 0.33.6 | Commands and powers | `✓` | `✓` | `partial` | `partial` | `partial` | `—` |
 | 0.33.7 | Decisions and consequences | `✓` | `✓` | `partial` | `partial` | `—` | `—` |
@@ -53,9 +53,14 @@ commands), operations (`OperationsPanel`, commands), trade (`TradeInspection`,
 commands). Command-bearing domains are a subset; the read-only domains are honestly
 labelled.
 
-### 0.33.4 — Left rail (`—`)
-The left `nav-rail` is domain navigation. The advisors/actors/notifications rail
-with normal/hover/selected/urgency states is not implemented.
+### 0.33.4 — Left rail (`✓` navigation/read/test; `—` commands/consequences)
+A left rail now renders the controlled actor (name + office + party-leader flag),
+cabinet advisors (portfolio → minister, vacant marked honestly) and
+urgency-ordered notifications (severity-badged, click navigates to the relevant
+domain). Derived from canonical state via pure helpers in `src/app/leftRail.ts`
+and covered by `leftRail.test.ts` (ordering, destination mapping, authority
+gating, vacant portfolios). Normal/urgent states are shown; hover/selected
+micro-states and further interruption behaviours remain unimplemented.
 
 ### 0.33.5 — Context panels and Tablet (`partial`)
 `BriefingTablet` (briefings + urgent briefing count), `CountryPanel` and `RegionPanel`

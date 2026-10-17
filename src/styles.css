@@ -78,12 +78,63 @@ header small {
 .workspace {
   min-height: 0;
   display: grid;
-  grid-template-columns: 66px minmax(0, 1fr) 340px;
+  grid-template-columns: 66px 190px minmax(0, 1fr) 340px;
 }
 .map {
   position: relative;
   background: #243d4d;
 }
+.left-rail {
+  background: #152129;
+  border-right: 1px solid #334550;
+  padding: 8px 6px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rail-actor {
+  display: grid;
+  gap: 2px;
+  color: #c4d1d5;
+}
+.rail-actor small {
+  color: #8fa0a6;
+  font-size: 10px;
+}
+.rail-notifications h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8fa0a6;
+}
+.rail-note {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: #c4d1d5;
+  cursor: pointer;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+}
+.rail-note:hover { background: #263944; }
+.rail-note small {
+  color: #aab9bd;
+  font-size: 10px;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.rail-advisors { color: #c4d1d5; font-size: 11px; }
+.rail-advisors summary { cursor: pointer; color: #efc781; }
+.rail-advisors p { margin: 4px 0; color: #aab9bd; }
 .leaflet-container {
   height: 100%;
   background: #213f51;
@@ -220,6 +271,7 @@ a {
     grid-template-rows: minmax(50vh, 1fr) auto;
   }
   .nav-rail { grid-row: 1 / span 2; }
+  .left-rail { display: none; }
   .panel {
     grid-column: 2;
     border-left: 0;

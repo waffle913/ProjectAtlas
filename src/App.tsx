@@ -50,6 +50,7 @@ import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } 
 import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
 import { countryColour, regionLayerColour, MAP_LAYERS, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
 import { newUrgentBriefingCount } from "./app/urgency";
+import { controlledActor, governmentAdvisors, orderedNotifications } from "./app/leftRail";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
@@ -394,6 +395,9 @@ export default function App() {
   const controlledPerson = controlledPersonId ? sim.governance.persons[controlledPersonId] : undefined;
   const playerCountryId = controlledPerson?.countryId;
   const playerCanReadGovernment = Boolean(controlledPerson && playerCountryId && hasGovernmentInformationAccess(sim, controlledPerson.id, playerCountryId));
+  const railActor = controlledActor(sim, controlledPersonId);
+  const railAdvisors = governmentAdvisors(sim, playerCountryId);
+  const railNotifications = controlledPersonId && playerCountryId ? orderedNotifications(sim, playerCountryId, controlledPersonId) : [];
   const commitCommand = (next: SimulationState) => {
     clock.current = new SimulationClock(next);
     setSim(clock.current.snapshot());
@@ -431,6 +435,20 @@ export default function App() {
         <nav className="nav-rail" aria-label="Main navigation">
           {navItems.map(([id, label, icon]) => <button key={id} className={activePage === id ? 'active' : ''} title={label} aria-label={label} onClick={() => setActivePage(id)}><span>{icon}</span><small>{label}</small></button>)}
         </nav>
+        {controlledPerson && (
+          <aside className="left-rail" aria-label="Actors, advisors and notifications">
+            {railActor && <section className="rail-actor"><strong>{railActor.displayName}</strong><small>{railActor.officeTitle ?? 'No public office'}{railActor.isPartyLeader ? ' · party leader' : ''}</small></section>}
+            <section className="rail-notifications">
+              <h3>Notifications</h3>
+              {railNotifications.length ? railNotifications.slice(0, 8).map(note => (
+                <button key={note.id} className="rail-note" title={note.headline} onClick={() => setActivePage(note.destination)}>
+                  <span className={`severity severity-${note.severity}`}>{note.severity}</span><small>{note.headline}</small>
+                </button>
+              )) : <p className="muted">No notifications.</p>}
+            </section>
+            {railAdvisors.length > 0 && <details className="rail-advisors"><summary>Advisors ({railAdvisors.length})</summary>{railAdvisors.map(advisor => <p key={advisor.portfolioId}><strong>{advisor.portfolioName}</strong> · {advisor.ministerName}</p>)}</details>}
+          </aside>
+        )}
         <section className="map">
           <MapContainer
             center={[20, 0]}
