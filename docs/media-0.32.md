@@ -2,7 +2,7 @@
 
 **Status:** 0.32 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.32.5 is the current sub-milestone.**
+authorization, not acceptance**. **0.32.7 is the current sub-milestone.**
 
 ## 0.32.1 scope — information contract
 
@@ -51,7 +51,23 @@ that caused them, never a magic modifier); mobilization capacity is bounded by
 real support and networks, availability-typed. Validated by
 `src/simulation/__tests__/mediaOpinion.test.ts`.
 
+## 0.32.6 scope — government-objective model
+
+The objective contract (`src/simulation/media/governmentObjective.ts`): an AI
+government's objective is modelled from a political issue with a priority and an
+ideological basis, never a duplicate of the player's power or of the canonical
+government. An unknown priority is `unavailable`, never zero. Validated by
+`src/simulation/__tests__/mediaGovernmentAI.test.ts`.
+
+## 0.32.7 scope — political action selection
+
+The action-selection contract (`src/simulation/media/actionSelection.ts`): an AI
+government selects an action by deterministic comparison of expected net value
+and confidence, ties by id; unavailable choices are excluded, and if nothing is
+positive the government chooses not to act (null). No reaction is fixed by "what
+the player does". Validated by `src/simulation/__tests__/mediaGovernmentAI.test.ts`.
+
 ## Deferred (not implemented)
 
-0.32.6–0.32.10 are deferred until their micro-blocks. 0.32 is accepted only
+0.32.8–0.32.10 are deferred until their micro-blocks. 0.32 is accepted only
 after its complete independent audit and green CI.
