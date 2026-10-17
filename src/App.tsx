@@ -511,6 +511,12 @@ export default function App() {
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
           />
+        ) : activePage === 'security' && selected ? (
+          <aside className="panel"><h2>Security</h2>
+            {(() => { const entry = sim.constitution.countries[selected]; return entry ? <section><strong>State of emergency</strong><p>{entry.emergency.status}{entry.emergency.restrictions.policePowersEnhanced ? ' · enhanced police powers' : ''}</p></section> : <p>Constitutional emergency status is unavailable for this Country.</p>; })()}
+            {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length > 0 && <p>This Country is party to an active war.</p>}
+            <p>Further security systems are not represented in the current build.</p>
+          </aside>
         ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <>
   <p>Active recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}.</p>
   {(() => { const actions = publicInternationalActions(sim, selected).filter(action => action.status === 'active'); return actions.length > 0 ? <section><strong>Recorded international actions</strong>{actions.map(action => <p key={action.id}>{action.actorCountryId} → {action.targetCountryId}: {action.kind}{action.categories.length > 0 ? ` (${action.categories.join(', ')})` : ''}</p>)}</section> : null; })()}
