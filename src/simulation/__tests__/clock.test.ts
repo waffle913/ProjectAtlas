@@ -24,4 +24,11 @@ describe('SimulationClock', () => {
     expect(clock.advance(2_000).date).toBe('2026-02-01');
     expect(monthlyRuns).toBe(1);
   });
+  it('preserves fractional elapsed time across a player command (replaceState)', () => {
+    const clock = new SimulationClock({ ...initial, paused: false });
+    clock.advance(500); // accumulates half a day, no logical day yet
+    expect(clock.snapshot().date).toBe('2026-01-01');
+    clock.replaceState({ ...clock.snapshot(), paused: false }); // a command replaces state in place
+    expect(clock.advance(600).date).toBe('2026-01-02'); // 500 + 600 = 1100ms -> one day
+  });
 });

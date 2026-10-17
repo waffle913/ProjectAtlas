@@ -399,7 +399,7 @@ export default function App() {
   const railAdvisors = governmentAdvisors(sim, playerCountryId);
   const railNotifications = controlledPersonId && playerCountryId ? orderedNotifications(sim, playerCountryId, controlledPersonId) : [];
   const commitCommand = (next: SimulationState) => {
-    clock.current = new SimulationClock(next);
+    clock.current.replaceState(next);
     setSim(clock.current.snapshot());
   };
   const startAs = (personId: string, syntheticMilitary = false, syntheticTrade = false) => {

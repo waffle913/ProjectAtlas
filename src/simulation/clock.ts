@@ -21,6 +21,8 @@ export class SimulationClock {
   }
   reformFiscal = (reform: Omit<FiscalReform, 'sequence'>) => { this.current = scheduleFiscalReform(this.current, reform); };
   snapshot = () => this.snapshotCache(this.current);
+  /** Replaces the current state in place (e.g. after a player command) without resetting accumulated fractional elapsed time. */
+  replaceState = (next: SimulationState) => { this.current = cloneSimulationState(next); };
   setEconomicShock = (regionId: string, shock: Shock) => { this.current = requestEconomicShock(this.current, this.scheduler, regionId, shock); };
   setPaused = (paused: boolean) => { this.current = {...this.current, paused}; };
   setSpeed = (speed: 1 | 2 | 5) => { this.current = {...this.current, speed}; };
