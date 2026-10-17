@@ -27,7 +27,7 @@ export function validateConsequenceView(c: ConsequenceView): void {
   if (typeof c.explanation !== 'string' || !c.explanation.trim()) throw new Error('Consequence view needs an explanation.');
 }
 
-/** Only a grave/urgent notification may pause; routine alerts never interrupt. */
+/** Only a grave or urgent notification may pause; routine/important alerts never interrupt. */
 export function mayPause(alertSeverity: 'routine' | 'important' | 'urgent' | 'grave'): boolean {
   return alertSeverity === 'grave' || alertSeverity === 'urgent';
 }

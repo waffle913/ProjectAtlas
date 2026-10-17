@@ -35,7 +35,7 @@ describe('interface/state/navigation contract (0.33.1-0.33.9)', () => {
     expect(canonicalCommandAuthorityBasisFor({ basis: 'presidential_head_of_state' })).toBe('sourced_presidential_head_of_state');
     expect(canonicalCommandAuthorityBasisFor({ basis: 'unresolved' })).toBeNull();
     expect(() => validateUICommand({ id: 'c', domain: 'politics', mandate: { basis: 'unresolved' }, note: 'x' })).toThrow(/fails closed/);
-    expect(() => validateUICommand({ id: 'c', domain: 'politics', mandate: { basis: 'minister' as never }, note: 'x' })).toThrow(/Unknown command mandate basis/);
+    expect(() => validateUICommand({ id: 'c', domain: 'magic', mandate: { basis: 'head_of_government' }, note: 'x' })).toThrow(/Unknown UI domain/);
   });
 
   it('explains consequences with uncertainty and pauses only on grave/urgent alerts', () => {

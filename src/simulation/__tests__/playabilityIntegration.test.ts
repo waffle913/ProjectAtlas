@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
-import { setControlledPerson } from '../governance/runtime';
+import { setControlledPerson, transferPoliticalOffice } from '../governance/runtime';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import { serializeSimulationState, restoreSimulationState } from '../save';
 import { assertSimulationInvariants } from '../invariants';
@@ -19,17 +19,23 @@ describe('0.33 playability integration', () => {
 
   it('authorizes government information only to the office that actually holds it', () => {
     const persons = Object.entries(world.governance.persons);
-    const head = persons.find(([, p]) => p.office?.role === 'head_of_government');
-    const legislator = persons.find(([, p]) => p.office?.role === 'legislator');
+    // Positive: a reconciled parliamentary head of government holds access.
+    const head = persons.find(([, p]) => p.office?.evidence?.authorityBasis === 'sourced_parliamentary_head_of_government')
+      ?? persons.find(([, p]) => p.office?.role === 'head_of_government');
     expect(head).toBeTruthy();
     if (head) {
       const [id, p] = head;
       expect(hasGovernmentInformationAccess(world, id, p.countryId)).toBe(true);
       expect(setControlledPerson(world, id).governance.player.controlledPersonId).toBe(id);
     }
-    if (legislator) {
-      const [id, p] = legislator;
-      expect(hasGovernmentInformationAccess(world, id, p.countryId)).toBe(false);
+    // Negative: a legislator holds no government-information access.
+    const person = persons.find(([, p]) => p.office?.role !== 'head_of_government' && p.office?.role !== 'head_of_state') ?? persons[0];
+    expect(person).toBeTruthy();
+    if (person) {
+      const [id, p] = person;
+      const withLegislator = transferPoliticalOffice(world, id, { role: 'legislator', countryId: p.countryId });
+      expect(withLegislator.governance.persons[id].office?.role).toBe('legislator');
+      expect(hasGovernmentInformationAccess(withLegislator, id, p.countryId)).toBe(false);
     }
   });
 

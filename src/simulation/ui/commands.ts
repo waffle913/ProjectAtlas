@@ -8,6 +8,7 @@
  */
 
 import { canPerformUIAction } from './contract';
+import { UI_DOMAINS } from './navigation';
 
 export type CommandMandate =
   | { readonly basis: 'head_of_government' }
@@ -49,7 +50,7 @@ export interface UICommand {
 
 export function validateUICommand(c: UICommand): void {
   if (!c || typeof c.id !== 'string' || !c.id.trim()) throw new Error('UI command needs a non-empty id.');
-  if (typeof c.domain !== 'string' || !c.domain.trim()) throw new Error('UI command needs a non-empty domain.');
+  if (typeof c.domain !== 'string' || !(UI_DOMAINS as readonly string[]).includes(c.domain)) throw new Error(`Unknown UI domain: ${String(c.domain)}.`);
   if (!canCommand(c.mandate)) throw new Error('A UI command needs a mandate that actually holds authority; unresolved fails closed.');
   if (typeof c.note !== 'string' || !c.note.trim()) throw new Error('UI command needs a note.');
 }
