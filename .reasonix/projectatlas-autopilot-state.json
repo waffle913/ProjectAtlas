@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.32",
   "current_block": "0.32.1",
-  "milestone_phase": "BRANCH_SYNC",
+  "milestone_phase": "IMPLEMENTING",
 
   "last_safe_milestone": "0.31",
   "last_safe_sha": "f7ee71f0f5be372f77eb072a2b9a728d78da9d9b",
