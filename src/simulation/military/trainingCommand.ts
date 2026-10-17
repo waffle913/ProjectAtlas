@@ -2,12 +2,14 @@
  * 0.31.7 — Military V2: training, availability and command.
  *
  * Pure training/command contract (docs/diplomacy-0.31.md). Command authority
- * mirrors the 0.14 capability model — `command_military_operations` is held by a
- * head of government or a head of state, never by a minister/legislator, and
- * unresolved authority fails closed. Training and reconstitution are time-bounded
- * (never instant), constrained by instructor capacity / recruitment rate, and
- * typed by availability. No second military-power table, no `SimulationState`
- * integration, no schema/migration, no scheduler, no RNG.
+ * mirrors the 0.14 reconciled authority — a parliamentary head of government or
+ * a presidential head of state (the reconciled executives) hold
+ * `command_military_operations`; a ceremonial/monarch head of state, a
+ * presidential head of government, or any minister/legislator does not, and
+ * unresolved authority fails closed. Training and reconstitution are
+ * time-bounded (never instant), constrained by instructor capacity / recruitment
+ * rate, and typed by availability. No second military-power table, no
+ * `SimulationState` integration, no schema/migration, no scheduler, no RNG.
  */
 
 import { isWholeUsd } from '../finance/settlement';
@@ -24,15 +26,15 @@ export const TRAINING_COMMAND_OWNERS = Object.freeze({
 } as const);
 
 export type CommandMandate =
-  | { readonly basis: 'head_of_government' }
-  | { readonly basis: 'head_of_state' }
+  | { readonly basis: 'head_of_government' }          // reconciled parliamentary executive
+  | { readonly basis: 'presidential_head_of_state' }  // reconciled presidential executive
   | { readonly basis: 'unresolved' };
 
 export function validateCommandMandate(m: CommandMandate): void {
   if (!m || typeof m !== 'object') throw new Error('Command mandate is required.');
   switch (m.basis) {
     case 'head_of_government':
-    case 'head_of_state':
+    case 'presidential_head_of_state':
     case 'unresolved':
       break;
     default:
@@ -40,10 +42,18 @@ export function validateCommandMandate(m: CommandMandate): void {
   }
 }
 
-/** Command authority mirrors 0.14: head of government or head of state hold `command_military_operations`; never inferred. */
+/** Command authority mirrors 0.14 reconciled authority; never inferred, ministers/legislators never hold it. */
 export function canCommandMilitary(m: CommandMandate): boolean {
   validateCommandMandate(m);
   return m.basis !== 'unresolved';
+}
+
+/** The canonical 0.14 reconciled authority basis this mandate corresponds to; null for unresolved. */
+export function canonicalCommandAuthorityBasisFor(m: CommandMandate): 'sourced_parliamentary_head_of_government' | 'sourced_presidential_head_of_state' | null {
+  validateCommandMandate(m);
+  if (m.basis === 'head_of_government') return 'sourced_parliamentary_head_of_government';
+  if (m.basis === 'presidential_head_of_state') return 'sourced_presidential_head_of_state';
+  return null;
 }
 
 export interface TrainingProgram {

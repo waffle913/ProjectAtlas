@@ -1,25 +1,24 @@
 /**
  * 0.31.4 — Diplomacy V2: multilateral diplomacy and de-escalation.
  *
- * Pure de-escalation contract (docs/diplomacy-0.31.md). Mediation and concrete
- * de-escalation measures map onto the existing 0.20 multilateral bodies /
- * decisions and the 0.18 international-action system — no second body or
- * decision store. A mediator is non-omniscient: its information basis is
- * explicit and it never gains access to hidden state merely by mediating.
+ * Pure de-escalation contract (docs/diplomacy-0.31.md). The representable
+ * de-escalation measure (lifting a restriction) maps onto the existing 0.18
+ * international-action system — no second store. Mediation is represented as a
+ * forward-looking contract (its 0.20 decision kind does not exist yet, so it is
+ * deferred to later integration), and a mediator is non-omniscient: its
+ * information basis is explicit and mediating never grants hidden access.
  * No `SimulationState` integration, no schema/migration, no scheduler, no RNG.
  */
 
 import { isSimulationDate } from '../date';
 import { canConductDiplomacy, type DiplomaticMandate } from './contract';
 
-export const DEESCALATION_MEASURE_KINDS = Object.freeze(['lift_restriction', 'withdraw_condemnation', 'mediation_offer'] as const);
+export const DEESCALATION_MEASURE_KINDS = Object.freeze(['lift_restriction'] as const);
 export type DeescalationMeasureKind = typeof DEESCALATION_MEASURE_KINDS[number];
 
-/** Canonical owners: each de-escalation measure maps onto an existing system — no second store. */
+/** Canonical owners of representable de-escalation measures — no second store. */
 export const DEESCALATION_OWNERS: Readonly<Record<DeescalationMeasureKind, string>> = Object.freeze({
-  lift_restriction: 'international.actions',      // 0.18 liftDeclaredOn
-  withdraw_condemnation: 'international.actions', // 0.18 liftDeclaredOn
-  mediation_offer: 'multilateral.decisions',      // 0.20 OrganizationDecision
+  lift_restriction: 'international.actions', // 0.18 liftDeclaredOn
 });
 
 export interface DeescalationMeasure {

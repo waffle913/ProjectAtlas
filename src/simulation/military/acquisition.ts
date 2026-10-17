@@ -65,7 +65,8 @@ export function planAcquisition(o: AcquisitionOrder): AcquisitionPlan {
   validateAcquisitionOrder(o);
   const totalCostUsd = checkedMul(o.quantity, o.unitCostUsd);
   if (o.factoryCapacityPerMonth === null) return { status: 'unavailable', funded: null, totalCostUsd, monthsToComplete: null };
-  if (o.fundedUsd === null || o.fundedUsd < totalCostUsd) return { status: 'paused', funded: false, totalCostUsd, monthsToComplete: null };
+  if (o.fundedUsd === null) return { status: 'unavailable', funded: null, totalCostUsd, monthsToComplete: null };
+  if (o.fundedUsd < totalCostUsd) return { status: 'paused', funded: false, totalCostUsd, monthsToComplete: null };
   if (o.factoryCapacityPerMonth === 0) return { status: 'known_zero', funded: true, totalCostUsd, monthsToComplete: null };
   const months = Math.ceil(o.quantity / o.factoryCapacityPerMonth);
   return { status: 'computed', funded: true, totalCostUsd, monthsToComplete: Math.max(1, months) };

@@ -13,7 +13,7 @@ describe('operations and territorial control (0.31.8)', () => {
   it('names the three distinct layers — sovereignty never redrawn', () => {
     expect(TERRITORIAL_CONTROL_OWNERS.sovereignty).toBe('state.regionOwnership');
     expect(TERRITORIAL_CONTROL_OWNERS.control).toBe('operations.regionControl');
-    expect(TERRITORIAL_CONTROL_OWNERS.occupation).toBe('operations.occupation');
+    expect(TERRITORIAL_CONTROL_OWNERS.occupation).toBe('state.occupationByRegion');
   });
 
   it('validates a control change (effective control + occupation, never sovereignty)', () => {

@@ -19,7 +19,7 @@ export const TERRITORIAL_CONTROL_VERSION = 'territorial-control-0.31-v1' as cons
 export const TERRITORIAL_CONTROL_OWNERS = Object.freeze({
   sovereignty: 'state.regionOwnership', // 0.9 canonical sovereignty (never redrawn)
   control: 'operations.regionControl',  // 0.19 effective control
-  occupation: 'operations.occupation',  // 0.19 occupation (distinct from sovereignty)
+  occupation: 'state.occupationByRegion', // top-level canonical occupation map (distinct from sovereignty)
   assets: 'assets',                     // 0.24 asset store (damage)
 } as const);
 

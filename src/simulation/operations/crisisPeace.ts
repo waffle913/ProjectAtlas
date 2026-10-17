@@ -19,7 +19,7 @@ export const CRISIS_PEACE_OWNERS = Object.freeze({
   tensions: 'international.episodes', // 0.18 pressure/severity
   crises: 'crisis',                 // 0.12 crisis engine
   useOfForce: 'operations',         // 0.19 war/deployment
-  peace: 'multilateral',            // 0.20 treaties (peace/guarantee clauses)
+  peace: 'multilateral',            // 0.20 treaties — only `guarantee` has a concrete clause kind; truce/peace are forward-looking (deferred)
 } as const);
 
 export interface ConflictEscalationPath {

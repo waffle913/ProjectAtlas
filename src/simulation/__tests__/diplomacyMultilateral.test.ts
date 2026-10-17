@@ -16,18 +16,15 @@ const offer = (over: Partial<MediationOffer> = {}): MediationOffer => ({
 });
 
 describe('multilateral diplomacy and de-escalation (0.31.4)', () => {
-  it('maps each measure onto an existing system, never a second store', () => {
+  it('maps the representable measure onto the existing system', () => {
     expect(DEESCALATION_OWNERS.lift_restriction).toBe('international.actions');
-    expect(DEESCALATION_OWNERS.withdraw_condemnation).toBe('international.actions');
-    expect(DEESCALATION_OWNERS.mediation_offer).toBe('multilateral.decisions');
   });
 
   it('validates a de-escalation measure with a real mandate', () => {
     expect(() => validateDeescalationMeasure(measure())).not.toThrow();
-    expect(() => validateDeescalationMeasure(measure({ kind: 'withdraw_condemnation' }))).not.toThrow();
     expect(() => validateDeescalationMeasure(measure({ mandate: { basis: 'unresolved' } }))).toThrow(/fails closed/);
     expect(() => validateDeescalationMeasure(measure({ targetCountryId: 'country-a' }))).toThrow(/distinct/);
-    expect(() => validateDeescalationMeasure(measure({ kind: 'magic' as never }))).toThrow(/Unknown de-escalation measure kind/);
+    expect(() => validateDeescalationMeasure(measure({ kind: 'mediation_offer' as never }))).toThrow(/Unknown de-escalation measure kind/);
   });
 
   it('validates a country or organization mediation offer, non-omniscient', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  validateCommandMandate, canCommandMilitary, validateTrainingProgram, planTraining,
+  validateCommandMandate, canCommandMilitary, canonicalCommandAuthorityBasisFor, validateTrainingProgram, planTraining,
   validateReconstitutionRequirement, planReconstitution, TRAINING_COMMAND_OWNERS,
   type CommandMandate, type TrainingProgram, type ReconstitutionRequirement,
 } from '../military/trainingCommand';
@@ -18,13 +18,17 @@ const reconstitution = (over: Partial<ReconstitutionRequirement> = {}): Reconsti
 });
 
 describe('training, availability and command (0.31.7)', () => {
-  it('names canonical owners and grants command only to the real offices', () => {
+  it('names canonical owners and grants command only to the reconciled executives', () => {
     expect(TRAINING_COMMAND_OWNERS.command).toBe('governance.capabilities');
     expect(TRAINING_COMMAND_OWNERS.training).toBe('military.trainees');
     expect(canCommandMilitary(mandate())).toBe(true);
-    expect(canCommandMilitary(mandate({ basis: 'head_of_state' }))).toBe(true);
+    expect(canCommandMilitary(mandate({ basis: 'presidential_head_of_state' }))).toBe(true);
     expect(canCommandMilitary(mandate({ basis: 'unresolved' }))).toBe(false);
+    expect(() => validateCommandMandate(mandate({ basis: 'head_of_state' as never }))).toThrow(/Unknown command mandate basis/);
     expect(() => validateCommandMandate(mandate({ basis: 'minister' as never }))).toThrow(/Unknown command mandate basis/);
+    expect(canonicalCommandAuthorityBasisFor(mandate())).toBe('sourced_parliamentary_head_of_government');
+    expect(canonicalCommandAuthorityBasisFor(mandate({ basis: 'presidential_head_of_state' }))).toBe('sourced_presidential_head_of_state');
+    expect(canonicalCommandAuthorityBasisFor(mandate({ basis: 'unresolved' }))).toBeNull();
   });
 
   it('plans training bounded by instructor capacity and cohort duration; never instant', () => {

@@ -6,8 +6,8 @@ import {
 
 const proposal = (over: Partial<NegotiationProposal> = {}): NegotiationProposal => ({
   id: 'p1', proposerCountryId: 'country-a', mandate: { basis: 'head_of_government' }, counterpartyId: 'country-b',
-  offerClauseKind: 'defensive_guarantee', condition: 'if attacked', deadline: '2026-04-01', extendedDeadline: null,
-  date: '2026-02-01', note: 'defensive guarantee offer',
+  offerClauseKind: 'defensive_guarantee', condition: 'if attacked', deadline: '2026-04-01',
+  extendedDeadline: null, extendedOn: null, date: '2026-02-01', note: 'defensive guarantee offer',
   ...over,
 });
 const concession = (over: Partial<Concession> = {}): Concession => ({
@@ -24,6 +24,8 @@ describe('negotiations, concessions and guarantees (0.31.2)', () => {
     expect(() => validateNegotiationProposal(proposal({ offerClauseKind: 'magic' as never }))).toThrow(/Unknown offer clause kind/);
     expect(() => validateNegotiationProposal(proposal({ deadline: '2026-01-01' }))).toThrow(/must not precede/);
     expect(() => validateNegotiationProposal(proposal({ extendedDeadline: '2026-03-01' }))).toThrow(/not earlier than the original deadline/);
+    expect(() => validateNegotiationProposal(proposal({ extendedDeadline: '2026-06-01', extendedOn: null }))).toThrow(/authorized on a valid date/);
+    expect(() => validateNegotiationProposal(proposal({ extendedDeadline: null, extendedOn: '2026-02-01' }))).toThrow(/must be null/);
   });
 
   it('resolves only by explicit decision or deadline — never from a relation threshold', () => {
@@ -31,20 +33,23 @@ describe('negotiations, concessions and guarantees (0.31.2)', () => {
     expect(resolveNegotiation(proposal(), 'reject', '2026-02-15')).toBe('rejected');
     expect(resolveNegotiation(proposal(), null, '2026-02-15')).toBe('pending');
     expect(resolveNegotiation(proposal(), null, '2026-05-01')).toBe('expired');
+    expect(() => resolveNegotiation(proposal(), null, '2026-01-15')).toThrow(/must not precede the proposal date/);
+    expect(() => resolveNegotiation(proposal(), 'maybe' as never, '2026-02-15')).toThrow(/Unknown negotiation decision/);
   });
 
   it('refuses an acceptance after expiry unless an explicitly authorized extension exists', () => {
     expect(() => resolveNegotiation(proposal(), 'accept', '2026-05-01')).toThrow(/cannot be accepted after its deadline/);
-    const extended = proposal({ extendedDeadline: '2026-06-01' });
+    const extended = proposal({ extendedDeadline: '2026-06-01', extendedOn: '2026-03-01' });
     expect(resolveNegotiation(extended, 'accept', '2026-05-15')).toBe('accepted');
     expect(resolveNegotiation(extended, null, '2026-05-15')).toBe('pending');
     expect(resolveNegotiation(extended, null, '2026-06-15')).toBe('expired');
   });
 
-  it('validates a concession with a real mandate and bounded tariff values', () => {
+  it('validates a bounded concession with a real mandate', () => {
     expect(() => validateConcession(concession())).not.toThrow();
     expect(() => validateConcession(concession({ mandate: { basis: 'unresolved' } }))).toThrow(/fails closed/);
     expect(() => validateConcession(concession({ kind: 'tariff_reduction', value: 20000 }))).toThrow(/between 0 and 10000/);
+    expect(() => validateConcession(concession({ kind: 'relation_adjustment', value: 150 }))).toThrow(/between -100 and 100/);
     expect(() => validateConcession(concession({ value: 1.5 }))).toThrow(/safe integer/);
   });
 

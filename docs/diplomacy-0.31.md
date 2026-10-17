@@ -36,18 +36,19 @@ obligations) and unavailable-safe (`unavailable != 0`). Validated by
 
 The coercion contract (`src/simulation/diplomacy/sanctions.ts`): sanctions,
 embargoes and condemnations map onto the existing 0.18 international-action
-system; an intervention is a 0.19 military operation, never a trade control.
+system with an explicit import/export direction (never silently misclassified);
+an intervention is a 0.19 military operation, never a trade control.
 Circumvention is only representable when actually modelled — not modelled here.
 Validated by `src/simulation/__tests__/diplomacySanctions.test.ts`.
 
 ## 0.31.4 scope — multilateral diplomacy and de-escalation
 
 The de-escalation contract (`src/simulation/diplomacy/multilateralDiplomacy.ts`):
-mediation and concrete de-escalation measures (lift restriction, withdraw
-condemnation, mediation offer) map onto the existing 0.20 multilateral bodies /
-decisions and the 0.18 international-action system — no second store. A mediator
-is non-omniscient: its information basis is explicit and mediating never grants
-hidden access. Validated by
+the representable de-escalation measure (lifting a restriction) maps onto the
+existing 0.18 international-action system — no second store. Mediation is a
+forward-looking contract (its 0.20 decision kind does not exist yet, so it is
+deferred to later integration), and a mediator is non-omniscient: its information
+basis is explicit and mediating never grants hidden access. Validated by
 `src/simulation/__tests__/diplomacyMultilateral.test.ts`.
 
 ## 0.31.5 scope — military support chain
@@ -73,11 +74,12 @@ funding first. Validated by
 ## 0.31.7 scope — training, availability and command
 
 The training/command contract (`src/simulation/military/trainingCommand.ts`):
-command authority mirrors the 0.14 capability model (`command_military_operations`
-held by a head of government or head of state, never a minister/legislator,
-unresolved fails closed); training and reconstitution are time-bounded (never
-instant), constrained by instructor capacity / recruitment rate, and typed by
-availability. Validated by
+command authority mirrors the 0.14 reconciled authority (a parliamentary head of
+government or a presidential head of state holds `command_military_operations`;
+a ceremonial head of state, a presidential head of government, or any
+minister/legislator does not; unresolved fails closed); training and
+reconstitution are time-bounded (never instant), constrained by instructor
+capacity / recruitment rate, and typed by availability. Validated by
 `src/simulation/__tests__/militaryTrainingCommand.test.ts`.
 
 ## 0.31.8 scope — operations and territorial control

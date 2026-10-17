@@ -21,8 +21,9 @@ describe('military industry and acquisition (0.31.6)', () => {
     expect(planAcquisition(order({ quantity: 1, factoryCapacityPerMonth: 100 })).monthsToComplete).toBe(1);
   });
 
-  it('requires full funding before production can start', () => {
-    expect(planAcquisition(order({ fundedUsd: null })).status).toBe('paused');
+  it('requires full funding before production can start; unknown funding is never asserted', () => {
+    expect(planAcquisition(order({ fundedUsd: null })).status).toBe('unavailable');
+    expect(planAcquisition(order({ fundedUsd: null })).funded).toBeNull();
     expect(planAcquisition(order({ fundedUsd: 10000 })).status).toBe('paused'); // 10000 < 25000
   });
 
