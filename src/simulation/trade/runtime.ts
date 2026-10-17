@@ -8,6 +8,7 @@ import { constructionReservedPersonnel } from '../assets/workforce';
 import { CONSTRUCTION_MATERIAL_CATEGORY } from '../assets/model';
 import { constructionMaterialDemandPerMonth } from '../assets/materials';
 import { regionalCapitalCapacityUsd } from '../economy/production';
+import { reconcileTradeStock } from '../resources/stock';
 import { tradeObservations } from './data';
 import { blockedRouteKeysForDate, routeRestrictionKey } from '../international/runtime';
 import { affordableQuantity, CATEGORY_REGISTRY, emptyTrade, money, quoteFlow, TRADE_CATEGORIES, TRADE_MODEL,
@@ -325,6 +326,9 @@ export function prepareTradeMonth(state: SimulationState): SimulationState {
         m.stock.quantity = ledger.closingStock;
         m.stock.produced = integer(m.stock.produced + ledger.stocked);
         m.stock.consumed = integer(m.stock.consumed + ledger.stockConsumed);
+        // 0.27.7 — reconcile the updated canonical store against the resources
+        // stock-conservation contract (no negative stock, no net creation/destruction).
+        reconcileTradeStock(m.stock);
       }
       if (m.use === 'household') {
         householdPayment = integer(householdPayment + ledger.importPaymentUsd);

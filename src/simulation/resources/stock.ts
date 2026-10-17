@@ -17,6 +17,7 @@
  */
 
 import { isWholeUsd } from '../finance/settlement';
+import type { TradeStock } from '../trade/model';
 
 export interface StockLedger {
   readonly opening: number;
@@ -27,6 +28,31 @@ export interface StockLedger {
   readonly closing: number;
   /** Storage capacity; null = unavailable. */
   readonly capacity: number | null;
+}
+
+/** Map the canonical `TradeStock` (the sole physical stock store) to the 0.27
+ *  `StockLedger` vocabulary. `closing` is the canonical current quantity; the
+ *  flow fields are copied verbatim, so the two vocabularies can never diverge. */
+export function stockLedgerFromTrade(stock: TradeStock): StockLedger {
+  const ledger = {
+    opening: stock.opening,
+    produced: stock.produced,
+    received: stock.received,
+    consumed: stock.consumed,
+    exported: stock.exported,
+    closing: stock.quantity,
+    capacity: stock.capacity,
+  };
+  validateStock(ledger);
+  return ledger;
+}
+
+/** Reconcile a canonical `TradeStock` against the 0.27 stock-conservation
+ *  contract (`opening + produced + received === consumed + exported + closing`,
+ *  no negative stock, closing bounded by capacity). Throws on any violation so
+ *  the resources conservation law governs the sole physical stock store. */
+export function reconcileTradeStock(stock: TradeStock): void {
+  stockLedgerFromTrade(stock);
 }
 
 export function validateStock(s: StockLedger): void {
