@@ -4,20 +4,20 @@
   "roadmap_id": "projectatlas-roadmap-submilestones",
   "roadmap_doc": "docs/roadmap-submilestones.md",
   "protocol_doc": "docs/autopilot-protocol.md",
-  "current_milestone": "0.33",
-  "current_block": "0.33.5",
-  "milestone_phase": "BRANCH_CI",
+  "current_milestone": "0.34",
+  "current_block": "0.34.1",
+  "milestone_phase": "BRANCH_SYNC",
 
-  "last_safe_milestone": "0.32",
-  "last_safe_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
+  "last_safe_milestone": "0.33",
+  "last_safe_sha": "66a761e5cbef7324c7a5bf311bcccaa34b2195d3",
   "last_safe_branch": "main",
-  "last_safe_ci_status": "green: run 39030385548 / ubuntu+windows success",
+  "last_safe_ci_status": "green: run 39070236846 / ubuntu+windows success",
 
   "sealed_milestone": "0.24",
   "sealed_sha": "6b6794ef1e5440cf02152a84ee0012aa155f7ad0",
   "sealed_ci_run_id": 38079523537,
 
-  "runtime_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
+  "runtime_sha": "66a761e5cbef7324c7a5bf311bcccaa34b2195d3",
   "metadata_head_sha": "a7bb87cef00b8f82e30f99fe55c1d14667b3682b",
 
   "human_acceptance": {
@@ -42,13 +42,20 @@
   },
   "autonomous_validation": {
     "current": {
-      "milestone": "0.32",
-      "runtime_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
-      "review_evidence": "Independent blocks 0.32.1-0.32.9 implemented (pure contract/vocabulary layer, no schema/migration). 0.32.4 disinformation/censorship BLOCKED_DESIGN (conditional on a decided legal framework). Round 1 consolidated review (tool:review, verdict warn): 3 should-fix + nits — all corrected with regression tests. Round 2 FINAL_VERIFICATION_REVIEW (tool:review, verdict pass) + 1 non-blocking nit fixed. Merged to main; main CI green run 39030385548 (ubuntu+windows). Technical validation only — NOT human acceptance; sealed stays 0.24.",
-      "ci_run_id": 39030385548,
+      "milestone": "0.33",
+      "runtime_sha": "66a761e5cbef7324c7a5bf311bcccaa34b2195d3",
+      "review_evidence": "0.33 final interface/playability/integration. Engine-integration dispositions recorded (economy wired to UI; finance/resources/industry/services/demography/diplomacy/military/media redundant vs canonical engines; security/police deferred). Round 1 CONSOLIDATED_REVIEW (tool:review, verdict block): 1 blocking D1 (Security panel raw crisis engine state leak) + 2 should-fix + 4 probable risks — all corrected. Round 2 FINAL_VERIFICATION_REVIEW (tool:review, verdict: minor nits, OK to ship): corrections verified + nits fixed. Merged to main; main CI green run 39070236846 (ubuntu+windows). Technical validation only — NOT human acceptance; sealed stays 0.24.",
+      "ci_run_id": 39070236846,
       "validated_at": "2026-10-17"
     },
     "history": [
+      {
+        "milestone": "0.32",
+        "runtime_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
+        "review_evidence": "Independent blocks 0.32.1-0.32.9 implemented (pure contract/vocabulary layer, no schema/migration). 0.32.4 disinformation/censorship BLOCKED_DESIGN (conditional on a decided legal framework). Round 1 consolidated review (tool:review, verdict warn): 3 should-fix + nits — all corrected with regression tests. Round 2 FINAL_VERIFICATION_REVIEW (tool:review, verdict pass) + 1 non-blocking nit fixed. Merged to main; main CI green run 39030385548 (ubuntu+windows). Technical validation only — NOT human acceptance; sealed stays 0.24.",
+        "ci_run_id": 39030385548,
+        "validated_at": "2026-10-17"
+      },
       {
         "milestone": "0.31",
         "runtime_sha": "f7ee71f0f5be372f77eb072a2b9a728d78da9d9b",
@@ -101,9 +108,9 @@
     ]
   },
 
-  "current_branch": "waffle913-interface-033",
-  "milestone_scope_base_sha": "ee82bb918e7a1d093d723a4408bb0f1bd197f1c9",
-  "milestone_branch_head_sha": "80026e2f773987dd2461a0699f6f325ce746bb19",
+  "current_branch": "waffle913-world-data-calibration-034",
+  "milestone_scope_base_sha": "66a761e5cbef7324c7a5bf311bcccaa34b2195d3",
+  "milestone_branch_head_sha": "66a761e5cbef7324c7a5bf311bcccaa34b2195d3",
   "carried_commits": [],
   "carried_unrelated_scope": [],
 
@@ -119,25 +126,38 @@
     }
   ],
 
-  "ci_run_id": 39030385548,
-  "ci_head_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
+  "ci_run_id": 39070236846,
+  "ci_head_sha": "66a761e5cbef7324c7a5bf311bcccaa34b2195d3",
   "ci_branch": "main",
   "ci_status": "success",
   "ci_conclusion": "success",
   "ci_last_checked_at": "2026-10-17",
 
   "review_campaign": {
-    "milestone": "0.33",
-    "full_review_round": 1,
+    "milestone": "0.34",
+    "full_review_round": 0,
     "max_full_review_rounds": 2,
-    "final_verification_complete": true,
-    "targeted_verification_complete": true,
+    "final_verification_complete": false,
+    "targeted_verification_complete": false,
     "findings_summary": "Round 1 CONSOLIDATED_REVIEW (tool:review, verdict block): 1 blocking D1 (Security panel rendered raw crisis engine severity/pressure for any selected country, no authority gate - Reality->Government-Information leak) + 2 should-fix (D2 services panel raw annualBudget un-gated; D3 ui/commands.ts canCommand authorized on a caller-supplied mandate label) + probable risks (R1 autosave slot collision slot.autosave; R2 load-screen init race; R3 save_file_read aborts caching + mislabelled; R4 autosave UI-thread serialization) + optionals. Corrected: D1/D2 gated behind playerCanReadGovernment && selected===playerCountryId; D3 canCommand/validateUICommand now check canonical state.governance.persons office authority (label vocabulary-only) + test updated; R1 autosave id -> __autosave__; R2 load screen gated on storageReady; R3 per-read catch with distinct label; O1 dead index delete removed; O2 stale matrix fixed. R4/O3/O4 documented non-blocking. Round 2 FINAL_VERIFICATION_REVIEW (tool:review, verdict: minor nits, OK to ship after): all 7 corrections verified correct+complete; one should-fix (load screen error-vs-initializing distinction + init read errors surfaced as warnings, never a hard block) + stale-doc nits (integration-gap 0.33.6, autosave slot) fixed.",
     "late_blocking_findings": [],
     "reopen_count": 0,
     "max_autonomous_post_seal_reopens": 1
   },
   "review_campaign_history": [
+    {
+      "milestone": "0.33",
+      "full_review_round": 1,
+      "max_full_review_rounds": 2,
+      "final_verification_complete": true,
+      "targeted_verification_complete": true,
+      "findings_summary": "Round 1 CONSOLIDATED_REVIEW (tool:review, verdict block): 1 blocking D1 (Security panel raw crisis engine state leak) + 2 should-fix (D2 services annualBudget un-gated; D3 ui/commands.ts label-based authority) + 4 probable risks — all corrected. Round 2 FINAL_VERIFICATION_REVIEW (tool:review, verdict: minor nits, OK to ship): corrections verified + nits fixed. Merged to main at 66a761e; main CI green run 39070236846 (ubuntu+windows).",
+      "late_blocking_findings": [],
+      "reopen_count": 0,
+      "max_autonomous_post_seal_reopens": 1,
+      "archived_at": "2026-10-17",
+      "note": "0.33 technically validated (NOT human-accepted); sealed stays 0.24."
+    },
     {
       "milestone": "0.32",
       "full_review_round": 2,
