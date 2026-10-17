@@ -2,7 +2,7 @@
 
 **Status:** 0.32 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.32.2 is the current sub-milestone.**
+authorization, not acceptance**. **0.32.3 is the current sub-milestone.**
 
 ## 0.32.1 scope — information contract
 
@@ -28,7 +28,15 @@ interface. Diffusion is gated by the layer-access grant (0.32.1) and bounded by
 the channel's reach; an unknown reach is `unavailable`, never zero. Validated by
 `src/simulation/__tests__/mediaChannels.test.ts`.
 
+## 0.32.3 scope — statements and political communication
+
+The statement contract (`src/simulation/media/statements.ts`): a statement is a
+dated public communication by a person, party, union or association. A statement
+is never a law — it has no policy effect and never mutates canonical state. Its
+reach is bounded by credibility and audience interest, availability-typed.
+Validated by `src/simulation/__tests__/mediaStatements.test.ts`.
+
 ## Deferred (not implemented)
 
-0.32.3–0.32.10 are deferred until their micro-blocks. 0.32 is accepted only
+0.32.4–0.32.10 are deferred until their micro-blocks. 0.32 is accepted only
 after its complete independent audit and green CI.
