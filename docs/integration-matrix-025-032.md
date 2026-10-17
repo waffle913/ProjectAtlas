@@ -188,3 +188,28 @@ ledger). The **V2-specific behaviors** listed above are genuine incomplete runti
 integrations — the remaining 0.33 scope — to be wired only where no design gate
 blocks them.
 
+## V2 runtime integration campaign (branch `waffle913-v2-runtime-integration-025-032`)
+
+Targeted wiring of the genuinely missing, technically unblocked V2 behaviors into
+the single canonical runtime, one causal micro-block per subsystem. Each entry is
+demonstrated by a real canonical-state transition / runtime consumer and a focused
+integration test; anything still blocked is recorded as a precise blocker, never a
+fabricated mechanism. (Local heavy verification is forbidden by the campaign
+guardrails; executable validation runs in GitHub CI against the exact commit SHA.)
+
+| Subsystem | Now wired (runtime) | Remaining blocker |
+|---|---|---|
+| Finance (0.26) | `assessSolvency` derived from canonical fiscal surfaces; `creditCeiling` gates `borrowed` in `runFiscalMonth` (default blocks new credit → debt/cash/arrears feed back); `account.stress.solvencyState/reason` recorded + validated; `assessFiscalSolvency` on-demand view. | FX / bank-created money / bank deposits balance (`BLOCKED_DESIGN`). |
+| Resources (0.27) | `reconcileTradeStock`/`stockLedgerFromTrade` map the canonical `TradeStock` to the 0.27 `StockLedger` and validate conservation/capacity; consumed by `prepareTradeMonth`. | Extraction installations, energy plants, network links (no admitted data; `RESOURCES`/`FUELS`/plant/link registries empty); war-damage→output gated on empty `ASSET_TYPE_CAPACITY_REGISTRY`. |
+| Industry (0.28) | `applyCapacityEffect` applied to the canonical military factory capacity (`militaryFactoryCapacity`), consumed by `militaryRequests` + `executeMilitaryFunding` via an empty-by-default `TECHNOLOGY_LINK_REGISTRY`. | Research projects, adoption/diffusion, process chains (no canonical registry); competition/market structures (`BLOCKED_DESIGN`). |
+| Services (0.29) | `serviceSupplyFactorBps` reads the canonical `TradeStock`; an admitted supply requirement bounds `evolveService` delivered capacity (rupture → lower coverage). | Establishment-level beds/personnel (no admitted service↔asset mapping); rent rules (`BLOCKED_DESIGN`). |
+| Demography (0.30) | `applyDemographicTransition`/`applyInternationalMigration` mutate the single population owner (population + `populationByRegion` + `cohortsFor` cohorts + re-calibrated economy) with exact conservation. | Automatic birth/death/migration rates (no observed rates); cohort-distribution mobility (fixed-split model); police/justice/intelligence (`BLOCKED_DESIGN`/deferred). |
+| Diplomacy/Military (0.31) | `applyCoercionMeasure` (sanction/embargo with explicit import/export direction → canonical 0.18 restriction; `sanctionBlocksRoute` enforces it); `applyConcession` (relation_adjustment → `bilateralRelations`, tariff_reduction → route `tariffBps`); `militarySupportLinks/Chain` derive the canonical 0.16 support chain. | Negotiation resolution + intervention/territorial-control contracts remain vocabulary; mediation deferred (0.20 decision kind absent). |
+| Media (0.32) | `applyOpinionShiftToPolitics` mutates canonical `politics.regionalOpinion` cohort sentiment (signed, bounded, causal `causeId`). | Channel diffusion, statement reach, government-AI action selection remain vocabulary; disinformation/censorship (`BLOCKED_DESIGN`). |
+
+Playability hardening (same branch): New Game re-initializes a genuinely fresh
+simulation; pause-menu / leaving-game pauses the shared clock; Continue/New/Load
+gated on data+storage readiness; genuine loading stages; manual-save overwrite
+confirmation.
+
+
