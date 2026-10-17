@@ -2,7 +2,7 @@
 
 **Status:** 0.31 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.31.2 is the current sub-milestone.**
+authorization, not acceptance**. **0.31.3 is the current sub-milestone.**
 
 ## 0.31.1 scope — actor and commitment contract
 
@@ -32,7 +32,15 @@ tariff reduction, bounded). Credibility is causal (honored vs violated
 obligations) and unavailable-safe (`unavailable != 0`). Validated by
 `src/simulation/__tests__/diplomacyNegotiation.test.ts`.
 
+## 0.31.3 scope — sanctions, embargoes and dependencies
+
+The coercion contract (`src/simulation/diplomacy/sanctions.ts`): sanctions,
+embargoes and condemnations map onto the existing 0.18 international-action
+system; an intervention is a 0.19 military operation, never a trade control.
+Circumvention is only representable when actually modelled — not modelled here.
+Validated by `src/simulation/__tests__/diplomacySanctions.test.ts`.
+
 ## Deferred (not implemented)
 
-0.31.3–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
+0.31.4–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
 after its complete independent audit and green CI.
