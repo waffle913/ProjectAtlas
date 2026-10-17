@@ -2,7 +2,7 @@
 
 **Status:** 0.31 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.31.4 is the current sub-milestone.**
+authorization, not acceptance**. **0.31.5 is the current sub-milestone.**
 
 ## 0.31.1 scope — actor and commitment contract
 
@@ -50,7 +50,17 @@ is non-omniscient: its information basis is explicit and mediating never grants
 hidden access. Validated by
 `src/simulation/__tests__/diplomacyMultilateral.test.ts`.
 
+## 0.31.5 scope — military support chain
+
+The support-chain contract (`src/simulation/military/supportChain.ts`): fuels,
+ammunition, parts, maintenance, transport and personnel map onto their canonical
+owners (0.16 military stocks/personnel, 0.17 trade transport); purchase contracts
+and military products come from the existing 0.16 orders and 0.28 industry — no
+second supply engine. Every link is typed by availability: an unknown requirement
+or stock yields `unavailable`, never a fabricated rupture. Validated by
+`src/simulation/__tests__/militarySupportChain.test.ts`.
+
 ## Deferred (not implemented)
 
-0.31.5–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
+0.31.6–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
 after its complete independent audit and green CI.
