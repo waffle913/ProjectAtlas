@@ -2,7 +2,7 @@
 
 **Status:** 0.31 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.31.5 is the current sub-milestone.**
+authorization, not acceptance**. **0.31.6 is the current sub-milestone.**
 
 ## 0.31.1 scope — actor and commitment contract
 
@@ -60,7 +60,17 @@ second supply engine. Every link is typed by availability: an unknown requiremen
 or stock yields `unavailable`, never a fabricated rupture. Validated by
 `src/simulation/__tests__/militarySupportChain.test.ts`.
 
+## 0.31.6 scope — military industry and acquisition
+
+The acquisition contract (`src/simulation/military/acquisition.ts`): orders,
+financing, factory capacity and delivery delays map onto their canonical owners
+(0.16 `MilitaryOrder` + funded/paidUsd, 0.28 industrial capacity, 0.26 finance) —
+no second order or production store. Production is never instant: a computed plan
+takes at least one month, is bounded by factory capacity, and requires full
+funding first. Validated by
+`src/simulation/__tests__/militaryAcquisition.test.ts`.
+
 ## Deferred (not implemented)
 
-0.31.6–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
+0.31.7–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
 after its complete independent audit and green CI.
