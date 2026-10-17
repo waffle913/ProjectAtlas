@@ -76,10 +76,13 @@ commands; it is not the runtime authority check). Explicit per-action refusal
 feedback (why a command is refused) is not surfaced in the UI.
 
 ### 0.33.7 — Decisions and consequences (`partial`)
-Fiscal proposals already surface consequences, uncertainty (`confidenceBps`) and
-provenance (`limitation`) via `produceGovernmentProposalEstimate`, and parliamentary
-vote results are surfaced as adopted/rejected/unavailable. Other domains do not yet
-surface execution status, uncertainty or provenance per decision.
+Fiscal proposals surface consequences, uncertainty (`confidenceBps`) and provenance
+(`limitation`) via `produceGovernmentProposalEstimate`, and parliamentary vote results
+as adopted/rejected/unavailable. The military panel surfaces command status, coverage,
+`confidenceBps`, provenance and explicit refusal messages (`hasMilitaryManagementAuthority`);
+the operations panel similarly reports command recording and material effects at the
+monthly boundary. Diplomacy is read-only and honestly labelled. Full per-decision
+causal/deferred-consequence surfacing across every domain remains partial.
 
 ### 0.33.8 — Time and alerts (`partial`)
 `Clock` + `SimulationClock` advance logical time; `BriefingTablet` shows briefings.
