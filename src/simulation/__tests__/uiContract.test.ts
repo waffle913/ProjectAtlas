@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { canPerformUIAction, isMutatingUIAction, UI_OWNERS } from '../ui/contract';
 import { canViewMapLayer, isPrivateTabletSection, UI_DOMAINS, MAP_LAYERS } from '../ui/navigation';
-import { canCommand, validateUICommand } from '../ui/commands';
+import { canCommand, validateUICommand, validateCommandMandate, canonicalCommandAuthorityBasisFor } from '../ui/commands';
 import { validateConsequenceView, mayPause, GAMEPLAY_PATHS } from '../ui/frame';
 
 describe('interface/state/navigation contract (0.33.1-0.33.9)', () => {
@@ -24,10 +24,18 @@ describe('interface/state/navigation contract (0.33.1-0.33.9)', () => {
     expect(isPrivateTabletSection('news')).toBe(false);
   });
 
-  it('authorizes commands only from the real office; unresolved fails closed', () => {
+  it('authorizes commands only from the real office; unresolved fails closed, unknown throws', () => {
     expect(canCommand({ basis: 'head_of_government' })).toBe(true);
+    expect(canCommand({ basis: 'presidential_head_of_state' })).toBe(true);
     expect(canCommand({ basis: 'unresolved' })).toBe(false);
+    expect(() => canCommand({ basis: 'minister' as never })).toThrow(/Unknown command mandate basis/);
+    expect(() => canCommand({ basis: 'garbage' as never })).toThrow(/Unknown command mandate basis/);
+    expect(() => validateCommandMandate(null as never)).toThrow(/required/);
+    expect(canonicalCommandAuthorityBasisFor({ basis: 'head_of_government' })).toBe('sourced_parliamentary_head_of_government');
+    expect(canonicalCommandAuthorityBasisFor({ basis: 'presidential_head_of_state' })).toBe('sourced_presidential_head_of_state');
+    expect(canonicalCommandAuthorityBasisFor({ basis: 'unresolved' })).toBeNull();
     expect(() => validateUICommand({ id: 'c', domain: 'politics', mandate: { basis: 'unresolved' }, note: 'x' })).toThrow(/fails closed/);
+    expect(() => validateUICommand({ id: 'c', domain: 'politics', mandate: { basis: 'minister' as never }, note: 'x' })).toThrow(/Unknown command mandate basis/);
   });
 
   it('explains consequences with uncertainty and pauses only on grave/urgent alerts', () => {

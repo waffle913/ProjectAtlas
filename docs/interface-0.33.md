@@ -2,7 +2,9 @@
 
 **Status:** 0.33 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.33.1–0.33.9 are the current sub-milestones.**
+authorization, not acceptance**. **The modules below are vocabulary contracts
+only — they do not implement the interface.** The functional integration status
+of 0.33 is tracked honestly in [the integration-gap inventory](integration-gap-0.33.md).
 
 ## 0.33.1 scope — interface/state contract
 

@@ -1,10 +1,10 @@
 /**
  * 0.33.6 — Interface V1: commands and powers.
  *
- * Pure command contract (docs/interface-0.33.md). A UI command is authorized only
- * by the office actually held (0.14); an unresolved authority fails closed and a
- * command without authority is refused. No `SimulationState` integration, no
- * schema/migration, no scheduler.
+ * Command authorization derives from the canonical 0.14/0.23 office authority
+ * model — a reconciled parliamentary head of government or a reconciled
+ * presidential head of state. Unknown or malformed mandates are rejected
+ * explicitly; unresolved authority fails closed. No second authority system.
  */
 
 import { canPerformUIAction } from './contract';
@@ -14,7 +14,29 @@ export type CommandMandate =
   | { readonly basis: 'presidential_head_of_state' }
   | { readonly basis: 'unresolved' };
 
+export function validateCommandMandate(m: CommandMandate): void {
+  if (!m || typeof m !== 'object') throw new Error('Command mandate is required.');
+  switch (m.basis) {
+    case 'head_of_government':
+    case 'presidential_head_of_state':
+    case 'unresolved':
+      break;
+    default:
+      throw new Error(`Unknown command mandate basis: ${String((m as { basis?: unknown }).basis)}.`);
+  }
+}
+
+/** The canonical 0.14 reconciled authority basis this mandate corresponds to; null for unresolved. */
+export function canonicalCommandAuthorityBasisFor(m: CommandMandate): 'sourced_parliamentary_head_of_government' | 'sourced_presidential_head_of_state' | null {
+  validateCommandMandate(m);
+  if (m.basis === 'head_of_government') return 'sourced_parliamentary_head_of_government';
+  if (m.basis === 'presidential_head_of_state') return 'sourced_presidential_head_of_state';
+  return null;
+}
+
+/** Command authority only from a resolved, canonical office basis; unknown throws, unresolved fails closed. */
 export function canCommand(m: CommandMandate): boolean {
+  validateCommandMandate(m);
   return canPerformUIAction('command', m.basis !== 'unresolved');
 }
 
