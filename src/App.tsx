@@ -48,6 +48,7 @@ import { SaveManager } from "./components/SaveManager";
 import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
 import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
+import { countryColour, regionLayerColour, MAP_LAYERS, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
@@ -78,12 +79,6 @@ function ZoomReporter({ onZoom }: { onZoom: (zoom: number) => void }) {
   useEffect(() => onZoom(map.getZoom()), [map, onZoom]);
   return null;
 }
-const palette = ["#6f8791", "#75856e", "#8a7c69", "#7b7890", "#668b83", "#8a7376", "#7d8667", "#6d7f99", "#8b8064", "#728b79"];
-const countryColour = (id?: string) => {
-  let hash = 2166136261;
-  for (const char of id ?? "") hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
-  return palette[(hash >>> 0) % palette.length];
-};
 export default function App() {
   const [world, setWorld] = useState<{
     countries: Map<string, Country>;
@@ -106,6 +101,7 @@ export default function App() {
   const [sim, setSim] = useState(initialState);
   const [loadError, setLoadError] = useState<string>();
   const [activePage, setActivePage] = useState('overview');
+  const [mapLayer, setMapLayer] = useState<MapLayer>('ownership');
   const [screen, setScreen] = useState<MenuScreen>('menu');
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
@@ -512,11 +508,10 @@ export default function App() {
                 data={regionGeometry}
                 style={(feature) => {
                   const regionId = feature?.properties?.regionId as string;
-                  const owner = sim.regionOwnership[regionId] ?? selected;
                   return {
                   color: selectedRegion === regionId ? "#efc781" : "#46545a",
                   weight: selectedRegion === regionId ? 2.2 : mapZoom >= 5 ? 0.9 : 0.55,
-                    fillColor: countryColour(owner),
+                    fillColor: regionLayerColour(mapLayer, regionId, sim),
                     fillOpacity: selectedRegion === regionId ? 0.82 : 0.56,
                   };
                 }}
@@ -532,7 +527,13 @@ export default function App() {
             )}
           </MapContainer>
           <div className="map-note">
-            Layers: Country ownership · Admin-1 Region boundaries (zoom ≥ 4). Select a country, then zoom to inspect Regions.
+            <div className="layer-control" role="toolbar" aria-label="Map layers">
+              {MAP_LAYERS.map(({ id, label }) => (
+                <button key={id} type="button" className={mapLayer === id ? 'active' : ''} onClick={() => setMapLayer(id)}>{label}</button>
+              ))}
+              <span className="layer-unavailable">Unavailable: {UNAVAILABLE_LAYER_LABELS.join(' · ')}</span>
+            </div>
+            <p>Admin-1 Region boundaries at zoom ≥ 4. Select a country, then zoom to inspect Regions.</p>
           </div>
         </section>
         {activePage === 'fiscal' && controlledPerson && playerCountryId ? (
