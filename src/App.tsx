@@ -16,6 +16,7 @@ import { configureSyntheticTradeScenario } from './simulation/trade/scenario';
 import { configureSyntheticMilitaryScenario } from './simulation/military/scenario';
 import { BriefingTablet } from './components/BriefingTablet';
 import { FiscalPolicy } from './components/FiscalPolicy';
+import { EconomyPanel } from './components/EconomyPanel';
 import { emptyFiscal } from './simulation/fiscal/model';
 import { emptyCrisis } from './simulation/crisis/model';
 import { emptyPolitics } from './simulation/politics/model';
@@ -580,7 +581,10 @@ export default function App() {
           <aside className="panel"><TradeInspection state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} /></aside>
         ) : activePage === 'economy' ? (
           <aside className="panel"><h2>Economic information</h2>
-            {playerCanReadGovernment && playerCountryId && controlledPerson ? inspectGovernmentReports(sim, playerCountryId, controlledPerson.id).map(report => <section key={report.id}><strong>Labour report · {report.asOfDate}</strong><p>{report.valueBps === undefined ? 'Unavailable' : `Unemployment ${(report.valueBps / 100).toFixed(2)}%`}</p><small>{report.coverage} · {report.limitation}</small></section>) : <p>Current internal economic reports are not available to an opposition person. No public unemployment report is currently implemented.</p>}
+            {playerCanReadGovernment && playerCountryId && controlledPerson ? <>
+              {inspectGovernmentReports(sim, playerCountryId, controlledPerson.id).map(report => <section key={report.id}><strong>Labour report · {report.asOfDate}</strong><p>{report.valueBps === undefined ? 'Unavailable' : `Unemployment ${(report.valueBps / 100).toFixed(2)}%`}</p><small>{report.coverage} · {report.limitation}</small></section>)}
+              <EconomyPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} />
+            </> : <p>Current internal economic reports are not available to an opposition person. No public unemployment report is currently implemented.</p>}
           </aside>
         ) : activePage === 'politics' ? (
           <aside className="panel"><h2>Public political institutions</h2>
