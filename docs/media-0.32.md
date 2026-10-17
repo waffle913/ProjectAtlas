@@ -2,7 +2,7 @@
 
 **Status:** 0.32 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.32.7 is the current sub-milestone.**
+authorization, not acceptance**. **0.32.9 is the current sub-milestone.**
 
 ## 0.32.1 scope — information contract
 
@@ -67,7 +67,21 @@ and confidence, ties by id; unavailable choices are excluded, and if nothing is
 positive the government chooses not to act (null). No reaction is fixed by "what
 the player does". Validated by `src/simulation/__tests__/mediaGovernmentAI.test.ts`.
 
+## 0.32.8 scope — economic and social decisions
+
+The economic-decision contract (`src/simulation/media/economicDecisions.ts`): an
+AI government's economic/social decision uses canonical fiscal finances and
+available information; it is affordable only when committed funds cover the cost
+(`unavailable != 0`). Validated by `src/simulation/__tests__/mediaDecisions.test.ts`.
+
+## 0.32.9 scope — diplomacy, crises and opposition responses
+
+The graduated-response contract (`src/simulation/media/diplomacyAI.ts`): an AI
+government's response is graduated and deterministic from dispute severity and an
+explicit decision to use force — never "fixed by what the player does".
+Validated by `src/simulation/__tests__/mediaDecisions.test.ts`.
+
 ## Deferred (not implemented)
 
-0.32.8–0.32.10 are deferred until their micro-blocks. 0.32 is accepted only
-after its complete independent audit and green CI.
+0.32.10 (validation) is the consolidated independent review. 0.32 is accepted
+only after its complete independent audit and green CI.
