@@ -26,12 +26,14 @@ import { emptySocioeconomy } from './simulation/socioeconomy/model';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GeoJSON, MapContainer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import type { Country, SimulationState, Territory } from "./types";
+import type { Country, RegionEntity, SimulationState, Territory } from "./types";
 import { buildWorld } from "./data/geography";
 import { loadCountryData, type LoadedCountryData } from "./data/countryData";
 import { loadRegionData, type LoadedRegionData } from "./data/regionData";
 import { loadPopulationData, populationBaselineState, type LoadedPopulationData } from "./data/populationData";
 import { loadEconomicData, economicBaselineState, type LoadedEconomicData } from "./data/economicData";
+import type { InitializationData } from "./simulation/socioeconomy/initialization";
+import type { PoliticalInitializationData } from "./simulation/politics/initialization";
 import { Clock } from "./components/Clock";
 import { CountryPanel } from "./components/CountryPanel";
 import { RegionPanel } from "./components/RegionPanel";
@@ -108,11 +110,15 @@ export default function App() {
   const [screen, setScreen] = useState<MenuScreen>('menu');
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
+  const [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const [pauseOpen, setPauseOpen] = useState(false);
   const [saves, setSaves] = useState(() => listSaves());
   const [storageState, setStorageState] = useState<'initializing' | 'ready' | 'error'>(() => (isTauri() ? 'initializing' : 'ready'));
   const [storageError, setStorageError] = useState<string>();
   const [saveError, setSaveError] = useState<string>();
+  const [loadStage, setLoadStage] = useState('Loading country registry and geography…');
+  const newGameBaseRef = useRef<SimulationState | undefined>(undefined);
+  const newGameSeedRef = useRef<{ regions: RegionEntity[]; countryIds: string[]; socioeconomicData: InitializationData; politicalData: PoliticalInitializationData } | undefined>(undefined);
   useEffect(() => { applyUiScale(settings); }, [settings]);
   useEffect(() => {
     let active = true;
@@ -146,6 +152,7 @@ export default function App() {
   const clock = useRef(new SimulationClock(initialState));
   useEffect(() => {
     let active = true;
+    setLoadStage('Loading country registry and geography…');
     Promise.all([
       loadCountryData(),
       fetch("/data/natural-earth-admin-0.geojson"),
@@ -159,16 +166,20 @@ export default function App() {
           throw new Error(
             "One or more local geographic assets are unavailable.",
           );
+        setLoadStage('Loading Region registry and boundaries…');
         const [regions, ...geography] = await Promise.all([
           loadRegionData(data.registry),
           ...responses.map((response) => response.json()),
         ]);
+        setLoadStage('Loading population baselines…');
         const population = await loadPopulationData(regions.registry.regions, new Set(data.registry.countries.map(country => country.id)));
+        setLoadStage('Loading economic baselines…');
         const economy = await loadEconomicData(regions.registry.regions);
         return [data, regions, population, economy, ...geography] as const;
       })
       .then(([data, regions, population, economy, admin0, land, lakes, rivers, admin1Overview]) => {
         if (!active) return;
+        setLoadStage('Initializing simulation…');
         const nextWorld = buildWorld(admin0, data.mapping, data.registry);
         const ownership = Object.fromEntries(
           nextWorld.territories.map((territory) => [
@@ -183,14 +194,22 @@ export default function App() {
         clock.current.setPopulationByRegion(populationBaselineState(population.demographics));
         clock.current.setEconomicOutputByRegion(economicBaselineState(economy.baselines));
         clock.current.setCountries(data.registry.countries.map(country => country.id));
+        // Capture the fresh-game base + seed so "New Game" can re-initialize a
+        // genuinely fresh simulation without any prior session's state.
+        const base = clock.current.snapshot();
+        const countryIds = data.registry.countries.map(country => country.id);
+        const socioeconomicData: InitializationData = { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries };
+        const politicalData: PoliticalInitializationData = { countries: data.registry.countries, offices: data.politics };
+        newGameBaseRef.current = base;
+        newGameSeedRef.current = { regions: regions.registry.regions, countryIds, socioeconomicData, politicalData };
         clock.current = new SimulationClock(initializeNewGame(
-          clock.current.snapshot(),
+          base,
           regions.registry.regions,
-          data.registry.countries.map(country => country.id),
-          { demographics: population.demographics, national: population.national, economics: economy.baselines, facts: data.facts.countries },
-          { countries: data.registry.countries, offices: data.politics },
+          countryIds,
+          socioeconomicData,
+          politicalData,
         ));
-        const registryContext = { countryIds: new Set(data.registry.countries.map(country => country.id)), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
+        const registryContext = { countryIds: new Set(countryIds), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
         assertSimulationInvariants(clock.current.snapshot(), { ...registryContext, regions: regions.registry.regions }, 'reload');
         setSim(clock.current.snapshot());
         setWorld(nextWorld);
@@ -302,6 +321,32 @@ export default function App() {
     regions: regionData.registry.regions,
   } : undefined;
   const applyState = (next: SimulationState) => { clock.current = new SimulationClock(next); setSim(clock.current.snapshot()); };
+  const dataReady = Boolean(world && countryData && regionData && populationData && economicData);
+  // A new game always re-initializes from the captured fresh base + seed, so
+  // returning to the menu and starting again can never preserve a prior
+  // session's player, ownership, wars, budgets or clock state.
+  const startNewGame = () => {
+    if (!newGameBaseRef.current || !newGameSeedRef.current) return;
+    const { regions, countryIds, socioeconomicData, politicalData } = newGameSeedRef.current;
+    const fresh = initializeNewGame(structuredClone(newGameBaseRef.current), regions, countryIds, socioeconomicData, politicalData);
+    setSelected(undefined);
+    setSelectedRegion(undefined);
+    setActivePage('overview');
+    setMapLayer('ownership');
+    setSaveError(undefined);
+    applyState(fresh);
+    setScreen('game');
+  };
+  // Opening the pause menu, or leaving the game view entirely, genuinely
+  // suspends progression: the shared clock is paused and never advances while a
+  // menu is shown.
+  useEffect(() => {
+    const inGame = screen === 'game' && !pauseOpen;
+    if (!inGame && !clock.current.snapshot().paused) {
+      clock.current.setPaused(true);
+      setSim(clock.current.snapshot());
+    }
+  }, [screen, pauseOpen]);
   const ctrlPersonId = sim.governance.player.controlledPersonId;
   const ctrlPerson = ctrlPersonId ? sim.governance.persons[ctrlPersonId] : undefined;
   // Autosave is a wall-clock feature, never a simulation scheduler. The ref holds
@@ -380,7 +425,7 @@ export default function App() {
       <button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button>
     </main>
   );
-  if (screen === 'menu') return <MainMenu hasSave={Boolean(mostRecentSave())} onContinue={continueGame} onNewGame={() => setScreen('new-game')} onLoad={() => setScreen('load')} onSettings={() => setScreen('settings')} onCredits={() => setScreen('credits')} onExit={exitApp} settings={settings} />;
+  if (screen === 'menu') return <MainMenu hasSave={Boolean(mostRecentSave())} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => setScreen('load')} onSettings={() => setScreen('settings')} onCredits={() => setScreen('credits')} onExit={exitApp} settings={settings} />;
   if (loadError)
     return (
       <main className="load-state">
@@ -394,7 +439,7 @@ export default function App() {
   if (!world || !countryData || !regionData || !populationData || !economicData)
     return (
       <main className="load-state">
-        <p>Loading local country and Region assets…</p>
+        <p>{loadStage}</p>
       </main>
     );
   const controlledPersonId = sim.governance.player.controlledPersonId;
@@ -655,9 +700,16 @@ export default function App() {
         <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Save game">
           <div className="pause-menu">
             <h1>{savePrompt.mode === 'saveAs' ? 'Save As' : 'Save Game'}</h1>
-            <input value={savePrompt.name} onChange={e => setSavePrompt({ ...savePrompt, name: e.target.value })} placeholder="Save name" autoFocus />
-            <button disabled={!storageReady} onClick={async () => { if (await saveCurrent(savePrompt.name || 'ProjectAtlas')) { setSavePrompt(null); setPauseOpen(false); } }}>Save</button>
-            <button onClick={() => { setSavePrompt(null); setSaveError(undefined); }}>Cancel</button>
+            <input value={savePrompt.name} onChange={e => { setSavePrompt({ ...savePrompt, name: e.target.value }); setConfirmOverwrite(false); }} placeholder="Save name" autoFocus />
+            <button disabled={!storageReady} onClick={async () => {
+              const name = savePrompt.name || 'ProjectAtlas';
+              const targetId = saveIdFor(name);
+              const exists = listSaves().some(save => save.id === targetId);
+              if (exists && !confirmOverwrite) { setConfirmOverwrite(true); return; }
+              if (await saveCurrent(name)) { setSavePrompt(null); setPauseOpen(false); setConfirmOverwrite(false); }
+            }}>{confirmOverwrite ? 'Overwrite existing save' : 'Save'}</button>
+            <button onClick={() => { setSavePrompt(null); setSaveError(undefined); setConfirmOverwrite(false); }}>Cancel</button>
+            {confirmOverwrite && !saveError && <p className="save-error">A save with this name already exists. Overwrite it?</p>}
             {(saveError || storageError) && <p className="save-error">{saveError ?? storageError}</p>}
           </div>
         </div>
