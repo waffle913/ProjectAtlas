@@ -6,7 +6,7 @@
   "protocol_doc": "docs/autopilot-protocol.md",
   "current_milestone": "0.33",
   "current_block": "0.33.5",
-  "milestone_phase": "CORRECTING_REVIEW_FINDINGS",
+  "milestone_phase": "BRANCH_CI",
 
   "last_safe_milestone": "0.32",
   "last_safe_sha": "9d5d640a21434a4ec43d9842d99d8c9a7d21fc90",
@@ -130,9 +130,9 @@
     "milestone": "0.33",
     "full_review_round": 1,
     "max_full_review_rounds": 2,
-    "final_verification_complete": false,
-    "targeted_verification_complete": false,
-    "findings_summary": "Round 1 CONSOLIDATED_REVIEW (tool:review, verdict block): 1 blocking D1 (Security panel rendered raw crisis engine severity/pressure for any selected country, no authority gate - Reality->Government-Information leak) + 2 should-fix (D2 services panel raw annualBudget un-gated; D3 ui/commands.ts canCommand authorized on a caller-supplied mandate label) + probable risks (R1 autosave slot collision slot.autosave; R2 load-screen init race; R3 save_file_read aborts caching + mislabelled; R4 autosave UI-thread serialization) + optionals. Corrected: D1/D2 gated behind playerCanReadGovernment && selected===playerCountryId; D3 canCommand/validateUICommand now check canonical state.governance.persons office authority (label vocabulary-only) + test updated; R1 autosave id -> __autosave__; R2 load screen gated on storageReady; R3 per-read catch with distinct label; O1 dead index delete removed; O2 stale matrix fixed. R4/O3/O4 documented non-blocking.",
+    "final_verification_complete": true,
+    "targeted_verification_complete": true,
+    "findings_summary": "Round 1 CONSOLIDATED_REVIEW (tool:review, verdict block): 1 blocking D1 (Security panel rendered raw crisis engine severity/pressure for any selected country, no authority gate - Reality->Government-Information leak) + 2 should-fix (D2 services panel raw annualBudget un-gated; D3 ui/commands.ts canCommand authorized on a caller-supplied mandate label) + probable risks (R1 autosave slot collision slot.autosave; R2 load-screen init race; R3 save_file_read aborts caching + mislabelled; R4 autosave UI-thread serialization) + optionals. Corrected: D1/D2 gated behind playerCanReadGovernment && selected===playerCountryId; D3 canCommand/validateUICommand now check canonical state.governance.persons office authority (label vocabulary-only) + test updated; R1 autosave id -> __autosave__; R2 load screen gated on storageReady; R3 per-read catch with distinct label; O1 dead index delete removed; O2 stale matrix fixed. R4/O3/O4 documented non-blocking. Round 2 FINAL_VERIFICATION_REVIEW (tool:review, verdict: minor nits, OK to ship after): all 7 corrections verified correct+complete; one should-fix (load screen error-vs-initializing distinction + init read errors surfaced as warnings, never a hard block) + stale-doc nits (integration-gap 0.33.6, autosave slot) fixed.",
     "late_blocking_findings": [],
     "reopen_count": 0,
     "max_autonomous_post_seal_reopens": 1

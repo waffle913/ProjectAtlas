@@ -120,8 +120,11 @@ export default function App() {
     initDesktopBackends()
       .then((result) => {
         if (!active) return;
-        if (result.error) { setStorageError(result.error); setStorageState('error'); }
-        else setStorageState('ready');
+        // Read errors (a corrupt settings file or an unreadable save) are surfaced
+        // as warnings, never a hard block: the native backend is installed and the
+        // successfully-read saves remain usable.
+        if (result.error) setStorageError(result.error);
+        setStorageState('ready');
         // Reload settings and save listings from the native backend, so the
         // application never silently keeps reading the browser localStorage.
         setSettings(loadSettings());
@@ -369,7 +372,7 @@ export default function App() {
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
   if (screen === 'load') return storageReady
     ? <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />
-    : <main className="load-state"><h1>Storage initializing</h1><p>Local save storage is still being prepared. Please wait a moment.</p><button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button></main>;
+    : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button></main>;
   if (screen === 'credits') return (
     <main className="load-state credits">
       <h1>ProjectAtlas</h1>

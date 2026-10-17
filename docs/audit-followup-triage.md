@@ -71,7 +71,7 @@ capability or overstatement, not a code defect.
 
 ### B1 — autosave
 1. Respect `gameplay.autosave` and `gameplay.autosaveIntervalMinutes`.
-2. Dedicated autosave slot (`slot.autosave`); never overwrites a named user save.
+2. Dedicated autosave slot (`__autosave__`); never overwrites a named user save.
 3. No overlapping autosaves; failures surfaced; wall-clock only (no simulation
    scheduler).
 

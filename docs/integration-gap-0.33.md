@@ -73,9 +73,11 @@ and full Information/Perception compartmentalization are not wired.
 ### 0.33.6 — Commands and powers (`partial` commands)
 `FiscalPolicy`/`MilitaryCapabilities`/`OperationsPanel`/`MultilateralPanel` issue
 engine commands; authority gating uses `hasGovernmentInformationAccess` and office
-roles. `src/simulation/ui/commands.ts` is **contract-only** vocabulary (it names
-commands; it is not the runtime authority check). Explicit per-action refusal
-feedback (why a command is refused) is not surfaced in the UI.
+roles. `src/simulation/ui/commands.ts` `canCommand`/`validateUICommand` now derive
+authority from the canonical `state.governance.persons` office record (the mandate
+label is vocabulary-only and never grants authority); the runtime command panels
+use `hasPoliticalAuthority`/`hasGovernmentInformationAccess`. Explicit per-action
+refusal feedback (why a command is refused) is not surfaced in every panel.
 
 ### 0.33.7 — Decisions and consequences (`partial`)
 Fiscal proposals surface consequences, uncertainty (`confidenceBps`) and provenance
