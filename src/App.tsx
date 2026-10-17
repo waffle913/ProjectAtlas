@@ -49,6 +49,7 @@ import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./ap
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
 import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
 import { countryColour, regionLayerColour, MAP_LAYERS, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
+import { newUrgentBriefingCount } from "./app/urgency";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
@@ -237,12 +238,23 @@ export default function App() {
     let previous = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
+      const before = clock.current.snapshot();
       const next = clock.current.advanceIfChanged(now - previous);
-      if (next) setSim(next);
+      if (next) {
+        setSim(next);
+        // Interruption policy: only a newly-visible urgent briefing (a grave
+        // event) may pause the simulation, and only when the player asked for it.
+        const controlledPersonId = next.governance.player.controlledPersonId;
+        const countryId = controlledPersonId ? next.governance.persons[controlledPersonId]?.countryId : undefined;
+        if (settings.gameplay.pauseOnUrgent && controlledPersonId && countryId && newUrgentBriefingCount(before, next, countryId, controlledPersonId) > 0) {
+          clock.current.setPaused(true);
+          setSim(clock.current.snapshot());
+        }
+      }
       previous = now;
     }, 250);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [settings.gameplay.pauseOnUrgent]);
   const selectedCountry = selected ? world?.countries.get(selected) : undefined;
   const selectedRegionEntity = selectedRegion ? regionData?.regionsById.get(selectedRegion) : undefined;
   const selectedRegionOwnerId = selectedRegion ? sim.regionOwnership[selectedRegion] : undefined;

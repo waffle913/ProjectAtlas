@@ -23,7 +23,7 @@ navigation link cannot be confused with a working gameplay subsystem.
 | 0.33.5 | Context panels and Tablet | `partial` | `partial` | `—` | `—` | `partial` | `—` |
 | 0.33.6 | Commands and powers | `✓` | `✓` | `partial` | `partial` | `partial` | `—` |
 | 0.33.7 | Decisions and consequences | `✓` | `✓` | `partial` | `partial` | `—` | `—` |
-| 0.33.8 | Time and alerts | `✓` | `✓` | `partial` | `—` | `partial` | `—` |
+| 0.33.8 | Time and alerts | `✓` | `✓` | `partial` | `partial` | `partial` | `—` |
 | 0.33.9 | Gameplay paths | `✓` | `✓` | `partial` | `partial` | `partial` | `—` |
 | 0.33.10 | Creative/professional sandbox | `blocked` | `blocked` | `blocked` | `blocked` | `blocked` | `blocked` |
 | 0.33.11 | UX review / cross-cutting audit | `—` | `—` | `—` | `—` | `—` | `—` |
@@ -75,7 +75,9 @@ does not yet surface execution status, uncertainty or provenance per decision.
 
 ### 0.33.8 — Time and alerts (`partial`)
 `Clock` + `SimulationClock` advance logical time; `BriefingTablet` shows briefings.
-Urgency/interruption states (only grave events pause) are not fully wired.
+Interruption is partially wired: a newly-visible **urgent** briefing pauses the
+simulation when `gameplay.pauseOnUrgent` is enabled (authority-gated via
+`newUrgentBriefingCount`); ordinary briefings never pause.
 
 ### 0.33.9 — Gameplay paths (`partial`)
 Governing (fiscal), opposition (authority-gated economy read), succession
