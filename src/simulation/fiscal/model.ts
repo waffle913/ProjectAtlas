@@ -1,3 +1,4 @@
+import type { SolvencyAssessment, SolvencyState } from '../finance/solvency';
 export type TaxKind = 'personal' | 'consumption' | 'payroll' | 'corporate';
 export type TaxCategory = 'personal' | 'consumption' | 'employee' | 'employer' | 'corporate';
 export interface Band { lower: number; rateBps: number }
@@ -61,7 +62,7 @@ export interface Account {
   openingCash: number; closingCash: number; openingDebt: number; closingDebt: number;
   financingNeed: number; borrowed: number; repaid: number;
   arrears: Budget; interestArrears: number; openingArrears: Budget; openingInterestArrears: number;
-  transferPaid: number; stress: { financingBaselineStatus: 'sourced' | 'modelled'; unpaidCommitments: number; interestBurdenBps: number | null; debtToAnnualOutputBps: number | null; deficitToOutputBps: number | null; pensionFundingGap: number; incomeSupportFundingGap: number; serviceUnderfunding: number; infrastructureBacklog: number; disposableIncomeDeclineBps: number | null };
+  transferPaid: number; stress: { financingBaselineStatus: 'sourced' | 'modelled'; unpaidCommitments: number; interestBurdenBps: number | null; debtToAnnualOutputBps: number | null; deficitToOutputBps: number | null; pensionFundingGap: number; incomeSupportFundingGap: number; serviceUnderfunding: number; infrastructureBacklog: number; disposableIncomeDeclineBps: number | null; solvencyState?: SolvencyState; solvencyReason?: SolvencyAssessment['reason'] };
 }
 export interface FiscalCountry {
   policy: Policy; policyHistory: { date: string; policy: Policy }[];

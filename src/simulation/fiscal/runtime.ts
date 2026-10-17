@@ -9,6 +9,7 @@ import { deterministicFingerprint } from '../fingerprint';
 import { executeMilitaryFunding, militaryRequests } from '../military/runtime';
 import { quoteMilitaryPayroll, type MilitaryPayroll } from './militaryPayroll';
 import { tradeCustomsRevenue, tradeDemand } from '../trade/runtime';
+import { assessSolvency, creditCeiling, type CreditCeiling, type SolvencyAssessment, type SolvencyIndicators } from '../finance/solvency';
 const kinds = ['personal', 'consumption', 'payroll', 'corporate'] as const;
 const taxKind = (category: typeof TAXES[number]) => category === 'employee' || category === 'employer' ? 'payroll' : category;
 const flows = (policy: Policy): Record<typeof TAXES[number], TaxFlow> => Object.fromEntries(TAXES.map(k => [k, { base: 0, liability: 0, collected: 0, status: policy[taxKind(k)]?.status ?? 'unavailable' }])) as Record<typeof TAXES[number], TaxFlow>;
@@ -266,6 +267,7 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
   let militaryState = state;
   for (const [id, c] of Object.entries(f.countries).sort(([a], [b]) => a.localeCompare(b))) {
     const ids = grouped.get(id) ?? [];
+    const output = sum(ids.map(r => state.socioeconomy.regions[r].economy!.output));
     const taxes = flows(c.policy);
     for (const rid of ids) {
       const r = taxRegion(state.socioeconomy.regions[rid], id, c.policy, f.regions[rid]);
@@ -297,7 +299,15 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     const committed = c.constructionCommitted;
     const uncommittedCash = Math.max(0, c.cash - committed);
     const financingNeed = Math.max(0, sum(allObligations) + interestObligation - totalRevenue - uncommittedCash);
-    const borrowed = Math.min(financingNeed, borrowingCapacity(c));
+    // 0.26.6 — solvency is causal, not magical: a sovereign default (unpaid
+    // interest arrears) blocks all new credit; otherwise borrowing keeps only the
+    // monthly limit and the remaining debt-limit headroom.
+    const solvencyIndicators: SolvencyIndicators = {
+      debtStock: c.debt, debtLimit: c.debtLimit, interestDue, interestArrears: c.interestArrears,
+      arrears: sum(CATEGORIES.map(k => c.arrears[k])), totalRevenue, availableCash: uncommittedCash, annualOutput: output * 12,
+    };
+    const solvency = assessSolvency(solvencyIndicators);
+    const borrowed = Math.min(financingNeed, borrowingCapacity(c), creditCeiling(solvencyIndicators, solvency).usable);
     const resources = integer(uncommittedCash + totalRevenue + borrowed);
     const interestPaid = Math.min(resources, interestObligation);
     const eligible = [...obligations.map(amount => ids.length ? amount : 0), defenseObligation];
@@ -337,7 +347,6 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
       defensePublicOrders = recipientIds.map((regionId, index) => ({ regionId, amount: goodsByRegion[index] }));
       defenseOrders.push(...defensePublicOrders);
     }
-    const output = sum(ids.map(r => state.socioeconomy.regions[r].economy!.output));
     const oldDisposable = sum(ids.map(r => sum(f.regions[r]?.disposable ?? [])));
     const disposable = sum(ids.map(r => sum(regions[r].disposable)));
     countries[id] = { ...c, cash, debt, arrears, interestArrears: interestObligation - interestPaid, services,
@@ -359,7 +368,8 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
           deficitToOutputBps: output ? ratio(Math.max(0, totalSpending - totalRevenue), 10000, output) : null,
           pensionFundingGap: Math.max(0, appropriated.pensions - executed.pensions), incomeSupportFundingGap: Math.max(0, appropriated.incomeSupport - executed.incomeSupport),
           serviceUnderfunding: sum(Object.values(services).map(s => Math.max(0, s.required - s.spending))), infrastructureBacklog: services.infrastructure.backlog,
-          disposableIncomeDeclineBps: oldDisposable ? ratio(Math.max(0, oldDisposable - disposable), 10000, oldDisposable) : null } } };
+          disposableIncomeDeclineBps: oldDisposable ? ratio(Math.max(0, oldDisposable - disposable), 10000, oldDisposable) : null,
+          solvencyState: solvency.state, solvencyReason: solvency.reason } } };
   }
   for (const order of defenseOrders) {
     const ledger = regions[order.regionId];
@@ -416,3 +426,28 @@ export const registerFiscalTasks = (scheduler: SimulationScheduler) => scheduler
   .register({ id: 'fiscal.reforms', cadence: 'daily', priority: 50, run: applyReforms })
   .register({ id: 'fiscal.monthly', cadence: 'monthly', priority: 150, run: runFiscalMonth });
 export const inspectFiscal = (state: SimulationState, countryId: string) => structuredClone({ date: state.date, countryId, assumptions: M, country: state.fiscal.countries[countryId], queued: state.fiscal.reforms.filter(r => r.countryId === countryId), revenueScope: 'knownTaxRevenue contains simulated documented categories; otherRevenue is a fixed sourced/modelled aggregate calibration; unavailable categories are not zero-rate laws' });
+
+/** Build 0.26.6 solvency indicators from the canonical fiscal surfaces (current view, no second ledger). */
+export function fiscalSolvencyIndicators(state: SimulationState, countryId: string): SolvencyIndicators {
+  const c = state.fiscal.countries[countryId];
+  if (!c) throw new Error('Unknown fiscal Country.');
+  const ids = ownedEconomies(state).get(countryId) ?? [];
+  const output = sum(ids.map(r => state.socioeconomy.regions[r].economy!.output));
+  return {
+    debtStock: c.debt,
+    debtLimit: c.debtLimit,
+    interestDue: ratio(c.debt, c.interestRateBps, 120000),
+    interestArrears: c.interestArrears,
+    arrears: sum(CATEGORIES.map(k => c.arrears[k])),
+    totalRevenue: c.account?.totalRevenue ?? 0,
+    availableCash: Math.max(0, c.cash - c.constructionCommitted),
+    annualOutput: output * 12,
+  };
+}
+
+/** On-demand solvency assessment + causal credit ceiling over the canonical fiscal state. */
+export function assessFiscalSolvency(state: SimulationState, countryId: string): { assessment: SolvencyAssessment; credit: CreditCeiling } {
+  const indicators = fiscalSolvencyIndicators(state, countryId);
+  const assessment = assessSolvency(indicators);
+  return { assessment, credit: creditCeiling(indicators, assessment) };
+}

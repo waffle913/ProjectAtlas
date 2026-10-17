@@ -3,6 +3,7 @@ import type { SimulationInvariant } from '../invariants';
 import { CATEGORIES, TAXES } from './model';
 import { dateValid, sum, validatePolicy } from './math';
 import { validateBudget } from './runtime';
+import { SOLVENCY_STATES } from '../finance/solvency';
 const quantity = (v: unknown) => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 export const fiscalInvariant: SimulationInvariant = {
   id: 'fiscal-conservation',
@@ -76,6 +77,13 @@ export const fiscalInvariant: SimulationInvariant = {
         || a.customsRevenue.collected !== sum(state.trade.flows.filter(flow => flow.importerId === id).map(flow => flow.customsUsd))
         || a.customsRevenue.unavailableRates !== state.trade.routes.filter(route => route.importerId === id && route.tariffBps === null).length)) fail(id, 'Customs receipts have no exactly-once admitted trade flows.');
       if (a.stress.financingBaselineStatus !== c.revenueCalibration.status) fail(id, 'Fiscal stress lost financing-baseline provenance.');
+      if (a.stress.solvencyState !== undefined) {
+        if (!SOLVENCY_STATES.includes(a.stress.solvencyState)) fail(id, 'Invalid solvency state.');
+        if (a.stress.solvencyReason !== null && !['interest_arrears', 'debt_limit_exceeded', 'commitment_arrears', 'interest_burden'].includes(a.stress.solvencyReason as string)) fail(id, 'Invalid solvency reason.');
+        if (a.stress.solvencyState === 'solvent' && a.stress.solvencyReason !== null) fail(id, 'Solvent state must not carry a solvency reason.');
+        if (a.stress.solvencyState === 'in_default' && a.stress.solvencyReason !== 'interest_arrears') fail(id, 'Default must be driven by unpaid interest arrears.');
+        if (a.stress.solvencyState === 'stressed' && !['debt_limit_exceeded', 'commitment_arrears', 'interest_burden'].includes(a.stress.solvencyReason as string)) fail(id, 'Stressed state carries an invalid solvency reason.');
+      }
       if (a.totalSpending !== sum(Object.values(a.executed)) + (a.defense?.executed ?? 0) + a.interestPaid + construction.executed + construction.maintenance
         || a.primaryBalance !== a.totalRevenue - sum(Object.values(a.executed)) - (a.defense?.executed ?? 0) - construction.executed - construction.maintenance
         || a.overallBalance !== a.totalRevenue - a.totalSpending) fail(id, 'Spending/balances do not reconcile.');
