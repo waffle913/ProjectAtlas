@@ -10,6 +10,7 @@ import { executeMilitaryFunding, militaryRequests } from '../military/runtime';
 import { quoteMilitaryPayroll, type MilitaryPayroll } from './militaryPayroll';
 import { tradeCustomsRevenue, tradeDemand } from '../trade/runtime';
 import { assessSolvency, creditCeiling, type CreditCeiling, type SolvencyAssessment, type SolvencyIndicators } from '../finance/solvency';
+import { serviceSupplyFactorBps } from '../services/supplies';
 const kinds = ['personal', 'consumption', 'payroll', 'corporate'] as const;
 const taxKind = (category: typeof TAXES[number]) => category === 'employee' || category === 'employer' ? 'payroll' : category;
 const flows = (policy: Policy): Record<typeof TAXES[number], TaxFlow> => Object.fromEntries(TAXES.map(k => [k, { base: 0, liability: 0, collected: 0, status: policy[taxKind(k)]?.status ?? 'unavailable' }])) as Record<typeof TAXES[number], TaxFlow>;
@@ -92,11 +93,15 @@ function tradePurchasesFor(e: NonNullable<SocioRegion['economy']>, policy: Polic
     importConsumptionTax: e.importedConsumptionByGroup.map(v => consumptionCollected(v, policy.consumption)),
     nominalBudget: previous.disposable.map((v, i) => ratio(v, MODEL.consumptionBps[i], 10000)) };
 }
-export function evolveService(s: Service, population: number, spending: number): Service {
+export function evolveService(s: Service, population: number, spending: number, supplyFactorBps = 10000): Service {
+  if (!Number.isInteger(supplyFactorBps) || supplyFactorBps < 0 || supplyFactorBps > 10000) throw new Error('supplyFactorBps must be an integer in [0, 10000].');
   if (!s.referencePopulation || !s.referenceMonthlyCost) return { ...s, status: 'unavailable', spending, fundedCapacity: 0, coverageBps: null };
   const required = s.referencePopulation ? ratio(s.referenceMonthlyCost, population, s.referencePopulation) : 0;
   const fundedCapacity = s.referenceMonthlyCost ? Math.min(population * 2, ratio(spending, s.referencePopulation, s.referenceMonthlyCost)) : population;
-  const target = Math.min(population, fundedCapacity);
+  // 0.29.3 — an admitted supply rupture bounds the capacity that spending can
+  // actually deliver (no stock -> less care, never a fabricated quantity).
+  const supplied = supplyFactorBps < 10000 ? ratio(fundedCapacity, supplyFactorBps, 10000) : fundedCapacity;
+  const target = Math.min(population, supplied);
   const distance = Math.abs(target - s.capacity);
   const adjustment = distance ? Math.max(1, Math.floor(distance / M.serviceAdjustmentMonths)) : 0;
   const capacity = s.capacity + Math.sign(target - s.capacity) * adjustment;
@@ -336,7 +341,11 @@ export function runFiscalMonth(state: SimulationState): SimulationState {
     const repaid = Math.min(finalResources - recurringSpending, c.debt + borrowed);
     const cash = integer(finalResources - recurringSpending - repaid + committed), debt = integer(c.debt + borrowed - repaid);
     const population = sum(ids.map(r => state.socioeconomy.regions[r].population ?? 0));
-    const services = { health: evolveService(c.services.health, population, executed.health), education: evolveService(c.services.education, population, executed.education), infrastructure: evolveService(c.services.infrastructure, population, executed.infrastructure) };
+    const services = {
+      health: evolveService(c.services.health, population, executed.health, serviceSupplyFactorBps(state, id, 'health') ?? 10000),
+      education: evolveService(c.services.education, population, executed.education, serviceSupplyFactorBps(state, id, 'education') ?? 10000),
+      infrastructure: evolveService(c.services.infrastructure, population, executed.infrastructure, serviceSupplyFactorBps(state, id, 'infrastructure') ?? 10000),
+    };
     distribute(state, ids, regions, executed);
     let defensePublicOrders: { regionId: string; amount: number }[] | undefined;
     if (defenseExecuted || militaryState.military.countries[id]?.capability?.productionSupplyPendingUsd) {
