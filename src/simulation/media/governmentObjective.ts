@@ -12,9 +12,9 @@ export const GOVERNMENT_OBJECTIVE_VERSION = 'government-objective-0.32-v1' as co
 
 /** Canonical owners of an objective's inputs — no second government/ideology engine. */
 export const OBJECTIVE_OWNERS = Object.freeze({
-  ideology: 'politics.parties', // 0.13 party platform
-  mandate: 'governance',        // 0.14 office
-  resources: 'fiscal',          // 0.11 budget
+  ideology: 'politics',  // 0.13 party platform
+  mandate: 'governance', // 0.14 office
+  resources: 'fiscal',   // 0.11 budget
 } as const);
 
 export const IDEOLOGICAL_BASES = Object.freeze(['sourced', 'modelled', 'unavailable'] as const);

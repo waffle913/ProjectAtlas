@@ -16,9 +16,9 @@ export type ChannelKind = typeof CHANNEL_KINDS[number];
 
 /** Canonical owners of channel resources — no second audience/opinion store. */
 export const CHANNEL_OWNERS = Object.freeze({
-  audience: 'politics.opinion', // 0.13 opinion (audience = cohorts/regions)
-  resources: 'finance',         // channel operation costs (deferred)
-  sources: 'information',       // 0.15 government info / 0.32.1 items
+  audience: 'politics',        // 0.13 opinion (audience = cohorts/regions)
+  resources: 'finance',        // channel operation costs (deferred)
+  sources: 'information',      // 0.15 government info / 0.32.1 items
 } as const);
 
 export interface MediaChannel {
@@ -44,18 +44,24 @@ export function validateMediaChannel(c: MediaChannel): void {
 
 export interface DiffusionResult {
   readonly status: AvailabilityStatus;
-  /** Effective reach; null when not asserted (unavailable/paused). */
+  /** Effective reach; null when not asserted (unavailable). */
   readonly reachBps: number | null;
+}
+
+export interface RelayItem {
+  readonly layer: InformationLayer;
+  readonly sourceId: string;
 }
 
 /**
  * Diffuse an existing item through a channel. The channel never creates
- * information: it relays an item only when the layer-access grant allows the
- * propagation, and its reach is bounded and availability-typed.
+ * information: it relays an item only from its own source, when the layer-access
+ * grant allows the propagation, and its reach is bounded and availability-typed.
  */
-export function diffuse(channel: MediaChannel, fromLayer: InformationLayer, toLayer: InformationLayer, access: AccessBasis): DiffusionResult {
+export function diffuse(channel: MediaChannel, item: RelayItem, toLayer: InformationLayer, access: AccessBasis): DiffusionResult {
   validateMediaChannel(channel);
-  if (!canPropagate(fromLayer, toLayer, access)) return { status: 'unavailable', reachBps: null };
+  if (!canPropagate(item.layer, toLayer, access)) return { status: 'unavailable', reachBps: null };
+  if (item.sourceId !== channel.sourceId) return { status: 'unavailable', reachBps: null };
   if (channel.reachBps === null) return { status: 'unavailable', reachBps: null };
   return { status: 'computed', reachBps: channel.reachBps };
 }

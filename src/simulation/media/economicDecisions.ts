@@ -23,7 +23,7 @@ export interface EconomicDecision {
   readonly countryId: string;
   /** Whole USD required; null = unavailable. */
   readonly requiredFundsUsd: number | null;
-  /** Whole USD committed/available; null = unavailable. */
+  /** Whole USD available (uncommitted) for the decision; null = unavailable. */
   readonly availableFundsUsd: number | null;
   readonly informationBasis: 'sourced' | 'modelled' | 'unavailable';
   readonly date: string;

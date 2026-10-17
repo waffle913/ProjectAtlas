@@ -22,7 +22,10 @@ describe('economic decisions and graduated responses (0.32.8/0.32.9)', () => {
     expect(canAffordDecision(decision())).toBe(true);
     expect(canAffordDecision(decision({ availableFundsUsd: 500 }))).toBe(false);
     expect(canAffordDecision(decision({ availableFundsUsd: null }))).toBeNull();
+    expect(canAffordDecision(decision({ requiredFundsUsd: null }))).toBeNull();
     expect(() => validateEconomicDecision(decision({ requiredFundsUsd: 0 }))).toThrow(/positive whole number/);
+    expect(() => selectResponse('apocalyptic' as never, false)).toThrow(/Unknown severity/);
+    expect(() => selectResponse('critical', 'false' as never)).toThrow(/must be a boolean/);
   });
 
   it('selects a graduated deterministic response; force only on explicit decision', () => {

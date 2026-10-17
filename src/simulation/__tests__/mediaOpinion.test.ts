@@ -11,7 +11,7 @@ const shift = (over: Partial<OpinionShift> = {}): OpinionShift => ({
 
 describe('opinion and mobilization (0.32.5)', () => {
   it('names canonical owners and validates a causal shift', () => {
-    expect(OPINION_OWNERS.opinion).toBe('politics.opinion');
+    expect(OPINION_OWNERS.opinion).toBe('politics');
     expect(() => validateOpinionShift(shift())).not.toThrow();
     expect(() => validateOpinionShift(shift({ deltaBps: 20000 }))).toThrow(/between -10000 and 10000/);
     expect(() => validateOpinionShift(shift({ causeId: '' }))).toThrow(/cause id/);

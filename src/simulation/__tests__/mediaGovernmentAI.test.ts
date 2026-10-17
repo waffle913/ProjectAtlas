@@ -17,7 +17,7 @@ const choice = (over: Partial<ActionChoice> = {}): ActionChoice => ({
 
 describe('government objective and action selection (0.32.6/0.32.7)', () => {
   it('names canonical owners and validates an objective', () => {
-    expect(OBJECTIVE_OWNERS.ideology).toBe('politics.parties');
+    expect(OBJECTIVE_OWNERS.ideology).toBe('politics');
     expect(OBJECTIVE_OWNERS.mandate).toBe('governance');
     expect(() => validateGovernmentObjective(objective())).not.toThrow();
     expect(() => validateGovernmentObjective(objective({ priorityBps: 20000 }))).toThrow(/between 0 and 10000/);

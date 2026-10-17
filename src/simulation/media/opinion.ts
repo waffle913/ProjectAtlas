@@ -12,8 +12,8 @@ import { isSimulationDate } from '../date';
 import type { AvailabilityStatus } from '../availability';
 
 export const OPINION_OWNERS = Object.freeze({
-  opinion: 'politics.opinion', // 0.13 Region/cohort opinion
-  support: 'politics.support', // 0.13 party support
+  opinion: 'politics', // 0.13 Region/cohort opinion
+  support: 'politics', // 0.13 party support
 } as const);
 
 export interface OpinionShift {

@@ -33,6 +33,7 @@ export function validateGraduatedResponse(r: GraduatedResponse): void {
 /** Graduated, deterministic response; force only on an explicit decision; never fixed by the player's identity. */
 export function selectResponse(severity: DisputeSeverity, explicitUseForce: boolean): ResponseKind {
   if (!SEVERITIES.includes(severity)) throw new Error(`Unknown severity: ${String(severity)}.`);
+  if (typeof explicitUseForce !== 'boolean') throw new Error('explicitUseForce must be a boolean.');
   if (severity === 'unavailable') return 'none';
   if (explicitUseForce) return 'use_force';
   switch (severity) {
