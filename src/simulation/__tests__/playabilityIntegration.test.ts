@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
-import { setControlledPerson, transferPoliticalOffice } from '../governance/runtime';
+import { setControlledPerson, transferPoliticalOffice, createFiscalProposal, submitProposal, hasPoliticalAuthority } from '../governance/runtime';
 import { hasGovernmentInformationAccess } from '../information/runtime';
 import { serializeSimulationState, restoreSimulationState } from '../save';
 import { assertSimulationInvariants } from '../invariants';
@@ -45,5 +45,36 @@ describe('0.33 playability integration', () => {
     expect(() => assertSimulationInvariants(restored, worldContext, 'reload')).not.toThrow();
     expect(restored.date).toBe(world.date);
     expect(restored.regionOwnership).toEqual(world.regionOwnership);
+  });
+
+  it('governing path: a budget command produces a persistent canonical consequence', () => {
+    const entry = Object.entries(world.governance.persons).find(([, person]) =>
+      person.office?.role === 'head_of_government'
+      && Boolean(person.countryId)
+      && Boolean(world.fiscal.countries[person.countryId]?.annualBudget)
+      && hasPoliticalAuthority(world, person.id, person.countryId, 'sponsor_legislation')
+      && hasPoliticalAuthority(world, person.id, person.countryId, 'sponsor_budget_reform')
+    );
+    expect(entry).toBeTruthy();
+    if (!entry) return;
+    const [personId, person] = entry;
+    const controlled = setControlledPerson(world, personId);
+    const budget = controlled.fiscal.countries[person.countryId]!.annualBudget;
+    let state = createFiscalProposal(controlled, {
+      proposerPersonId: personId,
+      countryId: person.countryId,
+      effectiveDate: '2026-02-01',
+      payload: { annualBudget: { ...budget } },
+    });
+    const proposalId = state.governance.proposalOrder.at(-1)!;
+    expect(state.governance.proposals[proposalId]).toMatchObject({ kind: 'fiscal_reform', status: 'draft', proposerPersonId: personId });
+    state = submitProposal(state, proposalId);
+    expect(state.governance.proposals[proposalId].status).toBe('submitted');
+    expect(state.governance.proposals[proposalId].submittedPayloadFingerprint).toBeTruthy();
+    // The submitted reform survives save/restore as a persistent consequence.
+    const restored = restoreSimulationState(serializeSimulationState(state, worldContext), worldRegions, {}, {}, worldContext);
+    expect(restored.governance.proposals[proposalId].status).toBe('submitted');
+    expect(restored.governance.proposals[proposalId].payload).toEqual(state.governance.proposals[proposalId].payload);
+    expect(() => assertSimulationInvariants(restored, worldContext, 'reload')).not.toThrow();
   });
 });
