@@ -19,10 +19,11 @@ export function BriefingTablet({ state, onStateChange, onNavigate }: {
   const person = personId ? state.governance.persons[personId] : undefined;
   const countryId = person?.countryId;
   const briefings = countryId && personId ? inspectBriefings(state, countryId, personId).slice().reverse() : [];
+  const urgentCount = briefings.filter(item => item.severity === 'urgent').length;
   const reports = countryId && personId ? inspectGovernmentReports(state, countryId, personId) : [];
   const pending = Object.values(state.governance.successions).filter(item => item.playerHandoff?.status === 'pending');
   return <>
-    <button className="tablet-trigger" onClick={() => setOpen(value => !value)} aria-expanded={open}>▤ Briefings{briefings.length ? ` · ${briefings.length}` : ''}</button>
+    <button className="tablet-trigger" onClick={() => setOpen(value => !value)} aria-expanded={open}>▤ Briefings{briefings.length ? ` · ${briefings.length}` : ''}{urgentCount ? ` · ${urgentCount} urgent` : ''}</button>
     {open && <aside className="tablet-panel" aria-label="Ministerial briefing tablet">
       <div className="tablet-header"><div><span className="eyebrow">Government / public information</span><h2>Briefing feed</h2></div><button onClick={() => setOpen(false)} aria-label="Close briefing feed">×</button></div>
       <label>Advisor assistance
