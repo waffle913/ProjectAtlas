@@ -317,7 +317,7 @@ export default function App() {
       const { sim: current, ctrlPerson: person, registryContext: context, world: currentWorld } = snapshot;
       const country = person.countryId ? currentWorld?.countries.get(person.countryId) : undefined;
       const json = serializeSimulationState(current, context);
-      saveGame('slot.autosave', 'Autosave', json, {
+      saveGame('__autosave__', 'Autosave', json, {
         countryId: person.countryId,
         countryName: country?.commonName ?? '—',
         controlledPersonName: person.displayName ?? '—',
@@ -367,7 +367,9 @@ export default function App() {
   };
   const exitApp = () => { void exitApplication(); };
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
-  if (screen === 'load') return <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
+  if (screen === 'load') return storageReady
+    ? <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />
+    : <main className="load-state"><h1>Storage initializing</h1><p>Local save storage is still being prepared. Please wait a moment.</p><button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button></main>;
   if (screen === 'credits') return (
     <main className="load-state credits">
       <h1>ProjectAtlas</h1>
@@ -614,12 +616,16 @@ export default function App() {
           <aside className="panel"><h2>Security</h2>
             {(() => { const entry = sim.constitution.countries[selected]; return entry ? <section><strong>State of emergency</strong><p>{entry.emergency.status}{entry.emergency.restrictions.policePowersEnhanced ? ' · enhanced police powers' : ''}</p></section> : <p>Constitutional emergency status is unavailable for this Country.</p>; })()}
             {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length > 0 && <p>This Country is party to an active war.</p>}
-            {(() => { const episodes = Object.values(sim.crisis.countries[selected]?.currentByType ?? {}).filter(episode => episode.activatedOn && !episode.endedOn); return episodes.length > 0 ? <section><strong>Active crises</strong>{episodes.map(episode => <p key={episode.id}>{episode.type}: {episode.severity} (pressure {episode.currentPressure})</p>)}</section> : null; })()}
+            {playerCanReadGovernment && selected === playerCountryId
+              ? (() => { const episodes = Object.values(sim.crisis.countries[selected]?.currentByType ?? {}).filter(episode => episode.activatedOn && !episode.endedOn); return episodes.length > 0 ? <section><strong>Active crises</strong>{episodes.map(episode => <p key={episode.id}>{episode.type}: {episode.severity} (pressure {episode.currentPressure})</p>)}</section> : <p>No active crises are recorded for this Country.</p>; })()
+              : <p>Crisis severity and pressure are internal government assessments, not public information.</p>}
             <p>Further security systems are not represented in the current build.</p>
           </aside>
         ) : activePage === 'services' && selected ? (
           <aside className="panel"><h2>Public services</h2>
-            {(() => { const fiscal = sim.fiscal.countries[selected]; return fiscal ? <section><strong>Annual budget allocations (USD)</strong>{(['health', 'education', 'pensions', 'incomeSupport', 'infrastructure'] as const).map(cat => <p key={cat}>{cat}: {fiscal.annualBudget[cat]}</p>)}</section> : <p>Fiscal service data is unavailable for this Country.</p>; })()}
+            {playerCanReadGovernment && selected === playerCountryId
+              ? (() => { const fiscal = sim.fiscal.countries[selected]; return fiscal ? <section><strong>Annual budget allocations (USD)</strong>{(['health', 'education', 'pensions', 'incomeSupport', 'infrastructure'] as const).map(cat => <p key={cat}>{cat}: {fiscal.annualBudget[cat]}</p>)}</section> : <p>Fiscal service data is unavailable for this Country.</p>; })()
+              : <p>Annual budget allocations are government information, not public.</p>}
             <p>Service delivery backlogs are reported through the fiscal engine where available.</p>
           </aside>
         ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <>

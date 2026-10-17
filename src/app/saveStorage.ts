@@ -123,10 +123,9 @@ export function saveGame(id: string, name: string, data: string, metadata: Omit<
     try {
       await writeIndex(index);
     } catch (error) {
-      // Data is durable but the index update failed. Do not discard the save.
-      // Revert the in-memory index so a retry rewrites it consistently, and
-      // surface the divergence to the caller.
-      delete index[id];
+      // Data is durable but the index update failed. Surface the divergence; the
+      // already-written save data is preserved on the medium and a retry rewrites
+      // the index consistently.
       throw new Error(`Save data was written but the save index could not be updated: ${error instanceof Error ? error.message : String(error)}`);
     }
     return { id, metadata: entry };

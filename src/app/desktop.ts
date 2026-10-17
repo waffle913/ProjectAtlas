@@ -98,9 +98,14 @@ export function createDesktopBackends(invokeFn: InvokeFn = defaultInvoke) {
         initErrors.push(`settings_read: ${message(error)}`);
       }
       try {
-        for (const id of await invokeFn<string[]>('save_file_list')) {
-          const data = await invokeFn<string | null>('save_file_read', { id });
-          if (data !== null) saveCache.set(id, data);
+        const ids = await invokeFn<string[]>('save_file_list');
+        for (const id of ids) {
+          try {
+            const data = await invokeFn<string | null>('save_file_read', { id });
+            if (data !== null) saveCache.set(id, data);
+          } catch (error) {
+            initErrors.push(`save_file_read(${id}): ${message(error)}`);
+          }
         }
       } catch (error) {
         initErrors.push(`save_file_list: ${message(error)}`);

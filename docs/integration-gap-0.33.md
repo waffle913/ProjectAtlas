@@ -37,11 +37,13 @@ reports through the engine (`inspectGovernmentReports`), and mutates only throug
 through the governance runtime. `playabilityIntegration.test.ts` exercises init,
 authority gating and save/restore. No dedicated desktop smoke test yet.
 
-### 0.33.2 — Map and layers (`partial` read only)
+### 0.33.2 — Map and layers (`✓` navigation; `partial` read)
 `App.tsx` renders Country territories + Admin-1 Regions from `buildWorld`/GeoJSON
-and colours them from `sim.regionOwnership` (canonical). There is **no layer
-toggle** and no data binding for economy/politics/resources/trade/logistics/military
-layers — the `map-note` legend is descriptive text, not a control.
+and colours them from canonical state. A layer control toggles Ownership /
+Population / Economy / Occupation, bound to `regionOwnership`, `populationByRegion`,
+`economicOutputByRegion` and `occupationByRegion`; Resources/Trade/Logistics layers
+are listed as unavailable (no canonical per-Region data) rather than fabricated.
+Territory-level (low zoom) stays ownership.
 
 ### 0.33.3 — Domain navigation (`✓` navigation/read; `partial` commands/consequences)
 All `navItems` domains render real panels: fiscal (`FiscalPolicy`, issues engine
