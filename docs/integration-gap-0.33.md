@@ -63,9 +63,10 @@ gating, vacant portfolios). Normal/urgent states are shown; hover/selected
 micro-states and further interruption behaviours remain unimplemented.
 
 ### 0.33.5 — Context panels and Tablet (`partial`)
-`BriefingTablet` (briefings + urgent briefing count), `CountryPanel` and `RegionPanel`
-exist and read canonical data. News/statements/messages/reports sections and full
-Information/Perception compartmentalization are not wired.
+`BriefingTablet` (briefings + urgent briefing count, public news + government-only
+reports via `inspectBriefings`), `CountryPanel` and `RegionPanel` exist and read
+canonical data. Statements/messages (the 0.32 media layer, still contract-only)
+and full Information/Perception compartmentalization are not wired.
 
 ### 0.33.6 — Commands and powers (`partial` commands)
 `FiscalPolicy`/`MilitaryCapabilities`/`OperationsPanel`/`MultilateralPanel` issue
@@ -75,8 +76,10 @@ commands; it is not the runtime authority check). Explicit per-action refusal
 feedback (why a command is refused) is not surfaced in the UI.
 
 ### 0.33.7 — Decisions and consequences (`partial`)
-Governance analysis computes consequences; commands mutate canonical state. The UI
-does not yet surface execution status, uncertainty or provenance per decision.
+Fiscal proposals already surface consequences, uncertainty (`confidenceBps`) and
+provenance (`limitation`) via `produceGovernmentProposalEstimate`, and parliamentary
+vote results are surfaced as adopted/rejected/unavailable. Other domains do not yet
+surface execution status, uncertainty or provenance per decision.
 
 ### 0.33.8 — Time and alerts (`partial`)
 `Clock` + `SimulationClock` advance logical time; `BriefingTablet` shows briefings.
