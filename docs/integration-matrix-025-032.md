@@ -165,25 +165,26 @@ on canonical state; any step requiring an undecided rule stays `BLOCKED_DESIGN`.
 
 Reconciliation of each subsystem's "missing links" against the actual canonical
 runtimes. The V2 layers (0.26–0.32) were built as contract/derivation
-formalizations; most of the mechanics they describe are **already implemented by
-the canonical engines** (0.11–0.20), so wiring the V2 layer as a second runtime
-would violate the one-canonical-world guardrail.
+formalizations. A verified per-subsystem split is required: **core accounting is
+already canonical (do not duplicate it), but the V2-specific behaviors are NOT
+uniformly redundant** — several are genuine runtime-integration gaps that remain
+unwired. "A similar name" on an older subsystem is not proof of redundancy.
 
 | Subsystem | Disposition | Evidence |
 |---|---|---|
 | Economy (0.25) | **partially integrated + UI wired** | `regionalCapitalCapacityUsd` consumed by `socioeconomy/runtime.ts` + `trade/runtime.ts`; `inspectEconomy` now rendered by the economy panel (`EconomyPanel.tsx`, authority-gated). |
-| Finance (0.26) | **redundant — do not wire** | `fiscal-conservation` invariant already enforces cash+debt identities (`fiscal/invariants.ts:83-84`); `runFiscalMonth` already does interest-before-principal (`runtime.ts:302`) and borrowing capacity (`runtime.ts:300`). |
-| Resources (0.27) | **redundant — do not wire** | canonical `TradeStock` + stock-flow ledger (`trade/model.ts:35,64`) already own physical stocks. |
-| Industry (0.28) | **redundant — do not wire** | `assets` (0.24) owns installations/equipment and production capacity; no parallel production engine is added. |
-| Services (0.29) | **redundant — do not wire** | `runFiscalMonth` `evolveService` (`runtime.ts:329`) already computes coverage/backlog/capacity from budget execution. |
-| Demography (0.30) | **redundant — do not wire** | `socioeconomy` is the sole population/cohort owner (AGENTS.md); no second population engine. |
+| Finance (0.26) | **partial** | Core canonical: `fiscal/invariants.ts:83-84` (cash+debt identities), `runtime.ts:302` (interest-before-principal), `runtime.ts:300` (borrowing capacity). Unwired: `assessSolvency` solvent/stressed/default view, `creditCeiling` default-blocks-borrowing gate. |
+| Resources (0.27) | **partial** | Core canonical: `TradeStock` stock-flow ledger (`trade/model.ts:35,64`). Unwired: extraction installations, energy plants, network links, war damage, StockLedger reconciliation. |
+| Industry (0.28) | **partial** | Core canonical: `assets` (0.24) installations/equipment, `military` (0.16) orders. Unwired: research projects, technology diffusion/adoption, process chains. |
+| Services (0.29) | **partial** | Core canonical: `runFiscalMonth` `evolveService` (`runtime.ts:329`) coverage/backlog/capacity. Unwired: establishment-level delivery (beds/personnel), supply requirements. |
+| Demography (0.30) | **partial** | Core canonical: `socioeconomy` is the sole population/cohort owner. Unwired: dated birth/death/migration transitions, legal-status integration. |
 | Security/police (0.30) | **deferred** | `deployPolice` has no canonical consumer; integration depends on 0.30.8 security/events + 0.30.6 justice (`BLOCKED_DESIGN`). |
-| Diplomacy/Military V2 (0.31) | **redundant — do not wire** | `international` (0.18) owns actions/sanctions, `military` (0.16/0.19) owns orders/operations; the V2 contracts formalize the same mechanics. |
-| Media (0.32) | **redundant — do not wire** | `politics` (0.13) owns opinion, `information` (0.15) owns briefings/statements; channel diffusion adds no new canonical state. |
+| Diplomacy/Military V2 (0.31) | **partial** | Core canonical: `international` (0.18) actions/sanctions, `military` (0.16/0.19) orders/operations. Unwired: negotiations/concessions, sanctions direction, support-chain availability, territorial-control contracts. |
+| Media (0.32) | **partial** | Core canonical: `politics` (0.13) opinion, `information` (0.15) briefings. Unwired: channel diffusion, statements/political communication, opinion shifts. |
 
-Wiring the redundant layers would introduce a second treasury, second stock
-ledger, second population engine, second service-delivery engine, or second
-military ledger — each explicitly forbidden by AGENTS.md. They remain as tested
-contract/derivation formalizations; the only unblocked genuinely-new wiring was
-the economy restitution view, now complete.
+The **core accounting/ownership is canonical and must never be duplicated** (no
+second treasury, stock ledger, population, service-delivery engine, or military
+ledger). The **V2-specific behaviors** listed above are genuine incomplete runtime
+integrations — the remaining 0.33 scope — to be wired only where no design gate
+blocks them.
 
