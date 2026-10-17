@@ -2,7 +2,7 @@
 
 **Status:** 0.31 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.31.6 is the current sub-milestone.**
+authorization, not acceptance**. **0.31.7 is the current sub-milestone.**
 
 ## 0.31.1 scope — actor and commitment contract
 
@@ -70,7 +70,17 @@ takes at least one month, is bounded by factory capacity, and requires full
 funding first. Validated by
 `src/simulation/__tests__/militaryAcquisition.test.ts`.
 
+## 0.31.7 scope — training, availability and command
+
+The training/command contract (`src/simulation/military/trainingCommand.ts`):
+command authority mirrors the 0.14 capability model (`command_military_operations`
+held by a head of government or head of state, never a minister/legislator,
+unresolved fails closed); training and reconstitution are time-bounded (never
+instant), constrained by instructor capacity / recruitment rate, and typed by
+availability. Validated by
+`src/simulation/__tests__/militaryTrainingCommand.test.ts`.
+
 ## Deferred (not implemented)
 
-0.31.7–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
+0.31.8–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
 after its complete independent audit and green CI.
