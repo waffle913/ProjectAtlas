@@ -2,7 +2,7 @@
 
 **Status:** 0.31 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.31.8 is the current sub-milestone.**
+authorization, not acceptance**. **0.31.9 is the current sub-milestone.**
 
 ## 0.31.1 scope — actor and commitment contract
 
@@ -89,7 +89,16 @@ change; control/occupation extend the 0.19 operations model, never
 annexation-by-pixel-movement. Asset damage is bounded and never auto-repaired.
 Validated by `src/simulation/__tests__/territorialControl.test.ts`.
 
+## 0.31.9 scope — crises, peace and security
+
+The conflict/peace contract (`src/simulation/operations/crisisPeace.ts`): force
+follows the real causal chain — a dispute, a tension episode, a crisis, then an
+explicit decision to use force — never a relation-score threshold. A peace
+agreement is explicit (truce / peace / guarantee instantiating the existing 0.20
+defensive-guarantee clause). Validated by
+`src/simulation/__tests__/crisisPeace.test.ts`.
+
 ## Deferred (not implemented)
 
-0.31.9–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
+0.31.10–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
 after its complete independent audit and green CI.
