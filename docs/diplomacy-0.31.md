@@ -2,7 +2,7 @@
 
 **Status:** 0.31 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.31.7 is the current sub-milestone.**
+authorization, not acceptance**. **0.31.8 is the current sub-milestone.**
 
 ## 0.31.1 scope — actor and commitment contract
 
@@ -80,7 +80,16 @@ instant), constrained by instructor capacity / recruitment rate, and typed by
 availability. Validated by
 `src/simulation/__tests__/militaryTrainingCommand.test.ts`.
 
+## 0.31.8 scope — operations and territorial control
+
+The territorial-control contract (`src/simulation/operations/territorialControl.ts`):
+sovereignty, effective control and occupation are three distinct layers —
+sovereignty lives in `state.regionOwnership` and is never changed by a control
+change; control/occupation extend the 0.19 operations model, never
+annexation-by-pixel-movement. Asset damage is bounded and never auto-repaired.
+Validated by `src/simulation/__tests__/territorialControl.test.ts`.
+
 ## Deferred (not implemented)
 
-0.31.8–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
+0.31.9–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
 after its complete independent audit and green CI.
