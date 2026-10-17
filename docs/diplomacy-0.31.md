@@ -2,7 +2,7 @@
 
 **Status:** 0.31 is planned in the approved roadmap 0.26–0.34 and is under the
 standing multi-milestone implementation authorization. This is **implementation
-authorization, not acceptance**. **0.31.9 is the current sub-milestone.**
+authorization, not acceptance**. **0.31.10 is the current sub-milestone.**
 
 ## 0.31.1 scope — actor and commitment contract
 
@@ -98,7 +98,17 @@ agreement is explicit (truce / peace / guarantee instantiating the existing 0.20
 defensive-guarantee clause). Validated by
 `src/simulation/__tests__/crisisPeace.test.ts`.
 
+## 0.31.10 scope — information, authorities and costs
+
+The order-cost/information-access contract (`src/simulation/operations/orderCosts.ts`):
+an order has a real whole-USD cost and is funded only when committed funds cover
+it (unknown funding is never assumed funded); leaders know only what their
+services and office can access — public always, office by 0.15 access,
+intelligence only when actually provided. Domestic/international consequences are
+engine-level and deferred. Validated by
+`src/simulation/__tests__/orderCosts.test.ts`.
+
 ## Deferred (not implemented)
 
-0.31.10–0.31.11 are deferred until their micro-blocks. 0.31 is accepted only
-after its complete independent audit and green CI.
+0.31.11 (validation) is the consolidated independent review. 0.31 is accepted
+only after its complete independent audit and green CI.
