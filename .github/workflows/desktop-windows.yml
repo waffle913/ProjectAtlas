@@ -2,12 +2,42 @@ name: desktop-windows
 
 on:
   push:
-    branches: [waffle913-v1-playable-shell-desktop]
+    branches: [main, waffle913-interface-033, waffle913-v1-playable-shell-desktop]
   pull_request:
-    branches: [waffle913-v1-playable-shell-desktop]
+    branches: [main, waffle913-interface-033, waffle913-v1-playable-shell-desktop]
   workflow_dispatch:
 
 jobs:
+  # Native persistence commands (save/settings) are unit-tested in Rust and run
+  # separately from the ordinary TypeScript/Vitest `verify` workflow, so desktop
+  # compatibility is never claimed from frontend-only CI success.
+  native-tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # `cargo test` compiles `tauri::generate_context!`, which embeds the built
+      # frontend, so the frontend must be built first.
+      - name: Build frontend
+        run: npm run build
+
+      - name: Native save/settings command tests
+        run: cargo test
+        working-directory: src-tauri
+        env:
+          CI: "true"
+
   build:
     runs-on: windows-latest
     steps:

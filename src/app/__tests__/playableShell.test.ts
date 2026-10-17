@@ -10,11 +10,11 @@ import { StartGame } from '../../components/StartGame';
 
 function memoryStorage(): StorageBackend {
   const map = new Map<string, string>();
-  return { get: key => map.get(key) ?? null, set: (key, value) => { map.set(key, value); }, remove: key => { map.delete(key); } };
+  return { get: key => map.get(key) ?? null, set: async (key, value) => { map.set(key, value); }, remove: async key => { map.delete(key); } };
 }
 function memorySaves(): SaveBackend {
   const map = new Map<string, string>();
-  return { list: () => [...map.keys()], read: id => map.get(id) ?? null, write: (id, data) => { map.set(id, data); }, remove: id => { map.delete(id); } };
+  return { list: () => [...map.keys()], read: id => map.get(id) ?? null, write: async (id, data) => { map.set(id, data); }, remove: async id => { map.delete(id); } };
 }
 
 const GENERIC_FAMILY_NAMES = ['Civic Alliance', 'Social Forum', 'National League', 'Reform Movement', 'Democratic Union', 'Popular Assembly', 'Liberal Coalition', 'Community Congress', 'Green Initiative', 'Labour Front', 'Republican Group', 'Progressive List'];
@@ -22,10 +22,10 @@ const GENERIC_FAMILY_NAMES = ['Civic Alliance', 'Social Forum', 'National League
 describe('0.21 playable shell', () => {
   beforeEach(() => { setSettingsBackend(memoryStorage()); setSaveBackend(memorySaves()); });
 
-  it('persists and sanitizes application settings independently of SimulationState', () => {
+  it('persists and sanitizes application settings independently of SimulationState', async () => {
     const settings = structuredClone(DEFAULT_SETTINGS);
     settings.audio.masterVolume = 99; settings.graphics.uiScale = 99; settings.gameplay.defaultSpeed = 99;
-    saveSettings(settings);
+    await saveSettings(settings);
     const loaded = loadSettings();
     expect(loaded.audio.masterVolume).toBe(1);
     expect(loaded.graphics.uiScale).toBe(1.5);
@@ -33,14 +33,14 @@ describe('0.21 playable shell', () => {
     expect(loaded.version).toBe(1);
   });
 
-  it('round-trips saves with metadata and deletes after confirmation intent', () => {
-    const entry = saveGame('slot.one', 'Test Save', '{"schemaVersion":18}', { countryId: 'c', countryName: 'Country', controlledPersonName: 'Person', office: null, simulationDate: '2026-01-01', schemaVersion: 18 });
+  it('round-trips saves with metadata and deletes after confirmation intent', async () => {
+    const entry = await saveGame('slot.one', 'Test Save', '{"schemaVersion":18}', { countryId: 'c', countryName: 'Country', controlledPersonName: 'Person', office: null, simulationDate: '2026-01-01', schemaVersion: 18 });
     expect(listSaves()).toHaveLength(1);
     expect(loadSave('slot.one')).toBe('{"schemaVersion":18}');
     expect(entry.metadata.name).toBe('Test Save');
-    const renamed = renameSave('slot.one', 'Renamed');
+    const renamed = await renameSave('slot.one', 'Renamed');
     expect(renamed?.metadata.name).toBe('Renamed');
-    deleteSave('slot.one');
+    await deleteSave('slot.one');
     expect(listSaves()).toHaveLength(0);
   });
 
@@ -72,7 +72,7 @@ describe('0.21 playable shell', () => {
 
   it('selects browser backends in dev and exposes no placebo graphics settings', async () => {
     expect(isTauri()).toBe(false);
-    expect(await initDesktopBackends()).toBe(false);
+    expect((await initDesktopBackends()).native).toBe(false);
     expect(Object.keys(DEFAULT_SETTINGS.graphics).sort()).toEqual(['displayMode', 'uiScale']);
     expect(DEFAULT_SETTINGS).not.toHaveProperty('graphics.vsync');
     expect(DEFAULT_SETTINGS).not.toHaveProperty('graphics.mapQuality');

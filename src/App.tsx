@@ -47,7 +47,7 @@ import { SettingsMenu } from "./components/SettingsMenu";
 import { SaveManager } from "./components/SaveManager";
 import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
-import { initDesktopBackends, exitApplication, applyNativeDisplayMode } from "./app/desktop";
+import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 const initialState: SimulationState = {
@@ -111,10 +111,36 @@ export default function App() {
   const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
   const [pauseOpen, setPauseOpen] = useState(false);
   const [saves, setSaves] = useState(() => listSaves());
+  const [storageState, setStorageState] = useState<'initializing' | 'ready' | 'error'>(() => (isTauri() ? 'initializing' : 'ready'));
+  const [storageError, setStorageError] = useState<string>();
+  const [saveError, setSaveError] = useState<string>();
   useEffect(() => { applyUiScale(settings); }, [settings]);
-  useEffect(() => { void initDesktopBackends(); }, []);
+  useEffect(() => {
+    let active = true;
+    if (!isTauri()) { setStorageState('ready'); return; }
+    initDesktopBackends()
+      .then((result) => {
+        if (!active) return;
+        if (result.error) { setStorageError(result.error); setStorageState('error'); }
+        else setStorageState('ready');
+        // Reload settings and save listings from the native backend, so the
+        // application never silently keeps reading the browser localStorage.
+        setSettings(loadSettings());
+        setSaves(listSaves());
+      })
+      .catch((error) => {
+        if (!active) return;
+        setStorageError(error instanceof Error ? error.message : String(error));
+        setStorageState('error');
+      });
+    return () => { active = false; };
+  }, []);
   useEffect(() => { void applyNativeDisplayMode(settings.graphics.displayMode); }, [settings.graphics.displayMode]);
-  const persistSettings = (next: AppSettings) => { setSettings(next); saveSettings(next); };
+  const persistSettings = (next: AppSettings) => {
+    setSettings(next);
+    void saveSettings(next).catch((error) => setStorageError(`Settings could not be saved: ${error instanceof Error ? error.message : String(error)}`));
+  };
+  const storageReady = storageState === 'ready';
   const clock = useRef(new SimulationClock(initialState));
   useEffect(() => {
     let active = true;
@@ -265,6 +291,36 @@ export default function App() {
   const applyState = (next: SimulationState) => { clock.current = new SimulationClock(next); setSim(clock.current.snapshot()); };
   const ctrlPersonId = sim.governance.player.controlledPersonId;
   const ctrlPerson = ctrlPersonId ? sim.governance.persons[ctrlPersonId] : undefined;
+  // Autosave is a wall-clock feature, never a simulation scheduler. The ref holds
+  // the latest render's state so the interval effect does not need `sim` (which
+  // changes every tick) in its dependency array.
+  const autosaveRef = useRef<{ sim: SimulationState; ctrlPerson: typeof ctrlPerson; registryContext: typeof registryContext; world: typeof world } | undefined>(undefined);
+  useEffect(() => { autosaveRef.current = { sim, ctrlPerson, registryContext, world }; });
+  useEffect(() => {
+    if (!settings.gameplay.autosave || !storageReady) return;
+    const intervalMinutes = Math.max(1, Number(settings.gameplay.autosaveIntervalMinutes) || 15);
+    let inFlight = false;
+    const timer = window.setInterval(() => {
+      const snapshot = autosaveRef.current;
+      if (!snapshot || inFlight || !snapshot.registryContext || !snapshot.ctrlPerson || snapshot.sim.paused) return;
+      inFlight = true;
+      const { sim: current, ctrlPerson: person, registryContext: context, world: currentWorld } = snapshot;
+      const country = person.countryId ? currentWorld?.countries.get(person.countryId) : undefined;
+      const json = serializeSimulationState(current, context);
+      saveGame('slot.autosave', 'Autosave', json, {
+        countryId: person.countryId,
+        countryName: country?.commonName ?? '—',
+        controlledPersonName: person.displayName ?? '—',
+        office: person.office?.role ?? null,
+        simulationDate: current.date,
+        schemaVersion: current.schemaVersion,
+      })
+        .then(() => setSaves(listSaves()))
+        .catch((error) => setSaveError(`Autosave failed: ${error instanceof Error ? error.message : String(error)}`))
+        .finally(() => { inFlight = false; });
+    }, intervalMinutes * 60_000);
+    return () => window.clearInterval(timer);
+  }, [settings.gameplay.autosave, settings.gameplay.autosaveIntervalMinutes, storageReady]);
   const loadSlot = (id: string) => {
     if (!registryContext) return;
     const json = loadSave(id);
@@ -277,19 +333,27 @@ export default function App() {
     }
   };
   const continueGame = () => { const recent = mostRecentSave(); if (recent) loadSlot(recent.id); };
-  const saveCurrent = (name: string) => {
-    if (!registryContext) return;
+  const saveCurrent = async (name: string): Promise<boolean> => {
+    if (!registryContext) return false;
+    if (!storageReady) { setSaveError('Storage is still initializing — please wait a moment and try again.'); return false; }
     const country = ctrlPerson?.countryId ? world?.countries.get(ctrlPerson.countryId) : undefined;
     const json = serializeSimulationState(sim, registryContext);
-    saveGame(saveIdFor(name), name, json, {
-      countryId: ctrlPerson?.countryId ?? '',
-      countryName: country?.commonName ?? '—',
-      controlledPersonName: ctrlPerson?.displayName ?? '—',
-      office: ctrlPerson?.office?.role ?? null,
-      simulationDate: sim.date,
-      schemaVersion: sim.schemaVersion,
-    });
-    setSaves(listSaves());
+    try {
+      await saveGame(saveIdFor(name), name, json, {
+        countryId: ctrlPerson?.countryId ?? '',
+        countryName: country?.commonName ?? '—',
+        controlledPersonName: ctrlPerson?.displayName ?? '—',
+        office: ctrlPerson?.office?.role ?? null,
+        simulationDate: sim.date,
+        schemaVersion: sim.schemaVersion,
+      });
+      setSaves(listSaves());
+      setSaveError(undefined);
+      return true;
+    } catch (error) {
+      setSaveError(`Save failed: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
   };
   const exitApp = () => { void exitApplication(); };
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
@@ -548,8 +612,9 @@ export default function App() {
           <div className="pause-menu">
             <h1>{savePrompt.mode === 'saveAs' ? 'Save As' : 'Save Game'}</h1>
             <input value={savePrompt.name} onChange={e => setSavePrompt({ ...savePrompt, name: e.target.value })} placeholder="Save name" autoFocus />
-            <button onClick={() => { saveCurrent(savePrompt.name || 'ProjectAtlas'); setSavePrompt(null); setPauseOpen(false); }}>Save</button>
-            <button onClick={() => setSavePrompt(null)}>Cancel</button>
+            <button disabled={!storageReady} onClick={async () => { if (await saveCurrent(savePrompt.name || 'ProjectAtlas')) { setSavePrompt(null); setPauseOpen(false); } }}>Save</button>
+            <button onClick={() => { setSavePrompt(null); setSaveError(undefined); }}>Cancel</button>
+            {(saveError || storageError) && <p className="save-error">{saveError ?? storageError}</p>}
           </div>
         </div>
       )}
