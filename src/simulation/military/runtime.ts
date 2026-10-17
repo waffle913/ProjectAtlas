@@ -13,6 +13,7 @@ import { validateCapability } from './validation';
 import militaryObservations from '../../data/military-observations.json';
 import { militaryDeliveryDate } from './dates';
 import { consumeTradeFactoryInput, tradeFactoryCapacity } from '../trade/runtime';
+import { applyCapacityEffect, capacityMultiplierFor, MILITARY_FACTORY_TARGET, TECHNOLOGY_LINK_REGISTRY, type TechnologyLink } from '../industry/technology';
 import { deployedEquipmentByCountry, deployedPersonnelByRegion, deployedPersonnelTotal } from '../operations/runtime';
 
 export function initializeMilitary(state: SimulationState): SimulationState {
@@ -30,7 +31,22 @@ export function reservationIndex(state: SimulationState): ReadonlyMap<string, nu
   reservationIndexes.set(state.military, index); return index;
 }
 export const reservedPersonnel = (state: SimulationState, regionId: string) => reservationIndex(state).get(regionId) ?? 0;
-export function hasMilitaryManagementAuthority(state: SimulationState, countryId: string, personId: string): boolean {
+
+/** Canonical military factory capacity (units/month): the existing parameter,
+ *  material-input and trade-input bounds, with any admitted 0.28 technology
+ *  capacity multiplier applied (a production-capacity effect, never readiness).
+ *  No capability -> 0 (a missing army has no factory, never a fabricated one). */
+export function militaryFactoryCapacity(state: SimulationState, countryId: string, links: Readonly<Record<string, TechnologyLink>> = TECHNOLOGY_LINK_REGISTRY): number {
+  const c = state.military.countries[countryId]?.capability;
+  if (!c) return 0;
+  const p = c.parameters;
+  const base = Math.min(
+    p.factoryUnitsPerMonth,
+    p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth,
+    tradeFactoryCapacity(state, countryId) ?? p.factoryUnitsPerMonth,
+  );
+  return applyCapacityEffect(base, capacityMultiplierFor(links, MILITARY_FACTORY_TARGET)) ?? 0;
+}export function hasMilitaryManagementAuthority(state: SimulationState, countryId: string, personId: string): boolean {
   const person = state.governance.persons[personId];
   return state.governance.player.controlledPersonId === personId && hasGovernmentInformationAccess(state, personId, countryId)
     && (person?.office?.role === 'head_of_government' || person?.office?.role === 'head_of_state')
@@ -236,7 +252,7 @@ export function prepareMilitaryMonth(state: SimulationState): SimulationState {
   }
   return next === state ? state : reconcileWorkforce(next);
 }
-export function militaryRequests(state: SimulationState, countryId: string): DefenseCosts {
+export function militaryRequests(state: SimulationState, countryId: string, links: Readonly<Record<string, TechnologyLink>> = TECHNOLOGY_LINK_REGISTRY): DefenseCosts {
   const c = state.military.countries[countryId]?.capability;
   if (!c) return zeroDefenseCosts();
   const p = c.parameters, requests = zeroDefenseCosts();
@@ -255,8 +271,7 @@ export function militaryRequests(state: SimulationState, countryId: string): Def
     p.exerciseFuelPerPerson ? Math.floor((c.consumables.fuel?.quantity ?? 0) / p.exerciseFuelPerPerson) : students);
   const equipment = Math.max(0, (c.equipment.personal?.operational ?? 0) - (deployedEquipmentByCountry(state, countryId).personal ?? 0));
   requests.training = integer(Math.min(students, supplies, equipment) * p.trainingCostPerPersonUsd);
-  let capacity = Math.min(p.factoryUnitsPerMonth, p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth,
-    tradeFactoryCapacity(state, countryId) ?? p.factoryUnitsPerMonth);
+  let capacity = militaryFactoryCapacity(state, countryId, links);
   for (const o of c.orders) {
     const n = o.orderedOn >= state.date ? 0 : Math.min(o.quantity - o.funded, capacity); capacity -= n;
     requests.production = integer(requests.production + n * o.unitCostUsd);
@@ -265,12 +280,12 @@ export function militaryRequests(state: SimulationState, countryId: string): Def
 }
 export interface MilitaryPayment { costs: DefenseCosts; state: SimulationState }
 /** Called exactly once by the sole fiscal financing engine; never moves treasury itself. */
-export function executeMilitaryFunding(state: SimulationState, countryId: string, allocatedUsd: number): MilitaryPayment {
+export function executeMilitaryFunding(state: SimulationState, countryId: string, allocatedUsd: number, links: Readonly<Record<string, TechnologyLink>> = TECHNOLOGY_LINK_REGISTRY): MilitaryPayment {
   integer(allocatedUsd);
   if (!state.military.countries[countryId]?.capability) return { costs: zeroDefenseCosts(), state };
   const c = capability(state, countryId);
   if (c.lastLedger?.date === state.date) throw new Error('Military funding already executed on this boundary.');
-  const p = c.parameters, requested = militaryRequests(state, countryId);
+  const p = c.parameters, requested = militaryRequests(state, countryId, links);
   const allocation = allocate(Math.min(allocatedUsd, sum(Object.values(requested))), DEFENSE_COSTS.map(k => requested[k]));
   const costs = zeroDefenseCosts();
   const openingPayrollArrears = c.payrollArrears, payrollDue = integer(presentPersonnel(c) * p.monthlySalaryUsd);
@@ -325,8 +340,7 @@ export function executeMilitaryFunding(state: SimulationState, countryId: string
     if (s) { s.quantity -= n; s.consumed = integer(s.consumed + n); }
   }
   costs.training = integer(trainedThisMonth * p.trainingCostPerPersonUsd);
-  let capacity = Math.min(p.factoryUnitsPerMonth, p.factoryMaterialPerUnit ? Math.floor(c.industrialMaterials.quantity / p.factoryMaterialPerUnit) : p.factoryUnitsPerMonth,
-    tradeFactoryCapacity(state, countryId) ?? p.factoryUnitsPerMonth);
+  let capacity = militaryFactoryCapacity(state, countryId, links);
   let productionUnits = 0;
   for (const o of c.orders) {
     const n = o.orderedOn >= state.date ? 0 : Math.min(o.quantity - o.funded, capacity, Math.floor((allocation[3] - costs.production) / o.unitCostUsd));

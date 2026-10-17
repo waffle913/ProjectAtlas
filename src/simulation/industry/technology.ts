@@ -47,3 +47,27 @@ export function applyCapacityEffect(baseCapacityPerMonth: number | null, capacit
   const scaled = checkedMul(baseCapacityPerMonth, capacityMultiplierBps);
   return Math.floor(scaled / 10000);
 }
+
+/** Canonical production-capacity target a technology link may affect (never readiness). */
+export const MILITARY_FACTORY_TARGET = 'military_factory' as const;
+
+/**
+ * Static registry of admitted technology links keyed by technology id. EMPTY by
+ * design: no admitted real technology data exists for 2026-01-01, and no
+ * synthetic entry is invented here. A later explicit synthetic scenario may
+ * admit entries. Each link applies a production-capacity multiplier to its
+ * `targetProductId`; it never changes military readiness.
+ */
+export const TECHNOLOGY_LINK_REGISTRY: Readonly<Record<string, TechnologyLink>> = Object.freeze({});
+
+/** Compose the capacity multiplier (bps) applied to a target product by every
+ *  admitted technology link. 10,000 = no change. Overflow fails closed. */
+export function capacityMultiplierFor(links: Readonly<Record<string, TechnologyLink>>, targetProductId: string): number {
+  let multiplier = 10000;
+  for (const link of Object.values(links)) {
+    validateTechnologyLink(link);
+    if (link.targetProductId !== targetProductId) continue;
+    multiplier = Math.floor(checkedMul(multiplier, link.capacityMultiplierBps) / 10000);
+  }
+  return multiplier;
+}
