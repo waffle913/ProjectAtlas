@@ -105,6 +105,7 @@ export default function App() {
   const [mapZoom, setMapZoom] = useState(2);
   const [sim, setSim] = useState(initialState);
   const [loadError, setLoadError] = useState<string>();
+  const [loadSlotError, setLoadSlotError] = useState<string>();
   const [activePage, setActivePage] = useState('overview');
   const [mapLayer, setMapLayer] = useState<MapLayer>('ownership');
   const [screen, setScreen] = useState<MenuScreen>('menu');
@@ -400,12 +401,13 @@ export default function App() {
   const loadSlot = (id: string) => {
     if (!registryContext) return;
     const json = loadSave(id);
-    if (!json) { setLoadError('The selected save could not be read.'); return; }
+    if (!json) { setLoadSlotError('The selected save could not be read.'); return; }
     try {
       applyState(restoreSimulationState(json, registryContext.regions, {}, {}, registryContext));
+      setLoadSlotError(undefined);
       setScreen('game');
     } catch (error) {
-      setLoadError(error instanceof Error ? `Could not load save: ${error.message}` : 'Could not load save.');
+      setLoadSlotError(error instanceof Error ? `Could not load save: ${error.message}` : 'Could not load save.');
     }
   };
   const continueGame = () => { const recent = mostRecentSave(); if (recent) loadSlot(recent.id); };
@@ -434,7 +436,7 @@ export default function App() {
   const exitApp = () => { void exitApplication(); };
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
   if (screen === 'load') return storageReady
-    ? <SaveManager onLoad={loadSlot} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />
+    ? <SaveManager onLoad={loadSlot} onBack={() => { setLoadSlotError(undefined); setScreen(ctrlPerson ? 'game' : 'menu'); }} error={loadSlotError} />
     : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button></main>;
   if (screen === 'credits') return (
     <main className="load-state credits">

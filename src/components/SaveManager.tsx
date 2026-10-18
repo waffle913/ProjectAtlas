@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { deleteSave, listSaves, type SaveEntry } from '../app/saveStorage';
 
-export function SaveManager({ onLoad, onBack }: {
+export function SaveManager({ onLoad, onBack, error }: {
   onLoad: (id: string) => void;
   onBack: () => void;
+  error?: string;
 }) {
   const [saves, setSaves] = useState<SaveEntry[]>(() => listSaves());
   const [pendingDelete, setPendingDelete] = useState<string>();
@@ -49,6 +50,7 @@ export function SaveManager({ onLoad, onBack }: {
           </ul>
         )}
         {deleteError && <p className="save-error">{deleteError}</p>}
+        {error && <p className="save-error">{error}</p>}
       </div>
     </main>
   );
