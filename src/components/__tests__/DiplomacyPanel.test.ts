@@ -20,7 +20,7 @@ function governance(withAccess: boolean) {
   };
 }
 
-function stateWith(overrides: Partial<SimulationState> = {}): SimulationState {
+function stateWith(overrides: Record<string, unknown> = {}): SimulationState {
   return {
     governance: governance(true),
     international: { actions: {}, actionOrder: [], nextActionSequence: 0 },

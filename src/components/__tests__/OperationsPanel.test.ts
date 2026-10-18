@@ -20,7 +20,7 @@ function person(access: boolean, commandMilitary: boolean) {
   };
 }
 
-function stateWith(overrides: Partial<SimulationState> = {}): SimulationState {
+function stateWith(overrides: Record<string, unknown> = {}): SimulationState {
   return {
     operations: { deployments: {}, engagements: {}, regionControl: {}, adjacency: {}, components: {}, componentOrder: [], deploymentOrder: [], engagementOrder: [] },
     military: { countries: { [COUNTRY]: { capability: { assignments: { 'region.own': 100 } } } } },
