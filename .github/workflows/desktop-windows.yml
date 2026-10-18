@@ -2,9 +2,9 @@ name: desktop-windows
 
 on:
   push:
-    branches: [main, waffle913-interface-033, waffle913-v1-playable-shell-desktop]
+    branches: [main, waffle913-interface-033, waffle913-v1-playable-shell-desktop, waffle913-a1-player-facing-recovery]
   pull_request:
-    branches: [main, waffle913-interface-033, waffle913-v1-playable-shell-desktop]
+    branches: [main, waffle913-interface-033, waffle913-v1-playable-shell-desktop, waffle913-a1-player-facing-recovery]
   workflow_dispatch:
 
 jobs:
