@@ -1,7 +1,6 @@
 import { emptyAssets } from './simulation/assets/model';
 import { emptyOperations } from './simulation/operations/model';
 import { emptyInternational } from './simulation/international/model';
-import { publicInternationalActions } from './simulation/international/runtime';
 import { emptyMultilateral } from './simulation/multilateral/model';
 import { emptyConstitution } from './simulation/constitution/model';
 import { emptyElections } from './simulation/elections/model';
@@ -10,6 +9,8 @@ import { emptyMilitary } from './simulation/military/model';
 import { StartGame } from './components/StartGame';
 import { MilitaryCapabilities } from './components/MilitaryCapabilities';
 import { OperationsPanel } from './components/OperationsPanel';
+import { DiplomacyPanel } from './components/DiplomacyPanel';
+import { SecurityPanel } from './components/SecurityPanel';
 import { MultilateralPanel } from './components/MultilateralPanel';
 import { TradeInspection } from './components/TradeInspection';
 import { configureSyntheticTradeScenario } from './simulation/trade/scenario';
@@ -684,13 +685,15 @@ export default function App() {
           />
         ) : activePage === 'security' && selected ? (
           <aside className="panel"><h2>Security</h2>
-            {(() => { const entry = sim.constitution.countries[selected]; return entry ? <section><strong>State of emergency</strong><p>{entry.emergency.status}{entry.emergency.restrictions.policePowersEnhanced ? ' · enhanced police powers' : ''}</p></section> : <p>Constitutional emergency status is unavailable for this Country.</p>; })()}
+            <SecurityPanel state={sim} countryId={selected} personId={selected === playerCountryId ? controlledPerson?.id : undefined} onStateChange={commitCommand} />
             {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length > 0 && <p>This Country is party to an active war.</p>}
             {playerCanReadGovernment && selected === playerCountryId
               ? (() => { const episodes = Object.values(sim.crisis.countries[selected]?.currentByType ?? {}).filter(episode => episode.activatedOn && !episode.endedOn); return episodes.length > 0 ? <section><strong>Active crises</strong>{episodes.map(episode => <p key={episode.id}>{episode.type}: {episode.severity} (pressure {episode.currentPressure})</p>)}</section> : <p>No active crises are recorded for this Country.</p>; })()
               : <p>Crisis severity and pressure are internal government assessments, not public information.</p>}
-            <p>Further security systems are not represented in the current build.</p>
+            <p>Emergency powers require an active crisis and the executive office. Further security systems are not represented in the current build.</p>
           </aside>
+        ) : activePage === 'diplomacy' && controlledPerson && playerCountryId ? (
+          <aside className="panel"><DiplomacyPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} countriesById={world.countries} /></aside>
         ) : activePage === 'services' && selected ? (
           <aside className="panel"><h2>Public services</h2>
             {playerCanReadGovernment && selected === playerCountryId
@@ -698,11 +701,7 @@ export default function App() {
               : <p>Annual budget allocations are government information, not public.</p>}
             <p>Service delivery backlogs are reported through the fiscal engine where available.</p>
           </aside>
-        ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p>{activePage === 'diplomacy' && selected && <>
-  <p>Active recorded territorial claims: {sim.claims.filter(claim => claim.status === 'active' && (claim.claimantCountryId === selected || sim.regionOwnership[claim.regionId] === selected)).length} · active wars: {sim.wars.filter(war => war.status === 'active' && (war.attackerCountryId === selected || war.defenderCountryId === selected)).length}.</p>
-  {(() => { const actions = publicInternationalActions(sim, selected).filter(action => action.status === 'active'); return actions.length > 0 ? <section><strong>Recorded international actions</strong>{actions.map(action => <p key={action.id}>{action.actorCountryId} → {action.targetCountryId}: {action.kind}{action.categories.length > 0 ? ` (${action.categories.join(', ')})` : ''}</p>)}</section> : null; })()}
-  <p>Further diplomacy decisions are not implemented.</p>
-</>}</aside>}
+        ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p></aside>}
       </div>
       {pauseOpen && (
         <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Pause menu">
