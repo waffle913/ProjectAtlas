@@ -130,12 +130,14 @@ milestone; 0.33 is technically validated but not accepted; 0.34 is
 ## 9. CI and SHAs
 
 - V2 branch verify: run `39089763817` @ `a920465c73a229200f0ed28ff71b5d89277086c5` — success.
-- `main` verify: run `39091599407` @ `a920465` — success.
-- `main` desktop-windows: run `39091599415` @ `a920465` — success (Windows packaging).
-- A1 branch verify: run `39096999563` @ `160b00b30193a91123ea98783f44ce06e9fd676e` — success (Ubuntu + Windows).
-- A1 branch desktop-windows: run `39096999843` @ `160b00b` — success (cargo test + `tauri:build` Windows packaging).
+- `main` verify (V2 baseline): run `39091599407` @ `a920465` — success.
+- `main` desktop-windows (V2 baseline): run `39091599415` @ `a920465` — success.
+- A1 branch verify (final code): run `39143291040` @ `182b6437bc076158a22edb8272c36202452a3bc7` — success (Ubuntu + Windows).
+- A1 branch desktop-windows: run `39143291038` @ `182b643` — success (cargo test + `tauri:build`).
+- **`main` verify (A1 merged): run `39150416117` @ `1815d160510a4554613d8cd8e259abab9cd0d1c9` — success.**
+- **`main` desktop-windows (A1 merged): run `39150416160` @ `1815d16` — success (Windows packaging).**
 
-Final A1 branch head: `160b00b30193a91123ea98783f44ce06e9fd676e`
-(`waffle913-a1-player-facing-recovery`). The Windows test build is produced as the
-`desktop-windows` run artifact for this SHA; the owner's playtest accepts or
-rejects it — A1 is technically demonstrated, not human-accepted.
+Final merged head: `1815d160510a4554613d8cd8e259abab9cd0d1c9` (`main`, fast-forward of
+`waffle913-a1-player-facing-recovery`). The Windows test build is the
+`desktop-windows` artifact for this SHA; the owner's playtest accepts or rejects
+it — A1 is technically demonstrated, not human-accepted.
