@@ -3,8 +3,20 @@ import { politicalRegistry } from '../simulation/politics/registry';
 import type { PoliticalPersonState } from '../simulation/governance/model';
 import { selectableStartingCountryIds, startingPersonCandidates, type PoliticalStartPath } from '../simulation/governance/selection';
 
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  sovereign_state: 'sovereign state',
+  dependency: 'dependent territory',
+  disputed: 'disputed entity',
+  partially_recognized: 'partially recognized state',
+  special_status: 'special-status entity',
+};
+const unavailableReason = (country: { id: string; commonName: string; entityType?: string }) => {
+  const label = ENTITY_TYPE_LABELS[country.entityType ?? ''] ?? country.entityType ?? 'entity';
+  return `${label} — no reconciled executive officeholder or registered party; playable start not configured`;
+};
+
 export function StartGame({ countries, persons, onPlay, initialPath = 'party_leader' }: {
-  countries: readonly { id: string; commonName: string }[];
+  countries: readonly { id: string; commonName: string; entityType?: string }[];
   persons: readonly PoliticalPersonState[];
   onPlay: (personId: string, syntheticMilitary?: boolean, syntheticTrade?: boolean) => void;
   initialPath?: PoliticalStartPath;
@@ -35,7 +47,7 @@ export function StartGame({ countries, persons, onPlay, initialPath = 'party_lea
         <select value={countryId} onChange={event => { setCountryId(event.target.value); setPartyId(''); setPersonId(''); }}>
           {countries.slice().sort((a, b) => a.commonName.localeCompare(b.commonName)).map(country => {
             const available = availableCountryIds.has(country.id);
-            return <option value={country.id} key={country.id} disabled={!available}>{country.commonName}{available ? '' : ' — playable person evidence unavailable'}</option>;
+            return <option value={country.id} key={country.id} disabled={!available}>{country.commonName}{available ? '' : ` — ${unavailableReason(country)}`}</option>;
           })}
         </select>
       </label>
