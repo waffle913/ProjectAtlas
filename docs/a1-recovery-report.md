@@ -132,5 +132,10 @@ milestone; 0.33 is technically validated but not accepted; 0.34 is
 - V2 branch verify: run `39089763817` @ `a920465c73a229200f0ed28ff71b5d89277086c5` — success.
 - `main` verify: run `39091599407` @ `a920465` — success.
 - `main` desktop-windows: run `39091599415` @ `a920465` — success (Windows packaging).
-- A1 branch verify + desktop-windows: see final commit message / Actions for the
-  exact run IDs (recorded after CI completes).
+- A1 branch verify: run `39096999563` @ `160b00b30193a91123ea98783f44ce06e9fd676e` — success (Ubuntu + Windows).
+- A1 branch desktop-windows: run `39096999843` @ `160b00b` — success (cargo test + `tauri:build` Windows packaging).
+
+Final A1 branch head: `160b00b30193a91123ea98783f44ce06e9fd676e`
+(`waffle913-a1-player-facing-recovery`). The Windows test build is produced as the
+`desktop-windows` run artifact for this SHA; the owner's playtest accepts or
+rejects it — A1 is technically demonstrated, not human-accepted.
