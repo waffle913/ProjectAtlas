@@ -643,7 +643,7 @@ export default function App() {
         ) : activePage === 'military' && controlledPerson && playerCountryId ? (
           <aside className="panel"><MilitaryCapabilities state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} onBudget={() => setActivePage('fiscal')} /></aside>
         ) : activePage === 'operations' && controlledPerson && playerCountryId ? (
-          <aside className="panel"><OperationsPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} /></aside>
+          <aside className="panel"><OperationsPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} regionsById={regionData.regionsById} /></aside>
         ) : activePage === 'treaties' && controlledPerson && playerCountryId ? (
           <aside className="panel"><MultilateralPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} /></aside>
         ) : activePage === 'trade' && controlledPerson && playerCountryId ? (
