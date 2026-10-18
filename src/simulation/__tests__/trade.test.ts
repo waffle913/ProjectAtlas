@@ -43,7 +43,13 @@ const stripFiscalConstruction = (fiscal: unknown) => {
     delete country.constructionExecuted;
     delete country.assetMaintenanceSpent;
     const account = country.account as Record<string, unknown> | undefined;
-    if (account) delete account.construction;
+    if (account) {
+      delete account.construction;
+      // 0.26 adds derived solvency indicators to the monthly stress ledger; the
+      // frozen pre-0.26 oracle predates them, so strip them like the construction backfill.
+      const stress = account.stress as Record<string, unknown> | undefined;
+      if (stress) { delete stress.solvencyState; delete stress.solvencyReason; }
+    }
   }
   return f;
 };
