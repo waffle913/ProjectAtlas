@@ -14,6 +14,22 @@ const WHIP_INSTRUCTION_LABELS: Record<string, string> = {
   abstain: 'ABSTAIN',
   free: 'FREE VOTE — no party line',
 };
+const PROPOSAL_STATUS_LABELS: Record<string, string> = {
+  draft: 'Draft',
+  submitted: 'Submitted',
+  consulted: 'Consulted',
+  enacted: 'Enacted',
+  rejected: 'Rejected',
+  withdrawn: 'Withdrawn',
+  unavailable: 'Unavailable',
+};
+// Only the public parliamentary outcome is disclosed here; the chamber seat breakdown and the
+// modelled internal distributions stay engine-debug reality and are never rendered.
+const PROPOSAL_OUTCOME_LABELS: Record<string, string> = {
+  adopted: 'adopted',
+  rejected: 'rejected',
+  unavailable: 'unavailable',
+};
 
 /** Government/parliament actions already implemented in the canonical engine but
  *  previously unreachable from the interface. Every action is authority-gated by
@@ -37,6 +53,11 @@ export function ParliamentPanel({ state, countryId, personId, onStateChange }: {
   const submittedProposals = Object.values(state.governance.proposals)
     .filter(proposal => proposal.countryId === countryId && proposal.status === 'submitted')
     .sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate) || a.id.localeCompare(b.id));
+  // Read-only historical record: once a proposal is no longer actionable, the player can still
+  // inspect the instruction their own party recorded. Only the player's own party rows are shown.
+  const whipHistory = Object.values(state.governance.proposals)
+    .filter(proposal => proposal.countryId === countryId && proposal.status !== 'submitted' && proposal.whipInstructions?.some(whip => whip.partyId === person?.partyId))
+    .sort((a, b) => (a.resolvedOn ?? a.createdOn).localeCompare(b.resolvedOn ?? b.createdOn) || a.id.localeCompare(b.id));
 
   const [ministerId, setMinisterId] = useState('');
   const [portfolioName, setPortfolioName] = useState('');
@@ -105,6 +126,16 @@ export function ParliamentPanel({ state, countryId, personId, onStateChange }: {
         <button disabled={!selectedWhipProposal} onClick={() => command(() => issuePartyWhip(state, selectedWhipProposal!.id, personId, person!.partyId!, whipInstruction), 'Whip instruction recorded for your party.')}>Issue / change whip instruction</button>
         {currentWhip && <p>Your party's current instruction: {WHIP_INSTRUCTION_LABELS[currentWhip.instruction] ?? currentWhip.instruction} · issued {currentWhip.on}.</p>}
       </> : <p>No submitted proposals are pending for your Country.</p>}
+      <h4>Issued instructions</h4>
+      {whipHistory.length ? <ul>
+        {whipHistory.map(proposal => {
+          const whip = proposal.whipInstructions!.find(entry => entry.partyId === person?.partyId)!;
+          return <li key={proposal.id}>
+            <strong>{proposalLabel(proposal)}</strong> · {partyName} · {WHIP_INSTRUCTION_LABELS[whip.instruction] ?? whip.instruction} · issued {whip.on} · {PROPOSAL_STATUS_LABELS[proposal.status] ?? proposal.status}
+            {proposal.voteResult ? <> · outcome: {PROPOSAL_OUTCOME_LABELS[proposal.voteResult.outcome] ?? proposal.voteResult.outcome} on {proposal.voteResult.resolvedOn}</> : null}
+          </li>;
+        })}
+      </ul> : <p>No previous whip instructions.</p>}
     </section> : <p>Party whip instructions require active leadership of a registered party in this Country.</p>}
     {message && <p role="status">{message}</p>}
   </section>;

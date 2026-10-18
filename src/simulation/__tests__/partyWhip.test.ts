@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
-import type { PartyInternalVoteDistribution } from '../governance/model';
+import type { ParliamentarySupportEstimate, PartyGoalProfile, PartyInternalVoteDistribution } from '../governance/model';
 import { applyWhipInstruction } from '../governance/internalPartyDistribution';
+import { dynamicPartyGoalProfile } from '../governance/analysis';
 import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, issuePartyWhip, setControlledPerson, submitProposal } from '../governance/runtime';
 import { politicalRegistry } from '../politics/registry';
 import { initializeNewGame } from '../initialization';
@@ -102,6 +103,20 @@ describe('party whip persistence and parliamentary consumption', () => {
     return { state, proposalId, leaderId: leader.id, partyId: leader.partyId! };
   }
 
+  const partyEvaluation = (estimate: ParliamentarySupportEstimate, partyId: string) =>
+    estimate.chambers.flatMap(chamber => chamber.partyEvaluations ?? []).find(item => item.partyId === partyId);
+
+  // The real world parties' sourced/modelled issue confidence sits below the 3,000-bps
+  // admissibility floor, so the internal plurality model reports UNKNOWN rather than inventing a
+  // distribution. To exercise the *consumption* mechanism (does the evaluator read
+  // proposal.whipInstructions and apply a bounded shift?) we provide a representative profile with
+  // adequate confidence, keeping the party's real ideal points and importance. This is a test
+  // fixture input to the documented `profiles` parameter — not fabricated observed coverage.
+  const admissibleProfile = (state: SimulationState, partyId: string): PartyGoalProfile => {
+    const base = dynamicPartyGoalProfile(state, politicalRegistry.parties[partyId]);
+    return { partyId, goals: Object.fromEntries(Object.entries(base.goals).map(([goal, preference]) => [goal, { ...preference, confidenceBps: 8_000 }])) as PartyGoalProfile['goals'] };
+  };
+
   it('preserves the whip instruction across save/restore', () => {
     const fixture = whipFixture();
     const whipped = issuePartyWhip(fixture.state, fixture.proposalId, fixture.leaderId, fixture.partyId, 'no');
@@ -110,16 +125,58 @@ describe('party whip persistence and parliamentary consumption', () => {
     expect(restored.governance.proposals[fixture.proposalId].whipInstructions![0]).toMatchObject({ partyId: fixture.partyId, instruction: 'no', byPersonId: fixture.leaderId });
   });
 
-  it('parliamentary support consumes the stored whip without fabricating a shift', () => {
+  it('consumes the stored whip through the updated proposal without fabricating a shift for unavailable evidence', () => {
     const fixture = whipFixture();
     const proposal = fixture.state.governance.proposals[fixture.proposalId];
     const withWhip = issuePartyWhip(fixture.state, fixture.proposalId, fixture.leaderId, fixture.partyId, 'yes');
-    const support = estimateParliamentarySupport(withWhip, proposal);
-    // The evaluator reads proposal.whipInstructions (estimates.ts) and produces a
-    // chamber support estimate; the bounded distribution shift itself is verified
-    // directly by the applyWhipInstruction tests above. Unavailable evidence is
-    // never forced into a fabricated shift (unknown != zero).
-    expect(support.chambers.length).toBeGreaterThan(0);
-    expect(withWhip.governance.proposals[fixture.proposalId].whipInstructions).toHaveLength(1);
+    const updated = withWhip.governance.proposals[fixture.proposalId];
+    // The evaluator receives the updated proposal carrying the instruction, never the stale snapshot.
+    expect(updated).not.toBe(proposal);
+    expect(updated.whipInstructions).toHaveLength(1);
+    expect(updated.whipInstructions![0]).toMatchObject({ proposalId: fixture.proposalId, partyId: fixture.partyId, instruction: 'yes' });
+    const baseline = estimateParliamentarySupport(fixture.state, proposal);
+    const after = estimateParliamentarySupport(withWhip, updated);
+    const beforeEval = partyEvaluation(baseline, fixture.partyId)!;
+    const afterEval = partyEvaluation(after, fixture.partyId)!;
+    // Model limitation (not a test limitation): with the current validated party data the internal
+    // distribution is UNKNOWN (issue confidence below the admissibility floor), so the whip is
+    // correctly a no-op — unknown evidence is never converted into a fabricated shift.
+    expect(beforeEval.internalDistribution?.status).toBe('unavailable');
+    expect(afterEval.internalDistribution).toEqual(beforeEval.internalDistribution);
+  });
+
+  it('applies the stored whip as a bounded distribution shift through the parliamentary evaluator when evidence is admissible', () => {
+    const fixture = whipFixture();
+    const proposal = fixture.state.governance.proposals[fixture.proposalId];
+    const profiles = { [fixture.partyId]: admissibleProfile(fixture.state, fixture.partyId) };
+    const baseline = estimateParliamentarySupport(fixture.state, proposal, politicalRegistry, profiles);
+    const withWhip = issuePartyWhip(fixture.state, fixture.proposalId, fixture.leaderId, fixture.partyId, 'yes');
+    const updated = withWhip.governance.proposals[fixture.proposalId];
+    const after = estimateParliamentarySupport(withWhip, updated, politicalRegistry, profiles);
+    const before = partyEvaluation(baseline, fixture.partyId)!.internalDistribution!;
+    const afterDist = partyEvaluation(after, fixture.partyId)!.internalDistribution!;
+    expect(before.status).toBe('modelled_common_prior');
+    expect(afterDist.status).toBe('modelled_common_prior');
+    // A measurable, bounded shift toward YES — the whip never exceeds its single step.
+    expect(afterDist.agreementMeanBps).toBeGreaterThan(before.agreementMeanBps);
+    expect(afterDist.agreementMeanBps - before.agreementMeanBps).toBeLessThanOrEqual(2_000);
+    expect(afterDist.yesBps).toBeGreaterThanOrEqual(before.yesBps);
+    // Defections stay possible: the whip does not convert the whole distribution into YES.
+    expect(afterDist.yesBps).toBeLessThan(10_000);
+    expect(afterDist.abstainBps).toBeGreaterThan(0);
+    // Seat-apportionment conservation is preserved for the whipped party.
+    const afterEval = partyEvaluation(after, fixture.partyId)!;
+    expect(afterEval.seatAllocation!.yesSeats + afterEval.seatAllocation!.noSeats + afterEval.seatAllocation!.abstainSeats + afterEval.seatAllocation!.unknownSeats).toBe(afterEval.seats);
+  });
+
+  it('leaves the consumed internal distribution unchanged for a FREE VOTE instruction', () => {
+    const fixture = whipFixture();
+    const proposal = fixture.state.governance.proposals[fixture.proposalId];
+    const profiles = { [fixture.partyId]: admissibleProfile(fixture.state, fixture.partyId) };
+    const baseline = estimateParliamentarySupport(fixture.state, proposal, politicalRegistry, profiles);
+    const withFree = issuePartyWhip(fixture.state, fixture.proposalId, fixture.leaderId, fixture.partyId, 'free');
+    const updated = withFree.governance.proposals[fixture.proposalId];
+    const after = estimateParliamentarySupport(withFree, updated, politicalRegistry, profiles);
+    expect(partyEvaluation(after, fixture.partyId)!.internalDistribution).toEqual(partyEvaluation(baseline, fixture.partyId)!.internalDistribution);
   });
 });
