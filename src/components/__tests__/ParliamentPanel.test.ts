@@ -52,7 +52,7 @@ describe('ParliamentPanel', () => {
 
   it('refuses the party whip to a person who is not a party leader', () => {
     const markup = renderToStaticMarkup(createElement(ParliamentPanel, { state: stateWith('legislator'), countryId: COUNTRY, personId: PERSON, onStateChange: () => {} }));
-    expect(markup).toContain('requires active leadership of a registered party');
+    expect(markup).toContain('require active leadership of a registered party');
     expect(markup).not.toContain('Issue / change whip instruction');
   });
 
