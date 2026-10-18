@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SimulationState } from '../../types';
 import type { PartyInternalVoteDistribution } from '../governance/model';
 import { applyWhipInstruction } from '../governance/internalPartyDistribution';
-import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, issuePartyWhip, resolveProposalVote, setControlledPerson, submitProposal } from '../governance/runtime';
+import { assignPoliticalOffice, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, issuePartyWhip, setControlledPerson, submitProposal } from '../governance/runtime';
 import { politicalRegistry } from '../politics/registry';
 import { initializeNewGame } from '../initialization';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
@@ -38,9 +38,9 @@ describe('applyWhipInstruction', () => {
     expect(abstain.agreementMeanBps).toBeLessThanOrEqual(5_000);
     // defections stay bounded: a whip does not convert the whole distribution
     expect(yes.yesBps).toBeLessThan(10_000);
-    expect(yes.noBps).toBeGreaterThan(0);
+    expect(yes.abstainBps).toBeGreaterThan(0);
     expect(no.noBps).toBeLessThan(10_000);
-    expect(no.yesBps).toBeGreaterThan(0);
+    expect(no.abstainBps).toBeGreaterThan(0);
   });
 });
 
@@ -110,11 +110,12 @@ describe('party whip persistence and parliamentary consumption', () => {
     expect(restored.governance.proposals[fixture.proposalId].whipInstructions![0]).toMatchObject({ partyId: fixture.partyId, instruction: 'no', byPersonId: fixture.leaderId });
   });
 
-  it('shifts the instructed party distribution when the parliamentary vote is resolved', () => {
+  it('shifts the instructed party distribution when parliamentary support is evaluated', () => {
     const fixture = whipFixture();
-    const baseline = resolveProposalVote(fixture.state, fixture.proposalId);
-    const whipped = resolveProposalVote(issuePartyWhip(fixture.state, fixture.proposalId, fixture.leaderId, fixture.partyId, 'yes'), fixture.proposalId);
-    const evalFor = (result: SimulationState) => result.governance.proposals[fixture.proposalId].voteResult!.chambers
+    const proposal = fixture.state.governance.proposals[fixture.proposalId];
+    const baseline = estimateParliamentarySupport(fixture.state, proposal);
+    const whipped = estimateParliamentarySupport(issuePartyWhip(fixture.state, fixture.proposalId, fixture.leaderId, fixture.partyId, 'yes'), proposal);
+    const evalFor = (support: ReturnType<typeof estimateParliamentarySupport>) => support.chambers
       .flatMap(chamber => chamber.partyEvaluations ?? [])
       .find(evaluation => evaluation.partyId === fixture.partyId)!;
     expect(evalFor(whipped).internalDistribution!.agreementMeanBps).toBeGreaterThan(evalFor(baseline).internalDistribution!.agreementMeanBps);
