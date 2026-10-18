@@ -1,8 +1,19 @@
 import { useMemo, useState } from 'react';
 import type { SimulationState } from '../types';
 import { politicalRegistry } from '../simulation/politics/registry';
-import { appointMinister, appointViceLeader, removeMinister } from '../simulation/governance/runtime';
+import { appointMinister, appointViceLeader, issuePartyWhip, removeMinister } from '../simulation/governance/runtime';
 import { dissolveParliament } from '../simulation/elections/runtime';
+
+const PROPOSAL_KIND_LABELS: Record<string, string> = {
+  fiscal_reform: 'Fiscal reform',
+  constitutional_amendment: 'Constitutional amendment',
+};
+const WHIP_INSTRUCTION_LABELS: Record<string, string> = {
+  yes: 'YES — vote in favour',
+  no: 'NO — vote against',
+  abstain: 'ABSTAIN',
+  free: 'FREE VOTE — no party line',
+};
 
 /** Government/parliament actions already implemented in the canonical engine but
  *  previously unreachable from the interface. Every action is authority-gated by
@@ -17,21 +28,33 @@ export function ParliamentPanel({ state, countryId, personId, onStateChange }: {
   const person = state.governance.persons[personId];
   const isExecutive = Boolean(person?.status === 'active' && person.office?.countryId === countryId && ['head_of_government', 'head_of_state'].includes(person.office.role));
   const isHeadOfGovernment = Boolean(person?.status === 'active' && person.office?.countryId === countryId && person.office.role === 'head_of_government');
+  const isPartyLeader = Boolean(person?.status === 'active' && person.isPartyLeader && person.partyId && person.countryId === countryId);
+  const partyName = person?.partyId ? politicalRegistry.parties[person.partyId]?.displayName ?? 'your party' : 'your party';
 
   const cabinet = state.governance.cabinets?.[countryId];
   const ministers = Object.values(state.governance.persons).filter(p => p.status === 'active' && p.countryId === countryId && p.office?.role === 'minister').sort((a, b) => a.id.localeCompare(b.id));
   const appointable = Object.values(state.governance.persons).filter(p => p.status === 'active' && p.countryId === countryId && !p.office).sort((a, b) => a.id.localeCompare(b.id));
+  const submittedProposals = Object.values(state.governance.proposals)
+    .filter(proposal => proposal.countryId === countryId && proposal.status === 'submitted')
+    .sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate) || a.id.localeCompare(b.id));
 
   const [ministerId, setMinisterId] = useState('');
   const [portfolioName, setPortfolioName] = useState('');
   const [removeId, setRemoveId] = useState('');
   const [viceId, setViceId] = useState('');
+  const [whipProposalId, setWhipProposalId] = useState('');
+  const [whipInstruction, setWhipInstruction] = useState<'yes' | 'no' | 'abstain' | 'free'>('yes');
   const [message, setMessage] = useState('');
 
   const command = (run: () => SimulationState, ok: string) => {
     try { onStateChange(run()); setMessage(ok); }
     catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
   };
+
+  const proposalLabel = (proposal: { id: string; kind: string; effectiveDate: string }) =>
+    `${PROPOSAL_KIND_LABELS[proposal.kind] ?? proposal.kind} proposal · effective ${proposal.effectiveDate}`;
+  const selectedWhipProposal = submittedProposals.find(proposal => proposal.id === whipProposalId) ?? submittedProposals[0];
+  const currentWhip = selectedWhipProposal?.whipInstructions?.find(whip => whip.partyId === person?.partyId);
 
   const parties = useMemo(() => {
     const ids = politicalRegistry.countries[countryId]?.partyIds ?? [];
@@ -68,6 +91,21 @@ export function ParliamentPanel({ state, countryId, personId, onStateChange }: {
       <button onClick={() => command(() => dissolveParliament(state, countryId, personId), 'Parliament dissolved; the election cycle will run through the shared scheduler.' )}>Dissolve parliament (snap election)</button>
       {cabinet && Object.keys(cabinet.portfolios).length > 0 && <p>Current portfolios: {Object.values(cabinet.portfolios).filter(p => p.ministerPersonId).map(p => p.name).join(', ')}</p>}
     </> : <p>Government actions require the executive head of this Country; party leadership and Country selection grant none.</p>}
+    {isPartyLeader ? <section>
+      <h3>Party whip — {partyName}</h3>
+      <p>A whip instruction sets your party's parliamentary line. Representatives still vote according to the internal distribution and may defect — a whip never guarantees every seat. A FREE VOTE preserves the underlying distribution.</p>
+      {submittedProposals.length ? <>
+        <label>Submitted proposal<select value={selectedWhipProposal?.id ?? ''} onChange={event => setWhipProposalId(event.target.value)}>
+          <option value="">—</option>
+          {submittedProposals.map(proposal => <option key={proposal.id} value={proposal.id}>{proposalLabel(proposal)}</option>)}
+        </select></label>
+        <label>Instruction<select value={whipInstruction} onChange={event => setWhipInstruction(event.target.value as typeof whipInstruction)}>
+          {Object.entries(WHIP_INSTRUCTION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select></label>
+        <button disabled={!selectedWhipProposal} onClick={() => command(() => issuePartyWhip(state, selectedWhipProposal!.id, personId, person!.partyId!, whipInstruction), 'Whip instruction recorded for your party.')}>Issue / change whip instruction</button>
+        {currentWhip && <p>Your party's current instruction: {WHIP_INSTRUCTION_LABELS[currentWhip.instruction] ?? currentWhip.instruction} · issued {currentWhip.on}.</p>}
+      </> : <p>No submitted proposals are pending for your Country.</p>}
+    </section> : <p>Party whip instructions require active leadership of a registered party in this Country.</p>}
     {message && <p role="status">{message}</p>}
   </section>;
 }
