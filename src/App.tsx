@@ -51,7 +51,7 @@ import { SaveManager } from "./components/SaveManager";
 import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
 import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
-import { countryColour, regionLayerColour, MAP_LAYERS, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
+import { countryColour, regionLayerColour, territoryLayerColour, MAP_LAYERS, LAYER_LEGEND, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
 import { newUrgentBriefingCount } from "./app/urgency";
 import { controlledActor, governmentAdvisors, orderedNotifications } from "./app/leftRail";
 import "leaflet/dist/leaflet.css";
@@ -302,17 +302,21 @@ export default function App() {
       world && regionData &&
       ({
         type: "FeatureCollection",
-        features: world.territories.map((t) => ({
-          type: "Feature",
-          properties: {
-            territoryId: t.id,
-            navigationCountryId: t.ownerCountryId,
-            regionOwners: [...new Set((regionIdsByMacroTerritory.get(t.id) ?? []).map(regionId => sim.regionOwnership[regionId]).filter(Boolean))],
-          },
-          geometry: t.geometry,
-        })),
+        features: world.territories.map((t) => {
+          const regionIds = regionIdsByMacroTerritory.get(t.id) ?? [];
+          return {
+            type: "Feature",
+            properties: {
+              territoryId: t.id,
+              navigationCountryId: t.ownerCountryId,
+              regionIds,
+              fill: territoryLayerColour(mapLayer, regionIds, t.ownerCountryId, sim),
+            },
+            geometry: t.geometry,
+          };
+        }),
       } as GeoJSON.FeatureCollection),
-    [world, regionData, regionIdsByMacroTerritory, sim.regionOwnership],
+    [world, regionData, regionIdsByMacroTerritory, mapLayer, sim.regionOwnership, sim.populationByRegion, sim.economicOutputByRegion, sim.occupationByRegion],
   );
   const changeClock = (next: SimulationState) => {
     clock.current.setPaused(next.paused);
@@ -562,7 +566,7 @@ export default function App() {
                 style={(f) => ({
                   color: "#202c32",
                   weight: 1.05,
-                  fillColor: f?.properties?.regionOwners?.length === 1 ? countryColour(f.properties.regionOwners[0]) : f?.properties?.regionOwners?.length > 1 ? "#6f6d68" : countryColour(f?.properties?.navigationCountryId),
+                  fillColor: f?.properties?.fill ?? countryColour(f?.properties?.navigationCountryId),
                   fillOpacity: 0.68,
                 })}
                 onEachFeature={(feature, layer) => {
@@ -599,7 +603,7 @@ export default function App() {
             )}
             {regionGeometry && mapZoom >= 4 && (
               <GeoJSON
-                key={`${selected}-${selectedRegion ?? "none"}-${mapZoom >= 5 ? "near" : "far"}`}
+                key={`${selected}-${selectedRegion ?? "none"}-${mapLayer}-${mapZoom >= 5 ? "near" : "far"}`}
                 data={regionGeometry}
                 style={(feature) => {
                   const regionId = feature?.properties?.regionId as string;
@@ -628,6 +632,7 @@ export default function App() {
               ))}
               <span className="layer-unavailable">Unavailable: {UNAVAILABLE_LAYER_LABELS.join(' · ')}</span>
             </div>
+            <p className="layer-legend" role="note">{LAYER_LEGEND[mapLayer]}</p>
             <p>Admin-1 Region boundaries at zoom ≥ 4. Select a country, then zoom to inspect Regions.</p>
           </div>
         </section>
