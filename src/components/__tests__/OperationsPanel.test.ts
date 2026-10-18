@@ -48,8 +48,7 @@ describe('OperationsPanel', () => {
     });
     const regionsById = new Map([['region.own', { commonName: 'Test Province' }]]);
     const markup = renderToStaticMarkup(createElement(OperationsPanel, { state, countryId: COUNTRY, personId: PERSON, onStateChange: () => {}, regionsById }));
-    expect(markup).toContain('Test Province');
-    expect(markup).not.toContain('deployment.00000001');
+    expect(markup).toContain('Test Province · 100 personnel');
   });
 
   it('refuses commands when the person lacks military-command authority', () => {

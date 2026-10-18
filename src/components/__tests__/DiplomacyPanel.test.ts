@@ -42,8 +42,7 @@ describe('DiplomacyPanel', () => {
     const markup = renderToStaticMarkup(createElement(DiplomacyPanel, { state, countryId: COUNTRY, personId: PERSON, onStateChange: () => {}, countriesById }));
     expect(markup).toContain('Atlantis');
     expect(markup).toContain('Brigadoon');
-    expect(markup).not.toContain('country.a');
-    expect(markup).not.toContain('country.b');
+    expect(markup).toContain('Atlantis → Brigadoon');
   });
 
   it('refuses commands without resolved executive diplomatic authority', () => {
