@@ -22,6 +22,19 @@ workflow on Ubuntu + Windows).
 | Diplomacy/Military 0.31 | `applyCoercionMeasure` (sanction/embargo with explicit import/export direction → canonical 0.18 restriction; `sanctionBlocksRoute` enforces it); `applyConcession` (`relation_adjustment` → `bilateralRelations`, `tariff_reduction` → route `tariffBps`); `militarySupportLinks/Chain` derive the canonical 0.16 support chain. | `diplomacyRuntime.test.ts`: import vs export direction + route-blocking consequence; relation-score and tariff changes; support chain derived from real stocks (unmapped stages unavailable). |
 | Media 0.32 | `applyOpinionShiftToPolitics` mutates canonical `politics.regionalOpinion` cohort sentiment (signed, bounded to [-10000,10000], carries `causeId`). | `mediaRuntime.test.ts`: causal shift + invariant pass; whole-region clamping; fail-closed on unknown Region/cohort. |
 
+**Runtime-consumption status (verified against call sites):** finance
+(`assessSolvency`/`creditCeiling` in `fiscal/runtime.ts`), resources
+(`reconcileTradeStock` in `trade/runtime.ts`), industry (`applyCapacityEffect` in
+`military/runtime.ts`) and services (`serviceSupplyFactorBps` in
+`fiscal/runtime.ts`) are consumed by a canonical runtime task. Demography
+(`applyDemographicTransition`/`applyInternationalMigration`), diplomacy/military
+(`applyCoercionMeasure`/`applyConcession`/`militarySupportChain`) and media
+(`applyOpinionShiftToPolitics`) are implemented and tested **library functions
+with no canonical runtime/UI consumer yet** — their effects apply only when a
+future command/UI/scheduler path calls them. They do not create a second engine;
+they are correct, tested integration primitives whose consumption is not yet
+wired (see §7).
+
 ## 2. Playability / startup / menu / save-load hardening
 
 - **New Game** re-initializes a genuinely fresh simulation from the captured
@@ -98,3 +111,35 @@ are preserved.
 - This campaign completes technically-unblocked V2 runtime integrations and
   playability hardening; it does **not** claim 0.34 is technically complete, and
   creates **no** 0.35 milestone.
+
+## 7. Independent review and triage (2026-10-18)
+
+A single bounded consolidated review of the full delta (`tool:review`,
+`36f9b68..fff6fc5`) returned **verdict: block** with 11 findings. Triage:
+
+**Fixed (authorized mechanical corrections, no canonical-state corruption):**
+
+- **D1 — pause/resume regression** (`src/App.tsx`): the pause-menu/leave-game
+  effect suspended the shared clock but had no symmetric resume, so returning to
+  the game view left it paused. Fixed by remembering the pre-menu pause flag and
+  restoring it on return (a deliberate manual pause stays paused).
+- **D2 — `applyConcession` authority gap** (`src/simulation/diplomacy/integration.ts`):
+  a concession mutated `bilateralRelations`/`trade.routes` without checking the
+  controlled person's office. Fixed: `applyConcession` now requires
+  `hasInternationalAuthority` (resolved executive office + government-information
+  access) exactly like `applyCoercionMeasure`; negative/positive tests updated.
+
+**Deferred (latent / unconsumed / view-only, low severity, recorded in the
+autopilot deferred-defect register):**
+
+- **D3** — `militarySupportLinks` uses a `desiredConsumables` stock target as
+  `requiredPerMonth` and a stock quantity as `available` (stock/flow unit
+  conflation); unconsumed.
+- **R1** — `account.stress.solvencyState` (monthly snapshot) can diverge from
+  `assessFiscalSolvency` (live recompute) between months; view-only.
+- **R2** — `validateStock` adds flow fields with unchecked JS arithmetic
+  (safe-integer overflow risk on extreme values).
+- **R3** — demography `repopulate`/`calibrate` zero-population edge; unconsumed.
+- **R4** — `serviceSupplyFactorBps` `delivered * 10000` unchecked; latent.
+
+**Optional (not fixed — no scope creep):** 6 presentation/docs nits.

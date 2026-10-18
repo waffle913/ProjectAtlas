@@ -83,14 +83,20 @@ describe('diplomacy/military 0.31 runtime integration', () => {
   it('applies a relation-adjustment concession to the canonical relation score', () => {
     const state = fixture();
     const before = getRelation(state, A, B).score;
-    const next = applyConcession(state, { id: 'conc.1', fromCountryId: A, mandate, toCountryId: B, kind: 'relation_adjustment', value: 10, date: state.date, note: 'Synthetic concession' });
+    const next = applyConcession(state, { id: 'conc.1', fromCountryId: A, mandate, toCountryId: B, kind: 'relation_adjustment', value: 10, date: state.date, note: 'Synthetic concession' }, person(state));
     expect(getRelation(next, A, B).score).toBe(before + 10);
   });
 
-  it('reduces the ordinary customs rate via a tariff concession on admitted routes', () => {
+  it('enforces office authority and reduces the ordinary customs rate via a tariff concession on admitted routes', () => {
     const state = fixture();
-    const next = applyConcession(state, { id: 'conc.2', fromCountryId: B, mandate, toCountryId: A, kind: 'tariff_reduction', value: 200, date: state.date, note: 'Synthetic tariff concession' });
-    const route = next.trade.routes.find(r => r.id === 'route.dip:food')!;
+    // The controlled person holds office in A, not B: a concession by B fails closed.
+    expect(() => applyConcession(state, { id: 'conc.2', fromCountryId: B, mandate, toCountryId: A, kind: 'tariff_reduction', value: 200, date: state.date, note: 'Synthetic tariff concession' }, person(state))).toThrow();
+    // Give B its own executive, then the same concession is authorized.
+    let next = createPoliticalPerson(state, { countryId: B, displayName: 'Synthetic diplomacy executive B' });
+    const personB = Object.keys(next.governance.persons).find(id => next.governance.persons[id].countryId === B)!;
+    next = setControlledPerson(assignPoliticalOffice(next, personB, { countryId: B, role: 'head_of_government' }), personB);
+    const applied = applyConcession(next, { id: 'conc.2', fromCountryId: B, mandate, toCountryId: A, kind: 'tariff_reduction', value: 200, date: state.date, note: 'Synthetic tariff concession' }, personB);
+    const route = applied.trade.routes.find(r => r.id === 'route.dip:food')!;
     expect(route.tariffBps).toBe(300); // 500 - 200
   });
 

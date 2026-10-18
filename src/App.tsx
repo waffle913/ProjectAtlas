@@ -119,6 +119,10 @@ export default function App() {
   const [loadStage, setLoadStage] = useState('Loading country registry and geography…');
   const newGameBaseRef = useRef<SimulationState | undefined>(undefined);
   const newGameSeedRef = useRef<{ regions: RegionEntity[]; countryIds: string[]; socioeconomicData: InitializationData; politicalData: PoliticalInitializationData } | undefined>(undefined);
+  // Remembers the clock's paused flag when a menu first suspends it, so returning
+  // to the game view restores exactly that state instead of leaving the clock
+  // stuck paused (or silently unpausing a deliberate manual pause).
+  const menuPauseRef = useRef<boolean | undefined>(undefined);
   useEffect(() => { applyUiScale(settings); }, [settings]);
   useEffect(() => {
     let active = true;
@@ -320,7 +324,7 @@ export default function App() {
     regionIds: new Set(regionData.registry.regions.map(r => r.id)),
     regions: regionData.registry.regions,
   } : undefined;
-  const applyState = (next: SimulationState) => { clock.current = new SimulationClock(next); setSim(clock.current.snapshot()); };
+  const applyState = (next: SimulationState) => { clock.current = new SimulationClock(next); menuPauseRef.current = undefined; setSim(clock.current.snapshot()); };
   const dataReady = Boolean(world && countryData && regionData && populationData && economicData);
   // A new game always re-initializes from the captured fresh base + seed, so
   // returning to the menu and starting again can never preserve a prior
@@ -342,9 +346,19 @@ export default function App() {
   // menu is shown.
   useEffect(() => {
     const inGame = screen === 'game' && !pauseOpen;
-    if (!inGame && !clock.current.snapshot().paused) {
-      clock.current.setPaused(true);
-      setSim(clock.current.snapshot());
+    if (!inGame) {
+      if (menuPauseRef.current === undefined) menuPauseRef.current = clock.current.snapshot().paused;
+      if (!clock.current.snapshot().paused) {
+        clock.current.setPaused(true);
+        setSim(clock.current.snapshot());
+      }
+    } else if (menuPauseRef.current !== undefined) {
+      const restore = menuPauseRef.current;
+      menuPauseRef.current = undefined;
+      if (!restore) {
+        clock.current.setPaused(false);
+        setSim(clock.current.snapshot());
+      }
     }
   }, [screen, pauseOpen]);
   const ctrlPersonId = sim.governance.player.controlledPersonId;

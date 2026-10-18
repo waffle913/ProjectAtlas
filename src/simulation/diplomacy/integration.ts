@@ -16,7 +16,7 @@
 import type { SimulationState } from '../../types';
 import type { DiplomacyContext } from '../diplomacy';
 import { adjustRelation } from '../diplomacy';
-import { condemn, imposeExportRestriction, imposeImportRestriction } from '../international/runtime';
+import { condemn, hasInternationalAuthority, imposeExportRestriction, imposeImportRestriction } from '../international/runtime';
 import { presentPersonnel } from '../military/model';
 import { deliverSupportChain, type SupportLink } from '../military/supportChain';
 import { validateCoercionMeasure, internationalActionKindFor, type CoercionMeasure } from './sanctions';
@@ -43,8 +43,14 @@ const contextFor = (state: SimulationState): DiplomacyContext => ({
   regionIds: new Set(Object.keys(state.socioeconomy.regions)),
 });
 
-export function applyConcession(state: SimulationState, concession: Concession): SimulationState {
+export function applyConcession(state: SimulationState, concession: Concession, personId: string): SimulationState {
   validateConcession(concession);
+  // A concession is a unilateral give from a mandated actor: the controlled
+  // person must actually hold a resolved executive office in the conceding
+  // Country (the mandate label alone never confers authority).
+  if (!hasInternationalAuthority(state, concession.fromCountryId, personId)) {
+    throw new Error('A concession requires the controlled active person to hold a resolved executive office with government-information access in the conceding Country.');
+  }
   if (concession.kind === 'relation_adjustment') {
     return adjustRelation(state, concession.fromCountryId, concession.toCountryId, concession.value, contextFor(state));
   }
