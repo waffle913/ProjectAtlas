@@ -13,7 +13,7 @@ function stateWith(role: string | undefined): SimulationState {
     office: role ? { countryId: COUNTRY, role, authorityProfile: { capabilities: [] } } : undefined,
   };
   return {
-    governance: { persons: { [PERSON]: person }, player: { controlledPersonId: PERSON }, cabinets: {} },
+    governance: { persons: { [PERSON]: person }, player: { controlledPersonId: PERSON }, cabinets: {}, proposals: {} },
     date: '2026-01-01',
   } as unknown as SimulationState;
 }
