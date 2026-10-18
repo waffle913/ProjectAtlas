@@ -36,7 +36,7 @@ UI / command / scheduler / none.
 | Draft/submit/withdraw fiscal proposal | ✓ createFiscalProposal, submit/withdrawProposal | FiscalPolicy | fiscal rules | proposer | Wired | ✓ | Complete |
 | Resolve parliamentary vote | ✓ resolveProposalVote/ForActor | FiscalPolicy (resolve) | aggregate seats | chambers | Wired | ✓ | Complete |
 | Pre-vote negotiation | ✓ holdPreVoteNegotiation | none | situational plurality | party actor | absent | ✓ | Wire existing |
-| Issue party whip | ✓ issuePartyWhip | none | party | party leader | absent | ✓ | Wire existing |
+| Issue party whip | ✓ issuePartyWhip | ParliamentPanel | party | party leader | Wired | ✓ | Complete |
 | Censure government | ✓ censureGovernment | none | chamber | chamber | absent | ✓ | Wire existing |
 | Hold referendum | ✓ holdReferendum | none | constitution | executive | absent | ✓ | Wire existing (amend procedure design-blocked) |
 | Dissolve parliament | ✓ dissolveParliament | ParliamentPanel | elections registry | executive (or parliament motion) | Wired | ✓ | Complete |
@@ -158,8 +158,8 @@ UI / command / scheduler / none.
 
 | Disposition | Count (distinct levers) |
 |---|---|
-| Complete | 35 |
-| Wire existing | 7 |
+| Complete | 36 |
+| Wire existing | 6 |
 | Complete integration | 11 |
 | Design-blocked | 8 |
 | Deferred | 5 |
