@@ -11,6 +11,7 @@ import { MilitaryCapabilities } from './components/MilitaryCapabilities';
 import { OperationsPanel } from './components/OperationsPanel';
 import { DiplomacyPanel } from './components/DiplomacyPanel';
 import { SecurityPanel } from './components/SecurityPanel';
+import { ParliamentPanel } from './components/ParliamentPanel';
 import { MultilateralPanel } from './components/MultilateralPanel';
 import { TradeInspection } from './components/TradeInspection';
 import { configureSyntheticTradeScenario } from './simulation/trade/scenario';
@@ -658,6 +659,7 @@ export default function App() {
         ) : activePage === 'politics' ? (
           <aside className="panel"><h2>Public political institutions</h2>
             {selected ? <><p>{politicalRegistry.countries[selected]?.coverage.legislature ?? 'unavailable'} legislative coverage.</p>{politicalRegistry.countries[selected]?.partyIds.map(id => politicalRegistry.parties[id]).sort((a, b) => a.displayName.localeCompare(b.displayName)).map(party => <section key={party.id}><strong>{party.displayName}</strong><p>{party.governmentStatus === 'government' ? 'Government bloc' : party.governmentStatus === 'opposition' ? 'Opposition' : 'Government position unavailable'} · {party.currentSeats === null ? 'seat count unavailable' : `${party.currentSeats} seats`}</p><small>Fictional gameplay party · ideology basis {party.ideologicalBasis.status}</small></section>)}</> : <p>Select a Country on the map to inspect public political information.</p>}
+            {controlledPerson && playerCountryId && selected === playerCountryId && <ParliamentPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} onStateChange={commitCommand} />}
           </aside>
         ) : activePage === 'overview' && selectedRegionEntity ? (
           <RegionPanel
