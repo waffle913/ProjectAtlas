@@ -11,6 +11,20 @@ const label = (name: string, value?: string | number) => (
 const flagEmoji = (iso2?: string) => iso2
   ? [...iso2.toUpperCase()].map(letter => String.fromCodePoint(127397 + letter.charCodeAt(0))).join("")
   : "◇";
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  sovereign_state: 'Sovereign state',
+  dependency: 'Dependency',
+  disputed: 'Disputed entity',
+  partially_recognized: 'Partially recognized state',
+  special_status: 'Special-status entity',
+};
+const UN_MEMBERSHIP_LABELS: Record<string, string> = {
+  member: 'UN member',
+  observer: 'UN observer',
+  non_member: 'UN non-member',
+};
+const entityTypeLabel = (t: string) => ENTITY_TYPE_LABELS[t] ?? t.replaceAll('_', ' ');
+const unMembershipLabel = (m: string) => UN_MEMBERSHIP_LABELS[m] ?? m.replace('_', ' ');
 const formatValue = (value: unknown) => {
   if (typeof value === "number") return new Intl.NumberFormat("en", { maximumFractionDigits: 0 }).format(value);
   if (Array.isArray(value)) return value.map(item => typeof item === "string" ? item : ((item as { code?: string; name?: string }).code ?? (item as { name?: string }).name)).filter(Boolean).join(", ");
@@ -39,13 +53,13 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
     <aside className="panel">
       <div className="title">
         <span className="flag" aria-label={`${country.commonName} flag`}>{flagEmoji(country.externalIds.isoAlpha2)}</span>
-        <div><span className="eyebrow">{country.entityType.replaceAll("_", " ")}</span><h1>{country.commonName}</h1><p>{country.officialName}</p></div>
+        <div><span className="eyebrow">{entityTypeLabel(country.entityType)}</span><h1>{country.commonName}</h1><p>{country.officialName}</p></div>
       </div>
       <section>
         {label("ISO alpha-2", country.externalIds.isoAlpha2)}
         {label("ISO alpha-3", country.externalIds.isoAlpha3)}
         {label("UN M49", country.externalIds.unM49)}
-        {label("UN status", country.unMembership.replace("_", " "))}
+        {label("UN status", unMembershipLabel(country.unMembership))}
         {label("Capital", country.capital)}
         {label("Continent", country.continent)}
         {label("UN subregion", country.unSubregion)}

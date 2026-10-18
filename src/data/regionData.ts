@@ -3,6 +3,7 @@ import mappingUrl from './admin1-mapping.json?url';
 import coverageUrl from './admin1-coverage-report.json?url';
 import type { RegionEntity } from '../types';
 import type { EntityRegistry } from './registry';
+import { decodeHtmlEntities } from './decodeEntities';
 import { isSimulationDate as isDate } from '../simulation/date';
 
 export interface RegionRegistry {
@@ -131,5 +132,13 @@ export async function loadRegionData(countries: EntityRegistry) {
   const responses = await Promise.all([registryUrl, mappingUrl, coverageUrl].map(url => fetch(url)));
   if (responses.some(response => !response.ok)) throw new Error('One or more local Region data assets are unavailable.');
   const [registry, mapping, coverage] = await Promise.all(responses.map(response => response.json()));
-  return indexRegionData(registry, mapping, coverage, countries);
+  // Decode literal HTML character references in sourced Region display names.
+  const decodedRegistry = {
+    ...registry,
+    regions: registry.regions.map((region: RegionEntity) => ({
+      ...region,
+      commonName: decodeHtmlEntities(region.commonName),
+    })),
+  };
+  return indexRegionData(decodedRegistry, mapping, coverage, countries);
 }

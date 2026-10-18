@@ -30,7 +30,7 @@ export function MainMenu({ onContinue, onNewGame, onLoad, onSettings, onCredits,
           <button className="menu-exit" onClick={onExit}>Exit Game</button>
         </nav>
         <footer className="menu-footer">
-          <span>Version {import.meta.env.VITE_APP_VERSION ?? '1.0.0'} · schema 20</span>
+          <span>Version {import.meta.env.VITE_APP_VERSION ?? 'alpha (pre-release)'}</span>
         </footer>
       </div>
     </main>

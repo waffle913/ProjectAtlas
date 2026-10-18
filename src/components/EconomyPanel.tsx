@@ -12,10 +12,11 @@ function usd(value: number): string {
  * access, and every value is labelled as `derived`/`modelled` — never presented
  * as an observation, and unavailable inputs stay unavailable.
  */
-export function EconomyPanel({ state, countryId, personId }: {
+export function EconomyPanel({ state, countryId, personId, regionsById }: {
   state: SimulationState;
   countryId: string;
   personId: string;
+  regionsById?: ReadonlyMap<string, { commonName: string }>;
 }) {
   const inspection = inspectEconomy(state, countryId, personId);
   if (!inspection) {
@@ -35,7 +36,7 @@ export function EconomyPanel({ state, countryId, personId }: {
         {inspection.fiscal.ledgerKnownTaxRevenueUsd !== undefined && <p>Canonical ledger known tax revenue {usd(inspection.fiscal.ledgerKnownTaxRevenueUsd)}</p>}
       </section>}
       {inspection.regions.map(region => <section key={region.regionId}>
-        <strong>Region {region.regionId}</strong>
+        <strong>{regionsById?.get(region.regionId)?.commonName ?? 'Region'}</strong>
         {region.firms
           ? <p>Firms ({region.firms.firmRepresentation}): revenue {usd(region.firms.revenueUsd)} · business surplus {usd(region.firms.businessSurplusUsd)} · retained {usd(region.firms.retainedSurplusUsd)}</p>
           : <p>Firm account unavailable.</p>}

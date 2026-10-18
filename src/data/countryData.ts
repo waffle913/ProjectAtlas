@@ -5,6 +5,7 @@ import mappingUrl from './natural-earth-mapping.json?url';
 import type { DataSource, SourceValue } from '../types';
 import type { EntityRegistry, DatasetMapping } from './registry';
 import { isSimulationDate } from '../simulation/date';
+import { decodeHtmlEntities } from './decodeEntities';
 
 export interface MissingFact {
   status: 'unavailable';
@@ -195,5 +196,19 @@ export async function loadCountryData() {
   const responses = await Promise.all([registryUrl, factsUrl, officesUrl, mappingUrl].map(url => fetch(url)));
   if (responses.some(response => !response.ok)) throw new Error('One or more local country-data assets are unavailable.');
   const [registry, facts, politics, mapping] = await Promise.all(responses.map(response => response.json()));
-  return indexCountryData(registry, facts, politics, mapping);
+  // Decode literal HTML character references in sourced display names (e.g.
+  // `Cura&#231;ao` → `Curaçao`). Presentation-only: IDs and provenance are untouched.
+  const decodedRegistry = {
+    ...registry,
+    countries: registry.countries.map((country: EntityRegistry['countries'][number]) => ({
+      ...country,
+      commonName: decodeHtmlEntities(country.commonName),
+      officialName: decodeHtmlEntities(country.officialName),
+    })),
+    territories: registry.territories.map((territory: EntityRegistry['territories'][number]) => ({
+      ...territory,
+      label: decodeHtmlEntities(territory.label),
+    })),
+  };
+  return indexCountryData(decodedRegistry, facts, politics, mapping);
 }

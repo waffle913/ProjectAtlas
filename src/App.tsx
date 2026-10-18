@@ -492,7 +492,7 @@ export default function App() {
           <span className="brand">
             PROJECT<span>ATLAS</span>
           </span>
-          <small>Version {import.meta.env.VITE_APP_VERSION ?? '1.0.0'}</small>
+          <small>Version {import.meta.env.VITE_APP_VERSION ?? 'alpha (pre-release)'}</small>
         </div>
         <div className="header-tools">
           <Clock state={sim} onChange={changeClock} />
@@ -652,7 +652,7 @@ export default function App() {
           <aside className="panel"><h2>Economic information</h2>
             {playerCanReadGovernment && playerCountryId && controlledPerson ? <>
               {inspectGovernmentReports(sim, playerCountryId, controlledPerson.id).map(report => <section key={report.id}><strong>Labour report · {report.asOfDate}</strong><p>{report.valueBps === undefined ? 'Unavailable' : `Unemployment ${(report.valueBps / 100).toFixed(2)}%`}</p><small>{report.coverage} · {report.limitation}</small></section>)}
-              <EconomyPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} />
+              <EconomyPanel state={sim} countryId={playerCountryId} personId={controlledPerson.id} regionsById={regionData.regionsById} />
             </> : <p>Current internal economic reports are not available to an opposition person. No public unemployment report is currently implemented.</p>}
           </aside>
         ) : activePage === 'politics' ? (
@@ -671,6 +671,7 @@ export default function App() {
               retrievedAt: regionData.registry.sourceSnapshot.retrievedAt,
             } : selectedRegionEntity.geographyMapping.source}
             onBack={() => setSelectedRegion(undefined)}
+            showProvenance={settings.interface.showProvenance}
           />
         ) : activePage === 'overview' ? (
           <CountryPanel
