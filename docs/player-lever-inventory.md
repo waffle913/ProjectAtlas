@@ -20,7 +20,8 @@ UI / command / scheduler / none.
 |---|---|---|---|---|---|---|---|
 | Control a persistent person (setControlledPerson) | ✓ governance/runtime | StartGame + player handoff | synthetic/registry | controlled person | Wired | ✓ | Complete |
 | Resolve leadership handoff (resolvePlayerHandoff) | ✓ | BriefingTablet | succession state | successor exists | Wired | ✓ | Complete |
-| Appoint/remove minister | ✓ appointMinister/removeMinister | none | cabinet registry | executive head | absent | ✓ | Wire existing |
+| Appoint/remove minister | ✓ appointMinister/removeMinister | ParliamentPanel | cabinet registry | head of government | Wired | ✓ | Complete |
+| Appoint deputy head of government | ✓ appointViceLeader | ParliamentPanel | cabinet registry | head of government | Wired | ✓ | Complete |
 | Replace party leader | ✓ replacePartyLeader | none | modelled successor | party rules | absent | ✓ | Wire existing |
 | Assign/transfer/revoke office | ✓ | initialization | offices registry | governance | initialization | ✓ | Complete (init) |
 | Declare/end state of emergency | ✓ constitution/runtime | SecurityPanel (A1.6) | constitution | executive + active crisis | Wired | ✓ | Complete |
@@ -38,7 +39,7 @@ UI / command / scheduler / none.
 | Issue party whip | ✓ issuePartyWhip | none | party | party leader | absent | ✓ | Wire existing |
 | Censure government | ✓ censureGovernment | none | chamber | chamber | absent | ✓ | Wire existing |
 | Hold referendum | ✓ holdReferendum | none | constitution | executive | absent | ✓ | Wire existing (amend procedure design-blocked) |
-| Dissolve parliament | ✓ dissolveParliament | none | elections registry | executive/parliament | absent | ✓ | Wire existing |
+| Dissolve parliament | ✓ dissolveParliament | ParliamentPanel | elections registry | executive (or parliament motion) | Wired | ✓ | Complete |
 | Run election | ✓ runElection / runElectionCycle | elections.daily scheduler | support→seats | election rules | absent (scheduled) | ✓ | Complete integration (no manual trigger) |
 | Make campaign promise | ✓ makeCampaignPromise | none | typed promise | party | absent | ✓ | Wire existing |
 
@@ -157,15 +158,15 @@ UI / command / scheduler / none.
 
 | Disposition | Count (distinct levers) |
 |---|---|
-| Complete | 32 |
-| Wire existing | 9 |
+| Complete | 35 |
+| Wire existing | 7 |
 | Complete integration | 11 |
 | Design-blocked | 8 |
 | Deferred | 5 |
-| **Total** | **65** |
+| **Total** | **66** |
 
 ## Totals by domain
 
-Government 7 · Parties/Parliament 6 · Elections 3 · Fiscal 4 · Economy 3 ·
+Government 8 · Parties/Parliament 6 · Elections 3 · Fiscal 4 · Economy 3 ·
 Services 4 · Resources 4 · Industry 3 · Demography 3 · Security 6 · Military 5 ·
 Diplomacy 5 · Trade 4 · Media/Info 4 · Time/UI 4.
