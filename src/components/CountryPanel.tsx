@@ -30,22 +30,23 @@ const formatValue = (value: unknown) => {
   if (Array.isArray(value)) return value.map(item => typeof item === "string" ? item : ((item as { code?: string; name?: string }).code ?? (item as { name?: string }).name)).filter(Boolean).join(", ");
   return String(value);
 };
-const fact = (name: string, observation?: FactValue) => (
+const fact = (name: string, observation: FactValue | undefined, showProvenance: boolean) => (
   <div className="fact" key={name}>
     <div className="field">
       <span>{name}</span>
       <b>{observation?.status === "available" ? formatValue(observation.value) : "Unavailable"}</b>
     </div>
-    {observation?.status === "available" && <small><a href={observation.source.url} target="_blank" rel="noreferrer">{observation.source.name}</a> · {observation.referenceDate}{observation.isEstimate ? " · estimate" : ""}</small>}
-    {observation?.status === "unavailable" && <small title={observation.reason}><a href={observation.source.url} target="_blank" rel="noreferrer">{observation.source.name}</a> · checked {observation.checkedAt}</small>}
+    {showProvenance && observation?.status === "available" && <small><a href={observation.source.url} target="_blank" rel="noreferrer">{observation.source.name}</a> · {observation.referenceDate}{observation.isEstimate ? " · estimate" : ""}</small>}
+    {showProvenance && observation?.status === "unavailable" && <small title={observation.reason}><a href={observation.source.url} target="_blank" rel="noreferrer">{observation.source.name}</a> · checked {observation.checkedAt}</small>}
   </div>
 );
 
-export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation }: {
+export function CountryPanel({ country, factsRecord, officeholders = [], nationalPopulation, showProvenance = false }: {
   country?: Country;
   factsRecord?: CountryFactsRecord;
   officeholders?: Array<{ office: PoliticalOffice; holder: Officeholder }>;
   nationalPopulation?: PopulationObservation;
+  showProvenance?: boolean;
 }) {
   if (!country) return <aside className="panel empty"><p>Select a Country to inspect its public source record.</p></aside>;
   const facts = factsRecord?.facts ?? {};
@@ -66,14 +67,14 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
       </section>
       <section>
         <h2>Published country information</h2>
-        {fact("Statistical national GDP (USD)", facts.nominalGdpUsd)}
-        {fact("Total area (km²)", facts.totalAreaKm2)}
-        {fact("Land area (km²)", facts.landAreaKm2)}
-        {fact("GDP per capita (USD)", facts.gdpPerCapitaUsd)}
-        {fact("Currencies", facts.currencies)}
-        {fact("Languages", facts.languages)}
-        {fact("Government type", facts.governmentType)}
-        {nationalPopulation && <div className="fact">{label("Population source record", nationalPopulation.value.toLocaleString("en"))}<small><a href={nationalPopulation.source.url} target="_blank" rel="noreferrer">{nationalPopulation.source.name}</a> · {nationalPopulation.referenceDate}{nationalPopulation.isEstimate ? " · estimate" : ""}{nationalPopulation.isProjection ? " · projection" : ""}</small></div>}
+        {fact("Statistical national GDP (USD)", facts.nominalGdpUsd, showProvenance)}
+        {fact("Total area (km²)", facts.totalAreaKm2, showProvenance)}
+        {fact("Land area (km²)", facts.landAreaKm2, showProvenance)}
+        {fact("GDP per capita (USD)", facts.gdpPerCapitaUsd, showProvenance)}
+        {fact("Currencies", facts.currencies, showProvenance)}
+        {fact("Languages", facts.languages, showProvenance)}
+        {fact("Government type", facts.governmentType, showProvenance)}
+        {nationalPopulation && <div className="fact">{label("Population source record", nationalPopulation.value.toLocaleString("en"))}{showProvenance && <small><a href={nationalPopulation.source.url} target="_blank" rel="noreferrer">{nationalPopulation.source.name}</a> · {nationalPopulation.referenceDate}{nationalPopulation.isEstimate ? " · estimate" : ""}{nationalPopulation.isProjection ? " · projection" : ""}</small>}</div>}
         <small>These are dated public source records; they are not live internal simulation reports.</small>
       </section>
       <section>
@@ -81,13 +82,17 @@ export function CountryPanel({ country, factsRecord, officeholders = [], nationa
         {officeholders.length ? officeholders.map(({ office, holder }) => (
           <div className="fact" key={office.id}>
             {label(office.title, holder.status === "available" ? "Source record available; real identity retained in provenance" : "Unavailable")}
-            <small><a href={holder.source.url} target="_blank" rel="noreferrer">{holder.source.name}</a>{holder.status === "available" && holder.startDate ? ` · since ${holder.startDate}` : holder.status === "unavailable" ? ` · checked ${holder.checkedAt}` : ""}</small>
+            {showProvenance && <small><a href={holder.source.url} target="_blank" rel="noreferrer">{holder.source.name}</a>{holder.status === "available" && holder.startDate ? ` · since ${holder.startDate}` : holder.status === "unavailable" ? ` · checked ${holder.checkedAt}` : ""}</small>}
           </div>
         )) : <small>No officeholder record for this entity type.</small>}
       </section>
-      <footer>
-        Identity: {country.sources.identity?.map((item, index) => <span key={item.datasetId}>{index ? ", " : ""}<a href={item.url} target="_blank" rel="noreferrer">{item.name}</a></span>)}. Source reference dates are retained.
-      </footer>
+      {showProvenance ? (
+        <footer>
+          Identity: {country.sources.identity?.map((item, index) => <span key={item.datasetId}>{index ? ", " : ""}<a href={item.url} target="_blank" rel="noreferrer">{item.name}</a></span>)}. Source reference dates are retained.
+        </footer>
+      ) : (
+        <footer className="muted">Detailed source, licence and retrieval records are available in Credits / Data Sources and the "Show provenance details" setting.</footer>
+      )}
     </aside>
   );
 }

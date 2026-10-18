@@ -52,7 +52,7 @@ import { SaveManager } from "./components/SaveManager";
 import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
 import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
-import { countryColour, regionLayerColour, territoryLayerColour, MAP_LAYERS, LAYER_LEGEND, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
+import { regionLayerColour, territoryLayerColour, MAP_LAYERS, LAYER_LEGEND, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
 import { newUrgentBriefingCount } from "./app/urgency";
 import { controlledActor, governmentAdvisors, orderedNotifications } from "./app/leftRail";
 import "leaflet/dist/leaflet.css";
@@ -304,21 +304,17 @@ export default function App() {
       world && regionData &&
       ({
         type: "FeatureCollection",
-        features: world.territories.map((t) => {
-          const regionIds = regionIdsByMacroTerritory.get(t.id) ?? [];
-          return {
-            type: "Feature",
-            properties: {
-              territoryId: t.id,
-              navigationCountryId: t.ownerCountryId,
-              regionIds,
-              fill: territoryLayerColour(mapLayer, regionIds, t.ownerCountryId, sim),
-            },
-            geometry: t.geometry,
-          };
-        }),
+        features: world.territories.map((t) => ({
+          type: "Feature",
+          properties: {
+            territoryId: t.id,
+            navigationCountryId: t.ownerCountryId,
+            regionIds: regionIdsByMacroTerritory.get(t.id) ?? [],
+          },
+          geometry: t.geometry,
+        })),
       } as GeoJSON.FeatureCollection),
-    [world, regionData, regionIdsByMacroTerritory, mapLayer, sim.regionOwnership, sim.populationByRegion, sim.economicOutputByRegion, sim.occupationByRegion],
+    [world, regionData, regionIdsByMacroTerritory],
   );
   const changeClock = (next: SimulationState) => {
     clock.current.setPaused(next.paused);
@@ -565,11 +561,12 @@ export default function App() {
             )}
             {collection && (
               <GeoJSON
+                key={`world-${mapLayer}`}
                 data={collection}
                 style={(f) => ({
                   color: "#202c32",
                   weight: 1.05,
-                  fillColor: f?.properties?.fill ?? countryColour(f?.properties?.navigationCountryId),
+                  fillColor: territoryLayerColour(mapLayer, f?.properties?.regionIds ?? [], f?.properties?.navigationCountryId, sim),
                   fillOpacity: 0.68,
                 })}
                 onEachFeature={(feature, layer) => {
@@ -682,6 +679,7 @@ export default function App() {
             factsRecord={selected ? countryData?.factsByCountryId.get(selected) : undefined}
             officeholders={selected ? countryData?.officeholdersByCountryId.get(selected) : undefined}
             nationalPopulation={selected ? populationData.nationalByCountryId.get(selected) : undefined}
+            showProvenance={settings.interface.showProvenance}
           />
         ) : activePage === 'security' && selected ? (
           <aside className="panel"><h2>Security</h2>
