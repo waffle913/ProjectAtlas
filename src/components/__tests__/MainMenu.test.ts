@@ -34,6 +34,10 @@ describe('reference main menu after audit', () => {
     expect(container.querySelector('.atlas-summary')).toBeNull();
     expect(container.textContent).not.toMatch(/Actualités du monde|AUCUN FLUX|Notifications|Messages/);
     expect(container.querySelector('[aria-label^="Notifications"],[aria-label^="Messages"]')).toBeNull();
+    expect(container.querySelector('.atlas-utilities')).toBeNull();
+    const settingsButtons = [...container.querySelectorAll('button')].filter(b => b.textContent === 'Paramètres' || b.getAttribute('aria-label') === 'Paramètres');
+    expect(settingsButtons).toHaveLength(1);
+    expect(settingsButtons[0].closest('.atlas-nav')).not.toBeNull();
   });
   it('selects without loading, shows the selected context, and only loads on explicit confirmation', () => {
     const saves = [entry('a','2026-01-01'),entry('e','2026-01-05'),entry('c','2026-01-03'),entry('b','2026-01-02'),entry('d','2026-01-04')];

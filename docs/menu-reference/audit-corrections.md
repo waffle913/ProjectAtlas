@@ -45,3 +45,11 @@ Reproduction du contrôle navigateur : installer Playwright séparément, lancer
 ### Relecture finale
 
 Diff relu séparément après les tests : aucune importation du projecteur par le moteur, aucun nouvel enregistrement canonique, aucune lecture du monde réel brut pour alimenter le résumé, aucun accès confidentiel déduit de la seule appartenance à un parti. La navigation conserve la pause existante. Les captures ont permis d'identifier puis de corriger le chevauchement des métadonnées à 150 % ; ce défaut fait désormais l'objet d'une assertion navigateur. Intégration dans `main` en attente de validation utilisateur.
+
+## Correctif visuel final — suppression du raccourci Paramètres
+
+Le bouton Paramètres supérieur droit et le conteneur `atlas-utilities` ont été supprimés, ainsi que leurs règles CSS normales et mobiles. Le bouton de la navigation gauche et son gestionnaire restent inchangés. Aucun remplacement, changement de cadrage du globe, animation ou changement de disposition n'a été ajouté.
+
+Validation : `npm test -- src/components/__tests__/MainMenu.test.ts src/app/__tests__/campaignSummary.test.ts src/app/__tests__/playableShell.test.ts --maxWorkers=1` : 3 fichiers, 83 tests réussis. `npm run build` : réussi. Le test du menu vérifie qu'il n'existe qu'un bouton Paramètres, dans la navigation gauche. Le contrôle navigateur réel confirme son ouverture des paramètres et le retour au menu, sans erreur JavaScript. Le diff des chemins moteur, données, stockage et logique de résumé reste vide.
+
+Nouvelle capture réelle Chrome, viewport exact 1920 × 1080, session isolée sans sauvegarde injectée : [final-menu-1920x1080.png](final-menu-1920x1080.png). Les captures antérieures restent des archives des étapes précédentes. Aucune fusion dans `main` ; validation finale utilisateur attendue.

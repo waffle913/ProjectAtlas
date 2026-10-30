@@ -54,9 +54,6 @@ export function MainMenu({ onContinue, onNewGame, onLoad, onLoadSave, onSelectSa
   return <main className={`atlas-menu${settings.accessibility.highContrast ? ' atlas-contrast' : ''}${uiScale > 1.1 ? ' atlas-large-ui' : ''}`} lang="fr" style={{ '--menu-ui-scale': uiScale } as React.CSSProperties}>
     <div className="atlas-world" aria-hidden="true"/><div className="atlas-shade" aria-hidden="true"/>
     <div className="atlas-brand"><AtlasMark/><span>PROJECT</span><h1>ATLAS</h1></div>
-    <div className="atlas-utilities">
-      <button onClick={onSettings} aria-label="Paramètres"><Icon name="settings"/></button>
-    </div>
     <div className="atlas-content">
       <nav className="atlas-nav" aria-label="Menu principal">
         <button className="atlas-continue" onClick={onContinue} disabled={!hasSave || !ready} aria-label="Continuer">
