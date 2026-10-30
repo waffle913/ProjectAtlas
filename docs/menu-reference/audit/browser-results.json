@@ -1,0 +1,254 @@
+{
+  "checks": [
+    "No messages/notifications shortcuts or campaign panel without selection",
+    "Settings/Credits/Load return to menu without an active game",
+    "Settings/Load opened from the active game return to game",
+    "Two actual serialized saves created through the game Save As workflow",
+    "Selecting an actual save opens an honest empty summary without loading or writing",
+    "Settings/Credits/Load opened from main menu return to main menu despite an active in-memory game; selection retained",
+    "1920x1080 and 1366x768 checked at UI 100% and 150%, without horizontal overflow, clipped navigation or footer overlap",
+    "Only the explicit Load selected campaign action restores the actual serialized save",
+    "Successful loading clears the old preview selection",
+    "Deleting the selected save hides the preview without choosing another campaign"
+  ],
+  "errors": [],
+  "layouts": [
+    {
+      "name": "empty-1920x1080",
+      "width": 1920,
+      "height": 1080,
+      "horizontalOverflow": false,
+      "content": {
+        "x": 39.359375,
+        "y": 266.75,
+        "width": 1081.90625,
+        "height": 705.234375,
+        "bottom": 971.984375,
+        "right": 1121.265625
+      },
+      "footer": {
+        "x": 40.3125,
+        "y": 993.609375,
+        "width": 1839.375,
+        "height": 64.796875,
+        "bottom": 1058.40625,
+        "right": 1879.6875
+      },
+      "panels": [
+        {
+          "x": 429.375,
+          "y": 266.75,
+          "width": 629.609375,
+          "height": 378,
+          "bottom": 644.75,
+          "right": 1058.984375
+        }
+      ],
+      "overlappingSaveDetails": [],
+      "clippedControls": []
+    },
+    {
+      "name": "empty-1366x768",
+      "width": 1366,
+      "height": 768,
+      "horizontalOverflow": false,
+      "content": {
+        "x": 28,
+        "y": 189.6875,
+        "width": 769.734375,
+        "height": 501.5,
+        "bottom": 691.1875,
+        "right": 797.734375
+      },
+      "footer": {
+        "x": 28.671875,
+        "y": 706.5625,
+        "width": 1308.65625,
+        "height": 46.078125,
+        "bottom": 752.640625,
+        "right": 1337.328125
+      },
+      "panels": [
+        {
+          "x": 305.46875,
+          "y": 189.6875,
+          "width": 447.953125,
+          "height": 268.796875,
+          "bottom": 458.484375,
+          "right": 753.421875
+        }
+      ],
+      "overlappingSaveDetails": [],
+      "clippedControls": []
+    },
+    {
+      "name": "selected-1920x1080",
+      "width": 1920,
+      "height": 1080,
+      "horizontalOverflow": false,
+      "content": {
+        "x": 39.359375,
+        "y": 266.75,
+        "width": 1081.90625,
+        "height": 705.234375,
+        "bottom": 971.984375,
+        "right": 1121.265625
+      },
+      "footer": {
+        "x": 40.3125,
+        "y": 993.609375,
+        "width": 1839.375,
+        "height": 64.796875,
+        "bottom": 1058.40625,
+        "right": 1879.6875
+      },
+      "panels": [
+        {
+          "x": 429.375,
+          "y": 266.75,
+          "width": 629.609375,
+          "height": 378,
+          "bottom": 644.75,
+          "right": 1058.984375
+        },
+        {
+          "x": 429.375,
+          "y": 663.078125,
+          "width": 691.890625,
+          "height": 308.890625,
+          "bottom": 971.96875,
+          "right": 1121.265625
+        }
+      ],
+      "overlappingSaveDetails": [],
+      "clippedControls": []
+    },
+    {
+      "name": "selected-1366x768",
+      "width": 1366,
+      "height": 768,
+      "horizontalOverflow": false,
+      "content": {
+        "x": 28,
+        "y": 189.6875,
+        "width": 769.734375,
+        "height": 501.5,
+        "bottom": 691.1875,
+        "right": 797.734375
+      },
+      "footer": {
+        "x": 28.671875,
+        "y": 706.5625,
+        "width": 1308.65625,
+        "height": 46.078125,
+        "bottom": 752.640625,
+        "right": 1337.328125
+      },
+      "panels": [
+        {
+          "x": 305.46875,
+          "y": 189.6875,
+          "width": 447.953125,
+          "height": 268.796875,
+          "bottom": 458.484375,
+          "right": 753.421875
+        },
+        {
+          "x": 305.46875,
+          "y": 471.515625,
+          "width": 492.265625,
+          "height": 219.65625,
+          "bottom": 691.171875,
+          "right": 797.734375
+        }
+      ],
+      "overlappingSaveDetails": [],
+      "clippedControls": []
+    },
+    {
+      "name": "selected-ui150-1920x1080",
+      "width": 1920,
+      "height": 1080,
+      "horizontalOverflow": false,
+      "content": {
+        "x": 39.359375,
+        "y": 255,
+        "width": 1804.796875,
+        "height": 700,
+        "bottom": 955,
+        "right": 1844.15625
+      },
+      "footer": {
+        "x": 40.3125,
+        "y": 993.609375,
+        "width": 1839.375,
+        "height": 64.796875,
+        "bottom": 1058.40625,
+        "right": 1879.6875
+      },
+      "panels": [
+        {
+          "x": 734.75,
+          "y": 255,
+          "width": 1109.40625,
+          "height": 375.1875,
+          "bottom": 630.1875,
+          "right": 1844.15625
+        },
+        {
+          "x": 734.75,
+          "y": 648.375,
+          "width": 1109.40625,
+          "height": 306.59375,
+          "bottom": 954.96875,
+          "right": 1844.15625
+        }
+      ],
+      "overlappingSaveDetails": [],
+      "clippedControls": []
+    },
+    {
+      "name": "selected-ui150-1366x768",
+      "width": 1366,
+      "height": 768,
+      "horizontalOverflow": false,
+      "content": {
+        "x": 28,
+        "y": 255,
+        "width": 1284.03125,
+        "height": 700,
+        "bottom": 955,
+        "right": 1312.03125
+      },
+      "footer": {
+        "x": 28.671875,
+        "y": 993.609375,
+        "width": 1308.65625,
+        "height": 64.796875,
+        "bottom": 1058.40625,
+        "right": 1337.328125
+      },
+      "panels": [
+        {
+          "x": 529.171875,
+          "y": 255,
+          "width": 782.859375,
+          "height": 375.1875,
+          "bottom": 630.1875,
+          "right": 1312.03125
+        },
+        {
+          "x": 529.171875,
+          "y": 648.375,
+          "width": 782.859375,
+          "height": 306.59375,
+          "bottom": 954.96875,
+          "right": 1312.03125
+        }
+      ],
+      "overlappingSaveDetails": [],
+      "clippedControls": []
+    }
+  ],
+  "saveBackend": "existing SaveBackend seam, isolated in-memory storage of genuine game-generated full-world saves"
+}

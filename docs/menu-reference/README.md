@@ -1,3 +1,5 @@
+> **État actuel :** voir les [corrections après audit](audit-corrections.md) et les [nouvelles captures](audit/index.html). Le texte ci-dessous conserve le rapport de la première livraison, avant correction du comportement de sélection et du panneau de reprise.
+
 ﻿# Menu principal — reproduction de la référence
 
 Branche : `ui/main-menu-reference`. Base : `208ad29`.

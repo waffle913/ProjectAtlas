@@ -1,8 +1,9 @@
-﻿import type { AppSettings } from '../app/preferences';
+﻿import type { CampaignSummary } from '../app/campaignSummary';
+import type { AppSettings } from '../app/preferences';
 import type { SaveEntry } from '../app/saveStorage';
 import './MainMenu.css';
 export type MenuScreen = 'menu' | 'new-game' | 'load' | 'settings' | 'credits' | 'game';
-type IconName = 'play' | 'globe' | 'folder' | 'settings' | 'book' | 'chart' | 'mods' | 'people' | 'power' | 'bell' | 'mail' | 'bug';
+type IconName = 'play' | 'globe' | 'folder' | 'settings' | 'book' | 'chart' | 'mods' | 'people' | 'power' | 'bug';
 function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
     play: <path d="M7 3 22 12 7 21Z" fill="currentColor"/>,
@@ -14,8 +15,6 @@ function Icon({ name }: { name: IconName }) {
     mods: <path d="M3 9h6V5a3 3 0 1 1 5 0v4h6v5h-3a3 3 0 1 0 0 5h3v3h-7v-4a3 3 0 1 0-5 0v4H3Z" fill="currentColor"/>,
     people: <><circle cx="9" cy="7" r="4" fill="currentColor"/><path d="M1 22v-3a8 8 0 0 1 16 0v3Z" fill="currentColor"/><path d="M17 3a4 4 0 0 1 0 8M19 14q5 1 4 8"/></>,
     power: <path d="M12 2v10M6 5a9 9 0 1 0 12 0"/>,
-    bell: <path d="M5 17h14l-2-4V9a5 5 0 0 0-10 0v4ZM10 21h4M12 2v2"/>,
-    mail: <><path d="M2 5h20v15H2Z"/><path d="m2 5 10 9L22 5"/></>,
     bug: <path d="M8 9h8v9a4 4 0 0 1-8 0ZM9 9V6a3 3 0 0 1 6 0v3M3 11h5m8 0h5M3 18h5m8 0h5M5 3l3 3m8 0 3-3M12 10v11"/>,
   };
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
@@ -32,13 +31,18 @@ function formatDate(value: string) {
   const date = new Date(`${value.slice(0, 10)}T12:00:00Z`);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
-export function MainMenu({ onContinue, onNewGame, onLoad, onLoadSave, onSettings, onCredits, onExit, hasSave, ready = true, settings, saves = [], storageStatus = 'ready', error }: {
+export function MainMenu({ onContinue, onNewGame, onLoad, onLoadSave, onSelectSave, selectedSaveId, summary, onSettings, onCredits, onExit, hasSave, ready = true, settings, saves = [], storageStatus = 'ready', error }: {
   onContinue: () => void; onNewGame: () => void; onLoad: () => void; onSettings: () => void; onCredits: () => void; onExit: () => void;
-  onLoadSave?: (id: string) => void; hasSave: boolean; ready?: boolean; settings: AppSettings;
+  onLoadSave?: (id: string) => void; onSelectSave?: (id: string) => void; selectedSaveId?: string; summary?: CampaignSummary; hasSave: boolean; ready?: boolean; settings: AppSettings;
   saves?: SaveEntry[]; storageStatus?: 'initializing' | 'ready' | 'error'; error?: string;
 }) {
   const recent = [...saves].sort((a,b) => b.metadata.modifiedAt.localeCompare(a.metadata.modifiedAt)).slice(0,4);
   const latest = recent[0];
+  // Accessibility enlargement takes precedence without disabling smaller graphics scales.
+  const uiScale = settings.accessibility.uiScale > 1
+    ? Math.max(settings.graphics.uiScale, settings.accessibility.uiScale)
+    : settings.graphics.uiScale;
+  const selected = saves.find(save => save.id === selectedSaveId);
   const unavailable = 'Non disponible — fonctionnalité non implémentée';
   const actions: { icon: IconName; label: string; action?: () => void; disabled?: boolean }[] = [
     { icon: 'globe', label: 'Nouvelle partie', action: onNewGame, disabled: !ready },
@@ -47,12 +51,10 @@ export function MainMenu({ onContinue, onNewGame, onLoad, onLoadSave, onSettings
     { icon: 'book', label: 'Encyclopédie' }, { icon: 'chart', label: 'Statistiques' }, { icon: 'mods', label: 'Mods' },
     { icon: 'people', label: 'Crédits', action: onCredits }, { icon: 'power', label: 'Quitter', action: onExit },
   ];
-  return <main className={`atlas-menu${settings.accessibility.highContrast ? ' atlas-contrast' : ''}`} lang="fr" style={{ '--menu-ui-scale': settings.graphics.uiScale } as React.CSSProperties}>
+  return <main className={`atlas-menu${settings.accessibility.highContrast ? ' atlas-contrast' : ''}${uiScale > 1.1 ? ' atlas-large-ui' : ''}`} lang="fr" style={{ '--menu-ui-scale': uiScale } as React.CSSProperties}>
     <div className="atlas-world" aria-hidden="true"/><div className="atlas-shade" aria-hidden="true"/>
     <div className="atlas-brand"><AtlasMark/><span>PROJECT</span><h1>ATLAS</h1></div>
     <div className="atlas-utilities">
-      <button disabled title={unavailable} aria-label="Notifications — non disponible"><Icon name="bell"/></button>
-      <button disabled title={unavailable} aria-label="Messages — non disponible"><Icon name="mail"/></button>
       <button onClick={onSettings} aria-label="Paramètres"><Icon name="settings"/></button>
     </div>
     <div className="atlas-content">
@@ -67,17 +69,23 @@ export function MainMenu({ onContinue, onNewGame, onLoad, onLoadSave, onSettings
       <div className="atlas-panels">
         <section className="atlas-panel atlas-recent" aria-labelledby="atlas-recent-title">
           <div className="atlas-panel-heading"><h2 id="atlas-recent-title">Dernières parties</h2><button onClick={onLoad} disabled={!ready}>Voir toutes <span>›</span></button></div>
-          {recent.length ? <div className="atlas-save-list">{recent.map(save => <button className="atlas-save" key={save.id} onClick={() => onLoadSave?.(save.id)} disabled={!ready || !onLoadSave}>
+          {recent.length ? <div className="atlas-save-list">{recent.map(save => <button className="atlas-save" key={save.id} aria-pressed={save.id === selectedSaveId} onClick={() => onSelectSave?.(save.id)} disabled={!ready || !onSelectSave}>
             <div className="atlas-save-thumbnail" aria-hidden="true"><Icon name="globe"/></div>
             <div className="atlas-save-details"><strong>{save.metadata.countryName}</strong><span>{formatDate(save.metadata.simulationDate)}</span><small>{save.metadata.name} · {save.metadata.controlledPersonName}</small></div><span className="atlas-chevron">›</span>
           </button>)}</div> : <div className="atlas-empty"><Icon name="folder"/><strong>{storageStatus === 'initializing' ? 'Lecture des sauvegardes…' : storageStatus === 'error' ? 'Sauvegardes indisponibles' : 'Aucune partie sauvegardée'}</strong><p>{storageStatus === 'ready' ? 'Vos dernières parties apparaîtront ici.' : 'Le stockage local n’est pas encore disponible.'}</p>{storageStatus === 'ready' && <button onClick={onNewGame} disabled={!ready}>Commencer une nouvelle partie <span>›</span></button>}</div>}
         </section>
-        <section className="atlas-panel atlas-news" aria-labelledby="atlas-news-title">
-          <div className="atlas-panel-heading"><h2 id="atlas-news-title">Actualités du monde</h2><button disabled title="Aucun flux d’actualités connecté">Voir plus</button></div>
-          <div className="atlas-news-layout"><div className="atlas-news-main"><div className="atlas-news-placeholder"><Icon name="globe"/><span>AUCUN FLUX CONNECTÉ</span></div><strong>Aucune actualité disponible</strong><p>Aucune source d’actualités n’est connectée au menu principal.</p><small>Les événements de vos parties restent accessibles en jeu.</small></div>
-            <div className="atlas-news-side">{['Actualités internationales','Vie politique','Économie mondiale'].map(label => <div key={label}><Icon name={label === 'Vie politique' ? 'people' : label === 'Économie mondiale' ? 'chart' : 'globe'}/><span>{label}<small>Données indisponibles</small></span></div>)}</div>
-          </div>
-        </section>
+        {selected && <section className="atlas-panel atlas-summary" aria-labelledby="atlas-summary-title">
+          <div className="atlas-panel-heading"><h2 id="atlas-summary-title">Reprise de campagne</h2><button className="atlas-load-selection" onClick={() => onLoadSave?.(selected.id)} disabled={!ready || !onLoadSave}>Charger cette partie <span>›</span></button></div>
+          <p className="atlas-summary-context"><strong>{selected.metadata.name}</strong> · {selected.metadata.countryName} · {selected.metadata.controlledPersonName}<br/>État enregistré au {formatDate(summary?.asOfDate ?? selected.metadata.simulationDate)}</p>
+          {summary?.error ? <p role="status" className="atlas-summary-unavailable">{summary.error}</p> : <div className="atlas-summary-columns">
+            {([
+              ['Événements récents', summary?.events ?? [], 'Aucun événement accessible conservé dans cette sauvegarde.'],
+              ['Décisions précédentes', summary?.decisions ?? [], 'Aucune proposition passée de ce personnage disponible.'],
+              ['Situations en cours', summary?.situations ?? [], 'Aucune proposition en attente disponible. Les autres situations ne sont pas établies par cet historique.'],
+            ] as const).map(([title, items, empty]) => <div className="atlas-summary-category" key={title}><h3>{title}</h3>{items.length ? <ul>{items.map(item => <li key={item.id}><strong>{item.title}</strong><small>{item.date ? formatDate(item.date) : 'Date non enregistrée'} · {item.detail}</small></li>)}</ul> : <p>{empty}</p>}</div>)}
+          </div>}
+          <small className="atlas-summary-note">Extrait limité aux informations enregistrées et accessibles au personnage sauvegardé. L’historique conservé peut être incomplet.</small>
+        </section>}
         {error && <p className="atlas-menu-error" role="alert">{error}</p>}
       </div>
     </div>
