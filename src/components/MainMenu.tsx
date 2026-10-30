@@ -9,7 +9,10 @@ function Icon({ name }: { name: IconName }) {
     play: <path d="M7 3 22 12 7 21Z" fill="currentColor"/>,
     globe: <><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6.5q7 4 14 0M5 17.5q7-4 14 0"/></>,
     folder: <><path d="M2 7V4h8l2 3h9v13H2Z"/><path d="m2 20 3-11h18l-3 11Z" fill="currentColor"/></>,
-    settings: <><path d="m10 2 4 0 1 3 3 1 3 0 1 4-2 2 0 3 1 3-3 3-3-1-3 1-2 2-4-1 0-3-2-2-3-1 0-4 3-1 1-3Z"/><circle cx="12" cy="12" r="3"/></>,
+    // Lucide Settings (ISC), copyright 2026 Lucide Icons and Contributors.
+    // https://github.com/lucide-icons/lucide/blob/main/icons/settings.svg
+    // Licence bundled at public/menu/lucide-settings-LICENSE.txt.
+    settings: <><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></>,
     book: <><path d="M12 5Q6 1 2 4v16q5-3 10 0 5-3 10 0V4q-4-3-10 1Z"/><path d="M12 5v15"/></>,
     chart: <><path d="M2 21h21M4 17v-6h3v6M10 19V7h3v12M16 19V3h3v16"/></>,
     mods: <path d="M3 9h6V5a3 3 0 1 1 5 0v4h6v5h-3a3 3 0 1 0 0 5h3v3h-7v-4a3 3 0 1 0-5 0v4H3Z" fill="currentColor"/>,

@@ -53,3 +53,13 @@ Le bouton Paramètres supérieur droit et le conteneur `atlas-utilities` ont ét
 Validation : `npm test -- src/components/__tests__/MainMenu.test.ts src/app/__tests__/campaignSummary.test.ts src/app/__tests__/playableShell.test.ts --maxWorkers=1` : 3 fichiers, 83 tests réussis. `npm run build` : réussi. Le test du menu vérifie qu'il n'existe qu'un bouton Paramètres, dans la navigation gauche. Le contrôle navigateur réel confirme son ouverture des paramètres et le retour au menu, sans erreur JavaScript. Le diff des chemins moteur, données, stockage et logique de résumé reste vide.
 
 Nouvelle capture réelle Chrome, viewport exact 1920 × 1080, session isolée sans sauvegarde injectée : [final-menu-1920x1080.png](final-menu-1920x1080.png). Les captures antérieures restent des archives des étapes précédentes. Aucune fusion dans `main` ; validation finale utilisateur attendue.
+
+## Correction de l'engrenage Paramètres
+
+Le seul tracé `settings` dans `MainMenu.tsx` est remplacé par le SVG officiel Lucide Settings : https://github.com/lucide-icons/lucide/blob/main/icons/settings.svg. Licence ISC conservée dans `public/menu/lucide-settings-LICENSE.txt`, incluse dans les ressources distribuées. Aucune dépendance ajoutée. Le conteneur 24 × 24, les dimensions CSS, `currentColor`, le trait de 1,6 px et les extrémités/jointures arrondies restent ceux du menu.
+
+Contrôle visuel réel sur la compilation de production (`vite preview`) à 100 % et 150 %. Le centre géométrique reste à (12, 12), avec une tolérance de 0,01 unité ; le contour et le trait restent à l'intérieur du viewBox. L'alignement vertical conserve le même demi-pixel lié à la bordure de ligne que les autres icônes. Un seul bouton Paramètres subsiste, dans la navigation gauche ; le parcours vers les paramètres et retour au menu est exercé lors du changement d'échelle. Aucun bouton supérieur droit réintroduit.
+
+Captures réelles : [gros plan 100 %](settings-icon-closeup-ui100.png), [gros plan 150 %](settings-icon-closeup-ui150.png), [menu 1920 × 1080 à 100 %](settings-icon-menu-ui100-1920x1080.png), [menu 1920 × 1080 à 150 %](settings-icon-menu-ui150-1920x1080.png). Les gros plans sont des captures natives du bouton avec une densité de trois pixels par pixel CSS, sans retouche du dessin.
+
+Validation : `npm test -- src/components/__tests__/MainMenu.test.ts src/app/__tests__/playableShell.test.ts --maxWorkers=1` : 2 fichiers, 13 tests réussis. `npm run build` : réussi. Les CSS, les autres éléments visuels, le moteur, les sauvegardes et les données mondiales sont inchangés. Aucune fusion dans `main`.
