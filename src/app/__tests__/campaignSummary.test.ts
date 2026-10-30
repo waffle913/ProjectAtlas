@@ -58,6 +58,38 @@ describe('read-only campaign summary projection', () => {
     expect(summary.events.map(e => e.id)).toEqual(['8','7','6','5']);
     expect(summary.decisions[0].date).toBeUndefined();
   });
+  describe.each(['enacted', 'submitted'])('proposal dates for status %s', status => {
+    const project = (overrides: Record<string, unknown>) => {
+      const input = saved();
+      input.governance.proposals.a = proposal('a', { status, ...overrides });
+      const summary = readCampaignSummary(JSON.stringify(input));
+      return [...summary.decisions, ...summary.situations];
+    };
+    describe.each(['createdOn', 'submittedOn', 'resolvedOn'])('%s, including dates not displayed', field => {
+      it.each(['2026-02-02', '2026-02-30', '2026-99-99', 'not-a-date', '', null, 42])('excludes a proposal with a future or invalid date: %s', value => {
+        const items = project({ [field]: value });
+        expect(items.map(item => item.id)).not.toContain('a');
+        expect(items.map(item => item.id)).toContain('b');
+      });
+      it('accepts a date exactly equal to the save date', () => {
+        const item = project({ [field]: '2026-02-01' }).find(item => item.id === 'a');
+        expect(item).toBeDefined();
+        const displayedField = status === 'submitted' ? 'submittedOn' : 'resolvedOn';
+        expect(item?.date).toBe(field === displayedField ? '2026-02-01' : status === 'submitted' ? '2026-01-02' : '2026-01-03');
+      });
+      it('accepts an absent date without replacing it with another date', () => {
+        const item = project({ [field]: undefined }).find(item => item.id === 'a');
+        expect(item).toBeDefined();
+        const displayedField = status === 'submitted' ? 'submittedOn' : 'resolvedOn';
+        expect(item?.date).toBe(field === displayedField ? undefined : status === 'submitted' ? '2026-01-02' : '2026-01-03');
+      });
+    });
+    it('preserves a proposal with all three dates absent without inventing a display date', () => {
+      const item = project({ createdOn: undefined, submittedOn: undefined, resolvedOn: undefined }).find(item => item.id === 'a');
+      expect(item).toBeDefined();
+      expect(item?.date).toBeUndefined();
+    });
+  });
   it.each([null, '', '{', '[]', '{}', '{"date":"2026-99-99"}'])('handles unreadable input: %s', input => {
     const summary = readCampaignSummary(input); expect(summary.error).toBeTruthy(); expect(summary.events).toEqual([]);
   });

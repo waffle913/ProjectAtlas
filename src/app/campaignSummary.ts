@@ -70,10 +70,10 @@ export function readCampaignSummary(serialized: string | null): CampaignSummary 
       if (!proposal || proposal.proposerPersonId !== personId || proposal.countryId !== countryId
         || !text(proposal.id) || !text(proposal.kind) || !Object.hasOwn(kinds, proposal.kind)
         || !text(proposal.status) || !Object.hasOwn(statuses, proposal.status)
-        || !validDate(proposal.createdOn)) continue;
+        || [proposal.createdOn, proposal.submittedOn, proposal.resolvedOn]
+          .some(value => value !== undefined && !validDate(value))) continue;
       // A status is the saved outcome, not a reconstruction of who voted or why.
       const when = proposal.status === 'submitted' ? proposal.submittedOn : proposal.resolvedOn;
-      if (when !== undefined && !validDate(when)) continue;
       const item = { id: proposal.id, date: validDate(when) ? when : undefined,
         title: kinds[proposal.kind], detail: `${statuses[proposal.status]} · ${proposal.id}` };
       (proposal.status === 'submitted' ? situations : decisions).push(item);
