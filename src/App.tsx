@@ -443,7 +443,12 @@ export default function App() {
       <button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button>
     </main>
   );
-  if (screen === 'menu') return <MainMenu hasSave={Boolean(mostRecentSave())} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => setScreen('load')} onSettings={() => setScreen('settings')} onCredits={() => setScreen('credits')} onExit={exitApp} settings={settings} />;
+  if (screen === 'menu') {
+    // Re-read the existing metadata index on return from SaveManager: its delete
+    // action may have changed storage independently of the in-game save prompt.
+    const menuSaves = storageReady ? listSaves() : [];
+    return <MainMenu hasSave={menuSaves.length > 0} saves={menuSaves} storageStatus={storageState} error={loadSlotError ?? storageError ?? loadError} onLoadSave={loadSlot} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => setScreen('load')} onSettings={() => setScreen('settings')} onCredits={() => setScreen('credits')} onExit={exitApp} settings={settings} />;
+  }
   if (loadError)
     return (
       <main className="load-state">
