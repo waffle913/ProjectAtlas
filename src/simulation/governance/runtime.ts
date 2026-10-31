@@ -520,12 +520,13 @@ function assignOfficeFunction(state: SimulationState, personIdValue: string, inp
   // beyond what the represented institutions vest in this office, and never a capability the
   // institution withholds.
   const authority = officeAuthority(state, input.countryId, input.role);
-  // An already-established function keeps exactly the competences it carries (narrowed to the scope
-  // in force, so a correction still removes a withheld capability); a first appointment takes the
-  // scope the institutions give the function.
-  const functionCapabilities = established === undefined
-    ? authority.capabilities
-    : established.filter(item => authority.capabilities.includes(item));
+  // A function that already carries competences keeps exactly those (narrowed to the scope in force,
+  // so a correction still removes a withheld capability). An empty established list establishes
+  // nothing — e.g. an evidence-unresolved holder — so the appointment takes the scope the
+  // institutions give the function instead of inheriting a void.
+  const functionCapabilities = established && established.length
+    ? established.filter(item => authority.capabilities.includes(item))
+    : authority.capabilities;
   if (input.capabilities !== undefined && input.capabilities.some(item => !authority.capabilities.includes(item))) throw new Error('Injected capabilities must be a subset of the institutional authority of the office function.');
   const capabilities = [...new Set(input.capabilities ?? functionCapabilities)].sort();
   if (capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item))) throw new Error('Unknown authority capability.');

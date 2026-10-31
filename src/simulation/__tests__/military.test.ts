@@ -513,7 +513,7 @@ describe('0.16 explicit synthetic causal integration (not factual armies)', () =
     expect(ministerialSuggestions).toEqual([]);
     expect(nextSuggestionSequence).toBe(0);
     expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
-    expect(stripDerivedAuthorityScope(restoredGovernanceRest)).toEqual(legacyGovernance);
+    expect(stripDerivedAuthorityScope(restoredGovernanceRest)).toEqual(stripDerivedAuthorityScope(legacyGovernance));
     const { religiousOrganizationsCoverage, ...restoredPoliticsRest } = restoredPolitics;
     expect(religiousOrganizationsCoverage.status).toBe('unavailable');
     expect(typeof religiousOrganizationsCoverage.limitation).toBe('string');

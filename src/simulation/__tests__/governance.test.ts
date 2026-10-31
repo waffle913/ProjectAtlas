@@ -15,7 +15,7 @@ import { upgradeGovernanceProposalModel } from '../governance/migration';
 import { politicalRegistry } from '../politics/registry';
 import type { PoliticalRegistry } from '../politics/model';
 import { restoreSimulationState, serializeSimulationState } from '../save';
-import { assignPoliticalOffice, capabilitiesForReconciledAuthority, createFiscalProposal, createPoliticalPerson, estimateParliamentarySupport, estimatePublicSupport, initializePartyLeaders, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, replacePartyLeader, resolvePlayerHandoff, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, syncPartyMembershipRecords, withdrawProposal } from '../governance/runtime';
+import { assignPoliticalOffice, capabilitiesForReconciledAuthority, createFiscalProposal, createPoliticalPerson, reconcilePersistedOfficeCapabilities, estimateParliamentarySupport, estimatePublicSupport, initializePartyLeaders, inspectGovernance, inspectPlayer, inspectProposalSupport, replaceDraftProposal, replacePartyLeader, resolvePlayerHandoff, resolveProposalVote, revokePoliticalOffice, setControlledPerson, setPartyLeadership, setPartyMembership, submitProposal, syncPartyMembershipRecords, withdrawProposal } from '../governance/runtime';
 import { initializeNewGame } from '../initialization';
 import { emptyInformation } from '../information/model';
 import { worldBase, worldContext, worldCountryIds, worldInputs, worldPoliticalInputs, worldRegions } from './worldScenario';
@@ -709,7 +709,11 @@ function findResolvable(adopted: boolean) {
 
 function historicalSituationalState(): SimulationState {
   const { person, proposal, reform } = structuredClone(historicalSituational);
-  return upgradeGovernanceProposalModel({
+  // The pinned fixtures predate the executive-authority corrective: their synthetic office carries the
+  // superseded blanket scope (including the parliamentary suffrage). That list is a *derived* field, so
+  // the state is normalized exactly as a restored save is; the pinned proposal evidence, dates and
+  // identities are untouched.
+  return reconcilePersistedOfficeCapabilities(upgradeGovernanceProposalModel({
     ...initial,
     governance: {
       ...initial.governance, player: { controlledPersonId: person.id },
@@ -718,7 +722,7 @@ function historicalSituationalState(): SimulationState {
       proposals: { [proposal.id]: proposal }, proposalOrder: [proposal.id], nextProposalSequence: 1,
     },
     fiscal: { ...initial.fiscal, reforms: [reform], nextSequence: reform.sequence + 1 },
-  });
+  }));
 }
 
 function distributionAnalysis(directions: Partial<Record<GovernanceGoal, number>>): ProposalAnalysis {
@@ -745,14 +749,15 @@ function distributionProfile(partyId = historicalSituational.proposal.parliament
 
 function historicalPluralityState(): SimulationState {
   const { person, proposal } = structuredClone(historicalPlurality);
-  return upgradeGovernanceProposalModel({
+  // Same derived-field normalization as `historicalSituationalState` (see above).
+  return reconcilePersistedOfficeCapabilities(upgradeGovernanceProposalModel({
     ...initial,
     governance: {
       ...initial.governance, player: { controlledPersonId: person.id },
       persons: { ...initial.governance.persons, [person.id]: person }, nextPersonSequence: Number(person.id.slice(7)) + 1,
       proposals: { [proposal.id]: proposal }, proposalOrder: [proposal.id], nextProposalSequence: 1,
     },
-  });
+  }));
 }
 
 function parentPluralityProfiles(): Record<string, PartyGoalProfile> {

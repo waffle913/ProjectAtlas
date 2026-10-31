@@ -372,7 +372,7 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     expect(ministerialSuggestions).toEqual([]);
     expect(nextSuggestionSequence).toBe(0);
     expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
-    expect(stripDerivedAuthorityScope(governancePreserved)).toEqual(schema14.state.governance);
+    expect(stripDerivedAuthorityScope(governancePreserved)).toEqual(stripDerivedAuthorityScope(schema14.state.governance));
     const continued = advanceSimulationDays(state, 90);
     for (const field of ['socioeconomy', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
     expect(stripFiscalConstruction(continued.fiscal)).toEqual(oracle.state.fiscal);
@@ -387,7 +387,7 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     expect(continuedSuggestions).toEqual([]);
     expect(continuedNextSuggestionSequence).toBe(0);
     expect(continuedSettings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
-    expect(stripDerivedAuthorityScope(continuedGovernancePreserved)).toEqual(oracle.state.governance);
+    expect(stripDerivedAuthorityScope(continuedGovernancePreserved)).toEqual(stripDerivedAuthorityScope(oracle.state.governance));
     expect(continued.date).toBe('2028-07-04'); expect(continued.trade.flows).toEqual([]);
     const { tradeReports: _newReporting, internationalReports: _newInternational, operationsReports: _newOperations, multilateralReports: _newMultilateral, ...oldInformation } = continued.information;
     expect(oldInformation).toEqual(oracle.state.information);
