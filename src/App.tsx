@@ -1,3 +1,4 @@
+import { readCampaignSummary, type CampaignSummary } from './app/campaignSummary';
 import { emptyAssets } from './simulation/assets/model';
 import { emptyOperations } from './simulation/operations/model';
 import { emptyInternational } from './simulation/international/model';
@@ -112,6 +113,16 @@ export default function App() {
   const [activePage, setActivePage] = useState('overview');
   const [mapLayer, setMapLayer] = useState<MapLayer>('ownership');
   const [screen, setScreen] = useState<MenuScreen>('menu');
+  const auxiliaryOrigin = useRef<'menu' | 'game'>('menu');
+  const [menuSelection, setMenuSelection] = useState<{ id: string; summary: CampaignSummary }>();
+  const openAuxiliary = (destination: 'settings' | 'credits' | 'load') => {
+    auxiliaryOrigin.current = screen === 'game' ? 'game' : 'menu';
+    setScreen(destination);
+  };
+  const returnFromAuxiliary = () => setScreen(auxiliaryOrigin.current);
+  const selectMenuSave = (id: string) => {
+    setMenuSelection({ id, summary: readCampaignSummary(loadSave(id)) });
+  };
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
@@ -342,6 +353,7 @@ export default function App() {
     setActivePage('overview');
     setMapLayer('ownership');
     setSaveError(undefined);
+    setMenuSelection(undefined);
     applyState(fresh);
     setScreen('game');
   };
@@ -404,6 +416,7 @@ export default function App() {
     try {
       applyState(restoreSimulationState(json, registryContext.regions, {}, {}, registryContext));
       setLoadSlotError(undefined);
+      setMenuSelection(undefined);
       setScreen('game');
     } catch (error) {
       setLoadSlotError(error instanceof Error ? `Could not load save: ${error.message}` : 'Could not load save.');
@@ -433,18 +446,23 @@ export default function App() {
     }
   };
   const exitApp = () => { void exitApplication(); };
-  if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={() => setScreen(ctrlPerson ? 'game' : 'menu')} />;
+  if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} />;
   if (screen === 'load') return storageReady
-    ? <SaveManager onLoad={loadSlot} onBack={() => { setLoadSlotError(undefined); setScreen(ctrlPerson ? 'game' : 'menu'); }} error={loadSlotError} />
-    : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button></main>;
+    ? <SaveManager onLoad={loadSlot} onBack={() => { setLoadSlotError(undefined); returnFromAuxiliary(); }} error={loadSlotError} />
+    : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={returnFromAuxiliary}>← Back</button></main>;
   if (screen === 'credits') return (
     <main className="load-state credits">
       <h1>ProjectAtlas</h1>
       <p>ProjectAtlas is built on audited, provenance-carrying datasets (Natural Earth, IPU Parline, and other attributed sources). Detailed source, licence and attribution records live in the in-game provenance details and repository data audit.</p>
-      <button onClick={() => setScreen(ctrlPerson ? 'game' : 'menu')}>← Back</button>
+      <button onClick={returnFromAuxiliary}>← Back</button>
     </main>
   );
-  if (screen === 'menu') return <MainMenu hasSave={Boolean(mostRecentSave())} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => setScreen('load')} onSettings={() => setScreen('settings')} onCredits={() => setScreen('credits')} onExit={exitApp} settings={settings} />;
+  if (screen === 'menu') {
+    // Re-read the existing metadata index on return from SaveManager: its delete
+    // action may have changed storage independently of the in-game save prompt.
+    const menuSaves = storageReady ? listSaves() : [];
+    return <MainMenu hasSave={menuSaves.length > 0} saves={menuSaves} storageStatus={storageState} error={loadSlotError ?? storageError ?? loadError} onSelectSave={selectMenuSave} selectedSaveId={menuSelection?.id} summary={menuSelection?.summary} onLoadSave={loadSlot} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => openAuxiliary('load')} onSettings={() => openAuxiliary('settings')} onCredits={() => openAuxiliary('credits')} onExit={exitApp} settings={settings} />;
+  }
   if (loadError)
     return (
       <main className="load-state">
@@ -714,8 +732,8 @@ export default function App() {
             <button onClick={() => setPauseOpen(false)}>Resume</button>
             <button onClick={() => setSavePrompt({ mode: 'save', name: ctrlPerson?.displayName ?? 'ProjectAtlas' })}>Save</button>
             <button onClick={() => setSavePrompt({ mode: 'saveAs', name: '' })}>Save As</button>
-            <button onClick={() => { setPauseOpen(false); setScreen('load'); }}>Load Game</button>
-            <button onClick={() => { setPauseOpen(false); setScreen('settings'); }}>Settings</button>
+            <button onClick={() => { setPauseOpen(false); openAuxiliary('load'); }}>Load Game</button>
+            <button onClick={() => { setPauseOpen(false); openAuxiliary('settings'); }}>Settings</button>
             <button onClick={() => { setPauseOpen(false); setScreen('menu'); }}>Return to Main Menu</button>
             <button className="danger" onClick={exitApp}>Exit Game</button>
           </div>

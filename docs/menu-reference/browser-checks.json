@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "empty Continue disabled",
+    "settings opens existing SettingsMenu",
+    "credits opens existing credits",
+    "load opens existing SaveManager",
+    "no horizontal overflow at 1366x768",
+    "no horizontal overflow at 390x844",
+    "new game opens existing person selection",
+    "person selection starts actual game",
+    "existing save failure is visible to the user",
+    "failed save never produces a phantom recent-save row"
+  ],
+  "errors": [],
+  "saveOutcome": "Save As\nSaveCancel\n\nSave failed: Save storage is full or unavailable while writing save (QuotaExceededError: Failed to execute 'setItem' on 'Storage': Setting the value of 'projectatlas.save.slot.menu-verification' exceeded the quota.)."
+}
