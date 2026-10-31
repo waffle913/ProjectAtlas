@@ -1,0 +1,27 @@
+# Nouvelle partie — implémentation et validation distante
+
+Base politique `8fcf8cc8eea830bbb3a443c76915afc00754e257`. Menu validé intégré dans `853fde5e006162ffceaaebea3dae5c4ada8b6310`, dont le workflow verify a réussi : https://github.com/waffle913/ProjectAtlas/actions/runs/41250050537.
+
+La référence Nouvelle partie fournie ensuite définit la composition : grand globe nocturne Europe/France, navigation latérale, quatre étapes et panneau droit. Ses chiffres, textes narratifs et photographie de Paris ne sont pas copiés comme observations disponibles. Une silhouette tirée des géométries canoniques remplace la photographie sans licence fournie. Les valeurs absentes restent indisponibles, avec la date/source de chaque valeur affichée. La seconde référence évoquée dans la mission n'a pas été reçue ; la sélection France a priorité, conformément à l'image effectivement fournie.
+
+## Architecture
+
+- `NewGameSetup` : quatre étapes de présentation, catalogue entier inspectable, recherche, informations et choix explicitement admissibles. Seules les voies `national_leader` et `opposition_party_leader` sont proposées par les API canoniques. La France n'obtient aucune exception semi-présidentielle. La configuration est fixe (2026-01-01, monde canonique, pause initiale), sans difficulté ou scénario inventé.
+- `newCampaign` : projection restreinte aux champs immuables de sélection du baseline initial (date, politique, élections, gouvernance). Aucun second monde complet ni horloge. Ouvrir/annuler la préparation ne rappelle pas l'initialisation et ne remplace pas l'état actif. La confirmation reconstruit un état neuf avec l'initialiseur existant, valide l'identité du pays/personnage et la voie avec `assertAuthorizedStartingPerson`, puis appelle `setControlledPerson`. App n'installe ce résultat qu'après succès. Aucun changement de schéma ou sauvegarde.
+- `CountryGlobe` : import différé du moteur WebGL, selection/recherche synchronisées, zoom, rotation et recentrage. Contexte perdu ou WebGL indisponible : message explicite, sélection clavier/recherche/catalogue toujours utilisable. Pas d'image prétendant être un globe interactif.
+- `globeGeometry` : géométries existantes de `buildWorld`/Territory, IDs opaques et propriétaire initial canonique. Anneaux déroulés à l'antiméridien, trous exclus du picking, composantes séparées conservées, recentrage sur le composant principal. Aucun catalogue ISO de substitution. Pays sans géométrie : inspection via catalogue, pas de territoire inventé.
+- `globeRenderer` : Three.js, OrbitControls, sphère texturée et atmosphère, frontières bleues et polygones sélectionnés dorés. Triangulation avec trous, subdivision des grands triangles en coordonnées déroulées avant projection sphérique. Raycasting sur sphère puis recherche géographique ; glisser ne sélectionne pas. Pas d'animation automatique, pas de boucle GPU au repos. Ressources et gestionnaires libérés à la fermeture ; pixel ratio plafonné à 1,5, texture 3600 × 1800 (~26 Mo RGBA, ~35 Mo avec mipmaps), pas de texture téléchargée à l'exécution depuis Internet.
+
+## Dépendances et ressources
+
+Three.js (MIT) est la seule nouvelle dépendance de production : rendu, triangulation, contrôle de caméra et gestion explicite des ressources évitent un moteur 3D maison. `@types/three` sert au typage ; `@playwright/test` ne sert qu'à la validation distante. Installation locale limitée à la résolution des fichiers package/lock (`--package-lock-only --ignore-scripts`) ; aucun test/build/benchmark local n'est exécuté.
+
+Texture : `public/globe/black-marble-2016.jpg`, fichier NASA 3600 × 1800 téléchargé sans modification depuis https://eoimages.gsfc.nasa.gov/images/imagerecords/144000/144898/BlackMarble_2016_01deg.jpg. Référence : https://visibleearth.nasa.gov/images/144898/earth-at-night-black-marble-2016-color-maps. Crédit : NASA Earth Observatory, Joshua Stevens, données Suomi NPP VIIRS de Miguel Román, NASA GSFC. Observation : 2016 ; récupération : 2026-10-31. Usage : décor historique, ni donnée empirique 2026 ni nouvelle source géographique ou géopolitique. Conditions NASA : https://www.nasa.gov/nasa-brand-center/images-and-media/ (contenu NASA généralement non soumis au copyright US, attribution, sans implication d'approbation ; exclusions des marques/personnes/tiers à respecter). Aucun logo NASA ou matériau propriétaire de GeoSim/Eversim.
+
+Les géométries Natural Earth déjà embarquées restent inchangées avec leurs notices existantes. Les styles et shaders sont propres à l'interface ; aucune lumière décorative n'est présentée comme une observation de population ou d'activité économique.
+
+## Validation
+
+Exclusivement GitHub Actions : workflow `new-game-ui` (tests d'interface et de protections politiques, type-check/build, Chromium WebGL et captures réelles), plus workflow verify existant. Tests de géométrie : antiméridien, trous, petites composantes, identité stable et absence de mutation. Tests d'interface : catalogue, indisponibilités françaises, quatre étapes, retour, choix explicite, confirmation et non-mutation. Tests navigateur : vraie initialisation, recherche/recentrage, WebGL réel et repli, lancement final, continuité du menu, captures 1920 × 1080 et 1366 × 768 sans fausses données injectées. Les fixtures géométriques de tests unitaires ne sont jamais utilisées dans les captures.
+
+Aucune fusion dans main. Résultats, captures distantes et limites à compléter après les runs ; aucune réussite n'est présumée à partir des seules lectures du code.

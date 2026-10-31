@@ -7,7 +7,8 @@ import { emptyConstitution } from './simulation/constitution/model';
 import { emptyElections } from './simulation/elections/model';
 import { emptyTrade } from './simulation/trade/model';
 import { emptyMilitary } from './simulation/military/model';
-import { StartGame } from './components/StartGame';
+import { NewGameSetup, initialNewGameDraft, type NewGameDraft } from './components/new-game/NewGameSetup';
+import { createConfirmedCampaign, startingSelectionSnapshot } from './app/newCampaign';
 import { MilitaryCapabilities } from './components/MilitaryCapabilities';
 import { OperationsPanel } from './components/OperationsPanel';
 import { DiplomacyPanel } from './components/DiplomacyPanel';
@@ -15,8 +16,6 @@ import { SecurityPanel } from './components/SecurityPanel';
 import { ParliamentPanel } from './components/ParliamentPanel';
 import { MultilateralPanel } from './components/MultilateralPanel';
 import { TradeInspection } from './components/TradeInspection';
-import { configureSyntheticTradeScenario } from './simulation/trade/scenario';
-import { configureSyntheticMilitaryScenario } from './simulation/military/scenario';
 import { BriefingTablet } from './components/BriefingTablet';
 import { FiscalPolicy } from './components/FiscalPolicy';
 import { EconomyPanel } from './components/EconomyPanel';
@@ -43,8 +42,7 @@ import { RegionPanel } from "./components/RegionPanel";
 import { SimulationClock } from "./simulation/clock";
 import { createEngineState } from "./simulation/state";
 import { assertSimulationInvariants } from "./simulation/invariants";
-import { setControlledPerson } from "./simulation/governance/runtime";
-import { assertAuthorizedStartingPerson } from "./simulation/governance/selection";
+import type { PoliticalStartPath } from "./simulation/governance/selection";
 import { hasGovernmentInformationAccess, inspectGovernmentReports } from "./simulation/information/runtime";
 import { politicalRegistry } from "./simulation/politics/registry";
 import { initializeNewGame } from "./simulation/initialization";
@@ -113,10 +111,12 @@ export default function App() {
   const [activePage, setActivePage] = useState('overview');
   const [mapLayer, setMapLayer] = useState<MapLayer>('ownership');
   const [screen, setScreen] = useState<MenuScreen>('menu');
-  const auxiliaryOrigin = useRef<'menu' | 'game'>('menu');
+  const auxiliaryOrigin = useRef<'menu' | 'game' | 'new-game'>('menu');
+  const [newGameDraft,setNewGameDraft] = useState<NewGameDraft>(()=>initialNewGameDraft([]));
+  const newGameSelectionRef=useRef<SimulationState | undefined>(undefined);
   const [menuSelection, setMenuSelection] = useState<{ id: string; summary: CampaignSummary }>();
   const openAuxiliary = (destination: 'settings' | 'credits' | 'load') => {
-    auxiliaryOrigin.current = screen === 'game' ? 'game' : 'menu';
+    auxiliaryOrigin.current = screen === 'game' ? 'game' : screen === 'new-game' ? 'new-game' : 'menu';
     setScreen(destination);
   };
   const returnFromAuxiliary = () => setScreen(auxiliaryOrigin.current);
@@ -228,6 +228,7 @@ export default function App() {
           socioeconomicData,
           politicalData,
         ));
+        newGameSelectionRef.current = startingSelectionSnapshot(clock.current.snapshot());
         const registryContext = { countryIds: new Set(countryIds), regionIds: new Set(regions.registry.regions.map(region => region.id)) };
         assertSimulationInvariants(clock.current.snapshot(), { ...registryContext, regions: regions.registry.regions }, 'reload');
         setSim(clock.current.snapshot());
@@ -341,21 +342,18 @@ export default function App() {
   } : undefined;
   const applyState = (next: SimulationState) => { clock.current = new SimulationClock(next); menuPauseRef.current = undefined; setSim(clock.current.snapshot()); };
   const dataReady = Boolean(world && countryData && regionData && populationData && economicData);
-  // A new game always re-initializes from the captured fresh base + seed, so
-  // returning to the menu and starting again can never preserve a prior
-  // session's player, ownership, wars, budgets or clock state.
+  // Opening/cancelling the wizard never initializes or replaces the active campaign.
   const startNewGame = () => {
-    if (!newGameBaseRef.current || !newGameSeedRef.current) return;
-    const { regions, countryIds, socioeconomicData, politicalData } = newGameSeedRef.current;
-    const fresh = initializeNewGame(structuredClone(newGameBaseRef.current), regions, countryIds, socioeconomicData, politicalData);
-    setSelected(undefined);
-    setSelectedRegion(undefined);
-    setActivePage('overview');
-    setMapLayer('ownership');
-    setSaveError(undefined);
-    setMenuSelection(undefined);
-    applyState(fresh);
-    setScreen('game');
+    if (!countryData || !newGameSelectionRef.current) return;
+    setNewGameDraft(initialNewGameDraft(countryData.registry.countries));
+    setScreen('new-game');
+  };
+  const confirmNewGame = (countryId:string,path:PoliticalStartPath,personId:string) => {
+    if (!newGameBaseRef.current || !newGameSeedRef.current) throw new Error('Les données de départ sont indisponibles.');
+    const next=createConfirmedCampaign(newGameBaseRef.current,newGameSeedRef.current,{countryId,path,personId});
+    setSelected(undefined);setSelectedRegion(undefined);setActivePage('overview');setMapLayer('ownership');
+    setSaveError(undefined);setMenuSelection(undefined);setPauseOpen(false);
+    applyState(next);setScreen('game');
   };
   // Opening the pause menu, or leaving the game view entirely, genuinely
   // suspends progression: the shared clock is paused and never advances while a
@@ -463,6 +461,7 @@ export default function App() {
     const menuSaves = storageReady ? listSaves() : [];
     return <MainMenu hasSave={menuSaves.length > 0} saves={menuSaves} storageStatus={storageState} error={loadSlotError ?? storageError ?? loadError} onSelectSave={selectMenuSave} selectedSaveId={menuSelection?.id} summary={menuSelection?.summary} onLoadSave={loadSlot} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => openAuxiliary('load')} onSettings={() => openAuxiliary('settings')} onCredits={() => openAuxiliary('credits')} onExit={exitApp} settings={settings} />;
   }
+  if (screen === 'new-game' && countryData && world && newGameSelectionRef.current) return <NewGameSetup data={countryData} territories={world.territories} selectionState={newGameSelectionRef.current} draft={newGameDraft} onDraftChange={setNewGameDraft} onConfirm={confirmNewGame} onBack={()=>setScreen('menu')} onLoad={()=>openAuxiliary('load')} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} uiScale={settings.graphics.uiScale} />;
   if (loadError)
     return (
       <main className="load-state">
@@ -489,16 +488,6 @@ export default function App() {
   const commitCommand = (next: SimulationState) => {
     clock.current.replaceState(next);
     setSim(clock.current.snapshot());
-  };
-  const startAs = (personId: string, syntheticMilitary = false, syntheticTrade = false) => {
-    const countryId = sim.governance.persons[personId]?.countryId;
-    if (!countryId) throw new Error('Selected political person has no registered Country.');
-    // A new game may only begin on one of the two authorized starting routes. This guard is scoped
-    // to the new-game entry point; succession, handoff and loaded saves keep using player control.
-    assertAuthorizedStartingPerson(sim, personId);
-    let next = syntheticMilitary ? configureSyntheticMilitaryScenario(sim, countryId) : sim;
-    if (syntheticTrade) next = configureSyntheticTradeScenario(next, countryId);
-    commitCommand(setControlledPerson(next, personId));
   };
   const navItems = [
     ['overview', 'Overview', '⌂'], ['fiscal', 'Fiscality', '¤'], ['economy', 'Economy', '▥'],
@@ -757,7 +746,7 @@ export default function App() {
           </div>
         </div>
       )}
-      {!controlledPerson && <StartGame countries={countryData.registry.countries} state={sim} onPlay={startAs} />}
+
     </main>
   );
 }

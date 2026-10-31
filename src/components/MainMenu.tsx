@@ -4,7 +4,7 @@ import type { SaveEntry } from '../app/saveStorage';
 import './MainMenu.css';
 export type MenuScreen = 'menu' | 'new-game' | 'load' | 'settings' | 'credits' | 'game';
 type IconName = 'play' | 'globe' | 'folder' | 'settings' | 'book' | 'chart' | 'mods' | 'people' | 'power' | 'bug';
-function Icon({ name }: { name: IconName }) {
+export function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, React.ReactNode> = {
     play: <path d="M7 3 22 12 7 21Z" fill="currentColor"/>,
     globe: <><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 6.5q7 4 14 0M5 17.5q7-4 14 0"/></>,
@@ -22,7 +22,7 @@ function Icon({ name }: { name: IconName }) {
   };
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
-function AtlasMark({ small = false }: { small?: boolean }) {
+export function AtlasMark({ small = false }: { small?: boolean }) {
   return <svg className={small ? 'atlas-emblem small' : 'atlas-emblem'} viewBox="0 0 220 220" fill="none" aria-hidden="true">
     <circle cx="110" cy="110" r="100"/><circle cx="110" cy="110" r="75"/><circle cx="110" cy="110" r="50"/>
     <path d="M110 6v208M6 110h208M39 39l142 142M39 181 181 39M110 10a100 100 0 0 1 100 100M110 35a75 75 0 0 1 75 75"/>
