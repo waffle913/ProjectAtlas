@@ -15,8 +15,10 @@ export function unwrapRing(ring: number[][], anchor?: number): Point[] {
 export function ringArea(ring: Point[]): number { return Math.abs(ring.reduce((a, p, i) => { const q = ring[(i + 1) % ring.length]; return a + p[0]*q[1] - q[0]*p[1]; },0))/2; }
 export function globePolygons(territories: readonly Territory[]): GlobePolygon[] {
   return territories.flatMap(t => {
+    const countryId=t.ownerCountryId;
+    if(!countryId)return [];
     const polygons = t.geometry.type === 'Polygon' ? [t.geometry.coordinates] : t.geometry.type === 'MultiPolygon' ? t.geometry.coordinates : [];
-    return polygons.map(p => { const outer = unwrapRing(p[0]); return { countryId: t.ownerCountryId, rings: [outer, ...p.slice(1).map(r => unwrapRing(r, outer[0]?.[0]))], area: ringArea(outer) }; });
+    return polygons.map(p => { const outer = unwrapRing(p[0]); return { countryId, rings: [outer, ...p.slice(1).map(r => unwrapRing(r, outer[0]?.[0]))], area: ringArea(outer) }; });
   });
 }
 function inRing(lon: number, lat: number, ring: Point[]): boolean {

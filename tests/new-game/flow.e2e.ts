@@ -8,6 +8,11 @@ test('real globe, search, four-step confirmation and menu continuity',async({pag
  await expect(page.locator('.ng-globe canvas')).toBeVisible();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');await fs.mkdir('artifacts/new-game',{recursive:true});
  for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/new-game/france-${viewport.width}x${viewport.height}.png`});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);}
  await page.setViewportSize({width:1920,height:1080});
+ const canvas=page.locator('.ng-globe canvas');const beforeRotation=await page.screenshot();
+ await canvas.focus();await canvas.press('ArrowRight');expect((await page.screenshot()).equals(beforeRotation)).toBe(false);await canvas.press('Home');
+ await page.getByLabel('Rechercher un pays',{exact:true}).fill('France');
+ const box=await canvas.boundingBox();expect(box).toBeTruthy();await page.mouse.click(box!.x+box!.width/2,box!.y+box!.height/2);
+ await expect(page.getByLabel('Rechercher un pays',{exact:true})).toHaveValue('');
  await page.getByLabel('Rechercher un pays',{exact:true}).fill('Canada');await page.locator('.ng-search-results button').filter({hasText:'Canada'}).click();await expect(page.locator('.ng-country-title h1')).toHaveText('Canada');await expect(page.locator('.ng-hover')).toHaveText('Canada');
  await page.getByRole('button',{name:'Zoom avant',exact:true}).click();await page.getByRole('button',{name:'Recentrer sur le pays choisi'}).click();
  await page.getByRole('button',{name:'Retour au menu',exact:false}).click();await expect(page.locator('.atlas-menu')).toBeVisible();
