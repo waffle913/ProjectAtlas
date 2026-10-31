@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { xyz, lonLat, countryAt, countryCenter, type GlobePolygon, type Point } from './globeGeometry';
+export interface GlobeMarker { x:number;y:number;visible:boolean }
 export interface GlobeController { select(id: string): void; zoom(factor: number): void; recenter(): void; dispose(): void }
 function surfaceGeometry(polygons: readonly GlobePolygon[]): THREE.BufferGeometry {
   const vertices: number[]=[];
@@ -30,7 +31,7 @@ function borderGeometry(polygons: readonly GlobePolygon[]): THREE.BufferGeometry
   }
   return new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
 }
-export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[], onSelect:(id:string)=>void, onHover:(id?:string)=>void): GlobeController {
+export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[], onSelect:(id:string)=>void, onHover:(id?:string,point?:GlobeMarker)=>void,onMarker:(point:GlobeMarker)=>void): GlobeController {
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('data-texture-status','loading');renderer.domElement.setAttribute('aria-label','Globe terrestre 3D interactif');host.append(renderer.domElement);
@@ -39,6 +40,7 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
   const sphereGeometry=new THREE.SphereGeometry(1,96,64);
   const sphereMaterial=new THREE.MeshBasicMaterial({color:0x8eafd3});
   const earth=new THREE.Mesh(sphereGeometry,sphereMaterial);scene.add(earth);
+  sphereMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat lightMask=smoothstep(0.12,0.45,diffuseColor.r+diffuseColor.g+diffuseColor.b);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(1.0,0.65,0.25)*max(max(diffuseColor.r,diffuseColor.g),diffuseColor.b)*1.6,lightMask);');};
   let dead=false,selected='';
   const texture=new THREE.TextureLoader().load('/globe/black-marble-2016.jpg',()=>{if(dead){texture.dispose();return;}texture.colorSpace=THREE.SRGBColorSpace;sphereMaterial.map=texture;sphereMaterial.needsUpdate=true;renderer.domElement.setAttribute('data-texture-status','ready');render();},undefined,()=>render());
   const borders=new THREE.LineSegments(borderGeometry(polygons),new THREE.LineBasicMaterial({color:0x4194c3,transparent:true,opacity:.65}));scene.add(borders);
@@ -47,17 +49,17 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
   const hover=new THREE.Mesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial({color:0xffd58c,transparent:true,opacity:.3,side:THREE.DoubleSide,depthWrite:false}));scene.add(hover);
   const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.025,64,48),new THREE.ShaderMaterial({transparent:true,side:THREE.BackSide,depthWrite:false,blending:THREE.AdditiveBlending,
     vertexShader:'varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.0);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',
-    fragmentShader:'varying vec3 n;varying vec3 v;void main(){float a=pow(1.0-abs(dot(normalize(n),normalize(v))),3.0);gl_FragColor=vec4(0.08,0.42,1.0,a*0.85);}'}));scene.add(atmosphere);
-  const render=()=>{if(!dead)renderer.render(scene,camera);};
-  const orient=(point:Point)=>{camera.position.set(...xyz(point,3.25));camera.lookAt(0,0,0);controls.update();render();};
+    fragmentShader:'varying vec3 n;varying vec3 v;void main(){float a=pow(1.0-abs(dot(normalize(n),normalize(v))),3.0);gl_FragColor=vec4(0.16,0.48,1.0,a*1.4);}'}));scene.add(atmosphere);
+  const render=()=>{if(dead)return;renderer.render(scene,camera);const center=countryCenter(polygons,selected);if(center){const position=new THREE.Vector3(...xyz(center,1.01));const visible=position.clone().normalize().dot(camera.position.clone().normalize())>0;position.project(camera);const rect=host.getBoundingClientRect();onMarker({x:rect.left+(position.x+1)/2*rect.width,y:rect.top+(1-position.y)/2*rect.height,visible});}};
+  const orient=(point:Point)=>{camera.position.set(...xyz([point[0]+8,Math.max(-80,Math.min(80,point[1]-12))],3.1));camera.lookAt(0,0,0);controls.update();render();};
   orient([12,40]);controls.addEventListener('change',render);
-  const resize=()=>{const r=host.getBoundingClientRect();if(!r.width||!r.height)return;camera.aspect=r.width/r.height;camera.updateProjectionMatrix();renderer.setSize(r.width,r.height);render();};
+  const resize=()=>{if(dead)return;const r=host.getBoundingClientRect();if(!r.width||!r.height)return;camera.aspect=r.width/r.height;camera.updateProjectionMatrix();renderer.setSize(r.width,r.height);render();};
   const observer=new ResizeObserver(resize);observer.observe(host);resize();
   const raycaster=new THREE.Raycaster();const pointer=new THREE.Vector2();let down:[number,number]|undefined,hoverId:string|undefined;
   const hit=(e:PointerEvent)=>{const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(earth)[0];return hit?countryAt(polygons,...lonLat(hit.point.toArray() as [number,number,number])):undefined;};
   const pointerDown=(e:PointerEvent)=>{down=[e.clientX,e.clientY];};
   const pointerUp=(e:PointerEvent)=>{if(down && Math.hypot(e.clientX-down[0],e.clientY-down[1])<5){const id=hit(e);if(id)onSelect(id);}down=undefined;};
-  const pointerMove=(e:PointerEvent)=>{if(e.buttons)return;const id=hit(e);if(id===hoverId)return;hoverId=id;hover.geometry.dispose();hover.geometry=id && id!==selected?surfaceGeometry(polygons.filter(p=>p.countryId===id)):new THREE.BufferGeometry();onHover(id);render();};
+  const pointerMove=(e:PointerEvent)=>{if(e.buttons)return;const id=hit(e);if(id===hoverId)return;hoverId=id;hover.geometry.dispose();hover.geometry=id && id!==selected?surfaceGeometry(polygons.filter(p=>p.countryId===id)):new THREE.BufferGeometry();onHover(id,{x:e.clientX,y:e.clientY,visible:true});render();};
   const leave=()=>{hoverId=undefined;onHover();hover.geometry.dispose();hover.geometry=new THREE.BufferGeometry();render();};
   const keyDown=(e:KeyboardEvent)=>{
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','+','-'].includes(e.key))return;
