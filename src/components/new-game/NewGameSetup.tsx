@@ -49,7 +49,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
           <div className="ng-information" role="tabpanel" aria-label={draft.tab}><dl>
             {draft.tab==='Aperçu' && <><div className="ng-fact"><dt>Capitale</dt><dd>{country?.capital??'Indisponible'}</dd></div>{fact('population','Population')}{fact('nominalGdpUsd','PIB nominal (USD)')}{fact('gdpPerCapitaUsd','PIB par habitant (USD)')}{politicalFact}<div className="ng-fact"><dt>Région</dt><dd>{country?.unSubregion??'Indisponible'}</dd></div></>}
             {draft.tab==='Économie' && <>{fact('nominalGdpUsd','PIB nominal (USD)')}{fact('gdpPerCapitaUsd','PIB par habitant (USD)')}{fact('currencies','Monnaies')}<div className="ng-fact"><dt>Croissance</dt><dd>Indisponible</dd></div></>}
-            {draft.tab==='Politique' && <>{fact('governmentType','Régime politique')}<div className="ng-fact"><dt>Voies de départ</dt><dd>{options.playable?'Consulter l’étape Rôle':'Indisponibles'}</dd></div></>}
+            {draft.tab==='Politique' && <>{politicalFact}<div className="ng-fact"><dt>Voies de départ</dt><dd>{options.playable?'Consulter l’étape Rôle':'Indisponibles'}</dd></div></>}
             {draft.tab==='Société' && <>{fact('population','Population')}{fact('languages','Langues')}</>}
             {draft.tab==='Relations' && <div className="ng-fact"><dt>Relations diplomatiques</dt><dd>Indisponibles avant le lancement</dd></div>}
           </dl><small className="ng-note">Données datées du catalogue, sans valeur illustrative. {country?.sources.details?.[0]?.name}</small></div>

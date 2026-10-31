@@ -1,3 +1,4 @@
+import { isSimulationDate } from '../simulation/date';
 import type { FactValue } from '../data/countryData';
 /** No generic object coercion: catalog values include named language/currency records. */
 export function formatCatalogValue(value:unknown):string {
@@ -10,5 +11,5 @@ export function formatCatalogValue(value:unknown):string {
 export function factAvailableAtStart(fact:FactValue|undefined):fact is Extract<FactValue,{status:'available'}> {
  if(fact?.status!=='available')return false;
  const d=fact.referenceDate;
- return /^\d{4}$/.test(d)?d<'2026':/^\d{4}-\d{2}-\d{2}$/.test(d) && Number.isFinite(Date.parse(d)) && d<='2026-01-01';
+ return /^\d{4}$/.test(d)?d<'2026':isSimulationDate(d) && d<='2026-01-01';
 }
