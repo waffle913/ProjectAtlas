@@ -1735,18 +1735,20 @@ describe('governance 0.14 player and political decisions', () => {
       return { state, id, capabilities };
     };
     const presidential = makeReconciledHeadOfState(true);
+    // A resolved executive carries the government agenda only: the modelled scope is a deliberate
+    // subset, and the parliamentary suffrage is never granted to an executive office.
     expect(presidential.capabilities).toEqual([
-      'sponsor_legislation',
-      'sponsor_fiscal_reform',
-      'sponsor_budget_reform',
-      'vote_legislation',
       'access_government_information',
-      'command_military_operations',
-      'propose_construction',
       'authorize_construction',
-      'fund_construction',
       'cancel_construction',
+      'command_military_operations',
+      'fund_construction',
+      'propose_construction',
+      'sponsor_budget_reform',
+      'sponsor_fiscal_reform',
+      'sponsor_legislation',
     ]);
+    expect(presidential.capabilities).not.toContain('vote_legislation');
     expect(governanceInvariant.check(presidential.state, worldContext, 'save')).toEqual([]);
 
     const unresolved = makeReconciledHeadOfState(false);
@@ -1857,7 +1859,7 @@ describe('governance 0.14 player and political decisions', () => {
     const draft = budgetProposal(first, one, countryId, 2); expect(() => submitProposal(draft, draft.governance.proposalOrder[0])).toThrow(/not the controlled person/);
   });
 
-  it('requires vote authority to remain present at resolution time', () => {
+  it('requires the presenting authority to remain in office at resolution time', () => {
     const fixture = findResolvable(true); let state = submitProposal(fixture.state, fixture.proposalId); state = revokePoliticalOffice(state, fixture.personId);
     expect(() => resolveProposalVote(state, fixture.proposalId, fixture.registry, fixture.profiles)).toThrow(/lacks authority/);
   });

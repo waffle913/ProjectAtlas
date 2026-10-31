@@ -19,16 +19,19 @@ import { revokePoliticalOffice, createPoliticalPerson } from '../governance/runt
 import { placeMilitaryOrder } from '../military/runtime';
 import { militaryReadiness } from '../military/model';
 
-/** 0.24 construction capabilities are backfilled into saved executive offices on
- *  migration; strip them before comparing restored governance to the historical
- *  fixture (an admitted structural backfill, like the 0.23 cabinets backfill). */
-const CONSTRUCTION_CAPABILITIES = ['propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction'];
-const stripConstructionCapabilities = (governance: { persons: Record<string, { office?: { authorityProfile?: { capabilities?: string[] } } }> }) => ({
+/** The persisted office capability list is a *derived* field of the modelled constitutional
+ *  abstraction, never a historical decision. The executive-authority corrective changes it on
+ *  migration: an office that does not carry the government agenda in the Country's sourced executive
+ *  system (this fixture's synthetic head of government sits in a presidential system) keeps no
+ *  governing capability, and no executive keeps the parliamentary suffrage. The corrected matrix is
+ *  validated in `executiveAuthority.test.ts`; here every other migrated field must match the frozen
+ *  historical oracle exactly, so the derived list is blanked on both sides. */
+const stripDerivedAuthorityScope = (governance: { persons: Record<string, { office?: { authorityProfile?: { capabilities?: string[] } } }> }) => ({
   ...governance,
   persons: Object.fromEntries(Object.entries(governance.persons).map(([id, person]) => [
     id,
     person?.office?.authorityProfile
-      ? { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: person.office.authorityProfile.capabilities!.filter(c => !CONSTRUCTION_CAPABILITIES.includes(c)) } } }
+      ? { ...person, office: { ...person.office, authorityProfile: { ...person.office.authorityProfile, capabilities: [] } } }
       : person,
   ])),
 });
@@ -369,7 +372,7 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     expect(ministerialSuggestions).toEqual([]);
     expect(nextSuggestionSequence).toBe(0);
     expect(settings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
-    expect(stripConstructionCapabilities(governancePreserved)).toEqual(schema14.state.governance);
+    expect(stripDerivedAuthorityScope(governancePreserved)).toEqual(schema14.state.governance);
     const continued = advanceSimulationDays(state, 90);
     for (const field of ['socioeconomy', 'military', 'engine', 'wars', 'occupationByRegion', 'regionOwnership', 'crisis'] as const) expect(continued[field]).toEqual(oracle.state[field]);
     expect(stripFiscalConstruction(continued.fiscal)).toEqual(oracle.state.fiscal);
@@ -384,7 +387,7 @@ describe('trade 0.17 causal aggregate goods, payments and evidence', () => {
     expect(continuedSuggestions).toEqual([]);
     expect(continuedNextSuggestionSequence).toBe(0);
     expect(continuedSettings).toEqual({ spontaneousMinisterialProposalsEnabled: true });
-    expect(stripConstructionCapabilities(continuedGovernancePreserved)).toEqual(oracle.state.governance);
+    expect(stripDerivedAuthorityScope(continuedGovernancePreserved)).toEqual(oracle.state.governance);
     expect(continued.date).toBe('2028-07-04'); expect(continued.trade.flows).toEqual([]);
     const { tradeReports: _newReporting, internationalReports: _newInternational, operationsReports: _newOperations, multilateralReports: _newMultilateral, ...oldInformation } = continued.information;
     expect(oldInformation).toEqual(oracle.state.information);

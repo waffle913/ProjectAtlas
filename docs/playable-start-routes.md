@@ -23,7 +23,7 @@ person can do comes from the office they already hold.
 
 | Status | Meaning | Eligible |
 |---|---|---|
-| `resolved` | `sourced_presidential_head_of_state` + `head_of_state`, or `sourced_parliamentary_head_of_government` + `head_of_government`, matching the executive system the registry establishes, with capabilities equal to that basis | yes |
+| `resolved` | `sourced_presidential_head_of_state` + `head_of_state`, or `sourced_parliamentary_head_of_government` + `head_of_government`, matching the executive system the registry establishes, with capabilities equal to that basis (see `docs/executive-authority-capabilities.md`: the government agenda, never every capability and never the parliamentary suffrage) | yes |
 | `unresolved` | Reconciled identity, but the basis is `institutional_authority_unresolved` (ceremonial head of state, semi-presidential president *and* prime minister, `other`, or an executive system the registry does not source), or the office has no reconciled provenance at all | **no** |
 | `evidence_inconsistent` | Persisted evidence fails `persistedOfficeEvidenceErrors`, the persisted basis contradicts the registry's sourced executive system, or capabilities contradict the basis | **no** |
 | `not_a_national_executive_office` | `legislator`, `minister` | no |

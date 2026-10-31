@@ -35,8 +35,44 @@ export function executiveAuthorityBasis(system: string, role: PoliticalOfficeRol
       ? 'sourced_parliamentary_head_of_government' : 'institutional_authority_unresolved';
 }
 
+/** The capabilities carried by a parliamentary mandate: the suffrage a legislator exercises. It is
+ *  deliberately absent from every executive scope. The executive presents its bill to the chamber
+ *  (that is `sponsor_legislation`) and the chamber's vote is modelled by the party/seat distribution,
+ *  so an executive never inherits a parliamentary vote. */
+export const LEGISLATOR_CAPABILITIES = ['vote_legislation'] as const satisfies readonly AuthorityCapability[];
+
+/** The state functions a head of state carries when the represented arrangement does not give it
+ *  the government agenda (a share of power between a president and a head of government, or a
+ *  Country whose executive system is not represented). Government information and military command
+ *  are the two functions the engine already models for a head of state; nothing else is invented. */
+export const HEAD_OF_STATE_FUNCTIONS = ['access_government_information', 'command_military_operations'] as const satisfies readonly AuthorityCapability[];
+
+/** The modelled governing scope of the office that actually carries the government agenda in a
+ *  Country: legislative and budget initiative, government information, military command and public
+ *  construction. This is a deliberate subset — a recognised executive office never inherits every
+ *  capability. Ceremonial head-of-state functions, decree powers, appointment/confidence powers and
+ *  the real constitutional distribution of powers are not represented here; what the engine does
+ *  gate by role (ministerial appointment, government nomination, ban/dissolution decisions,
+ *  executive override) stays role-based and unchanged. */
+export const GOVERNMENT_AGENDA_CAPABILITIES = [
+  'access_government_information', 'authorize_construction', 'cancel_construction',
+  'command_military_operations', 'fund_construction', 'propose_construction',
+  'sponsor_budget_reform', 'sponsor_fiscal_reform', 'sponsor_legislation',
+] as const satisfies readonly AuthorityCapability[];
+
+const agendaCapabilities = (): AuthorityCapability[] => [...GOVERNMENT_AGENDA_CAPABILITIES];
+
+/** What a reconciled authority basis establishes: the government agenda when the basis makes the
+ *  office the Country's chief executive, nothing when the authority stays unresolved. */
 export function capabilitiesForReconciledAuthority(basis: AuthorityBasis): AuthorityCapability[] {
-  return basis === 'institutional_authority_unresolved' ? [] : [...AUTHORITY_CAPABILITIES];
+  return isResolvedExecutiveAuthorityBasis(basis) ? agendaCapabilities() : [];
+}
+
+/** The capabilities the modelled abstraction deliberately does not grant to an executive office, so
+ *  an unavailable or non-modelled power is stated rather than silently missing. */
+export function withheldExecutiveCapabilities(role: PoliticalOfficeRole, granted: readonly AuthorityCapability[]): AuthorityCapability[] {
+  if (!(NATIONAL_EXECUTIVE_OFFICE_ROLES as readonly string[]).includes(role)) return [];
+  return AUTHORITY_CAPABILITIES.filter(capability => !granted.includes(capability));
 }
 
 export type NationalExecutiveAuthorityStatus =
@@ -59,6 +95,10 @@ export interface NationalExecutiveAuthority {
   basis?: AuthorityBasis;
   /** Capabilities established by the office evidence. Empty unless the status is `resolved`. */
   capabilities: AuthorityCapability[];
+  /** Capabilities the modelled abstraction deliberately does not grant this office (the
+   *  parliamentary suffrage, and every power an unresolved or contradictory status could not
+   *  establish). Stated explicitly so a withheld power is never mistaken for a modelled one. */
+  withheldCapabilities: AuthorityCapability[];
   limitations: string[];
 }
 
@@ -67,43 +107,45 @@ export function nationalExecutiveAuthority(input: { person: PoliticalPersonState
   const office = input.person.office;
   const system = sourcedExecutiveSystem(input.person.countryId, registry);
   if (!office) return {
-    status: 'no_office', system, capabilities: [],
+    status: 'no_office', system, capabilities: [], withheldCapabilities: [],
     limitations: ['No public office is recorded for this person; no national executive authority is inferred.'],
   };
   if (!(NATIONAL_EXECUTIVE_OFFICE_ROLES as readonly string[]).includes(office.role)) return {
-    status: 'not_a_national_executive_office', role: office.role, title: office.title, system, capabilities: [],
+    status: 'not_a_national_executive_office', role: office.role, title: office.title, system, capabilities: [], withheldCapabilities: [],
     limitations: [`Role ${office.role} is not a national executive office; it never establishes national governmental authority.`],
   };
   const errors = persistedOfficeEvidenceErrors(input.person, input.date);
   if (errors.length) return {
-    status: 'evidence_inconsistent', role: office.role, title: office.title, system, capabilities: [],
+    status: 'evidence_inconsistent', role: office.role, title: office.title, system, capabilities: [], withheldCapabilities: [...AUTHORITY_CAPABILITIES],
     limitations: errors,
   };
   const evidence = office.evidence;
   if (!evidence || evidence.status !== 'source_reconciled') return {
-    status: 'unresolved', role: office.role, title: office.title, system, capabilities: [],
+    status: 'unresolved', role: office.role, title: office.title, system, capabilities: [], withheldCapabilities: [...AUTHORITY_CAPABILITIES],
     limitations: ['The office carries no reconciled institutional provenance, so its gameplay authority is unresolved. No capability is inferred from the role alone.'],
   };
   const basis = evidence.authorityBasis;
   if (!isResolvedExecutiveAuthorityBasis(basis)) return {
-    status: 'unresolved', role: office.role, title: office.title, basis, system, capabilities: [],
+    status: 'unresolved', role: office.role, title: office.title, basis, system, capabilities: [], withheldCapabilities: [...AUTHORITY_CAPABILITIES],
     limitations: [system === 'unavailable'
       ? 'The political registry does not establish a sourced executive system for this Country, so the officeholder identity is reconciled but the office\'s gameplay authority is unresolved.'
       : `The sourced institutional evidence does not resolve how this ${office.role.replace(/_/g, ' ')} office exercises governmental authority in a ${system.replace(/_/g, ' ')} system. No capabilities are inferred; this does not assert that the office has no powers.`],
   };
   if (basis !== executiveAuthorityBasis(system, office.role)) return {
-    status: 'evidence_inconsistent', role: office.role, title: office.title, basis, system, capabilities: [],
+    status: 'evidence_inconsistent', role: office.role, title: office.title, basis, system, capabilities: [], withheldCapabilities: [...AUTHORITY_CAPABILITIES],
     limitations: [`Persisted authority basis ${basis} does not match the executive system the political registry establishes for this Country (${system}).`],
   };
   const expected = capabilitiesForReconciledAuthority(basis);
   if (expected.length !== office.authorityProfile.capabilities.length
     || expected.some(capability => !office.authorityProfile.capabilities.includes(capability))) return {
-    status: 'evidence_inconsistent', role: office.role, title: office.title, basis, system, capabilities: [],
+    status: 'evidence_inconsistent', role: office.role, title: office.title, basis, system, capabilities: [], withheldCapabilities: [...AUTHORITY_CAPABILITIES],
     limitations: ['Persisted capabilities are inconsistent with the office\'s reconciled authority basis; no gameplay authority is derived from contradictory evidence.'],
   };
+  const capabilities = [...office.authorityProfile.capabilities].sort() as AuthorityCapability[];
   return {
-    status: 'resolved', role: office.role, title: office.title, basis, system,
-    capabilities: [...office.authorityProfile.capabilities].sort(), limitations: [office.authorityProfile.limitation],
+    status: 'resolved', role: office.role, title: office.title, basis, system, capabilities,
+    withheldCapabilities: withheldExecutiveCapabilities(office.role, capabilities),
+    limitations: [office.authorityProfile.limitation],
   };
 }
 

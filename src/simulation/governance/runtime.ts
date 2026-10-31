@@ -11,6 +11,7 @@ import { assertInitialOfficeReconciliation } from './initialOfficeEvidence';
 import { namePoolForCountry } from './namePools';
 import entityRegistry from '../../data/entity-registry.json';
 import { capabilitiesForReconciledAuthority, executiveAuthorityBasis } from './officeEvidence';
+import { establishedOfficeCapabilities, officeAuthority } from './officeAuthority';
 export { capabilitiesForReconciledAuthority } from './officeEvidence';
 import { analyzeProposal, dynamicPartyGoalProfile, materialContextForProposal } from './analysis';
 import { applyPartyInstitutionalInterest, evaluatePartyInstitutionalInterest, INSTITUTIONAL_INTEREST_MODEL } from './institutionalInterest';
@@ -28,14 +29,11 @@ const cloneGovernance = (state: SimulationState, governance: GovernanceState): S
 const requireCountry = (state: SimulationState, countryId: string) => { if (!state.engine.fidelityByCountry[countryId]) throw new Error(`Unknown Country: ${countryId}`); };
 const requirePerson = (state: SimulationState, id: string) => { const person = state.governance.persons[id]; if (!person) throw new Error(`Unknown political person: ${id}`); return person; };
 const requireControlled = (state: SimulationState, id: string) => { if (state.governance.player.controlledPersonId !== id) throw new Error('The proposer is not the controlled person.'); return requirePerson(state, id); };
-/** Role-derived capabilities: the generic modelled constitutional abstraction. Authority is never
- *  granted automatically by role alone: a head of state receives no legislative initiative or vote,
- *  and a legislator sponsors nothing — only the authorized government leader (head of government)
- *  carries the legislative initiative. Ministers have no legislative powers at all; they suggest. */
-const capabilitiesFor = (role: PoliticalOfficeRole): AuthorityCapability[] => role === 'head_of_government'
-  ? ['sponsor_legislation', 'sponsor_fiscal_reform', 'sponsor_budget_reform', 'vote_legislation', 'access_government_information', 'command_military_operations', 'propose_construction', 'authorize_construction', 'fund_construction', 'cancel_construction']
-  : role === 'head_of_state' ? ['access_government_information', 'command_military_operations']
-  : role === 'legislator' ? ['vote_legislation'] : [];
+/** Office capabilities are a property of the *function*, resolved from the institutional state in
+ *  force by `officeAuthority` (see `officeAuthority.ts`): the sourced executive system and the
+ *  constitutional rules already represented by the constitution subsystem decide. An executive never
+ *  receives every capability and never the parliamentary suffrage; a legislator sponsors nothing and
+ *  a minister only suggests. The per-office limitation is persisted with the office profile. */
 const authorityLimitation = 'Generic modelled constitutional abstraction for gameplay; it is not an observed national constitutional rule.';
 const LEADER_PROFILE_VARIATION_BPS = 250;
 const SOURCE_LEADER_LIMITATION = 'No pinned, licensing-cleared party-leadership source applicable on 2026-01-01 is available in the ProjectAtlas political registry. The gameplay identity is fictional and is not a sourced real-person analogue.';
@@ -193,9 +191,9 @@ function initializeSourceOfficeholders(state: SimulationState, registry: Politic
       : undefined;
     const title = mappedOfficeTitle ?? selected.definition.title;
     const capabilityLimitation = authorityBasis === 'sourced_parliamentary_head_of_government'
-      ? 'A dated source officeholder match and sourced parliamentary/monarchy-parliamentary system support this generic modelled executive gameplay profile. It is not a complete legal powers inventory.'
+      ? 'A dated source officeholder match and sourced parliamentary/monarchy-parliamentary system support this generic modelled executive gameplay profile. It is not a complete legal powers inventory: the modelled scope is the government agenda, government information, military command and public construction. The parliamentary suffrage is withheld from the executive, and ceremonial, decree, appointment, confidence and dissolution powers are not represented.'
       : authorityBasis === 'sourced_presidential_head_of_state'
-        ? 'A dated source officeholder match and sourced presidential system support this generic modelled executive gameplay profile. It is not a complete legal powers inventory.'
+        ? 'A dated source officeholder match and sourced presidential system support this generic modelled executive gameplay profile. It is not a complete legal powers inventory: the modelled scope is the government agenda, government information, military command and public construction. The parliamentary suffrage is withheld from the executive, and ceremonial, decree, appointment, confidence and dissolution powers are not represented.'
         : 'The officeholder identity is reconciled, but available institutional evidence does not resolve this office\'s gameplay authority. No executive capabilities are inferred; this does not assert that the real office has no powers.';
     const sourceOfficeIds = records.map(item => item.definition.id).sort();
     const sourceRecordIds = [...new Set([
@@ -504,20 +502,36 @@ export function initializePartyLeaders(state: SimulationState, registry: Politic
 }
 
 export function assignPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[]; /** Marks a temporary acting exercise of the office (temporary succession): the title says so; the role and capabilities are unchanged. */ acting?: boolean }): SimulationState {
+  return assignOfficeFunction(state, personIdValue, input, establishedOfficeCapabilities(state, input.countryId, input.role));
+}
+
+/** The office is a function: its competences come from the institutional state, and an appointment
+ *  inherits the competences already established for that function (a succession or a replacement
+ *  changes the holder, never the function's powers). `established` is captured before an outgoing
+ *  holder is revoked by `transferPoliticalOffice`. */
+function assignOfficeFunction(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[]; acting?: boolean }, established?: AuthorityCapability[]): SimulationState {
   const person = requirePerson(state, personIdValue); requireCountry(state, input.countryId);
   if (person.status !== 'active') throw new Error('Only an active person may receive a political office.');
   if (input.role === 'minister') throw new Error('A ministerial appointment goes through the canonical cabinet/portfolio (appointMinister), never through the generic office path.');
   if (person.office) throw new Error('This person already holds a political office; revoke it before assigning a new one. Offices are never silently overwritten.');
   const appointedOn = input.appointedOn ?? state.date;
   if (person.countryId !== input.countryId || !dateValid(appointedOn) || appointedOn > state.date || !state.governance.initializedOn || appointedOn < state.governance.initializedOn || appointedOn < person.createdOn) throw new Error('Office scope or appointment date is invalid.');
-  // Capabilities are strictly framed by the role: no free injection beyond the role-derived set.
-  const roleCapabilities = capabilitiesFor(input.role);
-  if (input.capabilities !== undefined && input.capabilities.some(item => !roleCapabilities.includes(item))) throw new Error('Injected capabilities must be a subset of the role-derived authority.');
-  const capabilities = [...new Set(input.capabilities ?? roleCapabilities)].sort();
+  // Capabilities are strictly framed by the office function's institutional scope: no free injection
+  // beyond what the represented institutions vest in this office, and never a capability the
+  // institution withholds.
+  const authority = officeAuthority(state, input.countryId, input.role);
+  // An already-established function keeps exactly the competences it carries (narrowed to the scope
+  // in force, so a correction still removes a withheld capability); a first appointment takes the
+  // scope the institutions give the function.
+  const functionCapabilities = established === undefined
+    ? authority.capabilities
+    : established.filter(item => authority.capabilities.includes(item));
+  if (input.capabilities !== undefined && input.capabilities.some(item => !authority.capabilities.includes(item))) throw new Error('Injected capabilities must be a subset of the office function's institutional authority.');
+  const capabilities = [...new Set(input.capabilities ?? functionCapabilities)].sort();
   if (capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item))) throw new Error('Unknown authority capability.');
   if (input.acting && input.role !== 'head_of_government') throw new Error('Only a head-of-government exercise can be temporary/acting.');
   const title = input.role === 'head_of_government' ? (input.acting ? 'Head of Government (acting)' : 'Head of Government') : input.role === 'head_of_state' ? 'Head of State' : 'Legislator';
-  const office = { role: input.role, countryId: input.countryId, title, appointedOn, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities, limitation: authorityLimitation } };
+  const office = { role: input.role, countryId: input.countryId, title, appointedOn, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities, limitation: [authorityLimitation, ...authority.limitations].join(' ') } };
   const governance: GovernanceState = { ...state.governance, persons: { ...state.governance.persons, [person.id]: { ...person, office } } };
   if (input.role === 'head_of_government') {
     const cabinet = cabinetFor({ ...state, governance }, input.countryId);
@@ -531,6 +545,11 @@ export function assignPoliticalOffice(state: SimulationState, personIdValue: str
  *  minister and the head of government, and no office is ever silently overwritten. */
 export function transferPoliticalOffice(state: SimulationState, personIdValue: string, input: { role: PoliticalOfficeRole; countryId: string; appointedOn?: string; capabilities?: AuthorityCapability[]; acting?: boolean }): SimulationState {
   const person = requirePerson(state, personIdValue);
+  // The function's established competences survive the holder: capture them before the outgoing
+  // office is revoked (a transfer changes who holds the function, not what it may do).
+  const established = person.office?.role === input.role && person.office.countryId === input.countryId
+    ? [...person.office.authorityProfile.capabilities]
+    : establishedOfficeCapabilities(state, input.countryId, input.role);
   let next = state;
   if (person.office) {
     if (person.office.role === 'minister') {
@@ -543,7 +562,7 @@ export function transferPoliticalOffice(state: SimulationState, personIdValue: s
     }
     next = revokePoliticalOffice(next, personIdValue);
   }
-  return assignPoliticalOffice(next, personIdValue, input);
+  return assignOfficeFunction(next, personIdValue, input, established);
 }
 
 export function revokePoliticalOffice(state: SimulationState, personIdValue: string): SimulationState {
@@ -925,15 +944,49 @@ export function reconcileOfficeCapabilitiesForCountry(state: SimulationState, co
   for (const [id, person] of Object.entries(persons)) {
     if (person.status !== 'active' || person.office?.countryId !== countryId) continue;
     const office = person.office;
+    // An evidence-backed office is scoped by its reconciled basis; a role-derived office by the
+    // institutional state in force (a constitutional amendment is exactly what may change it).
     const capabilities = office.evidence
       ? capabilitiesForReconciledAuthority(office.evidence.authorityBasis)
-      : capabilitiesFor(office.role);
+      : officeAuthority(state, office.countryId, office.role).capabilities;
     if (JSON.stringify(office.authorityProfile.capabilities) !== JSON.stringify(capabilities)) {
       persons = { ...persons, [id]: { ...person, office: { ...office, authorityProfile: { ...office.authorityProfile, capabilities } } } };
       changed = true;
     }
   }
   return changed ? cloneGovernance(state, { ...state.governance, persons }) : state;
+}
+
+/** Canonical, idempotent normalization of the persisted office capabilities of every Country,
+ *  applied when a save is restored. The persisted capability list is a *derived* field of the
+ *  modelled constitutional abstraction — never a historical decision — so it must not carry a
+ *  superseded scope across a load:
+ *
+ *  - an evidence-backed office is fully determined by its reconciled authority basis, so its
+ *    capabilities are re-derived exactly from that basis (nothing is invented);
+ *  - a role-derived office may legitimately hold the subset chosen at appointment, so only
+ *    capabilities outside its institutional scope are dropped — a load never widens an appointment.
+ *
+ *  Offices, roles, titles, authority bases, identities, proposals, successions and player control are
+ *  never touched. */
+export function reconcilePersistedOfficeCapabilities(state: SimulationState): SimulationState {
+  let persons = state.governance.persons;
+  let changed = false;
+  for (const [id, person] of Object.entries(persons)) {
+    const office = person.office;
+    if (!office) continue;
+    const scope = office.evidence
+      ? capabilitiesForReconciledAuthority(office.evidence.authorityBasis)
+      : officeAuthority(state, office.countryId, office.role).capabilities;
+    const capabilities = office.evidence
+      ? scope
+      : [...new Set(office.authorityProfile.capabilities.filter(capability => scope.includes(capability)))].sort() as AuthorityCapability[];
+    if (JSON.stringify(office.authorityProfile.capabilities) !== JSON.stringify(capabilities)) {
+      persons = { ...persons, [id]: { ...person, office: { ...office, authorityProfile: { ...office.authorityProfile, capabilities } } } };
+      changed = true;
+    }
+  }
+  return changed ? { ...state, governance: { ...state.governance, persons } } : state;
 }
 
 export function inspectProposalSupport(state: SimulationState, proposalIdValue: string, registry: PoliticalRegistry = politicalRegistry, profiles: Record<string, PartyGoalProfile | undefined> = {}) {
@@ -947,7 +1000,10 @@ export function resolveProposalVoteForActor(state: SimulationState, proposalIdVa
   // Triggering the vote procedure belongs to the canonical authority that presented the bill: a
   // random legislator can never trigger a resolution of the government's text at will.
   if (actor.id !== proposal.proposerPersonId) throw new Error('Only the proposal\'s proposer (the authority that presented the bill) may trigger its parliamentary resolution.');
-  if (!hasCapability(proposal, actor, 'vote_legislation')) throw new Error('Actor lacks authority to resolve this legislative vote.');
+  // Referring one's own bill to the chamber is the executive initiative that presented it, never a
+  // parliamentary vote: `vote_legislation` belongs to legislators alone. The chamber's decision is
+  // the modelled seat/party estimate, so no personal suffrage is inferred for the executive.
+  if (!hasCapability(proposal, actor, 'sponsor_legislation')) throw new Error('Actor lacks authority to refer this bill to the chamber.');
   const analysis = analyzeProposal(state, proposal), publicEstimate = estimatePublicSupport(state, proposal, analysis), parliamentaryEstimate = estimateParliamentarySupport(state, proposal, registry, profiles, analysis), expired = state.date > proposal.effectiveDate;
   const parliamentPower = state.constitution.countries[proposal.countryId]?.parliament.power;
   const legislativeInstrument = proposal.instrumentClass !== 'administrative_action';
@@ -1382,7 +1438,7 @@ export function appointMinister(state: SimulationState, countryId: string, actor
   const cabinet = cabinetFor(state, countryId);
   if (Object.values(cabinet.portfolios).some(p => p.ministerPersonId === ministerPersonId)) throw new Error('This person already holds a portfolio.');
   const portfolio: Portfolio = { id: portfolioId, name: portfolioName, ministerPersonId };
-  const office = { role: 'minister' as const, countryId, title: portfolioName, appointedOn: state.date, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities: capabilitiesFor('minister'), limitation: 'Derived from constitutional office.' } };
+  const office = { role: 'minister' as const, countryId, title: portfolioName, appointedOn: state.date, authorityProfile: { status: 'modelled_constitutional_abstraction' as const, capabilities: officeAuthority(state, countryId, 'minister').capabilities, limitation: 'A minister holds a portfolio and suggests policy; it carries no legislative, budget, military or construction capability.' } };
   return { ...state, governance: { ...state.governance, persons: { ...state.governance.persons, [ministerPersonId]: { ...minister, office } }, cabinets: { ...state.governance.cabinets, [countryId]: { ...cabinet, portfolios: { ...cabinet.portfolios, [portfolioId]: portfolio } } } } };
 }
 

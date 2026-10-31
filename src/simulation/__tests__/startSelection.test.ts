@@ -4,8 +4,7 @@ import { initializeNewGame } from '../initialization';
 import { restoreSimulationState, serializeSimulationState } from '../save';
 import { politicalRegistry } from '../politics/registry';
 import type { PoliticalRegistry } from '../politics/model';
-import { AUTHORITY_CAPABILITIES } from '../governance/model';
-import { nationalExecutiveAuthority, sourcedExecutiveSystem } from '../governance/officeEvidence';
+import { GOVERNMENT_AGENDA_CAPABILITIES, nationalExecutiveAuthority, sourcedExecutiveSystem } from '../governance/officeEvidence';
 import {
   POLITICAL_START_PATHS, assertAuthorizedStartingPerson, countryStartingOptions, resolvePartyGovernmentStatus,
   selectableStartingCountryIds, startSelectionContext, startingPathsForPerson, startingPersonCandidates,
@@ -113,7 +112,10 @@ describe('0.34 authorized political starting routes', () => {
       expect(candidate.office?.authorityStatus).toBe('resolved');
       expect(candidate.office?.role).toBe('head_of_state');
       expect(candidate.office?.authorityBasis).toBe('sourced_presidential_head_of_state');
-      expect(candidate.office?.capabilities).toEqual([...AUTHORITY_CAPABILITIES].sort());
+      // A resolved executive carries the government agenda only, never the parliamentary suffrage.
+      expect(candidate.office?.capabilities).toEqual([...GOVERNMENT_AGENDA_CAPABILITIES]);
+      expect(candidate.office?.capabilities).not.toContain('vote_legislation');
+      expect(candidate.office?.withheldCapabilities).toContain('vote_legislation');
       expect(candidate.office?.executiveSystem).toBe('presidential');
     }
     // A head of government of a presidential system is not the national executive authority.
@@ -133,7 +135,7 @@ describe('0.34 authorized political starting routes', () => {
     const candidate = options.paths.national_leader.candidates.find(entry => entry.personId === headOfGovernment.id)!;
     expect(candidate).toBeDefined();
     expect(candidate.office?.authorityBasis).toBe('sourced_parliamentary_head_of_government');
-    expect(candidate.office?.capabilities.length).toBe(AUTHORITY_CAPABILITIES.length);
+    expect(candidate.office?.capabilities).toEqual([...GOVERNMENT_AGENDA_CAPABILITIES]);
     const headOfState = personsOf(countryId).find(person => person.office?.role === 'head_of_state' && person.office.evidence);
     if (headOfState) expect(options.paths.national_leader.candidates.some(entry => entry.personId === headOfState.id)).toBe(false);
   });
@@ -183,7 +185,7 @@ describe('0.34 authorized political starting routes', () => {
     expect(option.isPartyLeader).toBe(true);
     // Capabilities come from the office, never from party leadership.
     expect(option.office?.capabilities).toEqual([...combined.office!.authorityProfile.capabilities].sort());
-    expect(option.office?.capabilities.length).toBe(AUTHORITY_CAPABILITIES.length);
+    expect(option.office?.capabilities.length).toBe(GOVERNMENT_AGENDA_CAPABILITIES.length);
     const partyStatus = resolvePartyGovernmentStatus(context, combined.countryId, combined.partyId!);
     expect(option.paths).toEqual(partyStatus.status === 'opposition' ? ['national_leader', 'opposition_party_leader'] : ['national_leader']);
     expect(assertAuthorizedStartingPerson(initial, combined.id)).toEqual(option.paths);

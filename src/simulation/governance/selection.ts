@@ -207,6 +207,9 @@ export interface StartingOfficeSummary {
   authorityBasis?: NationalExecutiveAuthority['basis'];
   executiveSystem: NationalExecutiveAuthority['system'];
   capabilities: AuthorityCapability[];
+  /** Capabilities this office deliberately does not carry (e.g. the parliamentary suffrage), so an
+   *  unavailable or non-modelled power is presented as such rather than silently missing. */
+  withheldCapabilities: AuthorityCapability[];
   limitations: string[];
 }
 
@@ -256,6 +259,7 @@ const officeSummary = (authority: NationalExecutiveAuthority): StartingOfficeSum
   ...(authority.basis ? { authorityBasis: authority.basis } : {}),
   executiveSystem: authority.system,
   capabilities: [...authority.capabilities],
+  withheldCapabilities: [...authority.withheldCapabilities],
   limitations: [...authority.limitations],
 };
 
