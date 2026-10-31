@@ -9,7 +9,7 @@ import { initializeSocioeconomy } from './socioeconomy/initialization';
 import { emptyGovernance } from './governance/model';
 import { governanceFingerprint } from './governance/model';
 import { upgradeGovernanceSchema12, upgradeGovernanceProposalModel } from './governance/migration';
-import { initializePartyLeaders, syncPartyMembershipRecords } from './governance/runtime';
+import { initializePartyLeaders, reconcilePersistedOfficeCapabilities, syncPartyMembershipRecords } from './governance/runtime';
 import { emptyInformation, INFORMATION_VERSION } from './information/model';
 import { initializeInformationState } from './information/runtime';
 import { upgradeInformationState } from './information/migration';
@@ -454,6 +454,13 @@ export function migrateSimulationState(save: unknown, regions: RegionEntity[], b
     // lack constructionCommitted/constructionExecuted/assetMaintenanceSpent and
     // must be backfilled deterministically from the canonical project records.
     restored = upgradeFiscalConstruction(restored);
+    // Corrective: the persisted office capability list is a derived field of the modelled
+    // constitutional abstraction, so a save written under a superseded scope (an executive carrying
+    // the parliamentary suffrage, or a blanket set on an office that does not carry the government
+    // agenda) is normalized deterministically. Offices, roles, authority bases, identities,
+    // proposals, successions and player control are preserved; see
+    // docs/executive-authority-capabilities.md.
+    restored = reconcilePersistedOfficeCapabilities(restored);
     assertSimulationInvariants(restored, validationContext(regions, diplomacyContext), 'reload');
     return restored;
   }

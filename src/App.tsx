@@ -43,6 +43,7 @@ import { SimulationClock } from "./simulation/clock";
 import { createEngineState } from "./simulation/state";
 import { assertSimulationInvariants } from "./simulation/invariants";
 import { setControlledPerson } from "./simulation/governance/runtime";
+import { assertAuthorizedStartingPerson } from "./simulation/governance/selection";
 import { hasGovernmentInformationAccess, inspectGovernmentReports } from "./simulation/information/runtime";
 import { politicalRegistry } from "./simulation/politics/registry";
 import { initializeNewGame } from "./simulation/initialization";
@@ -474,6 +475,9 @@ export default function App() {
   const startAs = (personId: string, syntheticMilitary = false, syntheticTrade = false) => {
     const countryId = sim.governance.persons[personId]?.countryId;
     if (!countryId) throw new Error('Selected political person has no registered Country.');
+    // A new game may only begin on one of the two authorized starting routes. This guard is scoped
+    // to the new-game entry point; succession, handoff and loaded saves keep using player control.
+    assertAuthorizedStartingPerson(sim, personId);
     let next = syntheticMilitary ? configureSyntheticMilitaryScenario(sim, countryId) : sim;
     if (syntheticTrade) next = configureSyntheticTradeScenario(next, countryId);
     commitCommand(setControlledPerson(next, personId));
@@ -735,7 +739,7 @@ export default function App() {
           </div>
         </div>
       )}
-      {!controlledPerson && <StartGame countries={countryData.registry.countries} persons={Object.values(sim.governance.persons)} onPlay={startAs} />}
+      {!controlledPerson && <StartGame countries={countryData.registry.countries} state={sim} onPlay={startAs} />}
     </main>
   );
 }

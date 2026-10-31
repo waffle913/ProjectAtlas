@@ -1,5 +1,12 @@
 # A1.5 — Playable-country coverage and design decision
 
+> **Superseded for eligibility (corrective mission, `docs/playable-start-routes.md`).** §2, §3 and §6
+> below describe the pre-correction `party_leader` / `officeholder` selection. The authorized routes
+> are now `national_leader` (resolved executive authority only) and `opposition_party_leader`
+> (established opposition status only), which makes 134 of the 199 Countries with starting people
+> playable. The entity-coverage evidence in this report (entity universe, missing officeholder /
+> party / institutional-authority axes) remains valid.
+
 This report reconciles the initial playable selection against the registered
 world entities. It is evidence, not a scope decision: the open
 **human design decision** at the end is not resolved here.

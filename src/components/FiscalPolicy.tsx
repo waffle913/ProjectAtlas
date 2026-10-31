@@ -33,7 +33,9 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
   const canProposeBudget = canLegislate
     && hasPoliticalAuthority(state, personId, countryId, 'sponsor_budget_reform')
     && Boolean(budget);
-  const canVote = hasPoliticalAuthority(state, personId, countryId, 'vote_legislation');
+  // Referring the bill to the chamber is the presenting authority's initiative; the parliamentary
+  // suffrage (`vote_legislation`) belongs to legislators and is never held by the executive.
+  const canTriggerVote = hasPoliticalAuthority(state, personId, countryId, 'sponsor_legislation');
   const supportedRule = rule && typeof rule.rateBps === 'number'
     ? { ...rule, rateBps: rule.rateBps }
     : undefined;
@@ -174,7 +176,7 @@ export function FiscalPolicy({ state, countryId, personId, onStateChange }: {
         try { onStateChange(submitProposal(state, draft.id)); setMessage('Submitted. The proposal payload is now immutable. Resolve it through the existing parliamentary decision command.'); }
         catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
       }}>Submit immutable proposal</button>}
-      {draft.status === 'submitted' && canVote && <button onClick={() => {
+      {draft.status === 'submitted' && canTriggerVote && <button onClick={() => {
         try {
           const next = resolveProposalVote(state, draft.id), result = next.governance.proposals[draft.id];
           const chamberResults = result.voteResult?.chambers.map(chamber => `${chamber.chamberId}: ${chamber.adopted === undefined ? chamber.coverage : chamber.adopted ? 'adopted' : 'rejected'}`).join('; ');
