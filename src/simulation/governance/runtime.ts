@@ -174,11 +174,16 @@ function initializeSourceOfficeholders(state: SimulationState, registry: Politic
     const country = registry.countries[countryId];
     const institution = country ? registry.institutions[country.institutionId] : undefined;
     const system = institution?.executiveSystemStatus === 'sourced' ? institution.executiveSystem : 'unavailable';
-    const preferredRole = system === 'presidential'
+    // One office record per person: when the same person holds both national executive offices, the
+    // record keeps the more directly governmental role. This is an identity/recording choice only —
+    // the authority basis still comes from the sourced executive system, so a semi-presidential or
+    // otherwise unresolved system records `institutional_authority_unresolved` with no capabilities.
+    // It never asserts which office leads a shared executive; the national-leader start route
+    // refuses such an office instead of inventing an authority (see governance/selection.ts).
+    const preferredRole: PoliticalOfficeRole = system === 'presidential'
       ? 'head_of_state'
-      : system === 'parliamentary' || system === 'monarchy_parliamentary' ? 'head_of_government' : undefined;
+      : 'head_of_government';
     const selected = records.find(item => item.definition.kind === preferredRole)
-      ?? records.find(item => item.definition.kind === 'head_of_government')
       ?? records[0];
     const role = selected.definition.kind as PoliticalOfficeRole;
     const authorityBasis = executiveAuthorityBasis(system, role);

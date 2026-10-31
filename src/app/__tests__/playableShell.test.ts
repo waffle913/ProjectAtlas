@@ -7,6 +7,10 @@ import { initDesktopBackends, isTauri } from '../desktop';
 import { politicalRegistry } from '../../simulation/politics/registry';
 import { MainMenu } from '../../components/MainMenu';
 import { StartGame } from '../../components/StartGame';
+import { emptyGovernance } from '../../simulation/governance/model';
+import { emptyElections } from '../../simulation/elections/model';
+import { emptyPolitics } from '../../simulation/politics/model';
+import type { SimulationState } from '../../types';
 
 function memoryStorage(): StorageBackend {
   const map = new Map<string, string>();
@@ -65,7 +69,8 @@ describe('0.21 playable shell', () => {
     expect(menu).not.toContain('candidate');
     expect(menu).not.toContain('MILESTONE');
     expect(menu).not.toContain('0.17');
-    const start = renderToStaticMarkup(createElement(StartGame, { countries: [], persons: [], onPlay: () => {} }));
+    const startState = { date: '2026-01-01', governance: emptyGovernance('2026-01-01'), elections: emptyElections(), politics: emptyPolitics() } as unknown as SimulationState;
+    const start = renderToStaticMarkup(createElement(StartGame, { countries: [], state: startState, onPlay: () => {} }));
     expect(start).not.toContain('synthetic');
     expect(start).not.toContain('0.17 candidate');
   });
