@@ -20,8 +20,6 @@ import national from '../../data/source-snapshots/wpp2024-population-2026-01-01.
 import facts from '../../data/country-facts.json';
 import offices from '../../data/political-offices.json';
 import { createEngineState } from '../state';
-import { officeAuthority } from '../governance/officeAuthority';
-import { assignPoliticalOffice, createPoliticalPerson, setControlledPerson } from '../governance/runtime';
 import { emptySocioeconomy } from '../socioeconomy/model';
 import { initializeSocioeconomy, type InitializationData } from '../socioeconomy/initialization';
 import type { PoliticalInitializationData } from '../politics/initialization';
@@ -38,18 +36,4 @@ export const worldBase = (): SimulationState => ({
   economicOutputByRegion: Object.fromEntries(economics.records.map(r => [r.regionId, r.status === 'unavailable' ? undefined : r.baselineAnnualOutputUsd])),
   bilateralRelations: {}, claims: [], explicitCasusBelli: [], wars: [], occupationByRegion: {}, engine: createEngineState(worldCountryIds),
 });
-/** The office the represented institutions designate as the Country's executive: the head of state
- *  in a presidential system, the head of government otherwise (see governance/officeAuthority.ts).
- *  Fixtures that need a *governing* executive appoint this office instead of assuming a role title. */
-export const executiveOfficeRole = (state: SimulationState, countryId: string): 'head_of_state' | 'head_of_government' =>
-  officeAuthority(state, countryId, 'head_of_government').capabilities.length ? 'head_of_government' : 'head_of_state';
-
-/** Appoints a fresh person to the Country's executive office (see `executiveOfficeRole`). */
-export function appointExecutive(state: SimulationState, countryId: string, displayName = 'Fixture executive') {
-  const created = createPoliticalPerson(state, { displayName, countryId });
-  const id = `person.${String(created.governance.nextPersonSequence - 1).padStart(8, '0')}`;
-  const role = executiveOfficeRole(created, countryId);
-  return { state: setControlledPerson(assignPoliticalOffice(created, id, { role, countryId }), id), id, role };
-}
-
 export const socioeconomicWorld = () => initializeSocioeconomy(worldBase(), worldRegions, worldInputs);

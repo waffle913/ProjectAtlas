@@ -66,7 +66,7 @@ export function executiveArrangement(state: SimulationState, countryId: string):
   const system = sourcedExecutiveSystem(countryId);
   if (system === 'presidential') return {
     arrangement: 'presidential', basis: 'sourced_executive_system',
-    limitation: 'The political registry establishes a presidential system: the head of state carries the government agenda. The head-of-government office also carries it, because the engine appoints that person as the government's head and does not model how much of the executive a cabinet chief really holds; that residual overlap is a documented modelling gap, not a sourced claim.',
+    limitation: 'The political registry establishes a presidential system: the head of state carries the government agenda. The head-of-government office also carries it, because the engine appoints that person to head the government but does not model how much of the executive a cabinet chief really holds; that residual overlap is a documented modelling gap, not a sourced claim.',
   };
   if (system === 'parliamentary' || system === 'monarchy_parliamentary') return {
     arrangement: 'parliamentary', basis: 'sourced_executive_system',

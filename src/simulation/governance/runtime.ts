@@ -526,7 +526,7 @@ function assignOfficeFunction(state: SimulationState, personIdValue: string, inp
   const functionCapabilities = established === undefined
     ? authority.capabilities
     : established.filter(item => authority.capabilities.includes(item));
-  if (input.capabilities !== undefined && input.capabilities.some(item => !authority.capabilities.includes(item))) throw new Error('Injected capabilities must be a subset of the office function's institutional authority.');
+  if (input.capabilities !== undefined && input.capabilities.some(item => !authority.capabilities.includes(item))) throw new Error('Injected capabilities must be a subset of the institutional authority of the office function.');
   const capabilities = [...new Set(input.capabilities ?? functionCapabilities)].sort();
   if (capabilities.some(item => !AUTHORITY_CAPABILITIES.includes(item))) throw new Error('Unknown authority capability.');
   if (input.acting && input.role !== 'head_of_government') throw new Error('Only a head-of-government exercise can be temporary/acting.');
