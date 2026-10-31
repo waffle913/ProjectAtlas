@@ -16,7 +16,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
   data:LoadedCountryData;territories:readonly Territory[];selectionState:SimulationState;draft:NewGameDraft;onDraftChange:(draft:NewGameDraft)=>void;onConfirm:(countryId:string,path:PoliticalStartPath,personId:string)=>void;
   onBack:()=>void;onLoad:()=>void;onSettings:()=>void;onCredits:()=>void;onExit:()=>void;uiScale?:number;
 }) {
-  const [error,setError]=useState('');
+  const [error,setError]=useState('');const [catalogOpen,setCatalogOpen]=useState(false);
   const countries=data.registry.countries;
   const country=countries.find(c=>c.id===draft.countryId);
   const names=useMemo(()=>new Map(countries.map(c=>[c.id,c.commonName])),[countries]);
@@ -25,7 +25,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
   const candidates=options.paths[draft.path].candidates;
   const person=candidates.find(p=>p.personId===draft.personId);
   const update=(patch:Partial<NewGameDraft>)=>{setError('');onDraftChange({...draft,...patch});};
-  const chooseCountry=(countryId:string)=>update({countryId,personId:'',path:'national_leader',step:0,visited:0,query:''});
+  const chooseCountry=(countryId:string)=>{setCatalogOpen(false);update({countryId,personId:'',path:'national_leader',step:0,visited:0,query:''});};
   const matches=countries.filter(c=>`${c.commonName} ${c.officialName??''} ${c.externalIds.isoAlpha2??''}`.toLocaleLowerCase().includes(draft.query.trim().toLocaleLowerCase()));
   const canContinue=draft.step===0?Boolean(country):Boolean(person);
   const next=()=>{if(canContinue)update({step:Math.min(3,draft.step+1),visited:Math.max(draft.visited,Math.min(3,draft.step+1))});};
@@ -53,11 +53,11 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
             {draft.tab==='Société' && <>{fact('population','Population')}{fact('languages','Langues')}</>}
             {draft.tab==='Relations' && <div className="ng-fact"><dt>Relations diplomatiques</dt><dd>Indisponibles avant le lancement</dd></div>}
           </dl><small className="ng-note">Données datées du catalogue, sans valeur illustrative. {country?.sources.details?.[0]?.name}</small></div>
-          <label className="ng-catalog-label">Catalogue complet<select aria-label="Catalogue complet des pays" value={draft.countryId} onChange={e=>chooseCountry(e.target.value)}>{countries.slice().sort((a,b)=>a.commonName.localeCompare(b.commonName)).map(c=><option key={c.id} value={c.id}>{c.commonName}{available.has(c.id)?'':' — démarrage indisponible'}</option>)}</select></label>
+          <details className="ng-catalog" open={catalogOpen} onToggle={e=>setCatalogOpen(e.currentTarget.open)}><summary>Catalogue complet des pays</summary><label className="ng-catalog-label">Tous les pays<select aria-label="Catalogue complet des pays" value={draft.countryId} onChange={e=>chooseCountry(e.target.value)}>{countries.slice().sort((a,b)=>a.commonName.localeCompare(b.commonName)).map(c=><option key={c.id} value={c.id}>{c.commonName}{available.has(c.id)?'':' — démarrage indisponible'}</option>)}</select></label></details>
         </>}
         {draft.step===1 && <div className="ng-role-panel"><h2>Choisir votre rôle</h2><p className="ng-note">La fonction réellement occupée détermine les pouvoirs. Aucun poste n’est attribué par cet écran.</p><div className="ng-paths">{(['national_leader','opposition_party_leader'] as const).map(path=><button key={path} aria-pressed={draft.path===path} disabled={!options.paths[path].candidates.length} onClick={()=>update({path,personId:''})}>{pathLabels[path]}<small>{options.paths[path].candidates.length?`${options.paths[path].candidates.length} choix admissible(s)`:'Indisponible'}</small></button>)}</div>
           {!candidates.length && <p className="ng-unavailable">Aucun personnage admissible pour cette voie.</p>}
-          {candidates.map(p=><button key={p.personId} className="ng-person" aria-pressed={person?.personId===p.personId} onClick={()=>update({personId:p.personId})}><strong>{p.displayName}</strong><span>{p.partyId?options.parties.find(party=>party.partyId===p.partyId)?.displayName??'Parti indisponible':'Affiliation indisponible'}</span><small>{p.office?.title??'Aucune fonction publique'} · {p.provenanceBasis??'Personnage fictif du jeu'}</small></button>)}
+          {candidates.map(p=><button key={p.personId} className="ng-person" aria-pressed={person?.personId===p.personId} onClick={()=>update({personId:p.personId})}><strong>{p.displayName}</strong><span>{p.partyId?options.parties.find(party=>party.partyId===p.partyId)?.displayName??'Parti indisponible':'Affiliation indisponible'}</span><small>{p.office?.title??'Aucune fonction publique'} · {p.provenanceBasis==='modelled_fallback'?'Personnage fictif modélisé':'Personnage fictif du jeu'}</small></button>)}
           <details><summary>Indisponibilités et limites institutionnelles</summary>{options.unavailableReasons.map(r=><p key={r}>{r}</p>)}{options.paths[draft.path].unavailable.map(p=><p key={p.personId}><strong>{p.displayName}</strong> — {p.reasons.join(' ')}</p>)}{options.parties.filter(p=>!p.leaderPersonIds.length).map(p=><p key={p.partyId}>{p.displayName} — {p.status} · {p.limitation}</p>)}</details>
           <p className="ng-note">Diriger un parti d’opposition n’accorde ni l’initiative législative gouvernementale ni l’accès aux informations du gouvernement.</p>
         </div>}

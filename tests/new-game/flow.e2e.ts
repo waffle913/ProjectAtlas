@@ -8,6 +8,11 @@ test('real globe, search, four-step confirmation and menu continuity',async({pag
  await expect(page.locator('.ng-globe canvas')).toBeVisible();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');await fs.mkdir('artifacts/new-game',{recursive:true});
  for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/new-game/france-${viewport.width}x${viewport.height}.png`});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);}
  await page.setViewportSize({width:1920,height:1080});
+ await page.locator('.ng-sidebar').getByRole('button',{name:'Paramètres',exact:true}).click();
+ await page.locator('.settings-pane label').filter({hasText:'UI scale'}).locator('select').selectOption('1.5');await page.getByRole('button',{name:/Back/}).click();
+ for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/new-game/france-ui150-${viewport.width}x${viewport.height}.png`,fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);}
+ await page.locator('.ng-sidebar').getByRole('button',{name:'Paramètres',exact:true}).click();await page.locator('.settings-pane label').filter({hasText:'UI scale'}).locator('select').selectOption('1');await page.getByRole('button',{name:/Back/}).click();
+ await page.setViewportSize({width:1920,height:1080});
  const canvas=page.locator('.ng-globe canvas');const beforeRotation=await page.screenshot();
  const bounds=await canvas.boundingBox();const x=bounds!.x+bounds!.width*.5,y=bounds!.y+bounds!.height*.5;
  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+70,y+10,{steps:8});await page.mouse.up();
@@ -21,7 +26,7 @@ test('real globe, search, four-step confirmation and menu continuity',async({pag
  await page.getByRole('button',{name:'Zoom avant',exact:true}).click();await page.getByRole('button',{name:'Recentrer sur le pays choisi'}).click();
  await page.getByRole('button',{name:'Retour au menu',exact:false}).click();await expect(page.locator('.atlas-menu')).toBeVisible();
  await page.getByRole('button',{name:'Nouvelle partie',exact:true}).click();
- const select=page.getByLabel('Catalogue complet des pays');const option=await select.locator('option').evaluateAll(os=>(os as HTMLOptionElement[]).find(o=>!o.text.includes('indisponible'))?.value);expect(option).toBeTruthy();await select.selectOption(option!);
+ await page.locator('.ng-catalog summary').click();const select=page.getByLabel('Catalogue complet des pays');const option=await select.locator('option').evaluateAll(os=>(os as HTMLOptionElement[]).find(o=>!o.text.includes('indisponible'))?.value);expect(option).toBeTruthy();await select.selectOption(option!);
  await page.getByRole('button',{name:'Continuer',exact:false}).click();await page.locator('.ng-paths button:not([disabled])').first().click();await page.locator('.ng-person').first().click();
  await page.getByRole('button',{name:'Continuer',exact:false}).click();await expect(page.locator('.ng-configuration')).toBeVisible();await page.getByRole('button',{name:'Continuer',exact:false}).click();
  await expect(page.locator('.ng-recap')).toBeVisible();await page.screenshot({path:'artifacts/new-game/recap-1920x1080.png'});
