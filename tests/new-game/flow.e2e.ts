@@ -10,7 +10,7 @@ test('real globe, search, four-step confirmation and menu continuity',async({pag
  await page.setViewportSize({width:1920,height:1080});
  await page.locator('.ng-sidebar').getByRole('button',{name:'Paramètres',exact:true}).click();
  await page.locator('.settings-pane label').filter({hasText:'UI scale'}).locator('select').selectOption('1.5');await page.getByRole('button',{name:/Back/}).click();
- for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/new-game/france-ui150-${viewport.width}x${viewport.height}.png`,fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);}
+ for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/new-game/france-ui150-${viewport.width}x${viewport.height}.png`,fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);expect(await page.locator('.ng-steps button').evaluateAll(bs=>bs.every(b=>b.scrollWidth<=b.clientWidth+2))).toBe(true);}
  await page.locator('.ng-sidebar').getByRole('button',{name:'Paramètres',exact:true}).click();await page.locator('.settings-pane label').filter({hasText:'UI scale'}).locator('select').selectOption('1');await page.getByRole('button',{name:/Back/}).click();
  await page.setViewportSize({width:1920,height:1080});
  const canvas=page.locator('.ng-globe canvas');const beforeRotation=await page.screenshot();

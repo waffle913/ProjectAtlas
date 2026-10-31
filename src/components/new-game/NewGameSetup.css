@@ -83,3 +83,6 @@
 
 .ng-card .ng-catalog { margin:0;font-size:.75em;flex-shrink:0; }
 @media (max-height:850px) and (min-width:1101px) {.ng-card {padding:14px;gap:8px;}.ng-country-banner {height:80px;min-height:65px;}.ng-fact {padding:.4em .2em;}.ng-card .ng-continue {min-height:50px;}}
+/* At enlarged UI sizes, remove decorative separators before they crowd step labels. */
+.ng-large-ui .ng-steps i { display:none; }
+.ng-large-ui .ng-steps span { min-width:0; }
