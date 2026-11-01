@@ -51,7 +51,7 @@ test('real load list, saved world, explicit restore and independent history',asy
  const original=await page.evaluate(()=>(window as unknown as {__syntheticWrites:number}).__syntheticWrites);
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
  await page.locator('.lg-save-name').filter({hasText:'· ceded'}).click();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');
- await page.setViewportSize({width:1920,height:1080});await page.screenshot({path:'artifacts/load-game/ceded-1920x1080.png'});
+ await page.setViewportSize({width:1920,height:1080});await page.screenshot({path:'artifacts/load-game/ceded-1920x1080.png'});await expect(page.locator('.lg-campaign-panel')).toContainText('guerre terminée, évaluation archivée');
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
  await page.locator('.lg-save-name').filter({hasText:'· opposition'}).click();await expect(page.locator('.lg-campaign-panel')).toContainText('Aucun rapport militaire accessible');
  await page.screenshot({path:'artifacts/load-game/opposition-1920x1080.png'});
