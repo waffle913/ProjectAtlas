@@ -1,0 +1,39 @@
+name: load-game-ui
+on:
+  push:
+    branches: [ui/load-game-globe]
+  pull_request:
+    branches: [main]
+    paths: ['src/components/SaveManager*', 'src/app/savedGeography*', 'tests/load-game/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  load-interface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Unit tests and invariant-validated synthetic browser snapshots
+        run: npm test -- src/app/__tests__ src/components/__tests__ src/simulation/__tests__/startSelection.test.ts src/simulation/__tests__/executiveAuthority.test.ts --maxWorkers=1
+      - run: npm run build
+      - name: Stage synthetic snapshots outside the shipped product
+        run: cp -r artifacts/load-game/storage dist/__synthetic_saves__
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config=playwright.load-game.config.ts
+      - name: Existing new-game regression
+        run: npx playwright test --config=playwright.new-game.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-game-ui-${{ github.sha }}
+          path: |
+            artifacts/load-game/
+            artifacts/new-game/
+            !artifacts/load-game/storage/**
+          if-no-files-found: warn

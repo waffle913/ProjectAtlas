@@ -26,6 +26,7 @@ export interface SaveEntry {
 }
 
 export interface SaveBackend {
+  diagnose?: () => string | undefined;
   list(): string[]; // returns save ids
   read(id: string): string | null; // raw serialized SimulationState JSON
   write(id: string, data: string): Promise<void>;
@@ -50,6 +51,7 @@ function browserSaveBackend(): SaveBackend {
     } catch { return []; }
   };
   return {
+    diagnose: () => { try { void localStorage.length; localStorage.getItem(prefix + '__index__'); return undefined; } catch (error) { return storageError('reading saves', error).message; } },
     list: keys,
     read: (id) => { try { return localStorage.getItem(prefix + id); } catch { return null; } },
     write: async (id, data) => {
@@ -134,6 +136,30 @@ export function saveGame(id: string, name: string, data: string, metadata: Omit<
 
 export function loadSave(id: string): string | null {
   return backend.read(id);
+}
+
+/** Read-only diagnostics for the load screen. Existing list/load/write contracts stay unchanged. */
+export function inspectSaveCatalog(): { entries: SaveEntry[]; warnings: string[] } {
+  const warnings: string[] = [];
+  try {
+    const diagnostic = backend.diagnose?.();
+    if (diagnostic) warnings.push(diagnostic);
+    const raw = backend.read(INDEX_KEY);
+    let index: Record<string, SaveMetadata> = {};
+    try {
+      const value: unknown = JSON.parse(raw ?? '{}');
+      if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid index');
+      index = value as Record<string, SaveMetadata>;
+    } catch { warnings.push('Index des sauvegardes illisible : certaines métadonnées sont indisponibles.'); }
+    const ids = new Set([...backend.list().filter(id => id !== INDEX_KEY), ...Object.keys(index)]);
+    const entries = [...ids].map(id => {
+      const meta = index[id];
+      const safe = meta && typeof meta.name === 'string' && typeof meta.modifiedAt === 'string';
+      if (!safe) warnings.push(`Métadonnées indisponibles : ${id}`);
+      return { id, metadata: safe ? meta : { name: id, countryId: '', countryName: '', controlledPersonName: '', office: null, simulationDate: '', createdAt: '', modifiedAt: '', schemaVersion: 0 } };
+    }).sort((a,b) => b.metadata.modifiedAt.localeCompare(a.metadata.modifiedAt));
+    return { entries, warnings };
+  } catch (error) { return { entries: [], warnings: [...warnings, storageError('listing saves', error).message] }; }
 }
 
 export function deleteSave(id: string): Promise<void> {

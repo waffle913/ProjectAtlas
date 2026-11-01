@@ -111,12 +111,14 @@ export default function App() {
   const [activePage, setActivePage] = useState('overview');
   const [mapLayer, setMapLayer] = useState<MapLayer>('ownership');
   const [screen, setScreen] = useState<MenuScreen>('menu');
-  const auxiliaryOrigin = useRef<'menu' | 'game' | 'new-game'>('menu');
+  const auxiliaryOrigin = useRef<'menu' | 'game' | 'new-game' | 'load'>('menu');
+  const loadOrigin = useRef<'menu'|'game'|'new-game'>('menu');
   const [newGameDraft,setNewGameDraft] = useState<NewGameDraft>(()=>initialNewGameDraft([]));
   const newGameSelectionRef=useRef<SimulationState | undefined>(undefined);
   const [menuSelection, setMenuSelection] = useState<{ id: string; summary: CampaignSummary }>();
   const openAuxiliary = (destination: 'settings' | 'credits' | 'load') => {
-    auxiliaryOrigin.current = screen === 'game' ? 'game' : screen === 'new-game' ? 'new-game' : 'menu';
+    if(destination==='load')loadOrigin.current=screen==='game'?'game':screen==='new-game'?'new-game':'menu';
+    auxiliaryOrigin.current = screen === 'load' ? 'load' : screen === 'game' ? 'game' : screen === 'new-game' ? 'new-game' : 'menu';
     setScreen(destination);
   };
   const returnFromAuxiliary = () => setScreen(auxiliaryOrigin.current);
@@ -407,12 +409,17 @@ export default function App() {
     }, intervalMinutes * 60_000);
     return () => window.clearInterval(timer);
   }, [settings.gameplay.autosave, settings.gameplay.autosaveIntervalMinutes, storageReady]);
+  const previewSlot = (id:string):SimulationState => {
+    if(!registryContext)throw new Error('Données du registre indisponibles.');
+    const json=loadSave(id);
+    if(!json)throw new Error('Cette sauvegarde ne peut pas être lue.');
+    // Detached migration/invariant validation only: no applyState, clock or storage writes.
+    return restoreSimulationState(json,registryContext.regions,{}, {},registryContext);
+  };
   const loadSlot = (id: string) => {
     if (!registryContext) return;
-    const json = loadSave(id);
-    if (!json) { setLoadSlotError('The selected save could not be read.'); return; }
     try {
-      applyState(restoreSimulationState(json, registryContext.regions, {}, {}, registryContext));
+      applyState(previewSlot(id));
       setLoadSlotError(undefined);
       setMenuSelection(undefined);
       setScreen('game');
@@ -446,7 +453,7 @@ export default function App() {
   const exitApp = () => { void exitApplication(); };
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} />;
   if (screen === 'load') return storageReady
-    ? <SaveManager onLoad={loadSlot} onBack={() => { setLoadSlotError(undefined); returnFromAuxiliary(); }} error={loadSlotError} />
+    ? <SaveManager onLoad={loadSlot} onPreview={previewSlot} onBack={() => { setLoadSlotError(undefined); setScreen(loadOrigin.current); }} error={loadSlotError ?? storageError} territories={world?.territories} regions={regionData} countries={countryData?.registry.countries} uiScale={settings.graphics.uiScale} onNewGame={startNewGame} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} />
     : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={returnFromAuxiliary}>← Back</button></main>;
   if (screen === 'credits') return (
     <main className="load-state credits">

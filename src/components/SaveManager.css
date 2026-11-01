@@ -1,0 +1,65 @@
+.load-game-setup .ng-globe{left:12%;right:20%;top:6%;bottom:-14%}
+.load-game-setup .ng-sidebar{width:12.5%}
+.load-game-setup .ng-sidebar button{min-height:56px}
+.lg-list-panel{position:absolute;left:20%;top:14%;width:58%;max-height:75%;overflow:auto;border:1px solid #426178;border-radius:8px;background:#010d18ed;padding:2em;box-shadow:0 20px 80px #0009}
+.lg-list-panel header{display:flex;align-items:center;gap:1em;border-bottom:1px solid #6d5b37}
+.lg-list-panel header svg{width:2em}
+.lg-list-panel h1{font-weight:400;font-size:1.5em}
+.lg-list-panel>p{color:#9db3c5}
+.lg-list-panel ul{list-style:none;margin:1.5em 0;padding:0}
+.lg-list-panel li{display:flex;gap:1em;align-items:center;border-bottom:1px solid #233844;padding:.5em 0}
+.lg-save-name{flex:1;text-align:left;padding:1em;background:transparent!important;border:0!important}
+.lg-save-name:hover{background:#59472a77!important;box-shadow:inset 2px 0 #eacb85}
+.lg-save-name strong{font-size:1.1em;font-weight:500}
+.lg-save-name small{display:block;color:#8da2b4;margin-top:.4em}
+.load-game-setup button{border-radius:3px}
+.lg-list-panel>button,.lg-delete,.lg-confirm button{padding:.7em 1em}
+.lg-heading{position:absolute;left:22%;top:3%;max-width:40%;text-shadow:0 2px 8px #000}
+.lg-heading>span{color:#cda967;letter-spacing:.15em;font-size:.8em}
+.lg-heading h1{font-size:1.7em;margin:.4em 0;font-weight:400}
+.lg-heading p{color:#9ab1c5;margin:0}
+.lg-campaign-panel{position:absolute;right:1.5%;top:10%;bottom:7%;width:28%;padding:1.25em;display:flex;flex-direction:column;background:#010c16ed;border:1px solid #345467;border-radius:6px}
+.lg-panel-scroll{overflow:auto;min-height:0;flex:1;padding-right:.5em;scrollbar-color:#52687a #07131e}
+.lg-country{display:flex;align-items:center;gap:1em;border-bottom:1px solid #304957;padding-bottom:1em}
+.lg-country h2{font-size:1.45em;font-weight:400;letter-spacing:0;margin:0;color:#e1e9ef;overflow-wrap:anywhere}
+.lg-country p{margin:.3em 0 0;color:#b2c3d1}
+.lg-country-code{border:1px solid #8a7042;color:#efcf8a;padding:.6em;font-size:1.5em}
+.lg-facts{margin:.5em 0}
+.lg-facts>div{display:flex;justify-content:space-between;gap:1em;padding:.7em 0;border-bottom:1px solid #152a38}
+.lg-facts dt{color:#a4b7c8}.lg-facts dd{margin:0;text-align:right;max-width:65%;overflow-wrap:anywhere}
+.lg-panel-scroll section{border-top:1px solid #8d7547;margin-top:1em;padding-top:.2em}
+.lg-panel-scroll h3{font-size:1.12em;color:#efd18e;font-weight:500;margin:.8em 0}
+.lg-panel-scroll p{line-height:1.5;color:#bacbd9}
+.lg-panel-scroll small{display:block;color:#7f9aaf;line-height:1.5}
+.lg-panel-scroll ul{padding-left:1.2em}
+.lg-panel-scroll li{margin-bottom:.8em}
+.lg-panel-scroll li::marker{color:#e5bd73}
+.lg-campaign-panel footer{padding-top:1em}
+.lg-campaign-panel footer>div{display:flex;gap:.7em;margin-top:.7em;align-items:center}
+.lg-campaign-panel footer button{padding:.8em 1em}
+.lg-load{width:100%;background:linear-gradient(100deg,#67502c99,#221b0eaa)!important;border:1px solid #d2ac60!important;box-shadow:inset 0 0 10px #c4993955,0 0 8px #d6b56b33;font-size:1.12em!important}
+.lg-confirm{color:#f0ce8a;max-width:100%}
+.lg-confirm p{margin:.4em 0}
+.lg-map-notice{position:absolute;bottom:10%;left:19%;width:44%;padding:.8em 1em;background:#010d17e0;border:1px solid #1d3e53;border-radius:5px;color:#a9bdcf;font-size:.84em;max-height:20%;overflow:auto}
+.lg-map-notice p{margin:.4em 0;line-height:1.4}
+.load-game-setup .ng-globe-help{left:24%;right:35%;font-size:.8em}
+.load-game-setup .ng-globe-controls{left:18%}
+.load-game-setup .save-error{color:#ffbdac}
+.load-game-setup.ng-large-ui{min-height:1000px}
+.load-game-setup.ng-large-ui .ng-sidebar{width:17%}
+.load-game-setup.ng-large-ui .lg-campaign-panel{width:35%;top:13%;bottom:4%}
+.load-game-setup.ng-large-ui .lg-map-notice{left:20%;width:40%}
+.load-game-setup.ng-large-ui .lg-heading{left:21%}
+@media(max-height:850px){.lg-campaign-panel{top:10%;bottom:4%;padding:.9em}.lg-facts>div{padding:.45em 0}.lg-country h2{font-size:1.25em}.lg-heading h1{font-size:1.4em}.lg-panel-scroll p{font-size:.95em}.load-game-setup .ng-sidebar button{min-height:50px}}
+@media(max-width:900px){.lg-list-panel{left:25%;width:70%}.lg-campaign-panel{width:46%}.lg-map-notice{left:20%;width:28%}.load-game-setup .ng-sidebar{width:19%}.lg-heading{left:25%}}
+.lg-attribution{position:absolute;bottom:1%;left:20%;color:#7290a7;font-size:.65em;max-width:70%}
+/* Isolate these menu headers/actions from the in-game global header/footer defaults. */
+.load-game-setup .lg-heading{display:block;background:transparent;border:0;padding:0}
+.load-game-setup .lg-list-panel header{justify-content:flex-start;background:transparent;padding:0}
+.load-game-setup .lg-country{justify-content:flex-start;background:transparent;padding:0 0 1em}
+.load-game-setup .lg-country h2{text-transform:none}
+.load-game-setup .lg-campaign-panel footer{font-size:inherit;line-height:1.4}
+.load-game-setup .lg-map-notice{left:22%;width:41%}
+.load-game-setup.ng-large-ui .lg-map-notice{left:24%;width:36%}
+.load-game-setup .ng-globe-help{left:22%;right:38%;flex-wrap:wrap;justify-content:flex-start;gap:.5em 1.5em;padding:1em}
+.load-game-setup.ng-large-ui .lg-map-notice{bottom:14%}

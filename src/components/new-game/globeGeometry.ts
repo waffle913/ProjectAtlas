@@ -1,6 +1,6 @@
 import type { Territory } from '../../types';
 export type Point = [number, number];
-export interface GlobePolygon { countryId: string; rings: Point[][]; area: number }
+export interface GlobePolygon { countryId: string; rings: Point[][]; area: number; regionId?: string; control?: 'occupied'|'contested'; controllerId?: string }
 export function unwrapRing(ring: number[][], anchor?: number): Point[] {
   const result: Point[] = [];
   for (const [lon, lat] of ring) {
@@ -45,3 +45,15 @@ export function countryCenter(polygons: readonly GlobePolygon[], countryId: stri
 }
 export function xyz([lon,lat]: Point, radius=1): [number,number,number] { const a=lat*Math.PI/180,b=lon*Math.PI/180;return [radius*Math.cos(a)*Math.cos(b),radius*Math.sin(a),-radius*Math.cos(a)*Math.sin(b)]; }
 export function lonLat([x,y,z]: [number,number,number]): Point { const r=Math.hypot(x,y,z);return [Math.atan2(-z,x)*180/Math.PI,Math.asin(Math.max(-1,Math.min(1,y/r)))*180/Math.PI]; }
+
+function pointKey(p:Point){return `${((p[0]%360+540)%360-180).toFixed(6)},${p[1].toFixed(6)}`;}
+/** Remove only shared segments with the same sovereign, never infer sovereignty from colour. */
+export function sovereignBorderSegments(polygons:readonly GlobePolygon[]): Point[][] {
+  const edges=new Map<string,{a:Point;b:Point;owners:Set<string>;count:number}>();
+  for(const p of polygons)for(const ring of p.rings)for(let i=0;i<ring.length;i++){
+    const a=ring[i],b=ring[(i+1)%ring.length],ka=pointKey(a),kb=pointKey(b);if(ka===kb)continue;
+    const key=[ka,kb].sort().join('|');const prior=edges.get(key);
+    if(prior){prior.count++;prior.owners.add(p.countryId);}else edges.set(key,{a,b,owners:new Set([p.countryId]),count:1});
+  }
+  return [...edges.values()].filter(e=>e.count===1 || e.owners.size>1).map(e=>[e.a,e.b]);
+}
