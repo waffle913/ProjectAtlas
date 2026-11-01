@@ -3,6 +3,7 @@ import { deleteSave, inspectSaveCatalog, type SaveEntry } from '../app/saveStora
 import type { Country, SimulationState, Territory } from '../types';
 import type { LoadedRegionData } from '../data/regionData';
 import { campaignPresentation } from '../app/loadCampaign';
+import { savedCampaignNews } from '../app/loadNews';
 import { savedGeography, type SavedGeography } from '../app/savedGeography';
 import { CountryGlobe } from './new-game/CountryGlobe';
 import { politicalRegistry } from '../simulation/politics/registry';
@@ -49,7 +50,9 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
   const countryId=presentation?.countryId;
   const country=countryId?names.get(countryId):undefined;
   const countryCode=countries.find(c=>c.id===countryId)?.externalIds.isoAlpha2;
-  const national=presentation?[...presentation.summary.events,...presentation.summary.decisions,...presentation.summary.situations]:[];
+  const news=useMemo(()=>selection && presentation
+    ? savedCampaignNews(selection.state,presentation.countryId,names,presentation.summary)
+    : {national:[],international:[]},[selection,presentation,names]);
   const current=selection?.state.date;
   const military=presentation?.operations;
   return <main className={`new-game-setup load-game-setup${uiScale>1.1?' ng-large-ui':''}`} lang="fr" style={{'--ng-scale':uiScale} as React.CSSProperties}>
@@ -75,8 +78,8 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
       <section className="lg-map-notice" aria-label="Couverture de la carte">
         {!geography && !mapError && <p role="status">Préparation des géométries de la sauvegarde…</p>}
         {mapError && <p role="alert">Carte indisponible : {mapError}</p>}
-        <p>Souveraineté enregistrée · Or : {country??'pays indisponible'} · Rayures : occupation connue · Orange : contesté</p>
-        <p>Contrôle militaire limité aux rapports accessibles et datés ; les zones sans rapport ne sont pas déclarées pacifiées.</p>
+        <p>Souveraineté enregistrée · Or : {country??'pays indisponible'} · Rayures : occupation effective à la sauvegarde · Orange : contesté</p>
+        <p>Contrôle régional enregistré à la sauvegarde ; les rayures n’impliquent aucun transfert de souveraineté. Le détail militaire reste limité aux rapports accessibles.</p>
         {geography && geography.warnings.length>0 && <details><summary>Couverture géographique partielle ({geography.warnings.length})</summary>{geography.warnings.map((w,i)=><p key={i}>{w}</p>)}</details>}
         {detail && <p role="status"><strong>{names.get(detail)??detail}</strong>{regions?.regionsById.has(detail)?` · Souverain : ${names.get(selection.state.regionOwnership[detail]??'')??'indisponible'}`:' · vue du pays'}{geography?.polygons.find(p=>p.regionId===detail)?.control==='occupied'?` · Occupation connue : ${names.get(geography.polygons.find(p=>p.regionId===detail)?.controllerId??'')??'indisponible'}`:geography?.polygons.find(p=>p.regionId===detail)?.control==='contested'?' · Contrôle contesté':''}</p>}
       </section>
@@ -88,9 +91,9 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
           {presentation?.economicReports.length?presentation.economicReports.map(r=><p key={r.id}>Chômage : {r.valueBps!==undefined && r.status!=='unavailable'?(r.valueBps/100).toLocaleString('fr-FR')+' %':'indisponible'} · {r.asOfDate} · {r.status} · couverture {r.coverage}<small>{r.limitation}</small></p>):<p>Indicateurs économiques : aucun rapport actuel accessible. Les statistiques initiales ne sont pas substituées.</p>}
           <p>Situation politique : {person?.isPartyLeader?'direction de parti enregistrée':'aucune direction de parti enregistrée'}{person?.partyId?' · '+(politicalRegistry.parties[person.partyId]?.displayName??person.partyId):''}.</p>
         </section>
-        <section><h3>Actualités nationales</h3>{national.length?<ul>{national.map(item=><li key={item.id}><strong>{item.title}</strong><p>{item.detail}</p>{item.date && <small>{dateText(item.date)}</small>}</li>)}</ul>:<p>Aucune actualité nationale disponible.</p>}</section>
+        <section><h3>Actualités nationales</h3>{news.national.length?<ul>{news.national.map(item=><li key={item.id}><strong>{item.title}</strong><p>{item.detail}</p><small>{dateText(item.date)} · {item.sourceLabel}</small></li>)}</ul>:<p>Aucun événement national majeur enregistré et accessible dans cette sauvegarde.</p>}</section>
         <section><h3>Situation militaire</h3>{military?<><p>Évaluation enregistrée le {dateText(military.asOfDate)}{military.stale?' — daté, ne décrit pas le contrôle actuel':''} · {military.status}</p>{military.wars.map(w=><p key={w.warId}>{names.get(w.targetRegionId)??w.targetRegionId} · {({sovereign_controlled:'contrôle souverain',foreign_controlled:'contrôle étranger',contested:'contesté'})[w.control]} · {names.get(w.enemyCountryId)??w.enemyCountryId}{selection.state.wars.find(war=>war.id===w.warId)?.status==='ended'?' · guerre terminée, évaluation archivée':''}</p>)}<small>{military.limitation} Une évaluation peut précéder une décision prise le même jour ; elle ne remplace pas l’état souverain sauvegardé.</small></>:<p>Aucun rapport militaire accessible. Aucun contrôle ennemi révélé.</p>}</section>
-        <section><h3>Actualités internationales</h3>{presentation?.international.length?presentation.international.map(a=><p key={a.pairKey}>Rapport du {a.lastEvaluatedOn} · {names.get(a.countryAId)??a.countryAId} / {names.get(a.countryBId)??a.countryBId} · {a.phase} · {a.severity}{a.stale?' · rapport daté':''}</p>):<p>Aucune actualité internationale disponible.</p>}<small>La sauvegarde ne fournit pas de journal international exhaustif accessible. Aucun récit n’est reconstruit depuis l’état caché.</small></section>
+        <section><h3>Actualités internationales</h3>{news.international.length?<ul>{news.international.map(item=><li key={item.id}><strong>{item.title}</strong><p>{item.detail}</p><small>{dateText(item.date)} · {item.sourceLabel}</small></li>)}</ul>:<p>Aucune actualité internationale majeure enregistrée et admissible.</p>}<small>Historique conservé dans la sauvegarde, non exhaustif. Aucun événement non enregistré ni renseignement secret n’est inventé.</small></section>
         {readError && <p className="save-error" role="alert">{readError}</p>}{error && <p className="save-error" role="alert">{error}</p>}
       </div><footer><button className="lg-load" onClick={()=>onLoad(selection.entry.id)}>Charger la campagne →</button><div><button onClick={clear}>← Retour à la liste</button>{deletion(selection.entry.id)}</div></footer></section>
     </>}
