@@ -62,3 +62,4 @@
 .load-game-setup .lg-map-notice{left:22%;width:41%}
 .load-game-setup.ng-large-ui .lg-map-notice{left:24%;width:36%}
 .load-game-setup .ng-globe-help{left:22%;right:38%;flex-wrap:wrap;justify-content:flex-start;gap:.5em 1.5em;padding:1em}
+.load-game-setup.ng-large-ui .lg-map-notice{bottom:14%}

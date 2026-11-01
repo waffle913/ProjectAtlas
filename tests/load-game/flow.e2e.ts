@@ -48,6 +48,11 @@ test('real load list, saved world, explicit restore and independent history',asy
   await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/load-game/occupied-${viewport.width}x${viewport.height}.png`});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
  }
+ await page.setViewportSize({width:1920,height:1080});
+ await page.locator('.lg-panel-scroll').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+ await page.screenshot({path:'artifacts/load-game/campaign-context-1920x1080.png'});
+ await expect(page.getByRole('heading',{name:'Actualités internationales',exact:true})).toBeVisible();
+ await page.locator('.lg-panel-scroll').evaluate(el=>{el.scrollTop=0;});
  const original=await page.evaluate(()=>(window as unknown as {__syntheticWrites:number}).__syntheticWrites);
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
  await page.locator('.lg-save-name').filter({hasText:'· ceded'}).click();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');
@@ -76,7 +81,7 @@ test('real load list, saved world, explicit restore and independent history',asy
  await page.getByRole('button',{name:'Charger une partie',exact:true}).click();
  for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/load-game/list-ui150-${viewport.width}x${viewport.height}.png`,fullPage:true});}
  await page.locator('.lg-save-name').filter({hasText:'· occupied'}).click();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');
- for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/load-game/occupied-ui150-${viewport.width}x${viewport.height}.png`,fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);}
+ for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/load-game/occupied-ui150-${viewport.width}x${viewport.height}.png`,fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);const notice=await page.locator('.lg-map-notice').boundingBox(),help=await page.locator('.ng-globe-help').boundingBox();expect(notice!.y+notice!.height).toBeLessThanOrEqual(help!.y);}
  expect(errors).toEqual([]);
 });
 test('real preview without WebGL remains loadable; deletion needs confirmation',async({browser})=>{
