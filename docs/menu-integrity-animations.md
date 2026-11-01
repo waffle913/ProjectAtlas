@@ -179,3 +179,34 @@ Les cinq traces de démarrage en échec de l'artefact `13099262232` ont été lu
 Le seul fichier exécutable modifié est le test `tests/menu-integrity/flow.e2e.ts`. setup observe requêtes/réponses/échecs, console et pageerror avant navigation ; le budget commun navigation + readiness est borné à 60 s. La réussite exige toujours le vrai bouton Nouvelle partie activé. Chaque setup joint `initialization.json` au rapport Playwright, avec durée réelle, borne, requêtes individuelles, durées/états HTTP, requêtes encore en cours, erreurs console/page, erreurs et textes visibles, bouton et indicateurs de stockage synthétique. En dépassement : échec explicite avec cause et sortie JSON ; lecture diagnostique du DOM elle-même bornée à 3 s, avec erreur indiquée si inaccessible. Les écouteurs sont retirés avant le parcours fonctionnel. Aucun sleep d'initialisation, retry ou modification de la configuration globale.
 
 Revue du diff : tous les parcours et assertions fonctionnels sont conservés. Aucun changement de `src`, workflow, schéma, format, migration, stockage de campagne, données ou droits ; garde produit `ready={dataReady && storageReady}` inchangé. `git diff --check` réussi. Les résultats du nouveau SHA resteront NON VÉRIFIÉS jusqu'aux runs correspondants ; les métriques de startup ne prouvent pas seules les animations ou la persistance.
+
+### Validation mesurée du correctif d'initialisation — SHA 5dd681a
+
+Code testé : `5dd681a432df5ab03a7818ac37071a6dd377f365` (départ `5e0ba7e3e6969408c3ad23bf49cb24ac154b0f6c`). [Run menus complet](https://github.com/waffle913/ProjectAtlas/actions/runs/41353500128) **réussi**. Les sept `initialization.json` de l'[artefact 13102707550](https://github.com/waffle913/ProjectAtlas/actions/runs/41353500128/artifacts/13102707550) ont été ouverts : bouton effectivement activé, six lectures synthétiques, zéro écriture de campagne au setup, aucune erreur console/page ni requête échouée pour les sept démarrages.
+
+| Démarrage | Disponibilité réelle |
+|---|---|
+| Session active | 4 978 ms |
+| Matrice menus | 4 754 ms |
+| Animation principale | 5 544 ms |
+| Persistance | 5 663 ms |
+| Répétition animation 1 | 5 842 ms |
+| Répétition animation 2 | 5 547 ms |
+| Répétition animation 3 | 5 759 ms |
+
+Cinq mesures dépassent l'ancienne borne 5 s. La plage 4,75–5,84 s confirme la cause de l'échec : attente du test trop courte, sans défaut d'initialisation de production démontré. Les scénarios animation et persistance ont cette fois réellement parcouru leurs assertions jusqu'au bout : maintien/reprise/focus/mouvement réduit ; erreurs natives/réessais ; intervalle 30 minutes et autres préférences dans le stockage, après reload et recréation IPC ; lancement d'une campagne admissible à vitesse 5 et protection contre remplacement. Aucun test fonctionnel supprimé ou neutralisé.
+
+| Vérification du SHA 5dd681a | Résultat constaté |
+|---|---|
+| Unités ciblées UI/session/caméra/permissions | 211/211, 27 fichiers |
+| Build frontend | RÉUSSI |
+| `npx playwright test --config=playwright.menu-integrity.config.ts` | 5/5, 4,3 min |
+| Même configuration, `--grep "free idle" --repeat-each=3` | 3/3, 1,9 min |
+| `npx playwright test --config=playwright.load-game.config.ts` | 2/2 |
+| `npx playwright test --config=playwright.new-game.config.ts` | 2/2 |
+| Rust et build Windows | RÉUSSIS, [run 41353500197](https://github.com/waffle913/ProjectAtlas/actions/runs/41353500197) |
+| `npm run verify -- -- --maxWorkers=1` Linux/Windows | EN COURS, [run 41353500441](https://github.com/waffle913/ProjectAtlas/actions/runs/41353500441) |
+
+[Installateur/exécutable du SHA 5dd681a](https://github.com/waffle913/ProjectAtlas/actions/runs/41353500197/artifacts/13102381910). Les métriques proviennent des runners, aucun npm/build/Rust local exécuté. La branche garde la PR #3 ouverte en brouillon vers ui/load-game-globe ; aucune fusion ou acceptation. Le changement exécuté est exclusivement le helper de test ; le commit documentaire ultérieur éventuel ne modifie pas ce code testé.
+
+Limites : la branche d'erreur au dépassement 60 s n'a pas été déclenchée artificiellement dans ce run réussi ; ne pas la présenter comme exercée en CI. Les risques visuels antérieurs à 150 % et le test humain Windows restent à vérifier indépendamment ; ils ne sont pas corrigés par une attente de démarrage. BUG-001 reste hors périmètre. Verdict actuel : défaut de synchronisation initiale corrigé avec preuve E2E, CI générale encore attendue, aucune acceptation humaine.
