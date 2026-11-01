@@ -53,6 +53,26 @@ describe('save-preview campaign news from persisted dated history', () => {
     expect(news(s).international.some(item => item.title.includes('Restrictions sur les exportations'))).toBe(true);
     expect(news(s).national.some(item => item.title.includes('Traité de paix'))).toBe(false);
   });
+  it('retains only accessible, dated international assessments, without exposing hidden drivers', () => {
+    const state = fixtures.occupied;
+    const briefing = {
+      pairKey: 'canada-usa', countryAId: canada, countryBId: usa,
+      phase: 'ACTIVE' as const, severity: 'severe' as const, pressure: 27000,
+      drivers: [{ kind: 'hidden-internal-signal', weightBps: 27000, detail: 'Secret intelligence' }],
+      lastEvaluatedOn: state.date, stale: false,
+    };
+    const withoutReport = news(state);
+    expect(withoutReport.international.some(item => item.sourceLabel === 'Rapport international daté')).toBe(false);
+    const withReport = savedCampaignNews(state, canada, names,
+      readCampaignSummary(JSON.stringify(state)), [briefing]);
+    expect(withReport.international.some(item => item.title.includes('Tensions diplomatiques'))).toBe(true);
+    expect(JSON.stringify(withReport)).not.toContain('Secret intelligence');
+    expect(JSON.stringify(withReport)).not.toContain('hidden-internal-signal');
+    expect(savedCampaignNews(state, canada, names, readCampaignSummary(JSON.stringify(state)),
+      [{...briefing,lastEvaluatedOn:'2032-01-01'}]).international
+      .some(item => item.sourceLabel === 'Rapport international daté')).toBe(false);
+  });
+
   it('does not project classified facts or unavailable economics as public news', () => {
     const a = news(fixtures.opposition!);
     expect(JSON.stringify(a)).not.toMatch(/enemyStrength|recordedEnemyPersonnelLosses|deployment/);

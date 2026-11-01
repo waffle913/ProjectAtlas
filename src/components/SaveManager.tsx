@@ -51,7 +51,7 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
   const country=countryId?names.get(countryId):undefined;
   const countryCode=countries.find(c=>c.id===countryId)?.externalIds.isoAlpha2;
   const news=useMemo(()=>selection && presentation
-    ? savedCampaignNews(selection.state,presentation.countryId,names,presentation.summary)
+    ? savedCampaignNews(selection.state,presentation.countryId,names,presentation.summary,presentation.international)
     : {national:[],international:[]},[selection,presentation,names]);
   const current=selection?.state.date;
   const military=presentation?.operations;

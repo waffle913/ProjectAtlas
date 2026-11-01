@@ -1,6 +1,7 @@
 import type { SimulationState } from '../types';
 import type { CampaignSummary } from './campaignSummary';
 import { isSimulationDate } from '../simulation/date';
+import type { InternationalAssessment } from '../simulation/international/runtime';
 
 /** Public, persisted campaign events. Never reconstruct unrecorded facts, secret
  * troop locations, unobserved crises or a separate fictional news timeline. */
@@ -22,6 +23,7 @@ export function savedCampaignNews(
   playedCountryId: string | undefined,
   names: ReadonlyMap<string, string>,
   summary: CampaignSummary,
+  accessibleInternationalAssessments: readonly InternationalAssessment[] = [],
 ): SavedCampaignNews {
   const national: SavedCampaignNewsItem[] = [], international: SavedCampaignNewsItem[] = [];
   if (!playedCountryId) return { national, international };
@@ -117,6 +119,30 @@ export function savedCampaignNews(
       title: 'Levée de mesure : ' + label(action.actorCountryId) + ' envers ' + label(action.targetCountryId),
       detail: 'Fin enregistrée de la mesure : ' + (actionKind[action.kind] ?? action.kind).toLowerCase() + '.',
       sourceLabel: 'Action internationale enregistrée', importance: 65,
+    });
+  }
+
+  // These are not raw international.episodes: the caller only supplies
+  // governmental assessments already filtered by role, access and save date.
+  // They were shown in the original menu; retain them when adding event news.
+  for (const assessment of accessibleInternationalAssessments) {
+    if (!admissible(assessment.lastEvaluatedOn)) continue;
+    if (assessment.phase === 'NORMAL' || assessment.severity === 'none') continue;
+    const severity: Record<string, string> = {
+      low: 'faible', moderate: 'modérée', severe: 'grave', critical: 'critique',
+    };
+    const phase: Record<string, string> = {
+      PRESSURE: 'pression', ACTIVE: 'crise active', RECOVERING: 'retour progressif à la normale',
+    };
+    add('international', {
+      id: 'diplomatic-assessment:' + assessment.pairKey + ':' + assessment.lastEvaluatedOn,
+      date: assessment.lastEvaluatedOn,
+      title: 'Tensions diplomatiques : ' + label(assessment.countryAId) + ' / ' + label(assessment.countryBId),
+      detail: 'Évaluation accessible : ' + (phase[assessment.phase] ?? assessment.phase)
+        + ' · gravité ' + (severity[assessment.severity] ?? assessment.severity)
+        + (assessment.stale ? ' · rapport antérieur à la sauvegarde' : '') + '.',
+      sourceLabel: 'Rapport international daté', importance: assessment.severity === 'critical' ? 88
+        : assessment.severity === 'severe' ? 78 : assessment.severity === 'moderate' ? 62 : 40,
     });
   }
 
