@@ -26,7 +26,14 @@ test('real globe, search, four-step confirmation and menu continuity',async({pag
  await page.getByRole('button',{name:'Zoom avant',exact:true}).click();await page.getByRole('button',{name:'Recentrer sur le pays choisi'}).click();
  await page.getByRole('button',{name:'Retour au menu',exact:false}).click();await expect(page.locator('.atlas-menu')).toBeVisible();
  await page.getByRole('button',{name:'Nouvelle partie',exact:true}).click();
- await page.locator('.ng-catalog summary').click();const select=page.getByLabel('Catalogue complet des pays');const option=await select.locator('option').evaluateAll(os=>(os as HTMLOptionElement[]).find(o=>!o.text.includes('indisponible'))?.value);expect(option).toBeTruthy();await select.selectOption(option!);
+ await page.locator('.ng-catalog summary').click();const select=page.getByLabel('Catalogue complet des pays');
+ const catalog=JSON.parse(await fs.readFile('src/data/entity-registry.json','utf8'));
+ const unmapped=catalog.countries.find((c:{id:string})=>!catalog.territories.some((t:{initialOwnerCountryId:string;geographicMapping:{status:string}})=>t.initialOwnerCountryId===c.id && t.geographicMapping.status==='mapped'));
+ expect(unmapped).toBeTruthy();await select.selectOption(unmapped.id);
+ await expect(page.getByText('Géométrie indisponible — sélection par le catalogue',{exact:true})).toBeVisible();
+ await expect(page.locator('.ng-hover')).toBeHidden();await expect(page.getByRole('button',{name:'Recentrer sur le pays choisi'})).toBeDisabled();
+ await page.locator('.ng-catalog summary').click();
+ const option=await select.locator('option').evaluateAll(os=>(os as HTMLOptionElement[]).find(o=>!o.text.includes('indisponible'))?.value);expect(option).toBeTruthy();await select.selectOption(option!);
  await page.getByRole('button',{name:'Continuer',exact:false}).click();await page.locator('.ng-paths button:not([disabled])').first().click();await page.locator('.ng-person').first().click();
  await page.getByRole('button',{name:'Continuer',exact:false}).click();await expect(page.locator('.ng-configuration')).toBeVisible();await page.getByRole('button',{name:'Continuer',exact:false}).click();
  await expect(page.locator('.ng-recap')).toBeVisible();await page.screenshot({path:'artifacts/new-game/recap-1920x1080.png'});
