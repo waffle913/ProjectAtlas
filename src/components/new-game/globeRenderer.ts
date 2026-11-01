@@ -143,7 +143,7 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
   const raycaster=new THREE.Raycaster();const pointer=new THREE.Vector2();let down:[number,number]|undefined,hoverId:string|undefined;
   const hit=(e:PointerEvent)=>{const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(earth)[0];return hit?countryAt(pickingPolygons,...lonLat(hit.point.toArray() as [number,number,number])):undefined;};
   const pointerDown=(e:PointerEvent)=>{down=[e.clientX,e.clientY];};
-  const pointerUp=(e:PointerEvent)=>{if(down && Math.hypot(e.clientX-down[0],e.clientY-down[1])<5){const id=hit(e);if(id)onSelect(id);}down=undefined;};
+  const pointerUp=(e:PointerEvent)=>{const start=down;down=undefined;if(start && renderer.domElement.hasPointerCapture(e.pointerId) && Math.hypot(e.clientX-start[0],e.clientY-start[1])<5){const id=hit(e);if(id)onSelect(id);}};
   // A cancelled/capture-lost gesture cannot later turn into a country click.
   const cancelPointer=()=>{down=undefined;};
   const pointerMove=(e:PointerEvent)=>{if(e.buttons){if(down && Math.hypot(e.clientX-down[0],e.clientY-down[1])>=5){cancelFlight();setMode('free');}return;}const id=hit(e);if(id===hoverId)return;hoverId=id;hover.geometry.dispose();hover.geometry=id && id!==selected?surfaceGeometry(polygons.filter(p=>(options.regionPicking?p.regionId??p.countryId:p.countryId)===id)):new THREE.BufferGeometry();onHover(id,{x:e.clientX,y:e.clientY,visible:true});render();};
