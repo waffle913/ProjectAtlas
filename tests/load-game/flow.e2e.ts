@@ -44,6 +44,8 @@ test('real load list, saved world, explicit restore and independent history',asy
  await expect(page.locator('[data-globe-status]')).toHaveAttribute('data-globe-status','ready');
  await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');
  await expect(page.locator('.lg-campaign-panel')).toContainText('18 juin 2031');await expect(page.locator('.lg-campaign-panel')).toContainText('contrôle étranger');
+ await expect(page.locator('.lg-campaign-panel')).toContainText('Déclaration de guerre');
+ await expect(page.locator('.lg-campaign-panel')).toContainText('occupe');
  for(const viewport of [{width:1920,height:1080},{width:1366,height:768}]){
   await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/load-game/occupied-${viewport.width}x${viewport.height}.png`});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
@@ -57,8 +59,11 @@ test('real load list, saved world, explicit restore and independent history',asy
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
  await page.locator('.lg-save-name').filter({hasText:'· ceded'}).click();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');
  await page.setViewportSize({width:1920,height:1080});await page.screenshot({path:'artifacts/load-game/ceded-1920x1080.png'});await expect(page.locator('.lg-campaign-panel')).toContainText('guerre terminée, évaluation archivée');
+ await expect(page.locator('.lg-campaign-panel')).toContainText('Fin de la guerre');
+ await expect(page.locator('.lg-campaign-panel')).toContainText('aucun traité distinct');
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
  await page.locator('.lg-save-name').filter({hasText:'· opposition'}).click();await expect(page.locator('.lg-campaign-panel')).toContainText('Aucun rapport militaire accessible');
+ await expect(page.locator('.lg-campaign-panel')).toContainText('Déclaration de guerre');
  await page.screenshot({path:'artifacts/load-game/opposition-1920x1080.png'});
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();await page.locator('.lg-save-name').filter({hasText:'· occupied'}).click();
  expect(await page.evaluate(()=>(window as unknown as {__syntheticWrites:number}).__syntheticWrites)).toBe(original);
