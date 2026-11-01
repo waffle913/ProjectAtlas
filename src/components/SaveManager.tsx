@@ -101,6 +101,6 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
         {readError && <p className="save-error" role="alert">{readError}</p>}{error && <p className="save-error" role="alert">{error}</p>}
       </div><footer><button className="lg-load" onClick={()=>onLoad(selection.entry.id)}>Charger la campagne →</button><div><button onClick={clear}>← Retour à la liste</button>{deletion(selection.entry.id)}</div></footer></section>
     </>}
-    <small className="lg-attribution">Texture NASA Earth Observatory (2016), décor historique · géométries Natural Earth existantes</small>
+    <small className="lg-attribution">Fond visuel historique (2016), sans observation de campagne</small>
   </main>;
 }

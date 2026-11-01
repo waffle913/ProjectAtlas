@@ -37,11 +37,11 @@ export function RegionPanel({ region, currentOwner, parentCountry, source, onBac
         <p>Regional economic and service reports are not available to this role through the government information system.</p>
         <p>Internal employment, production, household and service simulation values are intentionally not shown here.</p>
       </section>
-      <section>
+      {showProvenance && <section>
         <h2>Geography source</h2>
         {row('Source features', region.geographyMapping.status === 'mapped' ? region.geographyMapping.sourceFeatureIds.length : undefined)}
         <small className="source-note"><a href={source.url} target="_blank" rel="noreferrer">{source.name}</a>{showProvenance && <> · {source.datasetId}</>} · retrieved {source.retrievedAt}</small>
-      </section>
+      </section>}
     </aside>
   );
 }

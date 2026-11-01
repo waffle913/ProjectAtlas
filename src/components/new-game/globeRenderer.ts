@@ -144,6 +144,8 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
   const hit=(e:PointerEvent)=>{const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(earth)[0];return hit?countryAt(pickingPolygons,...lonLat(hit.point.toArray() as [number,number,number])):undefined;};
   const pointerDown=(e:PointerEvent)=>{down=[e.clientX,e.clientY];};
   const pointerUp=(e:PointerEvent)=>{if(down && Math.hypot(e.clientX-down[0],e.clientY-down[1])<5){const id=hit(e);if(id)onSelect(id);}down=undefined;};
+  // A cancelled/capture-lost gesture cannot later turn into a country click.
+  const cancelPointer=()=>{down=undefined;};
   const pointerMove=(e:PointerEvent)=>{if(e.buttons){if(down && Math.hypot(e.clientX-down[0],e.clientY-down[1])>=5){cancelFlight();setMode('free');}return;}const id=hit(e);if(id===hoverId)return;hoverId=id;hover.geometry.dispose();hover.geometry=id && id!==selected?surfaceGeometry(polygons.filter(p=>(options.regionPicking?p.regionId??p.countryId:p.countryId)===id)):new THREE.BufferGeometry();onHover(id,{x:e.clientX,y:e.clientY,visible:true});render();};
   const leave=()=>{hoverId=undefined;onHover();hover.geometry.dispose();hover.geometry=new THREE.BufferGeometry();render();};
   const keyDown=(e:KeyboardEvent)=>{
@@ -160,7 +162,7 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
   };
   renderer.domElement.addEventListener('keydown',keyDown);
   const contextLost=(e:Event)=>{e.preventDefault();host.dispatchEvent(new Event('globe-unavailable'));};
-  renderer.domElement.addEventListener('pointerdown',pointerDown);renderer.domElement.addEventListener('pointerup',pointerUp);renderer.domElement.addEventListener('pointermove',pointerMove);renderer.domElement.addEventListener('pointerleave',leave);renderer.domElement.addEventListener('webglcontextlost',contextLost);
+  renderer.domElement.addEventListener('pointerdown',pointerDown);renderer.domElement.addEventListener('pointerup',pointerUp);renderer.domElement.addEventListener('pointermove',pointerMove);renderer.domElement.addEventListener('pointerleave',leave);renderer.domElement.addEventListener('pointercancel',cancelPointer);renderer.domElement.addEventListener('lostpointercapture',cancelPointer);renderer.domElement.addEventListener('webglcontextlost',contextLost);
   schedule();
   return {
     select(id,focus=true){
@@ -184,7 +186,7 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
       controls.removeEventListener('change',onChange);controls.removeEventListener('start',onStart);controls.removeEventListener('end',onEnd);controls.dispose();
       renderer.domElement.removeEventListener('keydown',keyDown);renderer.domElement.removeEventListener('pointerdown',pointerDown);
       renderer.domElement.removeEventListener('pointerup',pointerUp);renderer.domElement.removeEventListener('pointermove',pointerMove);
-      renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);
+      renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('pointercancel',cancelPointer);renderer.domElement.removeEventListener('lostpointercapture',cancelPointer);renderer.domElement.removeEventListener('webglcontextlost',contextLost);
       scene.traverse(o=>{if(o instanceof THREE.Mesh || o instanceof THREE.LineSegments){o.geometry.dispose();const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>m.dispose());}});
       texture.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();
     }

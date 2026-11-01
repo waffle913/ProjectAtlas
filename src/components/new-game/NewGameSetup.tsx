@@ -44,7 +44,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
       {draft.query.trim() && <div className="ng-search-results" aria-label="Résultats de recherche">{matches.length?matches.slice(0,12).map(c=><button key={c.id} onClick={()=>chooseCountry(c.id)}>{c.commonName}{!available.has(c.id)&&<small>Démarrage indisponible</small>}</button>):<p>Aucun pays correspondant.</p>}</div>}
       <section className="ng-card" aria-label="Préparation de campagne">
         <div className="ng-country-title"><span className={`ng-country-code${country?.externalIds.isoAlpha2==='FR'?' ng-flag-fr':''}`} aria-hidden="true">{country?.externalIds.isoAlpha2==='FR'?'':country?.externalIds.isoAlpha2??'—'}</span><div><h1>{country?.commonName??'Choisir un pays'}</h1><p>{systemTitle}</p></div></div>
-        {draft.step===0 && <><div className="ng-country-banner"><svg viewBox="0 0 400 180" aria-label="Contour du territoire principal"><path d={silhouette}/></svg><small>{silhouette?'Géométrie du catalogue · Natural Earth':'Géométrie indisponible — sélection par le catalogue'}</small></div>
+        {draft.step===0 && <><div className="ng-country-banner"><svg viewBox="0 0 400 180" aria-label="Contour du territoire principal"><path d={silhouette}/></svg><small>{silhouette?'Contour du territoire principal':'Géométrie indisponible — sélection par le catalogue'}</small></div>
           <div className="ng-tabs" role="tablist" aria-label="Informations du pays">{['Aperçu','Économie','Politique','Société','Relations'].map(tab=><button role="tab" aria-selected={draft.tab===tab} key={tab} onClick={()=>update({tab})}>{tab}</button>)}</div>
           <div className="ng-information" role="tabpanel" aria-label={draft.tab}><dl>
             {draft.tab==='Aperçu' && <><div className="ng-fact"><dt>Capitale</dt><dd>{country?.capital??'Indisponible'}</dd></div>{fact('population','Population')}{fact('nominalGdpUsd','PIB nominal (USD)')}{fact('gdpPerCapitaUsd','PIB par habitant (USD)')}{politicalFact}<div className="ng-fact"><dt>Région</dt><dd>{country?.unSubregion??'Indisponible'}</dd></div></>}
@@ -52,7 +52,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
             {draft.tab==='Politique' && <>{politicalFact}<div className="ng-fact"><dt>Voies de départ</dt><dd>{options.playable?'Consulter l’étape Rôle':'Indisponibles'}</dd></div></>}
             {draft.tab==='Société' && <>{fact('population','Population')}{fact('languages','Langues')}</>}
             {draft.tab==='Relations' && <div className="ng-fact"><dt>Relations diplomatiques</dt><dd>Indisponibles avant le lancement</dd></div>}
-          </dl><small className="ng-note">Données datées du catalogue, sans valeur illustrative. {country?.sources.details?.[0]?.name}</small></div>
+          </dl><small className="ng-note">Données datées du catalogue, sans valeur illustrative.</small></div>
           <details className="ng-catalog" open={catalogOpen} onToggle={e=>setCatalogOpen(e.currentTarget.open)}><summary>Catalogue complet des pays</summary><label className="ng-catalog-label">Tous les pays<select aria-label="Catalogue complet des pays" value={draft.countryId} onChange={e=>chooseCountry(e.target.value)}>{countries.slice().sort((a,b)=>a.commonName.localeCompare(b.commonName)).map(c=><option key={c.id} value={c.id}>{c.commonName}{available.has(c.id)?'':' — démarrage indisponible'}</option>)}</select></label></details>
         </>}
         {draft.step===1 && <div className="ng-role-panel"><h2>Choisir votre rôle</h2><p className="ng-note">La fonction réellement occupée détermine les pouvoirs. Aucun poste n’est attribué par cet écran.</p><div className="ng-paths">{(['national_leader','opposition_party_leader'] as const).map(path=><button key={path} aria-pressed={draft.path===path} disabled={!options.paths[path].candidates.length} onClick={()=>update({path,personId:''})}>{pathLabels[path]}<small>{options.paths[path].candidates.length?`${options.paths[path].candidates.length} choix admissible(s)`:'Indisponible'}</small></button>)}</div>
@@ -67,6 +67,6 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
         <div className="ng-step-actions">{draft.step>0 && <button className="ng-back" onClick={()=>update({step:draft.step-1})}>← Précédent</button>}<button className="ng-continue" disabled={!canContinue} onClick={()=>{if(draft.step<3)next();else if(person){try{onConfirm(draft.countryId,draft.path,person.personId);}catch(e){setError(e instanceof Error?e.message:String(e));}}}}>{draft.step===3?'Lancer la campagne':'Continuer'} <span>→</span></button></div>
       </section>
     </div>
-    <div className="ng-attribution">Texture nocturne historique NASA (2016) · décor hors ligne, pas une observation 2026</div>
+    <div className="ng-attribution">Fond visuel historique (2016), sans observation de campagne</div>
   </main>;
 }

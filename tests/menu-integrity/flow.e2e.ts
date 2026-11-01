@@ -94,7 +94,7 @@ test('active session continuation, replacement guards, explicit exit and native 
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.emulateMedia({reducedMotion:'reduce'});await setup(page);
  await expect(page.getByRole('button',{name:'Continuer',exact:false}).first()).toBeDisabled();
  await selectSave(page);await page.getByRole('button',{name:'Charger la campagne',exact:false}).click();
- await expect(page.locator('.clock strong')).toContainText('2031');
+ await expect(page.locator('.clock strong')).toContainText('2031');await expect(page.locator('.leaflet-control-attribution')).not.toContainText('Leaflet');
  const openingDate=await page.locator('.clock strong').textContent();await page.locator('.clock').getByRole('button',{name:'▶ Resume',exact:true}).click();await expect.poll(()=>page.locator('.clock strong').textContent()).not.toBe(openingDate);
  await page.getByRole('button',{name:'Menu',exact:true}).click();const suspendedDate=await page.locator('.clock strong').textContent();await page.waitForTimeout(800);await expect(page.locator('.clock strong')).toHaveText(suspendedDate!);await page.getByRole('dialog',{name:'Pause menu',exact:true}).getByRole('button',{name:'Resume',exact:true}).click();await expect.poll(()=>page.locator('.clock strong').textContent()).not.toBe(suspendedDate);
  await page.locator('.clock').getByRole('button',{name:'Ⅱ Pause',exact:true}).click();await page.getByRole('button',{name:'×2',exact:true}).click();
@@ -135,11 +135,11 @@ test('all menu viewports/scales, read-only preview continuity and honest unavail
    const mute=page.getByRole('checkbox',{name:'Mute when unfocused'});await expect(mute).toBeDisabled();const checked=await mute.isChecked();const muteRect=(await mute.boundingBox())!;await page.mouse.click(muteRect.x+muteRect.width/2,muteRect.y+muteRect.height/2);await mute.evaluate(n=>(n as HTMLElement).focus());await page.keyboard.press('Space');expect(await mute.isChecked()).toBe(checked);
    expect(await audio.evaluateAll(nodes=>nodes.map(n=>(n as HTMLInputElement).value))).toEqual(values);
    await page.getByRole('button',{name:'Interface',exact:true}).click();await expect(page.getByLabel('Confirm high-impact actions')).toBeDisabled();await expect(page.getByLabel('Map label density')).toBeDisabled();await back(page);
-   await page.getByRole('button',{name:'Crédits',exact:true}).click();await shot(page,'credits-'+suffix);await back(page);
-   await page.getByRole('button',{name:'Nouvelle partie',exact:true}).click();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');await shot(page,'new-'+suffix);
+   await page.getByRole('button',{name:'Crédits',exact:true}).click();await expect(page.getByRole('heading',{name:'Crédits et sources'})).toBeVisible();await expect(page.locator('.credits-screen')).toContainText('NASA Earth Observatory');await expect(page.locator('.credits-screen')).toContainText('Natural Earth');await page.getByRole('button',{name:'Notice Leaflet embarquée'}).click();await expect(page.locator('.credits-notice pre')).toContainText('BSD 2-Clause License');await expect(page.locator('.credits-notice pre')).toContainText('Redistributions in binary form');await page.getByRole('button',{name:'Fermer la notice',exact:true}).click();await shot(page,'credits-'+suffix);await back(page);
+   await page.getByRole('button',{name:'Nouvelle partie',exact:true}).click();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');await expect(page.locator('.ng-attribution')).not.toContainText(/NASA|Natural Earth/);await expect(page.locator('.ng-country-banner')).not.toContainText('Natural Earth');await shot(page,'new-'+suffix);
    for(const country of ['France','Canada','Luxembourg']){await choose(page,country);await fitted(page);await shot(page,'framing-'+country.toLowerCase()+'-'+suffix);}
    await choose(page,'Canada');await page.getByRole('button',{name:'Paramètres',exact:true}).click();await back(page);await expect(page.locator('.ng-country-title h1')).toHaveText('Canada');await page.getByRole('button',{name:'Retour au menu',exact:false}).click();
-   await selectSave(page);await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');await shot(page,'load-'+suffix);
+   await selectSave(page);await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');await expect(page.locator('.lg-attribution')).not.toContainText(/NASA|Natural Earth/);await shot(page,'load-'+suffix);
    const reads=await page.evaluate(()=>(window as any).__syntheticReads);
    for(const target of ['Paramètres','Crédits']){await page.getByRole('button',{name:target,exact:true}).click();await back(page);await expect(page.locator('.lg-campaign-panel')).toContainText('occupied');}
    expect(await page.evaluate(()=>(window as any).__syntheticReads)).toBe(reads);await page.getByRole('button',{name:'Retour au menu',exact:false}).click();
@@ -151,6 +151,7 @@ test('all menu viewports/scales, read-only preview continuity and honest unavail
 test('free idle, manual interruption, cancellable country focus and reduced motion',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await setup(page);await page.getByRole('button',{name:'Nouvelle partie',exact:true}).click();
  const canvas=page.locator('.ng-globe canvas');await expect(canvas).toHaveAttribute('data-motion','animated');await expect(canvas).toHaveAttribute('data-camera-mode','free');await expect(page.locator('.ng-country-title h1')).toHaveText('France');
+ await canvas.evaluate(node=>{(window as any).__atlasPointerEvents=[];for(const type of ['pointerdown','pointermove','pointerup','pointercancel','gotpointercapture','lostpointercapture'])node.addEventListener(type,event=>{const e=event as PointerEvent;const events=(window as any).__atlasPointerEvents;events.push({type,pointerId:e.pointerId,buttons:e.buttons,x:e.clientX,y:e.clientY,captured:node.hasPointerCapture(e.pointerId),cursor:getComputedStyle(node).cursor});if(events.length>160)events.shift();});});
  const lon=await canvas.getAttribute('data-camera-longitude');await expect.poll(()=>canvas.getAttribute('data-camera-longitude')).not.toBe(lon);
  const b=(await canvas.boundingBox())!;const x=b.x+b.width*.5,y=b.y+b.height*.5;
  await page.mouse.move(x,y);await page.mouse.down();await expect(canvas).toHaveAttribute('data-interacting','true');
@@ -174,6 +175,16 @@ test('free idle, manual interruption, cancellable country focus and reduced moti
  await page.getByRole('button',{name:'Retour à la vue libre'}).click();const quiet=await observeCamera(canvas,1100);expect(quiet.max).toBeCloseTo(quiet.initial,2);expect(quiet.min).toBeCloseTo(quiet.initial,2);
  const reducedBox=(await canvas.boundingBox())!;await page.mouse.move(reducedBox.x+reducedBox.width/2,reducedBox.y+reducedBox.height/2);await page.mouse.down();await page.mouse.move(reducedBox.x+reducedBox.width/2+60,reducedBox.y+reducedBox.height/2+20,{steps:6});await page.mouse.up();
  await expect(canvas).toHaveAttribute('data-interacting','false');const noInertia=await observeCamera(canvas,1100);expect(noInertia.max).toBeCloseTo(noInertia.initial,2);expect(noInertia.min).toBeCloseTo(noInertia.initial,2);
+ // Cancellation/capture loss must not turn the subsequent release into a country click.
+ for(const interruption of ['cancel','lost']){
+  const rect=(await canvas.boundingBox())!;await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);await page.mouse.down();await expect(canvas).toHaveAttribute('data-interacting','true');
+  await canvas.evaluate((node,kind)=>{const events=(window as any).__atlasPointerEvents;const id=events.filter((e:any)=>e.type==='pointerdown').at(-1).pointerId;if(kind==='cancel')node.dispatchEvent(new PointerEvent('pointercancel',{pointerId:id,pointerType:'mouse',bubbles:true}));else node.releasePointerCapture(id);},interruption);
+  await expect.poll(()=>canvas.evaluate(node=>{const id=(window as any).__atlasPointerEvents.filter((e:any)=>e.type==='pointerdown').at(-1).pointerId;return node.hasPointerCapture(id);})).toBe(false);
+  await page.mouse.up();await expect(canvas).toHaveAttribute('data-interacting','false');await expect(canvas).toHaveAttribute('data-camera-mode','free');await expect(page.locator('.ng-country-title h1')).toHaveText('Canada');
+ }
+ const beforeDrag=Number(await canvas.getAttribute('data-camera-longitude'));const rect=(await canvas.boundingBox())!;await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);await page.mouse.down();await page.mouse.move(rect.x+rect.width/2+70,rect.y+rect.height/2+20,{steps:6});await page.mouse.up();expect(Math.abs(Number(await canvas.getAttribute('data-camera-longitude'))-beforeDrag)).toBeGreaterThan(.1);
+ await page.getByRole('button',{name:'Recentrer sur le pays choisi'}).click();await expect(canvas).toHaveAttribute('data-camera-mode','focused');await page.getByRole('button',{name:'Zoom avant',exact:true}).click();await centered();
+ await test.info().attach('pointer-events',{body:Buffer.from(JSON.stringify(await page.evaluate(()=>(window as any).__atlasPointerEvents),null,2)),contentType:'application/json'});
  await page.getByRole('button',{name:'Paramètres',exact:true}).click();await page.getByRole('button',{name:'Accessibility',exact:true}).click();await page.getByLabel('Reduced motion',{exact:true}).uncheck();await page.emulateMedia({reducedMotion:'reduce'});await back(page);await expect(canvas).toHaveAttribute('data-motion','reduced');await expect(page.locator('html')).toHaveClass(/reduced-motion/);expect(errors).toEqual([]);
 });
 

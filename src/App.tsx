@@ -81,6 +81,8 @@ function FitWorld() {
   const map = useMap();
   useEffect(() => {
     map.fitWorld({ padding: [10, 10] });
+    // Library notice is bundled in Credits; keep layer attribution support active.
+    map.attributionControl.setPrefix(false);
   }, [map]);
   return null;
 }
