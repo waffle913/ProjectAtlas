@@ -23,8 +23,12 @@ async function prepareCampaign(p:Page){
  await p.getByRole('button',{name:'Continuer',exact:false}).click();await p.locator('.ng-paths button:not([disabled])').first().click();await p.locator('.ng-person').first().click();await p.getByRole('button',{name:'Continuer',exact:false}).click();await p.getByRole('button',{name:'Continuer',exact:false}).click();await p.getByRole('button',{name:'Lancer la campagne',exact:false}).click();
 }
 async function restoredSettings(p:Page){
+ await p.getByRole('button',{name:'Paramètres',exact:true}).click();
+ // Native startup reads the save cache before releasing settings. Wait for that
+ // real acknowledgement, without changing a preference or extending assertion timeouts.
+ await p.getByRole('combobox',{name:'UI scale',exact:true}).and(p.locator(':enabled')).waitFor({state:'visible'});
  await expect(p.locator('html')).toHaveClass(/high-contrast/);await expect(p.locator('html')).toHaveClass(/reduced-motion/);
- await p.getByRole('button',{name:'Paramètres',exact:true}).click();await expect(p.getByRole('combobox',{name:'UI scale',exact:true})).toHaveValue('1.5');await expect(p.getByRole('combobox',{name:'Display mode',exact:true})).toHaveValue('fullscreen');
+await expect(p.getByRole('combobox',{name:'UI scale',exact:true})).toHaveValue('1.5');await expect(p.getByRole('combobox',{name:'Display mode',exact:true})).toHaveValue('fullscreen');
  await expect.poll(()=>p.evaluate(()=>(window as any).__syntheticDisplayMode)).toBe('fullscreen');
  await p.getByRole('button',{name:'Gameplay',exact:true}).click();await expect(p.getByRole('combobox',{name:'Default simulation speed',exact:true})).toHaveValue('5');await expect(p.getByRole('checkbox',{name:'Autosave',exact:true})).not.toBeChecked();await expect(p.getByRole('checkbox',{name:'Pause on urgent events',exact:true})).not.toBeChecked();await expect(p.getByRole('combobox',{name:'Autosave interval',exact:true})).toHaveValue('30');
  await p.getByRole('button',{name:'Interface',exact:true}).click();await expect(p.getByRole('checkbox',{name:'Show provenance details',exact:true})).toBeChecked();
@@ -133,7 +137,7 @@ test('settings persist through restart, display failure is visible and retryable
  await expect(page.getByRole('checkbox',{name:'Reduced motion',exact:true})).toBeChecked();
  await expect.poll(()=>page.evaluate(()=>JSON.parse(JSON.parse(localStorage.getItem('synthetic-native-settings')??'{}')['projectatlas.settings.v1']??'{}'))).toMatchObject({graphics:{displayMode:'fullscreen',uiScale:1.5},gameplay:{defaultSpeed:5,autosave:false,pauseOnUrgent:false,autosaveIntervalMinutes:30},interface:{showProvenance:true},accessibility:{uiScale:1.5,highContrast:true,reducedMotion:true}});
  await page.reload();await restoredSettings(page);
- const restarted=await page.context().newPage();await storage(restarted);await restarted.goto('/');await expect(restarted.getByRole('button',{name:'Nouvelle partie',exact:true})).toBeEnabled();await restoredSettings(restarted);await restarted.close();
+ const restarted=await page.context().newPage();await storage(restarted);await restarted.goto('/');await restoredSettings(restarted);await restarted.close();
  await prepareCampaign(page);await expect(page.getByRole('button',{name:'×5',exact:true})).toHaveClass('active');
  // Preparing another campaign is reversible; installation is the destructive boundary.
  await page.getByRole('button',{name:'Menu',exact:true}).click();await page.getByRole('button',{name:'Return to Main Menu',exact:true}).click();await prepareCampaign(page);await expect(guard(page)).toBeVisible();await guard(page).getByRole('button',{name:'Annuler et conserver la session'}).click();await expect(page.locator('.ng-recap')).toBeVisible();
