@@ -60,7 +60,7 @@ La nouvelle guerre étrangère des captures est une fixture synthétique Allemag
 
 ## Validation
 
-Parent ce4cea59 : les deux jobs Linux/Windows de verify 41268584176 sont success. Aucun correctif moteur n'est justifié par ce résultat. La CI dédiée du parent et les validations de cette passe sont recensées après réception des journaux finaux. Aucun test, build, benchmark ou lancement applicatif local.
+Parent ce4cea59 : les deux jobs Linux/Windows de verify 41268584176 sont success. Aucun correctif moteur n'est justifié par ce résultat. La CI dédiée du parent et les validations de cette passe sont recensées ci-dessous ; les contrôles de la PR portent aussi sur la livraison documentaire finale. Aucun test, build, benchmark ou lancement applicatif local.
 
 ### Résultats de la passe de finalisation
 
@@ -69,6 +69,10 @@ Parent ce4cea59 : les deux jobs Linux/Windows de verify 41268584176 sont success
 - `npm run build` : type-check/compilation réussis, Vite 706 ms.
 - `npx playwright test --config=playwright.load-game.config.ts` : **2 scénarios réussis**, 54,5 s, incluant les nouvelles captures des deux rubriques.
 - `npx playwright test --config=playwright.new-game.config.ts` : **2 régressions existantes réussies**, 35,4 s.
-- [verify général 41271227358](https://github.com/waffle913/ProjectAtlas/actions/runs/41271227358) : en cours à la publication de cette première mise à jour documentaire ; le résultat final sera ajouté après achèvement.
+- [verify général 41271227358](https://github.com/waffle913/ProjectAtlas/actions/runs/41271227358) : résultat consultable dans le run et dans le bilan de la [PR nº 2](https://github.com/waffle913/ProjectAtlas/pull/2), qui recense les contrôles généraux après leur achèvement.
 - Captures : artefact **13069009170**, source exacte `8ebde066751f933fad4c6d3baa4b47d91ad8db46`, [galerie](load-game-captures/README.md). Inspection des deux tailles, de 150 %, de l'état cédé et du repli sans WebGL : textes accessibles par défilement, bouton de chargement fixe et utilisable, légende/aide distinctes, dates/provenances visibles. La guerre étrangère provient de la fixture validée, pas d'un récit ajouté à l'interface.
 - Le diff des chemins protégés `src/simulation`, `src/data`, `public/data`, `src-tauri` contre le parent reste vide. Aucun système canonique n'a changé.
+
+## Révision conjointe
+
+[PR nº 2 vers main](https://github.com/waffle913/ProjectAtlas/pull/2). Le corps de la PR regroupe les liens de validation généraux et desktop avec leur statut final ; ses contrôles GitHub restent directement consultables. La branche est conservée et aucune fusion automatique n’est autorisée. Les captures proviennent exclusivement du run 41271227366 et reflètent le code audité 8ebde066 ; les commits documentaires suivants ne changent pas ce code.
