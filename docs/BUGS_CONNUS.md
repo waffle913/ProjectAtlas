@@ -66,7 +66,7 @@ Critères : tests Actions de sélection/interruption/changement de pays, navigat
 
 ## BUG-UI-002 — Références documentaires hors des Crédits
 
-Signalement humain Windows du 1 novembre 2026, AtlasMemory `AUDIT-2026-11-01-07`, départ `d0cade4978b46db9121aef9a60bafd17cd6bf240`. **État : correctif ciblé implémenté, validation du nouveau SHA en attente.** Le SHA exact du binaire testé par l'utilisateur n'a pas été communiqué ; ne pas lui attribuer automatiquement le HEAD.
+Signalement humain Windows du 1 novembre 2026, AtlasMemory `AUDIT-2026-11-01-07`, départ `d0cade4978b46db9121aef9a60bafd17cd6bf240`. **État : références documentaires corrigées avec preuve automatisée sur `ef89b9c8038ffa0b5148573a2a3f53c92b1d98b5` ; validation humaine finale distincte.** Le SHA exact du binaire testé par l'utilisateur n'a pas été communiqué ; ne pas lui attribuer automatiquement le HEAD.
 
 Inventaire et traitement :
 
@@ -104,3 +104,11 @@ Protocole de reproduction Windows :
 7. Joindre la séquence, les positions et le SHA pour diagnostic. Toute investigation GPU/WebView2 supplémentaire reste une hypothèse à vérifier ; ne pas masquer le curseur ni introduire de curseur artificiel.
 
 Validation humaine et autorisation de fusion demeurent exclusivement à l'utilisateur. BUG-001 inchangé.
+
+### Résultats de la passe UI du 1 novembre 2026
+
+[Menus et régressions du code ef89b9c](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034421) : unités 213/213, build frontend réussi, menus 5/5, répétitions animation 3/3, Charger 2/2 et Nouvelle partie 2/2. Les contrôles des Crédits et de leur notice Leaflet sont effectivement parcourus dans les quatre configurations ; les provenances Région sont testées avec/sans demande explicite. Le journal du scénario d'animation contient 18 événements : 3 pointerdown, 3 pointerup, 1 pointercancel, 1 gotpointercapture, 1 lostpointercapture et 9 mouvements. Les états de capture au relâchement sont false/false/true pour les deux interruptions puis le nouveau drag. Le style CSS observé est auto. Ces données démontrent le parcours DOM, pas l'image du curseur Windows.
+
+[Windows/Rust/build](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034395) réussi ; [nouvel installateur/exécutable du même code](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034395/artifacts/13103908882). [Captures, rapports et pièces jointes](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034421/artifacts/13103824519). [CI générale Linux/Windows](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034380) encore en cours au relais : aucune réussite globale déclarée. Le code testé est ef89b9c ; le commit documentaire qui consigne ces résultats ne modifie aucun fichier exécutable.
+
+BUG-UI-003 reste OUVERT / NON REPRODUIT sous Tauri/WebView2. Seul le défaut distinct de conversion d'un geste interrompu en clic est corrigé avec preuve navigateur. Ne pas annoncer que le curseur natif figé est réparé. La PR reste en brouillon ; test humain Windows et revue indépendante requis. Arrêt à la vérification GitHub selon la préférence utilisateur antérieure.

@@ -232,3 +232,26 @@ Revue séparée avant publication : fichiers de présentation et tests seulement
 ### Épreuve intermédiaire d'annulation
 
 Run `41357923357`, code 8edae4e : unités 213/213 (28 fichiers) et build frontend réussis, menus 4/5, répétitions animation 0/3, Charger et Nouvelle partie 2/2. L'échec de la nouvelle assertion est un focus réapparu après un relâchement annulé/perte de capture, malgré l'absence de capture vérifiée avant pointerup. Le nettoyage événementiel seul ne suffit donc pas. Garde minimal ajouté : pointerup consomme le début de geste et exige encore la capture effective du même pointeur avant toute sélection. Le journal du test est rattaché au canvas courant après remontage et joint avant chaque assertion d'annulation pour garder la preuve en cas d'échec. Les clics ordinaires, drag/zoom/recentrage restent soumis aux régressions existantes. Aucun lien causal établi avec le curseur natif figé ; BUG-UI-003 reste NON REPRODUIT et ouvert.
+
+### Livraison et preuves — passe UI après test humain
+
+Départ : `d0cade4978b46db9121aef9a60bafd17cd6bf240`. Code final vérifié : `ef89b9c8038ffa0b5148573a2a3f53c92b1d98b5` ; étapes intermédiaires 8edae4e et 24c3785 conservées dans l'historique. Le commit documentaire de livraison ne change pas ce code testé.
+
+Fichiers de production : `src/App.tsx` (préfixe Leaflet seulement), `src/components/CreditsMenu.tsx`, `RegionPanel.tsx`, `SaveManager.tsx`, `new-game/NewGameSetup.tsx`, `new-game/globeRenderer.ts`, `public/menu/leaflet-LICENSE.txt`. Tests : `src/components/__tests__/RegionPanel.test.ts`, `tests/menu-integrity/flow.e2e.ts`. Documentation : `docs/BUGS_CONNUS.md` et ce rapport. Aucun moteur, donnée, sauvegarde/migration, droit, Rust ou workflow modifié.
+
+| Commande / contrôle du code ef89b9c | Résultat réel |
+|---|---|
+| Unités ciblées UI/session/permissions | 28 fichiers, 213/213 |
+| `npm run build` | RÉUSSI |
+| `npx playwright test --config=playwright.menu-integrity.config.ts` | 5/5, 4,4 min |
+| Même configuration `--grep "free idle" --repeat-each=3` | 3/3, 2,0 min |
+| `npx playwright test --config=playwright.load-game.config.ts` | 2/2, 56,1 s |
+| `npx playwright test --config=playwright.new-game.config.ts` | 2/2, 34,4 s |
+| `cargo test` et `npm run tauri:build` Windows | RÉUSSIS |
+| `npm run verify -- -- --maxWorkers=1`, Linux/Windows | EN COURS au relais, NON VÉRIFIÉ jusqu'au résultat |
+
+[Run menus](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034421), [artefact captures/rapport](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034421/artifacts/13103824519), [run Windows](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034395), [installateur/exécutable](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034395/artifacts/13103908882), [verify général](https://github.com/waffle913/ProjectAtlas/actions/runs/41359034380). Les pièces pointer-events-cancel, pointer-events-lost et pointer-events du rapport HTML ont été ouvertes. Le journal final décrit 18 événements, deux relâchements sans capture puis un drag avec capture ; les tests confirment absence de sélection indue, reprise du drag, zoom/recentrage et maintien de la sélection. Le style CSS est auto ; aucune conclusion sur la rasterisation du curseur natif.
+
+La matrice 1920×1080/1366×768 × 100/150 %, les contrôles Audio désactivés, la persistance, la protection de session et les quatre fallbacks sans WebGL sont réellement parcourus. Contrôle visuel effectué sur les captures 8edae4e de Nouvelle partie 1920/100, Charger 1920/150, Crédits 1366/100 et Nouvelle partie 1366/150 : légendes documentaires déplacées, données datées lisibles et Crédits accessibles. Le même code de présentation est inchangé dans ef89b9c ; les nouveaux tests de ces surfaces passent. Ce contrôle de captures Chromium n'est pas un test humain du curseur Windows.
+
+Bilan : BUG-UI-002 corrigé avec preuve automatisée des surfaces ciblées, notices et provenance conservées. BUG-UI-003 natif OUVERT / NON REPRODUIT ; défaut secondaire d'annulation corrigé et testé. Aucune désactivation d'accélération, aucun faux curseur, aucune refonte. Le protocole Windows et les limites sont dans BUGS_CONNUS. Aucun test/build/Rust local ; `git diff --check` et revue séparée du diff effectués. Arrêt à la vérification GitHub selon la préférence utilisateur antérieure ; CI générale non déclarée réussie, aucune acceptation ni fusion. PR #3 reste ouverte en brouillon vers ui/load-game-globe.
