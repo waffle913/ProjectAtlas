@@ -14,7 +14,7 @@ import './SaveManager.css';
 const dateText=(date:string)=>new Date(date+'T00:00:00Z').toLocaleDateString('fr-FR',{timeZone:'UTC',year:'numeric',month:'long',day:'numeric'});
 export function SaveManager({onLoad,onBack,error,onPreview,territories=[],regions,countries=[],uiScale=1,onNewGame,onSettings,onCredits,onExit}:{
   onLoad:(id:string)=>void; onBack:()=>void; error?:string;
-  onPreview:(id:string)=>SimulationState; territories?:readonly Territory[]; regions?:LoadedRegionData; countries?:readonly Country[]; uiScale?:number;
+  onPreview:(id:string)=>SimulationState; territories?:readonly Territory[]; regions?:LoadedRegionData; countries?:readonly Pick<Country,'id'|'commonName'|'externalIds'>[]; uiScale?:number;
   onNewGame:()=>void;onSettings:()=>void;onCredits:()=>void;onExit:()=>void;
 }) {
   const [catalog,setCatalog]=useState(inspectSaveCatalog);
@@ -40,7 +40,7 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
     catch(e){setReadError('Sauvegarde inaccessible ou incompatible : '+(e instanceof Error?e.message:String(e)));}
   };
   const remove=async(id:string)=>{
-    setBusy(true);try{await deleteSave(id);setCatalog(inspectSaveCatalog());setPendingDelete(undefined);if(selection?.entry.id===id)setSelection(undefined);setReadError(undefined);}
+    setBusy(true);try{await deleteSave(id);setCatalog(inspectSaveCatalog());setPendingDelete(undefined);setSelection(current=>current?.entry.id===id?undefined:current);setReadError(undefined);}
     catch(e){setReadError('Suppression impossible : '+(e instanceof Error?e.message:String(e)));}finally{setBusy(false);}
   };
   const deletion=(id:string)=>pendingDelete===id?<div className="lg-confirm" role="alertdialog" aria-label="Confirmer la suppression"><p>Supprimer définitivement cette sauvegarde ?</p><button disabled={busy} onClick={()=>void remove(id)}>Confirmer la suppression</button><button disabled={busy} onClick={()=>setPendingDelete(undefined)}>Annuler</button></div>:<button className="lg-delete" onClick={()=>setPendingDelete(id)}><span aria-hidden="true">⌫</span> Supprimer</button>;

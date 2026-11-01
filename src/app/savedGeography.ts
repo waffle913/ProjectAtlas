@@ -27,7 +27,10 @@ export async function savedGeography(state: SimulationState, data: LoadedRegionD
   const view=campaignPresentation(state);
   const parents=new Set<string>();
   if(view.countryId)parents.add(view.countryId);
-  for(const r of data.registry.regions) if(state.regionOwnership[r.id]!==r.initialOwnerCountryId)parents.add(r.parentCountryId);
+  for(const r of data.registry.regions) if(state.regionOwnership[r.id]!==r.initialOwnerCountryId){
+    parents.add(r.parentCountryId);
+    const owner=state.regionOwnership[r.id];if(owner)parents.add(owner);
+  }
   // Don't use hidden current military state to decide which geographic assets to request.
   for(const war of view.operations?.wars??[]) { const r=data.regionsById.get(war.targetRegionId);if(r)parents.add(r.parentCountryId); }
   const polygons:SavedPolygon[]=globePolygons(territories.filter(t=>!t.ownerCountryId || !parents.has(t.ownerCountryId)));

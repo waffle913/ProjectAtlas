@@ -1,6 +1,6 @@
 // Synthetic UI regression snapshots ONLY. Not scenario/catalogue data and never bundled by App.
 import { initializeNewGame } from '../../src/simulation/initialization';
-import { setControlledPerson } from '../../src/simulation/governance/runtime';
+import { setControlledPerson, createPoliticalPerson } from '../../src/simulation/governance/runtime';
 import { countryStartingOptions } from '../../src/simulation/governance/selection';
 import { worldBase,worldRegions,worldCountryIds,worldInputs,worldPoliticalInputs,worldContext } from '../../src/simulation/__tests__/worldScenario';
 import countries from '../../src/data/entity-registry.json';
@@ -23,7 +23,10 @@ export function loadFixtures(){
  const components=Object.fromEntries(Object.entries(state.operations.components).map(([id,c])=>[id,c.regionId===maine.id && c.kind==='decisive'?{...c,controllingCountryId:canada,contested:false,captureProgress:0}:c]));
  const occupied=runOperationsReports(recomputeControl({...state,operations:{...state.operations,components}},[maine.id]));
  const ceded=endWar(occupied,'war.synthetic.load-ui','attacker_victory',worldContext);
- const oppositionCandidate=countryStartingOptions(state,canada).paths.opposition_party_leader.candidates[0];
- const opposition=oppositionCandidate?setControlledPerson(occupied,oppositionCandidate.personId):undefined;
+ // Canadian opposition eligibility is unavailable in the source registry. Do not invent a playable route.
+ // This synthetic access regression uses an explicitly created person with no office or capability.
+ const withoutOffice=createPoliticalPerson(occupied,{countryId:canada,displayName:'TEST SYNTHÉTIQUE — opposition sans fonction'});
+ const syntheticPerson=Object.keys(withoutOffice.governance.persons).find(id=>!occupied.governance.persons[id])!;
+ const opposition=setControlledPerson(withoutOffice,syntheticPerson);
  return {occupied,ceded,opposition};
 }

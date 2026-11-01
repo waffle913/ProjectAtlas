@@ -6,6 +6,7 @@ import { serializeSimulationState,restoreSimulationState } from '../../simulatio
 import { savedRegionStyle,sovereignBorderSegments,savedGeography } from '../savedGeography';
 import { campaignPresentation } from '../loadCampaign';
 import { type LoadedRegionData } from '../../data/regionData';
+import regionRegistry from '../../data/region-registry.json';
 import type { GlobePolygon } from '../../components/new-game/globeGeometry';
 let snapshots:ReturnType<typeof loadFixtures>;
 beforeAll(()=>{snapshots=loadFixtures();},60000);
@@ -43,6 +44,16 @@ describe('synthetic saved-world UI projection (not production data)',()=>{
   const regions=[maine];const data={registry:{regions,geometryAssetsByCountry:{[usa]:'/missing'}},regionsByCountryId:new Map([[usa,regions]]),regionsById:new Map([[maine.id,maine]])} as unknown as LoadedRegionData;
   const result=await savedGeography(snapshots.ceded,data,[]);
   expect(result.polygons).toEqual([]);expect(result.warnings.join(' ')).toContain('Maine');
+ });
+ it('uses the actual Maine geometry and removes shared Canada–Maine segments only after cession',async()=>{
+  vi.stubGlobal('fetch',vi.fn(async(url:string)=>new Response(await fs.readFile('public'+url,'utf8'))));
+  const countries=[canada,usa];const regions=worldRegions.filter(r=>countries.includes(r.parentCountryId));
+  const data={registry:{regions,geometryAssetsByCountry:regionRegistry.geometryAssetsByCountry},regionsByCountryId:new Map(countries.map(id=>[id,regions.filter(r=>r.parentCountryId===id)])),regionsById:new Map(regions.map(r=>[r.id,r]))} as unknown as LoadedRegionData;
+  const a=await savedGeography(snapshots.occupied,data,[]),b=await savedGeography(snapshots.ceded,data,[]);
+  expect(a.warnings).toEqual([]);expect(b.warnings).toEqual([]);
+  expect(a.polygons.filter(p=>p.regionId===maine.id).every(p=>p.countryId===usa && p.control==='occupied')).toBe(true);
+  expect(b.polygons.filter(p=>p.regionId===maine.id).every(p=>p.countryId===canada && !p.control)).toBe(true);
+  expect(sovereignBorderSegments(b.polygons).length).toBeLessThan(sovereignBorderSegments(a.polygons).length);
  });
  it('writes invariant-validated synthetic fixtures for the runner browser, restores exact saved snapshots',async()=>{
   const entries=[];
