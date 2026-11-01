@@ -129,3 +129,9 @@ Pas de nouvelle fonctionnalité ni de refonte. Les écrans étroits sous 1101 px
 ### E. Verdict de préparation à l'acceptation humaine
 
 **EN ATTENTE DE VÉRIFICATION GITHUB, PAS ACCEPTÉ.** Arrêt au lancement/contrôle des vérifications du nouveau HEAD à la demande de l'utilisateur. La PR #3 reste en brouillon vers `ui/load-game-globe`. Ne pas fusionner, fermer ou approuver. Tout échec nouveau conserve un statut bloquant ; l'exécutable et les captures doivent être contrôlés avant le test humain explicite.
+
+## Plan ciblé — deux échecs E2E restants (2026-11-01, avant code)
+
+HEAD local/distant vérifié : `500f42ea998e5ac924380d5a7384988c34398ed5`. Ancienne CI `41341716842` : unités 211/211, menus 3/5, animations 0/3, Charger et Nouvelle partie 2/2. Nouvelle autorisation : corriger les deux causes puis attendre les résultats GitHub, contrairement au relais précédent qui s'arrêtait au lancement.
+
+Contrats : changements limités à l'observation de la caméra et aux sélecteurs/assertions de préférences. Examiner la chronologie OrbitControls/pointerdown/RAF et le throttling du marqueur avant de modifier l'animation ; mesurer deux poses après confirmation de l'interaction. Maintien prolongé, reprise après relâchement, mouvement réduit et trois répétitions. Autosave interval : combobox par nom accessible ; vérifier 30 minutes et l'ensemble des préférences dans le stockage, après reload et nouveau document/pont. Examiner les captures existantes des trois pays/quatre configurations ; aucune modification de cadrage sans défaut visuel constaté. Risques : mesure périmée prise avant l'arrêt, assertion jamais atteinte, autres labels exacts similaires. Aucune migration, donnée, identité, mécanique de simulation ou sauvegarde de campagne concernée. Revue séparée du diff avant commit/push ; tests et build via les workflows existants, puis audit des résultats du nouveau SHA. BUG-001 inchangé, PR #3 en brouillon sans fusion.

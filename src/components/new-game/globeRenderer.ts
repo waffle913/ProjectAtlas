@@ -110,6 +110,9 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
     if(dead)return;renderer.render(scene,camera);
     renderer.domElement.dataset.renderedFrames=String(++renderedFrames);
     renderer.domElement.dataset.interacting=String(interacting);
+    // Camera observations and interaction state describe the same rendered pose.
+    // Only the React marker below is throttled; a pointerdown must not expose an old longitude.
+    renderer.domElement.dataset.cameraLongitude=String(lonLat(camera.position.toArray() as [number,number,number])[0]);
     if(mode==='focused' && focusPoints.length){
       const points=focusPoints.map(p=>p.clone().project(camera));
       renderer.domElement.dataset.focusBounds=JSON.stringify({minX:Math.min(...points.map(p=>p.x)),maxX:Math.max(...points.map(p=>p.x)),minY:Math.min(...points.map(p=>p.y)),maxY:Math.max(...points.map(p=>p.y))});
@@ -117,7 +120,6 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
 
     const time=performance.now();if(time-lastMarker<40 && !reduced && mode!=='focused')return;lastMarker=time;
     const center=selectedFocus?.center;
-    renderer.domElement.dataset.cameraLongitude=String(lonLat(camera.position.toArray() as [number,number,number])[0]);
     if(center){const position=new THREE.Vector3(...xyz(center,1.01));const visible=position.clone().normalize().dot(camera.position.clone().normalize())>0;
       position.project(camera);const rect=host.getBoundingClientRect();onMarker({x:rect.left+(position.x+1)/2*rect.width,y:rect.top+(1-position.y)/2*rect.height,visible});
     }else onMarker({x:0,y:0,visible:false});
