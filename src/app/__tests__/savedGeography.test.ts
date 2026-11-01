@@ -69,7 +69,7 @@ describe('synthetic saved-world UI projection (not production data)',()=>{
  });
  it('covers a foreign contested Region without a Canadian intelligence report',async()=>{
   const foreign=worldRegions.find(r=>r.parentCountryId!==canada && r.parentCountryId!==usa
-    && r.geographyMapping.status==='mapped' && Boolean(regionRegistry.geometryAssetsByCountry[r.parentCountryId]));
+    && r.geographyMapping.status==='mapped' && Object.hasOwn(regionRegistry.geometryAssetsByCountry,r.parentCountryId));
   expect(foreign).toBeDefined();
   if(!foreign)return;
   const s=structuredClone(snapshots.occupied);
