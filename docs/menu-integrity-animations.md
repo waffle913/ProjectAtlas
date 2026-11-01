@@ -76,3 +76,56 @@ Revue complémentaire : les contrôles Paramètres restent provisoirement désac
 ## Relais utilisateur
 À la demande de l'utilisateur, la mission s'arrête après publication et lancement des vérifications GitHub. Les résultats, captures et artefacts Windows doivent être contrôlés par l'équipe ; aucune réussite finale ni acceptation n'est déclarée. Les erreurs éventuelles seront examinées par l'utilisateur avant une nouvelle demande de correction. PR #3 en brouillon vers ui/load-game-globe, aucune fusion.
 
+
+## Rapport de la passe corrective finale — arrêt à la vérification GitHub
+
+Date : 2026-11-01. Départ : `66a658f096e6601915b111154fedcedf35527896`. SHA des correctifs : `6dd891f559762fee959220aa329bee4e98c3f34d`. Le commit documentaire qui contient ce rapport est le HEAD de livraison ; son SHA exact est fourni dans le relais utilisateur et les vérifications de la PR. Le contenu de production est identique au SHA des correctifs.
+
+### A. Défauts corrigés dans le code et preuves disponibles
+
+- **Audio (A)** : l'ancien artefact `13089939601` contient un DOM `<fieldset disabled>` et un instantané accessible avec quatre sliders et une checkbox `[disabled]`. Le matcher Playwright sur ce conteneur ne représente pas l'état des cinq contrôles. Il est remplacé par cinq assertions sémantiques, des tentatives réelles de clic souris/clavier et la comparaison des valeurs. Les instantanés accessibles seront exportés en `audio-accessibility-{résolution}-ui{échelle}.txt`. Aucun contrôle Audio activé.
+- **Sélecteurs (B)** : les labels enveloppent les selects et leurs options ; la recherche du texte intégral du label n'est pas équivalente au nom accessible du combobox. Les instantanés de l'ancien artefact montrent bien `combobox "Display mode"` et `combobox "UI scale"`. Noms explicites et `getByRole('combobox', {name, exact:true})` remplacent ces recherches fragiles. Assertions des valeurs, lecture du stockage natif synthétique, reload et nouveau document avec nouveau pont IPC partageant seulement le stockage persistant.
+- **Application native (C)** : auparavant App sauvegardait le mode demandé avant de recevoir la réponse native. Le mode affiché/persisté reste désormais le précédent pendant l'opération et en cas d'échec ; la tentative échouée reste disponible pour réessai. Seule une réponse native réussie publie et sauvegarde le nouveau mode, fusionné avec les autres préférences les plus récentes. Sélecteur, réessai et restauration des valeurs par défaut protégés contre les demandes concurrentes. Le test couvre deux rejets, une modification indépendante qui ne masque pas l'erreur, puis une réponse de succès explicitement retenue/libérée par la fixture ; aucune temporisation ne simule le succès.
+- **Sans WebGL (D)** : les quatre combinaisons 1920×1080/1366×768 à 100/150 % doivent toutes atteindre la fin de la boucle (assertion de la liste exacte). Chaque combinaison sélectionne Canada au clavier, consulte l'aperçu sans écriture de campagne, charge réellement la campagne, retourne au menu, consulte Nouvelle partie et reprend la session à date inchangée. Captures distinctes nouvelle partie/chargement.
+- **Cadrage (E)** : l'ancienne capture `focused-france-1920x1080.png` a été examinée ; le canvas s'étendait sous les panneaux et jusqu'à 19 % sous le bas du viewport pourtant coupé. Le rectangle de rendu est maintenant dans la zone utile, avec largeur adaptée aux panneaux agrandis ; la formule de distance existante utilise ses dimensions réelles. Assertions des limites projetées des sommets (marge de 5 % par rapport aux bords du canvas) et captures France/Canada/Luxembourg sur les quatre combinaisons. Les géométries ne changent pas.
+- **Animations (F)** : l'assertion sur une transition de 650 ms pouvait arriver après sa fin ; elle est remplacée par une lecture synchrone du passage transition → vue libre lors d'une interruption clavier, plus les interactions souris existantes. L'arrêt de rotation pendant l'interaction attend plusieurs images réellement rendues. Le marqueur était limité à une mise à jour toutes les 40 ms même sur la dernière image du focus : la pose finale est maintenant publiée sans cette limitation. Nouvelle partie attend le focus terminé avant de cliquer son marqueur. Trois répétitions indépendantes du scénario complet sont ajoutées au workflow, sans augmenter les timeouts. Les deux observations de 900 ms restent des tests d'absence de mouvement, pas des attentes de fin d'animation.
+
+Ces preuves de lecture du code et des anciens artefacts ne constituent pas une réussite des nouveaux tests.
+
+### B. Défauts restant ouverts
+
+BUG-001 demeure hors périmètre et inchangé. Les défauts A–F sont implémentés mais **restent bloquants tant que les nouveaux tests et captures n'ont pas été vérifiés**. Aucune acceptation technique ou humaine n'est déclarée à ce stade.
+
+### C. Risques non vérifiés et validation demandée
+
+Aucun build, suite npm, test Rust ou capture nouvelle n'a été exécuté localement : validation par les runners existants, conformément au contrat de ce chantier. Commandes effectivement exécutées localement : inspection Git/branche/diff, lecture des sources et artefacts, `git diff --check` (réussi), recherche `Math.random|setInterval` dans les fichiers de production concernés (aucun Math.random ; deux timers App préexistants inchangés). Revue séparée du diff réel effectuée avant commit : aucun fichier de simulation, de données, de sérialisation, de migration, de stockage de campagne ou Rust changé ; aucune nouvelle horloge/RNG.
+
+| Vérification sur le nouveau HEAD | Commande du runner | État au relais |
+|---|---|---|
+| Unités UI/session/préférences/caméra et permissions | commande ciblée du workflow menu | NON VÉRIFIÉ |
+| Build frontend | `npm run build` | NON VÉRIFIÉ |
+| Menus (5 scénarios) | `npx playwright test --config=playwright.menu-integrity.config.ts` | NON VÉRIFIÉ |
+| Animation (3 répétitions supplémentaires) | `npx playwright test --config=playwright.menu-integrity.config.ts --grep "free idle" --repeat-each=3 --output=artifacts/menu-integrity/animation-repetitions --reporter=list` | NON VÉRIFIÉ |
+| Charger (2 scénarios) | `npx playwright test --config=playwright.load-game.config.ts` | NON VÉRIFIÉ |
+| Nouvelle partie (2 scénarios) | `npx playwright test --config=playwright.new-game.config.ts` | NON VÉRIFIÉ |
+| Linux et Windows, audits et régressions globaux | `npm run verify -- -- --maxWorkers=1` | NON VÉRIFIÉ |
+| Tests natifs Windows | `cargo test` dans `src-tauri` | NON VÉRIFIÉ |
+| Installateur Windows | `npm run tauri:build` | NON VÉRIFIÉ |
+
+Captures attendues dans l'artefact menu du nouveau HEAD : `framing-{france,canada,luxembourg}-{1920x1080,1366x768}-ui{100,150}.png`, `no-webgl-{new,load}-{résolution}-ui{100,150}.png`, écrans home/settings/credits/new/load et catégories de paramètres pour ces quatre configurations. Les anciennes captures ne prouvent pas le correctif. Le zoom manuel supplémentaire peut volontairement dépasser le cadrage automatique ; les captures `framing-*` sont prises avant ce zoom.
+
+Règle géographique existante conservée : centre de la plus grande composante, prise en compte des sommets dans un voisinage angulaire de 60°. Les composantes ultramarines éloignées ne forcent pas un dézoom mondial ; le Canada inclut son voisinage continental et arctique selon cette même règle. Une seule face ne garantit pas la visibilité simultanée de territoires dispersés sur toute la planète. Ni extension de cette règle ni modification géographique.
+
+Le redémarrage de la fixture prouve la réinitialisation du document/pont IPC, pas un vrai redémarrage du processus Windows. L'application effective du mode par le gestionnaire de fenêtres, les éventuels échecs partiels natifs et le confort visuel final exigent le test personnel Windows. Les sommets projetés sont calculés seulement lors des rendus en focus ; pas de reconstruction de géométrie par image, pas de recalcul du monde. Aucun benchmark de simulation requis pour ce périmètre de présentation.
+
+Sources historiques consultées : [menus](https://github.com/waffle913/ProjectAtlas/actions/runs/41324642476), [verify Linux/Windows](https://github.com/waffle913/ProjectAtlas/actions/runs/41324642469), [artefact visuel examiné](https://github.com/waffle913/ProjectAtlas/actions/runs/41324642476/artifacts/13089939601). Sur cette ancienne exécution seulement : 2/5 menus, 2/2 Charger, 2/2 Nouvelle partie ; verify Linux/Windows réussis. L'ancien installateur [13090539794](https://github.com/waffle913/ProjectAtlas/actions/runs/41324642479/artifacts/13090539794) n'est pas un binaire corrigé.
+
+Pour le nouveau HEAD : [vérifications PR #3](https://github.com/waffle913/ProjectAtlas/pull/3/checks), [menu-integrity-ui](https://github.com/waffle913/ProjectAtlas/actions/workflows/menu-integrity-ui.yml), [verify](https://github.com/waffle913/ProjectAtlas/actions/workflows/verify.yml), [desktop-windows et installateur à générer](https://github.com/waffle913/ProjectAtlas/actions/workflows/desktop-windows.yml). Contrôler le SHA du run avant d'utiliser ses résultats ; les URLs exactes de lancement sont fournies dans le relais de publication. Aucun nouvel identifiant d'artefact n'est inventé avant génération.
+
+### D. Améliorations facultatives hors périmètre
+
+Pas de nouvelle fonctionnalité ni de refonte. Les écrans étroits sous 1101 px conservent leur disposition existante ; ils ne font pas partie de la matrice obligatoire. Aucun changement de BUG-001, des autres branches/PR ou des systèmes géopolitiques.
+
+### E. Verdict de préparation à l'acceptation humaine
+
+**EN ATTENTE DE VÉRIFICATION GITHUB, PAS ACCEPTÉ.** Arrêt au lancement/contrôle des vérifications du nouveau HEAD à la demande de l'utilisateur. La PR #3 reste en brouillon vers `ui/load-game-globe`. Ne pas fusionner, fermer ou approuver. Tout échec nouveau conserve un statut bloquant ; l'exécutable et les captures doivent être contrôlés avant le test humain explicite.
