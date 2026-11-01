@@ -21,16 +21,18 @@ jobs:
       - name: UI, session, save-read and permissions regression units
         run: npm test -- src/app/__tests__ src/components/__tests__ src/simulation/__tests__/startSelection.test.ts src/simulation/__tests__/executiveAuthority.test.ts --maxWorkers=1
       - run: npm run build
+        id: frontend
       - name: Stage invariant-validated synthetic saves outside the shipped build
         run: cp -r artifacts/load-game/storage dist/__synthetic_saves__
       - run: npx playwright install --with-deps chromium
+        id: browser
       - name: Menu integrity, animation, preferences, viewport and fallback tests
         run: npx playwright test --config=playwright.menu-integrity.config.ts
       - name: Existing load interface regressions
-        if: success() || failure()
+        if: (success() || failure()) && steps.frontend.outcome == 'success' && steps.browser.outcome == 'success'
         run: npx playwright test --config=playwright.load-game.config.ts
       - name: Existing new-game regressions
-        if: success() || failure()
+        if: (success() || failure()) && steps.frontend.outcome == 'success' && steps.browser.outcome == 'success'
         run: npx playwright test --config=playwright.new-game.config.ts
       - uses: actions/upload-artifact@v4
         if: always()

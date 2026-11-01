@@ -14,6 +14,6 @@ it('synchronizes both scale fields without reactivating unavailable controls',()
  const click=(name:string)=>act(()=>[...host.querySelectorAll('button')].find(b=>b.textContent===name)!.click());
  expect(host.querySelector('select')!.disabled).toBe(true);
  click('Audio');expect(host.querySelector('fieldset')!.disabled).toBe(true);expect(host.textContent).toContain('Aucun système ou contenu audio');
- click('Interface');expect(host.querySelector('input[type=number]')!.disabled).toBe(true);expect(host.querySelector('select')!.disabled).toBe(true);expect(host.querySelector<HTMLInputElement>('input[type=checkbox]')!.disabled).toBe(true);
+ click('Interface');expect(host.querySelector<HTMLInputElement>('input[type=number]')!.disabled).toBe(true);expect(host.querySelector('select')!.disabled).toBe(true);expect(host.querySelector<HTMLInputElement>('input[type=checkbox]')!.disabled).toBe(true);
  click('Accessibility');expect(host.querySelectorAll('select')[1].disabled).toBe(true);
 });
