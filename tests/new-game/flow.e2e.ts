@@ -18,7 +18,7 @@ test('real globe, search, four-step confirmation and menu continuity',async({pag
  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+70,y+10,{steps:8});await page.mouse.up();
  expect((await page.screenshot()).equals(beforeRotation)).toBe(false);await expect(page.locator('.ng-country-title h1')).toHaveText('France');
  await canvas.focus();await canvas.press('Home');
- await canvas.focus();await canvas.press('ArrowRight');expect((await page.screenshot()).equals(beforeRotation)).toBe(false);await canvas.press('Home');
+ await canvas.focus();await canvas.press('ArrowRight');expect((await page.screenshot()).equals(beforeRotation)).toBe(false);await canvas.press('Home');await expect(canvas).toHaveAttribute('data-camera-mode','focused');
  await page.getByLabel('Rechercher un pays',{exact:true}).fill('France');
  const point=(await page.locator('.ng-hover').getAttribute('data-point'))!.split(',').map(Number);await page.mouse.click(point[0],point[1]);
  await expect(page.getByLabel('Rechercher un pays',{exact:true})).toHaveValue('');

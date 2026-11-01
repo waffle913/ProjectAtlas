@@ -21,7 +21,7 @@ export async function storage(page:import('@playwright/test').Page){
    if(command==='exit_app'){w.__syntheticExit++;return;}
    if(command==='settings_read')return settings;
    if(command==='settings_write'){settings=String(args.json);localStorage.setItem('synthetic-native-settings',settings);return;}
-   if(command==='set_display_mode'){if(w.__syntheticFailDisplay)throw new Error('Synthetic native display rejection');return;}
+   if(command==='set_display_mode'){const delayed=window as unknown as {__syntheticDeferDisplay?:boolean;__syntheticResolveDisplay?:()=>void};if(delayed.__syntheticDeferDisplay)await new Promise<void>(resolve=>{delayed.__syntheticResolveDisplay=resolve;});if(w.__syntheticFailDisplay)throw new Error('Synthetic native display rejection');(window as unknown as {__syntheticDisplayMode:string}).__syntheticDisplayMode=String(args.mode);return;}
    if(command==='save_file_list')return [...entries.map(e=>e.id),'synthetic.corrupt','synthetic.incompatible','__index__'];
    if(command==='save_file_read'){w.__syntheticReads++;
     if(removed.has(id))return null;if(writes.has(id))return writes.get(id);

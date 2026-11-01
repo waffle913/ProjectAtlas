@@ -13,12 +13,12 @@ type SettingsPatch = {
   accessibility?: Partial<AppSettings['accessibility']>;
 };
 
-export function SettingsMenu({ settings, onChange, onBack, error, displayError, onRetryDisplay, ready=true }: {
+export function SettingsMenu({ settings, onChange, onBack, error, displayError, onRetryDisplay, ready=true, displayBusy=false }: {
   settings: AppSettings;
   onChange: (next: AppSettings) => void;
   onBack: () => void;
   error?:string; displayError?:string; onRetryDisplay?:()=>void;
-  ready?:boolean;
+  ready?:boolean; displayBusy?:boolean;
 }) {
   const [category, setCategory] = useState<Category>('graphics');
   const update = (patch: SettingsPatch) => {
@@ -43,7 +43,7 @@ export function SettingsMenu({ settings, onChange, onBack, error, displayError, 
           <button onClick={onBack} className="back-button">← Back</button>
         </header>
         {error && <p className="menu-error" role="alert">{error}</p>}
-        {displayError && <div className="menu-error" role="alert"><p>{displayError}</p><button onClick={onRetryDisplay}>Réessayer le mode d’affichage</button></div>}
+        {displayError && <div className="menu-error" role="alert"><p>{displayError}</p><button disabled={displayBusy} onClick={onRetryDisplay}>Réessayer le mode d’affichage</button></div>}
         {!ready && <p role="status" className="settings-note">Préparation du stockage natif : les réglages seront modifiables après lecture des préférences enregistrées.</p>}
         <fieldset className="settings-body" disabled={!ready}>
           <nav className="settings-tabs" aria-label="Settings categories">
@@ -53,14 +53,14 @@ export function SettingsMenu({ settings, onChange, onBack, error, displayError, 
             {category === 'graphics' && <>
               <h2>Graphics / Video</h2>
               <label>Display mode
-                <select disabled={!isTauri()} title={!isTauri()?'Disponible uniquement dans l’exécutable natif':undefined} value={settings.graphics.displayMode} onChange={e => update({ graphics: { displayMode: e.target.value as DisplayMode } })}>
+                <select aria-label="Display mode" disabled={!isTauri() || displayBusy} title={!isTauri()?'Disponible uniquement dans l’exécutable natif':undefined} value={settings.graphics.displayMode} onChange={e => update({ graphics: { displayMode: e.target.value as DisplayMode } })}>
                   <option value="windowed">Windowed</option>
                   <option value="borderless">Borderless Windowed</option>
                   <option value="fullscreen">Fullscreen</option>
                 </select>
               </label>
               <label>UI scale
-                <select value={String(settings.graphics.uiScale)} onChange={e => update({ graphics: { uiScale: Number(e.target.value) } })}>
+                <select aria-label="UI scale" value={String(settings.graphics.uiScale)} onChange={e => update({ graphics: { uiScale: Number(e.target.value) } })}>
                   {[0.75, 0.9, 1, 1.15, 1.3, 1.5].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}
                 </select>
               </label>
@@ -105,7 +105,7 @@ export function SettingsMenu({ settings, onChange, onBack, error, displayError, 
             {category === 'accessibility' && <>
               <h2>Accessibility</h2><p className="settings-note">Échelle identique à Graphics. Le mouvement réduit est actif si cette option OU le système le demande. Le contraste agit sur les panneaux et contrôles.</p>
               <label>UI scale
-                <select value={String(settings.accessibility.uiScale)} onChange={e => update({ accessibility: { uiScale: Number(e.target.value) } })}>
+                <select aria-label="UI scale" value={String(settings.accessibility.uiScale)} onChange={e => update({ accessibility: { uiScale: Number(e.target.value) } })}>
                   {[0.75, 0.9, 1, 1.15, 1.3, 1.5].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}
                 </select>
               </label>
@@ -117,7 +117,7 @@ export function SettingsMenu({ settings, onChange, onBack, error, displayError, 
                 </select>
               </label>
             </>}
-            <div className="settings-actions"><button onClick={() => onChange(structuredClone(DEFAULT_SETTINGS))}>Restore defaults</button></div>
+            <div className="settings-actions"><button disabled={displayBusy} onClick={() => onChange(structuredClone(DEFAULT_SETTINGS))}>Restore defaults</button></div>
           </section>
         </fieldset>
       </div>

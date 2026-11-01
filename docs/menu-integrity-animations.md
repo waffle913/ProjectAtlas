@@ -1,5 +1,11 @@
 # Plan — intégrité et animations des menus
 
+## Plan de la passe corrective finale (avant code, 2026-11-01)
+
+Départ vérifié : `66a658f096e6601915b111154fedcedf35527896`, PR #3 ouverte en brouillon, cible inchangée. Préserver les fichiers locaux `.reasonix` non suivis. Périmètre : sélecteurs accessibles et contrôles Audio, application native avant persistance du mode, cadrage dans le rectangle réellement visible, synchronisation observable des animations et couverture fallback/persistance. Aucun état canonique, format de campagne, migration, identifiant ou mécanisme de simulation modifié.
+
+Dépendances : SettingsMenu/App/adaptateur natif existant, globe Three.js/OrbitControls et CSS partagés, fixtures IPC et workflows existants. Risques : réponses natives tardives, réglages concurrents, panneaux masquant le canvas, inertie résiduelle et assertions sur une transition déjà terminée. Tests : cinq scénarios menus renforcés, répétition indépendante animation, deux Charger et deux Nouvelle partie, unités caméra, verify Linux/Windows et Rust/build Windows via Actions. Revue séparée du diff avant publication. Arrêt demandé à la vérification GitHub : les résultats non encore obtenus resteront NON VÉRIFIÉS, sans fusion ni acceptation.
+
 Parent : ui/load-game-globe ace4f7aac71d549c43762c5707f5070e36182245. Branche ui/menu-integrity-animations. PR vers ui/load-game-globe ; aucune modification de main, aucune fusion de la PR 2.
 
 ## Contrats et bloc d'implémentation

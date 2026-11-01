@@ -121,7 +121,9 @@ export default function App() {
   const [guardBusy,setGuardBusy]=useState(false);
   const [settingsError,setSettingsError]=useState<string>();
   const [displayError,setDisplayError]=useState<string>();
-  const [displayRetry,setDisplayRetry]=useState(0);
+  const [displayBusy,setDisplayBusy]=useState(false);
+  const displayBusyRef=useRef(false);
+  const failedDisplayMode=useRef<AppSettings["graphics"]["displayMode"] | undefined>(undefined);
   const settingsWriteSequence=useRef(0);
   const closeAction=useRef<()=>void>(()=>{});
   const auxiliaryOrigin = useRef<'menu' | 'game' | 'new-game' | 'load'>('menu');
@@ -139,6 +141,7 @@ export default function App() {
     setMenuSelection({ id, summary: readCampaignSummary(loadSave(id)) });
   };
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
+  const settingsRef=useRef(settings);settingsRef.current=settings;
   const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const [pauseOpen, setPauseOpenState] = useState(false);
@@ -182,15 +185,32 @@ export default function App() {
   useEffect(()=>{
     if(!storageReady)return;
     let current=true;
-    applyNativeDisplayMode(settings.graphics.displayMode).then(()=>{if(current)setDisplayError(undefined);})
-      .catch(error=>{if(current)setDisplayError('Mode d’affichage non appliqué : '+(error instanceof Error?error.message:String(error)));});
+    const mode=loadSettings().graphics.displayMode;
+    applyNativeDisplayMode(mode).then(()=>{if(current)setDisplayError(undefined);})
+      .catch(error=>{if(current){failedDisplayMode.current=mode;setDisplayError('Mode d’affichage non appliqué : '+(error instanceof Error?error.message:String(error)));}});
     return()=>{current=false;};
-  },[settings.graphics.displayMode,storageReady,displayRetry]);
-  const persistSettings = (next: AppSettings) => {
-    const normalized=normalizeSettings(next);setSettings(normalized);
+  },[storageReady]);
+  const storeSettings = (next: AppSettings) => {
+    const normalized=normalizeSettings(next);settingsRef.current=normalized;setSettings(normalized);
     const sequence=++settingsWriteSequence.current;
     void saveSettings(normalized).then(()=>{if(sequence===settingsWriteSequence.current)setSettingsError(undefined);})
       .catch(error=>{if(sequence===settingsWriteSequence.current)setSettingsError('Paramètres appliqués pour cette session, mais non sauvegardés : '+(error instanceof Error?error.message:String(error)));});
+  };
+  const requestDisplay = (mode: AppSettings['graphics']['displayMode']) => {
+    if(displayBusyRef.current)return;
+    displayBusyRef.current=true;setDisplayBusy(true);failedDisplayMode.current=mode;
+    void applyNativeDisplayMode(mode).then(()=>{
+      // Merge with the latest preferences: other categories remain editable while IPC runs.
+      storeSettings({...settingsRef.current,graphics:{...settingsRef.current.graphics,displayMode:mode}});
+      failedDisplayMode.current=undefined;setDisplayError(undefined);
+    }).catch(error=>setDisplayError('Mode d’affichage non appliqué : '+(error instanceof Error?error.message:String(error))))
+      .finally(()=>{displayBusyRef.current=false;setDisplayBusy(false);});
+  };
+  const persistSettings = (next: AppSettings) => {
+    const mode=next.graphics.displayMode;
+    // Displayed and saved values describe the applied mode, never an unacknowledged request.
+    storeSettings({...next,graphics:{...next.graphics,displayMode:settingsRef.current.graphics.displayMode}});
+    if(mode!==settingsRef.current.graphics.displayMode)requestDisplay(mode);
   };
   const clock = useRef(new SimulationClock(initialState));
   function suspendMenuClock(){
@@ -521,7 +541,7 @@ export default function App() {
   const exitApp = () => requestDestructive('quitter ProjectAtlas',async()=>{await exitApplication();});
   closeAction.current=exitApp;
   const renderScreen=()=>{
-  if (screen === 'settings') return <SettingsMenu ready={storageReady} settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} error={settingsError??storageError} displayError={displayError} onRetryDisplay={()=>setDisplayRetry(n=>n+1)} />;
+  if (screen === 'settings') return <SettingsMenu ready={storageReady} settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} error={settingsError??storageError} displayError={displayError} displayBusy={displayBusy} onRetryDisplay={()=>{if(failedDisplayMode.current)requestDisplay(failedDisplayMode.current);}} />;
   if (screen === 'load') return storageReady
     ? <SaveManager onLoad={loadSlot} onPreview={previewSlot} onBack={() => { setLoadSlotError(undefined);setLoadPreview(undefined); setScreen(loadOrigin.current); }} selectedPreview={loadPreview} onSelectionChange={setLoadPreview} onDeleted={id=>{integrity.current.removedSave(id);setSaves(listSaves());}} error={loadSlotError ?? storageError} territories={world?.territories} regions={regionData} countries={countryData?.registry.countries} uiScale={settings.graphics.uiScale} reducedMotion={settings.accessibility.reducedMotion} onNewGame={startNewGame} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} />
     : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={returnFromAuxiliary}>← Back</button></main>;

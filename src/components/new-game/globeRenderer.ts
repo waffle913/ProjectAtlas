@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { xyz, lonLat, countryAt, countryCenter, type GlobePolygon, type Point } from './globeGeometry';
+import { xyz, lonLat, countryAt, type GlobePolygon, type Point } from './globeGeometry';
 import {countryFocus,focusDistance,easeCamera,type CountryFocus} from './globeCamera';
 import { sovereignBorderSegments } from './globeGeometry';
 export interface GlobeRenderOptions { saved?: boolean; regionPicking?: boolean; focusCountryId?:string; reducedMotion?:boolean }
@@ -52,6 +52,7 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
   controls.enableDamping=!reduced;
   const focusCache=new Map<string,CountryFocus|undefined>();
   let selectedFocus:CountryFocus|undefined;
+  let focusPoints:THREE.Vector3[]=[];let renderedFrames=0;
   let flight:{start:number;from:THREE.Vector3;to:THREE.Vector3;endMode:'free'|'focused'}|undefined;
   const worldUp=new THREE.Vector3(0,1,0);
   const setMode=(value:typeof mode)=>{mode=value;renderer.domElement.dataset.cameraMode=value;};
@@ -107,7 +108,14 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
     fragmentShader:'varying vec3 n;varying vec3 v;void main(){float a=pow(1.0-abs(dot(normalize(n),normalize(v))),3.0);gl_FragColor=vec4(0.25,0.6,1.0,a*0.9);}'}));scene.add(atmosphere);
   const render=()=>{
     if(dead)return;renderer.render(scene,camera);
-    const time=performance.now();if(time-lastMarker<40 && !reduced)return;lastMarker=time;
+    renderer.domElement.dataset.renderedFrames=String(++renderedFrames);
+    renderer.domElement.dataset.interacting=String(interacting);
+    if(mode==='focused' && focusPoints.length){
+      const points=focusPoints.map(p=>p.clone().project(camera));
+      renderer.domElement.dataset.focusBounds=JSON.stringify({minX:Math.min(...points.map(p=>p.x)),maxX:Math.max(...points.map(p=>p.x)),minY:Math.min(...points.map(p=>p.y)),maxY:Math.max(...points.map(p=>p.y))});
+    }
+
+    const time=performance.now();if(time-lastMarker<40 && !reduced && mode!=='focused')return;lastMarker=time;
     const center=selectedFocus?.center;
     renderer.domElement.dataset.cameraLongitude=String(lonLat(camera.position.toArray() as [number,number,number])[0]);
     if(center){const position=new THREE.Vector3(...xyz(center,1.01));const visible=position.clone().normalize().dot(camera.position.clone().normalize())>0;
@@ -116,7 +124,7 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
   };
   camera.position.set(...xyz([20,28],3.1));camera.lookAt(0,0,0);controls.update();setMode('free');
   const onChange=()=>{if(!inFrame){render();schedule();}};
-  const onStart=()=>{interacting=true;cancelFlight();schedule();};
+  const onStart=()=>{interacting=true;cancelFlight();render();schedule();};
   const onEnd=()=>{interacting=false;settleUntil=performance.now()+1200;resumeAfter=settleUntil+600;render();schedule();};
   controls.addEventListener('change',onChange);controls.addEventListener('start',onStart);controls.addEventListener('end',onEnd);
   const resize=()=>{if(dead)return;const r=host.getBoundingClientRect();if(!r.width||!r.height)return;camera.aspect=r.width/r.height;camera.updateProjectionMatrix();renderer.setSize(r.width,r.height);if(mode==='focused')focusSelected();else render();schedule();};
@@ -156,7 +164,11 @@ export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[],
     select(id,focus=true){
       selected=id;hover.geometry.dispose();hover.geometry=new THREE.BufferGeometry();onHover();
       if(!focusCache.has(id))focusCache.set(id,countryFocus(polygons,id));selectedFocus=focusCache.get(id);
-      const p=polygons.filter(p=>p.countryId===id);highlight.geometry.dispose();outline.geometry.dispose();
+      const p=polygons.filter(p=>p.countryId===id);
+      renderer.domElement.dataset.focusCountry=id;
+      const direction=selectedFocus?new THREE.Vector3(...xyz(selectedFocus.center)):undefined;
+      focusPoints=direction?p.flatMap(p=>p.rings[0]).map(point=>new THREE.Vector3(...xyz(point,1.007))).filter(v=>v.clone().normalize().dot(direction)>=.5):[];
+      highlight.geometry.dispose();outline.geometry.dispose();
       highlight.geometry=surfaceGeometry(p);outline.geometry=borderGeometry(p,options.saved);
       if(!selectedFocus){cancelFlight();setMode('free');render();schedule();}
       else if(focus)focusSelected();else render();

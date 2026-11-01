@@ -28,6 +28,9 @@ jobs:
         id: browser
       - name: Menu integrity, animation, preferences, viewport and fallback tests
         run: npx playwright test --config=playwright.menu-integrity.config.ts
+      - name: Independent animation stability repetitions
+        if: (success() || failure()) && steps.frontend.outcome == 'success' && steps.browser.outcome == 'success'
+        run: npx playwright test --config=playwright.menu-integrity.config.ts --grep "free idle" --repeat-each=3 --output=artifacts/menu-integrity/animation-repetitions --reporter=list
       - name: Existing load interface regressions
         if: (success() || failure()) && steps.frontend.outcome == 'success' && steps.browser.outcome == 'success'
         run: npx playwright test --config=playwright.load-game.config.ts

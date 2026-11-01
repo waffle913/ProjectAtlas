@@ -86,3 +86,11 @@
 /* At enlarged UI sizes, remove decorative separators before they crowd step labels. */
 .ng-large-ui .ng-steps i { display:none; }
 .ng-large-ui .ng-steps span { min-width:0; }
+
+/* Focus is fitted to this usable rectangle, excluding navigation, steps, country
+   panel and footer. The old canvas extended below the clipped viewport. */
+@media (min-width:1101px) {
+ .new-game-setup .ng-globe {left:21%;right:30%;top:20%;bottom:14%;}
+ .new-game-setup.ng-large-ui .ng-globe {right:36%;}
+ .load-game-setup .ng-globe {left:22%;right:38%;top:20%;bottom:14%;}
+}
