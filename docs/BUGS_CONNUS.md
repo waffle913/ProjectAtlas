@@ -56,33 +56,10 @@ Le contrat 0.27.2 fournit actuellement une localisation à la région ; la local
 
 ---
 
-## UX-001 — Animations et transitions absentes du globe des menus « Nouvelle partie » et « Charger une partie »
+## UX-001 — Animations et transitions obligatoires avant validation humaine des menus
 
-- **Catégorie :** Amélioration UX connue / finition visuelle, **pas une défaillance du moteur**.
-- **État :** Manque observé dans « Nouvelle partie » ; exigence à reprendre dans « Charger une partie », qui n'est pas encore implémenté.
-- **Priorité :** Basse ; correctif différé à une passe de finition commune des menus. Ne bloque ni la fusion du menu « Nouvelle partie » ni la conception de « Charger une partie ».
-- **Signalé :** 31 octobre 2026.
-- **Périmètre vérifié :** branche UI `ui/new-game-globe` de `waffle913/ProjectAtlas`, notamment `src/components/new-game/globeRenderer.ts`, `CountryGlobe.tsx`, `NewGameSetup.css` ; pas d'affirmation de test sur un menu de chargement inexistant.
+Décision utilisateur, 1er novembre 2026 : les animations du globe partagé et les transitions de menus sont désormais obligatoires avant acceptation humaine. Le report facultatif du 31 octobre est remplacé par cette décision. Il ne s'agit pas d'un changement du moteur.
 
-### Comportement actuel constaté
+Implémentation sur `ui/menu-integrity-animations`, soumise à CI et revue : rotation libre très lente, interruption manuelle, inertie discrète, focus sphérique annulable, cadrage adapté et maintien du pays au centre. France présélectionnée informativement au départ ; le focus est explicite. Retour à la vue libre distinct. Mouvement réduit utilisateur OU système : pas de rotation automatique, transition ni inertie. Aucun rendu automatique en focus au repos ; géométries réutilisées. Transitions CSS courtes, sans écriture de sauvegarde ni progression de simulation.
 
-Le globe est réellement interactif en 3D : rotation manuelle, zoom, sélection et surbrillance des pays, recentrage de caméra. **Ce n'est pas une image statique.** En revanche, la rotation n'utilise pas d'inertie (`enableDamping = false`), le recentrage est immédiat plutôt qu'animé, et les menus ne possèdent pas encore de transitions visuelles abouties. Aucune rotation automatique du globe au repos n'est prévue dans l'implémentation observée.
-
-### Comportement souhaité (à arbitrer pendant la finition)
-
-- **Rotation manuelle fluide :** inertie/amortissement discret, sans réduire la précision du clic ni perturber la sélection des pays.
-- **Sélection d'un pays :** transition de caméra douce vers le pays choisi, plutôt qu'un saut instantané, en conservant une interaction réactive.
-- **Navigation :** transitions courtes et cohérentes pour la sélection, les panneaux et les étapes ; éviter les effets cinématiques envahissants.
-- **Animation au repos :** rotation lente éventuelle du globe, **facultative** ; elle ne doit pas gêner la lecture ou déplacer le pays lorsque l'utilisateur interagit.
-- **Accessibilité et performances :** respecter `prefers-reduced-motion`, limiter l'animation aux moments utiles et préserver WebGL dégradé / fallback sans WebGL.
-- **Réutilisation :** mutualiser la logique d'animation du globe entre « Nouvelle partie » et « Charger une partie ». Dans « Charger », les animations sont purement visuelles : la sauvegarde est affichée en **lecture seule**, sans avancer le temps de simulation.
-
-### Critères d'acceptation
-
-1. Sélection d'un pays ou d'une sauvegarde : transition visible mais sobre, sans erreur de caméra, sélection ni surbrillance.
-2. Rotation/zoom restent utilisables pendant ou après la transition ; arrêt propre lors d'une interaction de l'utilisateur.
-3. Comportement adapté au mouvement réduit et à l'absence de WebGL ; aucun chargement ni changement de données non demandé.
-4. Ne pas introduire de boucle de rendu permanente coûteuse pour une animation inexistante : activer le rendu au besoin ou seulement pendant la transition.
-5. Tests/builds **uniquement sur GitHub Actions**, pas d'exécution locale imposée.
-
-**Suivi :** effectuer lors d'un passage de finition commun aux deux menus, sans interrompre le développement actuel de « Charger une partie ».
+Critères : tests Actions de sélection/interruption/changement de pays, navigation réversible, pause des menus, sans WebGL, 1920×1080 et 1366×768 à 100/150 %, captures réelles et exécutable Windows. Voir [le rapport de mission](menu-integrity-animations.md). **Implémentation et CI ne valent pas acceptation.** L'utilisateur conserve son test personnel Windows et son veto ; aucune fusion automatique.

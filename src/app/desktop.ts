@@ -134,20 +134,28 @@ export async function flushPersistence(): Promise<void> {
   await activeDesktop?.flush();
 }
 
+let displayModeChain:Promise<void>=Promise.resolve();
 /** Applies the native window display mode. No-op in the browser build. */
 export async function applyNativeDisplayMode(mode: 'windowed' | 'borderless' | 'fullscreen'): Promise<void> {
   if (!isTauri()) return;
-  try { await defaultInvoke('set_display_mode', { mode }); } catch { /* unsupported on this platform */ }
+  const operation=displayModeChain.then(()=>defaultInvoke<void>('set_display_mode',{mode}));
+  displayModeChain=operation.catch(()=>{}); // Keep ordering alive; the returned operation still rejects.
+  await operation;
 }
 
 /** Closes the native application. Falls back to window.close() in the browser. */
 export async function exitApplication(): Promise<void> {
   if (isTauri()) {
-    try {
-      await flushPersistence();
-      await defaultInvoke('exit_app');
-      return;
-    } catch { /* fall through */ }
+    await flushPersistence();
+    await defaultInvoke('exit_app');
+    return;
   }
   try { window.close(); } catch { /* blocked */ }
+}
+
+/** Close requests are intercepted before native destruction; the caller owns the session guard. */
+export async function registerNativeCloseRequest(onClose:()=>void):Promise<()=>void>{
+  if(!isTauri())return ()=>{};
+  const {getCurrentWindow}=await import('@tauri-apps/api/window');
+  return getCurrentWindow().onCloseRequested(event=>{event.preventDefault();onClose();});
 }

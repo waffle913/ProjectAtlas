@@ -1,3 +1,6 @@
+import { SessionIntegrity } from './app/sessionIntegrity';
+import { MenuDialog } from './components/MenuDialog';
+import { CreditsMenu } from './components/CreditsMenu';
 import { readCampaignSummary, type CampaignSummary } from './app/campaignSummary';
 import { emptyAssets } from './simulation/assets/model';
 import { emptyOperations } from './simulation/operations/model';
@@ -49,10 +52,10 @@ import { initializeNewGame } from "./simulation/initialization";
 import { serializeSimulationState, restoreSimulationState } from "./simulation/save";
 import { MainMenu, type MenuScreen } from "./components/MainMenu";
 import { SettingsMenu } from "./components/SettingsMenu";
-import { SaveManager } from "./components/SaveManager";
-import { loadSettings, saveSettings, applyUiScale, type AppSettings } from "./app/preferences";
+import { SaveManager, type LoadPreview } from "./components/SaveManager";
+import { loadSettings, saveSettings, applyUiScale, normalizeSettings, type AppSettings } from "./app/preferences";
 import { listSaves, mostRecentSave, saveGame, loadSave, deleteSave, saveIdFor } from "./app/saveStorage";
-import { initDesktopBackends, exitApplication, applyNativeDisplayMode, isTauri } from "./app/desktop";
+import { initDesktopBackends, exitApplication, registerNativeCloseRequest, applyNativeDisplayMode, isTauri } from "./app/desktop";
 import { regionLayerColour, territoryLayerColour, MAP_LAYERS, LAYER_LEGEND, UNAVAILABLE_LAYER_LABELS, type MapLayer } from "./app/mapLayers";
 import { newUrgentBriefingCount } from "./app/urgency";
 import { controlledActor, governmentAdvisors, orderedNotifications } from "./app/leftRail";
@@ -110,7 +113,17 @@ export default function App() {
   const [loadSlotError, setLoadSlotError] = useState<string>();
   const [activePage, setActivePage] = useState('overview');
   const [mapLayer, setMapLayer] = useState<MapLayer>('ownership');
-  const [screen, setScreen] = useState<MenuScreen>('menu');
+  const [screen, setScreenState] = useState<MenuScreen>('menu');
+  const integrity=useRef(new SessionIntegrity());
+  const [loadPreview,setLoadPreview]=useState<LoadPreview>();
+  const [pendingDestructive,setPendingDestructive]=useState<{label:string;action:()=>void|Promise<void>}>();
+  const [guardError,setGuardError]=useState<string>();
+  const [guardBusy,setGuardBusy]=useState(false);
+  const [settingsError,setSettingsError]=useState<string>();
+  const [displayError,setDisplayError]=useState<string>();
+  const [displayRetry,setDisplayRetry]=useState(0);
+  const settingsWriteSequence=useRef(0);
+  const closeAction=useRef<()=>void>(()=>{});
   const auxiliaryOrigin = useRef<'menu' | 'game' | 'new-game' | 'load'>('menu');
   const loadOrigin = useRef<'menu'|'game'|'new-game'>('menu');
   const [newGameDraft,setNewGameDraft] = useState<NewGameDraft>(()=>initialNewGameDraft([]));
@@ -128,9 +141,11 @@ export default function App() {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [savePrompt, setSavePrompt] = useState<null | { mode: 'save' | 'saveAs'; name: string }>(null);
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
-  const [pauseOpen, setPauseOpen] = useState(false);
+  const [pauseOpen, setPauseOpenState] = useState(false);
+  const [saveBusy,setSaveBusy]=useState(false);
   const [saves, setSaves] = useState(() => listSaves());
   const [storageState, setStorageState] = useState<'initializing' | 'ready' | 'error'>(() => (isTauri() ? 'initializing' : 'ready'));
+  const storageReady = storageState === 'ready';
   const [storageError, setStorageError] = useState<string>();
   const [saveError, setSaveError] = useState<string>();
   const [loadStage, setLoadStage] = useState('Loading country registry and geography…');
@@ -164,13 +179,51 @@ export default function App() {
       });
     return () => { active = false; };
   }, []);
-  useEffect(() => { void applyNativeDisplayMode(settings.graphics.displayMode); }, [settings.graphics.displayMode]);
+  useEffect(()=>{
+    if(!storageReady)return;
+    let current=true;
+    applyNativeDisplayMode(settings.graphics.displayMode).then(()=>{if(current)setDisplayError(undefined);})
+      .catch(error=>{if(current)setDisplayError('Mode d’affichage non appliqué : '+(error instanceof Error?error.message:String(error)));});
+    return()=>{current=false;};
+  },[settings.graphics.displayMode,storageReady,displayRetry]);
   const persistSettings = (next: AppSettings) => {
-    setSettings(next);
-    void saveSettings(next).catch((error) => setStorageError(`Settings could not be saved: ${error instanceof Error ? error.message : String(error)}`));
+    const normalized=normalizeSettings(next);setSettings(normalized);
+    const sequence=++settingsWriteSequence.current;
+    void saveSettings(normalized).then(()=>{if(sequence===settingsWriteSequence.current)setSettingsError(undefined);})
+      .catch(error=>{if(sequence===settingsWriteSequence.current)setSettingsError('Paramètres appliqués pour cette session, mais non sauvegardés : '+(error instanceof Error?error.message:String(error)));});
   };
-  const storageReady = storageState === 'ready';
   const clock = useRef(new SimulationClock(initialState));
+  function suspendMenuClock(){
+    if(menuPauseRef.current===undefined)menuPauseRef.current=clock.current.snapshot().paused;
+    if(!clock.current.snapshot().paused){clock.current.setPaused(true);setSim(clock.current.snapshot());}
+  }
+  function setScreen(next:MenuScreen){if(next!=='game')suspendMenuClock();setScreenState(next);}
+  function setPauseOpen(open:boolean){if(open)suspendMenuClock();setPauseOpenState(open);}
+  function requestDestructive(label:string,action:()=>void|Promise<void>){
+    suspendMenuClock();setGuardError(undefined);
+    if(integrity.current.dirty){setPendingDestructive({label,action});return;}
+    try{const result=action();if(result)void result.catch(error=>{setGuardError(String(error));setPauseOpen(true);});}
+    catch(error){setGuardError(error instanceof Error?error.message:String(error));}
+  }
+  useEffect(()=>{
+    const query=window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply=()=>applyUiScale(settings);query.addEventListener('change',apply);
+    return()=>query.removeEventListener('change',apply);
+  },[settings]);
+  useEffect(()=>{
+    if(isTauri())return;
+    const beforeUnload=(event:BeforeUnloadEvent)=>{if(integrity.current.dirty){event.preventDefault();event.returnValue='';}};
+    window.addEventListener('beforeunload',beforeUnload);
+    return()=>window.removeEventListener('beforeunload',beforeUnload);
+  },[]);
+  useEffect(()=>{
+    if(!isTauri())return;
+    let active=true;let unlisten:(()=>void)|undefined;
+    registerNativeCloseRequest(()=>closeAction.current()).then(stop=>{if(active)unlisten=stop;else stop();})
+      .catch(error=>{if(active)setGuardError('Protection de fermeture native indisponible : '+String(error));});
+    return()=>{active=false;unlisten?.();};
+  },[]);
+
   useEffect(() => {
     let active = true;
     setLoadStage('Loading country registry and geography…');
@@ -287,7 +340,7 @@ export default function App() {
       const before = clock.current.snapshot();
       const next = clock.current.advanceIfChanged(now - previous);
       if (next) {
-        setSim(next);
+        integrity.current.changed();setSim(next);
         // Interruption policy: only a newly-visible urgent briefing (a grave
         // event) may pause the simulation, and only when the player asked for it.
         const controlledPersonId = next.governance.player.controlledPersonId;
@@ -333,6 +386,7 @@ export default function App() {
     [world, regionData, regionIdsByMacroTerritory],
   );
   const changeClock = (next: SimulationState) => {
+    const before=clock.current.snapshot();if(before.paused!==next.paused || before.speed!==next.speed)integrity.current.changed();
     clock.current.setPaused(next.paused);
     clock.current.setSpeed(next.speed);
     setSim(clock.current.snapshot());
@@ -347,21 +401,25 @@ export default function App() {
   // Opening/cancelling the wizard never initializes or replaces the active campaign.
   const startNewGame = () => {
     if (!countryData || !newGameSelectionRef.current) return;
-    setNewGameDraft(initialNewGameDraft(countryData.registry.countries));
+    setLoadPreview(undefined);setNewGameDraft(initialNewGameDraft(countryData.registry.countries));
     setScreen('new-game');
   };
   const confirmNewGame = (countryId:string,path:PoliticalStartPath,personId:string) => {
     if (!newGameBaseRef.current || !newGameSeedRef.current) throw new Error('Les données de départ sont indisponibles.');
+    requestDestructive('commencer une nouvelle campagne',()=>{
+    if(!newGameBaseRef.current || !newGameSeedRef.current)return;
     const next=createConfirmedCampaign(newGameBaseRef.current,newGameSeedRef.current,{countryId,path,personId});
+    next.speed=settings.gameplay.defaultSpeed as 1|2|5;
     setSelected(undefined);setSelectedRegion(undefined);setActivePage('overview');setMapLayer('ownership');
     setSaveError(undefined);setMenuSelection(undefined);setPauseOpen(false);
-    applyState(next);setScreen('game');
+    integrity.current.begin(false);applyState(next);setScreen('game');
+    });
   };
   // Opening the pause menu, or leaving the game view entirely, genuinely
   // suspends progression: the shared clock is paused and never advances while a
   // menu is shown.
   useEffect(() => {
-    const inGame = screen === 'game' && !pauseOpen;
+    const inGame = screen === 'game' && !pauseOpen && !pendingDestructive && !savePrompt;
     if (!inGame) {
       if (menuPauseRef.current === undefined) menuPauseRef.current = clock.current.snapshot().paused;
       if (!clock.current.snapshot().paused) {
@@ -376,7 +434,7 @@ export default function App() {
         setSim(clock.current.snapshot());
       }
     }
-  }, [screen, pauseOpen]);
+  }, [screen, pauseOpen,pendingDestructive,savePrompt]);
   const ctrlPersonId = sim.governance.player.controlledPersonId;
   const ctrlPerson = ctrlPersonId ? sim.governance.persons[ctrlPersonId] : undefined;
   // Autosave is a wall-clock feature, never a simulation scheduler. The ref holds
@@ -392,9 +450,14 @@ export default function App() {
       const snapshot = autosaveRef.current;
       if (!snapshot || inFlight || !snapshot.registryContext || !snapshot.ctrlPerson || snapshot.sim.paused) return;
       inFlight = true;
-      const { sim: current, ctrlPerson: person, registryContext: context, world: currentWorld } = snapshot;
+      const current=clock.current.snapshot();
+      const personId=current.governance.player.controlledPersonId;
+      const person=personId?current.governance.persons[personId]:undefined;
+      if(!person || current.paused){inFlight=false;return;}
+      const checkpoint=integrity.current.checkpoint();
+      const {registryContext:context,world:currentWorld}=snapshot;
       const country = person.countryId ? currentWorld?.countries.get(person.countryId) : undefined;
-      const json = serializeSimulationState(current, context);
+      let json:string;try{json=serializeSimulationState(current,context);}catch(error){setSaveError(String(error));inFlight=false;return;}
       saveGame('__autosave__', 'Autosave', json, {
         countryId: person.countryId,
         countryName: country?.commonName ?? '—',
@@ -403,7 +466,7 @@ export default function App() {
         simulationDate: current.date,
         schemaVersion: current.schemaVersion,
       })
-        .then(() => setSaves(listSaves()))
+        .then(() => {integrity.current.acknowledge(checkpoint,'__autosave__');setSaves(listSaves());})
         .catch((error) => setSaveError(`Autosave failed: ${error instanceof Error ? error.message : String(error)}`))
         .finally(() => { inFlight = false; });
     }, intervalMinutes * 60_000);
@@ -418,22 +481,27 @@ export default function App() {
   };
   const loadSlot = (id: string) => {
     if (!registryContext) return;
+    requestDestructive('charger une autre sauvegarde',()=>{
     try {
-      applyState(previewSlot(id));
+      const restored=previewSlot(id);integrity.current.begin(true,id);applyState(restored);
       setLoadSlotError(undefined);
       setMenuSelection(undefined);
       setScreen('game');
     } catch (error) {
       setLoadSlotError(error instanceof Error ? `Could not load save: ${error.message}` : 'Could not load save.');
     }
+    });
   };
-  const continueGame = () => { const recent = mostRecentSave(); if (recent) loadSlot(recent.id); };
+  const continueGame = () => {if(integrity.current.exists){setPauseOpen(false);setScreen('game');}};
+  const loadLatest = () => { const recent=mostRecentSave();if(recent)loadSlot(recent.id); };
   const saveCurrent = async (name: string): Promise<boolean> => {
     if (!registryContext) return false;
     if (!storageReady) { setSaveError('Storage is still initializing — please wait a moment and try again.'); return false; }
     const country = ctrlPerson?.countryId ? world?.countries.get(ctrlPerson.countryId) : undefined;
-    const json = serializeSimulationState(sim, registryContext);
+    const checkpoint=integrity.current.checkpoint();
+    const savedSnapshot=clock.current.snapshot();
     try {
+      const json=serializeSimulationState(savedSnapshot,registryContext);
       await saveGame(saveIdFor(name), name, json, {
         countryId: ctrlPerson?.countryId ?? '',
         countryName: country?.commonName ?? '—',
@@ -442,7 +510,7 @@ export default function App() {
         simulationDate: sim.date,
         schemaVersion: sim.schemaVersion,
       });
-      setSaves(listSaves());
+      integrity.current.acknowledge(checkpoint,saveIdFor(name));setSaves(listSaves());
       setSaveError(undefined);
       return true;
     } catch (error) {
@@ -450,25 +518,21 @@ export default function App() {
       return false;
     }
   };
-  const exitApp = () => { void exitApplication(); };
-  if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} />;
+  const exitApp = () => requestDestructive('quitter ProjectAtlas',async()=>{await exitApplication();});
+  closeAction.current=exitApp;
+  const renderScreen=()=>{
+  if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} error={settingsError} displayError={displayError} onRetryDisplay={()=>setDisplayRetry(n=>n+1)} />;
   if (screen === 'load') return storageReady
-    ? <SaveManager onLoad={loadSlot} onPreview={previewSlot} onBack={() => { setLoadSlotError(undefined); setScreen(loadOrigin.current); }} error={loadSlotError ?? storageError} territories={world?.territories} regions={regionData} countries={countryData?.registry.countries} uiScale={settings.graphics.uiScale} onNewGame={startNewGame} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} />
+    ? <SaveManager onLoad={loadSlot} onPreview={previewSlot} onBack={() => { setLoadSlotError(undefined);setLoadPreview(undefined); setScreen(loadOrigin.current); }} selectedPreview={loadPreview} onSelectionChange={setLoadPreview} onDeleted={id=>{integrity.current.removedSave(id);setSaves(listSaves());}} error={loadSlotError ?? storageError} territories={world?.territories} regions={regionData} countries={countryData?.registry.countries} uiScale={settings.graphics.uiScale} reducedMotion={settings.accessibility.reducedMotion} onNewGame={startNewGame} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} />
     : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={returnFromAuxiliary}>← Back</button></main>;
-  if (screen === 'credits') return (
-    <main className="load-state credits">
-      <h1>ProjectAtlas</h1>
-      <p>ProjectAtlas is built on audited, provenance-carrying datasets (Natural Earth, IPU Parline, and other attributed sources). Detailed source, licence and attribution records live in the in-game provenance details and repository data audit.</p>
-      <button onClick={returnFromAuxiliary}>← Back</button>
-    </main>
-  );
+  if(screen==='credits')return <CreditsMenu onBack={returnFromAuxiliary}/>;
   if (screen === 'menu') {
     // Re-read the existing metadata index on return from SaveManager: its delete
     // action may have changed storage independently of the in-game save prompt.
     const menuSaves = storageReady ? listSaves() : [];
-    return <MainMenu hasSave={menuSaves.length > 0} saves={menuSaves} storageStatus={storageState} error={loadSlotError ?? storageError ?? loadError} onSelectSave={selectMenuSave} selectedSaveId={menuSelection?.id} summary={menuSelection?.summary} onLoadSave={loadSlot} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => openAuxiliary('load')} onSettings={() => openAuxiliary('settings')} onCredits={() => openAuxiliary('credits')} onExit={exitApp} settings={settings} />;
+    return <MainMenu hasSession={integrity.current.exists} sessionDescription={integrity.current.exists?((world?.countries.get(ctrlPerson?.countryId??'')?.commonName??'Session active')+' — '+sim.date+(integrity.current.dirty?' · non sauvegardée':'')):undefined} onLoadLatest={loadLatest} hasSave={menuSaves.length > 0} saves={menuSaves} storageStatus={storageState} error={loadSlotError ?? settingsError ?? displayError ?? storageError ?? loadError} onSelectSave={selectMenuSave} selectedSaveId={menuSelection?.id} summary={menuSelection?.summary} onLoadSave={loadSlot} ready={dataReady && storageReady} onContinue={continueGame} onNewGame={startNewGame} onLoad={() => openAuxiliary('load')} onSettings={() => openAuxiliary('settings')} onCredits={() => openAuxiliary('credits')} onExit={exitApp} settings={settings} />;
   }
-  if (screen === 'new-game' && countryData && world && newGameSelectionRef.current) return <NewGameSetup data={countryData} territories={world.territories} selectionState={newGameSelectionRef.current} draft={newGameDraft} onDraftChange={setNewGameDraft} onConfirm={confirmNewGame} onBack={()=>setScreen('menu')} onLoad={()=>openAuxiliary('load')} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} uiScale={settings.graphics.uiScale} />;
+  if (screen === 'new-game' && countryData && world && newGameSelectionRef.current) return <NewGameSetup data={countryData} territories={world.territories} selectionState={newGameSelectionRef.current} draft={newGameDraft} onDraftChange={setNewGameDraft} onConfirm={confirmNewGame} onBack={()=>setScreen('menu')} onLoad={()=>openAuxiliary('load')} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} uiScale={settings.graphics.uiScale} reducedMotion={settings.accessibility.reducedMotion} />;
   if (loadError)
     return (
       <main className="load-state">
@@ -493,6 +557,7 @@ export default function App() {
   const railAdvisors = governmentAdvisors(sim, playerCountryId);
   const railNotifications = controlledPersonId && playerCountryId ? orderedNotifications(sim, playerCountryId, controlledPersonId) : [];
   const commitCommand = (next: SimulationState) => {
+    if(next!==sim)integrity.current.changed();
     clock.current.replaceState(next);
     setSim(clock.current.snapshot());
   };
@@ -721,39 +786,43 @@ export default function App() {
           </aside>
         ) : <aside className="panel"><h2>{navItems.find(([id]) => id === activePage)?.[1]}</h2><p>This system is not represented in the current ProjectAtlas build. ProjectAtlas does not fabricate placeholder capability values or actions.</p></aside>}
       </div>
-      {pauseOpen && (
-        <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Pause menu">
-          <div className="pause-menu">
-            <h1>Paused</h1>
-            <button onClick={() => setPauseOpen(false)}>Resume</button>
-            <button onClick={() => setSavePrompt({ mode: 'save', name: ctrlPerson?.displayName ?? 'ProjectAtlas' })}>Save</button>
-            <button onClick={() => setSavePrompt({ mode: 'saveAs', name: '' })}>Save As</button>
-            <button onClick={() => { setPauseOpen(false); openAuxiliary('load'); }}>Load Game</button>
-            <button onClick={() => { setPauseOpen(false); openAuxiliary('settings'); }}>Settings</button>
-            <button onClick={() => { setPauseOpen(false); setScreen('menu'); }}>Return to Main Menu</button>
-            <button className="danger" onClick={exitApp}>Exit Game</button>
-          </div>
-        </div>
-      )}
-      {savePrompt && (
-        <div className="pause-overlay" role="dialog" aria-modal="true" aria-label="Save game">
-          <div className="pause-menu">
-            <h1>{savePrompt.mode === 'saveAs' ? 'Save As' : 'Save Game'}</h1>
+      {pauseOpen && <MenuDialog title="Pause" label="Pause menu" onCancel={()=>setPauseOpen(false)}>
+        <p>{integrity.current.dirty?'Session active — progression non sauvegardée.':'Session active — point de sauvegarde conservé.'}</p>
+        <button onClick={()=>setPauseOpen(false)}>Resume</button>
+        <button onClick={()=>setSavePrompt({mode:'save',name:ctrlPerson?.displayName??'ProjectAtlas'})}>Save</button>
+        <button onClick={()=>setSavePrompt({mode:'saveAs',name:''})}>Save As</button>
+        <button onClick={()=>{setPauseOpen(false);openAuxiliary('load');}}>Load Game</button>
+        <button onClick={()=>{setPauseOpen(false);openAuxiliary('settings');}}>Settings</button>
+        <button onClick={()=>{setPauseOpen(false);openAuxiliary('credits');}}>Crédits</button>
+        <button onClick={()=>{setPauseOpen(false);setScreen('menu');}}>Return to Main Menu</button>
+        <button className="danger" onClick={exitApp}>Exit Game</button>
+      </MenuDialog>}
+      {savePrompt && <MenuDialog title={savePrompt.mode==='saveAs'?'Save As':'Save Game'} label="Save game" onCancel={()=>{if(!saveBusy)setSavePrompt(null);}}>
             <input value={savePrompt.name} onChange={e => { setSavePrompt({ ...savePrompt, name: e.target.value }); setConfirmOverwrite(false); }} placeholder="Save name" autoFocus />
-            <button disabled={!storageReady} onClick={async () => {
+            <button disabled={!storageReady || saveBusy} onClick={async () => {
               const name = savePrompt.name || 'ProjectAtlas';
               const targetId = saveIdFor(name);
               const exists = listSaves().some(save => save.id === targetId);
               if (exists && !confirmOverwrite) { setConfirmOverwrite(true); return; }
-              if (await saveCurrent(name)) { setSavePrompt(null); setPauseOpen(false); setConfirmOverwrite(false); }
+              setSaveBusy(true);try{if (await saveCurrent(name)) { setSavePrompt(null); setPauseOpen(false); setConfirmOverwrite(false); }}finally{setSaveBusy(false);}
             }}>{confirmOverwrite ? 'Overwrite existing save' : 'Save'}</button>
-            <button onClick={() => { setSavePrompt(null); setSaveError(undefined); setConfirmOverwrite(false); }}>Cancel</button>
+            <button disabled={saveBusy} onClick={() => { setSavePrompt(null); setSaveError(undefined); setConfirmOverwrite(false); }}>Cancel</button>
             {confirmOverwrite && !saveError && <p className="save-error">A save with this name already exists. Overwrite it?</p>}
             {(saveError || storageError) && <p className="save-error">{saveError ?? storageError}</p>}
-          </div>
-        </div>
-      )}
+      </MenuDialog>}
 
     </main>
   );
+  };
+  return <><div className="app-screen app-screen-enter" data-screen={screen} key={screen}>{renderScreen()}</div>
+    {guardError && !pendingDestructive && <div className="menu-global-error menu-error" role="alert">{guardError}<button onClick={()=>setGuardError(undefined)}>Fermer</button></div>}
+    {pendingDestructive && <MenuDialog title="Progression non sauvegardée" label="Confirmer l’abandon de progression" onCancel={()=>{if(!guardBusy)setPendingDestructive(undefined);}}>
+      <p>Cette action va {pendingDestructive.label} et abandonner la progression non sauvegardée de la session active.</p>
+      <p>Annulez pour reprendre et sauvegarder cette session avant de continuer.</p>
+      <button disabled={guardBusy} onClick={()=>setPendingDestructive(undefined)}>Annuler et conserver la session</button>
+      <button className="danger" disabled={guardBusy} onClick={async()=>{setGuardBusy(true);try{await pendingDestructive.action();setPendingDestructive(undefined);}catch(error){setGuardError(String(error));}finally{setGuardBusy(false);}}}>Abandonner la progression et continuer</button>
+      {guardError && <p role="alert" className="menu-error">{guardError}</p>}
+    </MenuDialog>}
+  </>;
+
 }

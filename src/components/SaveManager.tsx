@@ -13,13 +13,17 @@ import './SaveManager.css';
 
 
 const dateText=(date:string)=>new Date(date+'T00:00:00Z').toLocaleDateString('fr-FR',{timeZone:'UTC',year:'numeric',month:'long',day:'numeric'});
-export function SaveManager({onLoad,onBack,error,onPreview,territories=[],regions,countries=[],uiScale=1,onNewGame,onSettings,onCredits,onExit}:{
+export interface LoadPreview {entry:SaveEntry;state:SimulationState}
+export function SaveManager({onLoad,onBack,error,onPreview,territories=[],regions,countries=[],uiScale=1,reducedMotion=false,onNewGame,onSettings,onCredits,onExit,selectedPreview,onSelectionChange,onDeleted}:{
+  selectedPreview?:LoadPreview;onSelectionChange?:React.Dispatch<React.SetStateAction<LoadPreview|undefined>>;onDeleted?:(id:string)=>void;
   onLoad:(id:string)=>void; onBack:()=>void; error?:string;
-  onPreview:(id:string)=>SimulationState; territories?:readonly Territory[]; regions?:LoadedRegionData; countries?:readonly Pick<Country,'id'|'commonName'|'externalIds'>[]; uiScale?:number;
+  onPreview:(id:string)=>SimulationState; territories?:readonly Territory[]; regions?:LoadedRegionData; countries?:readonly Pick<Country,'id'|'commonName'|'externalIds'>[]; uiScale?:number;reducedMotion?:boolean;
   onNewGame:()=>void;onSettings:()=>void;onCredits:()=>void;onExit:()=>void;
 }) {
   const [catalog,setCatalog]=useState(inspectSaveCatalog);
-  const [selection,setSelection]=useState<{entry:SaveEntry;state:SimulationState}>();
+  const [internalSelection,setInternalSelection]=useState<LoadPreview>();
+  const selection=onSelectionChange?selectedPreview:internalSelection;
+  const setSelection=onSelectionChange??setInternalSelection;
   const [readError,setReadError]=useState<string>();
   const [pendingDelete,setPendingDelete]=useState<string>();
   const [busy,setBusy]=useState(false);
@@ -41,7 +45,7 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
     catch(e){setReadError('Sauvegarde inaccessible ou incompatible : '+(e instanceof Error?e.message:String(e)));}
   };
   const remove=async(id:string)=>{
-    setBusy(true);try{await deleteSave(id);setCatalog(inspectSaveCatalog());setPendingDelete(undefined);setSelection(current=>current?.entry.id===id?undefined:current);setReadError(undefined);}
+    setBusy(true);try{await deleteSave(id);onDeleted?.(id);setCatalog(inspectSaveCatalog());setPendingDelete(undefined);setSelection(current=>current?.entry.id===id?undefined:current);setReadError(undefined);}
     catch(e){setReadError('Suppression impossible : '+(e instanceof Error?e.message:String(e)));}finally{setBusy(false);}
   };
   const deletion=(id:string)=>pendingDelete===id?<div className="lg-confirm" role="alertdialog" aria-label="Confirmer la suppression"><p>Supprimer définitivement cette sauvegarde ?</p><button disabled={busy} onClick={()=>void remove(id)}>Confirmer la suppression</button><button disabled={busy} onClick={()=>setPendingDelete(undefined)}>Annuler</button></div>:<button className="lg-delete" onClick={()=>setPendingDelete(id)}><span aria-hidden="true">⌫</span> Supprimer</button>;
@@ -56,7 +60,7 @@ export function SaveManager({onLoad,onBack,error,onPreview,territories=[],region
   const current=selection?.state.date;
   const military=presentation?.operations;
   return <main className={`new-game-setup load-game-setup${uiScale>1.1?' ng-large-ui':''}`} lang="fr" style={{'--ng-scale':uiScale} as React.CSSProperties}>
-    {selection && geography && <CountryGlobe territories={territories} selectedId={countryId??''} onSelect={setDetail} names={names} savedPolygons={geography.polygons} renderOptions={mapOptions}/>}
+    {selection && geography && <CountryGlobe reducedMotion={reducedMotion} territories={territories} selectedId={countryId??''} onSelect={setDetail} names={names} savedPolygons={geography.polygons} renderOptions={mapOptions}/>}
     <aside className="ng-sidebar"><div className="ng-brand"><AtlasMark/><span>PROJECT</span><strong>ATLAS</strong></div><nav aria-label="Navigation de campagne">
       <button onClick={onBack}>← Retour au menu</button>
       <button onClick={onNewGame}><Icon name="globe"/>Nouvelle partie</button>

@@ -1,0 +1,44 @@
+name: menu-integrity-ui
+on:
+  push:
+    branches: [ui/menu-integrity-animations]
+  pull_request:
+    branches: [ui/load-game-globe]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  menu-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: UI, session, save-read and permissions regression units
+        run: npm test -- src/app/__tests__ src/components/__tests__ src/simulation/__tests__/startSelection.test.ts src/simulation/__tests__/executiveAuthority.test.ts --maxWorkers=1
+      - run: npm run build
+      - name: Stage invariant-validated synthetic saves outside the shipped build
+        run: cp -r artifacts/load-game/storage dist/__synthetic_saves__
+      - run: npx playwright install --with-deps chromium
+      - name: Menu integrity, animation, preferences, viewport and fallback tests
+        run: npx playwright test --config=playwright.menu-integrity.config.ts
+      - name: Existing load interface regressions
+        if: success() || failure()
+        run: npx playwright test --config=playwright.load-game.config.ts
+      - name: Existing new-game regressions
+        if: success() || failure()
+        run: npx playwright test --config=playwright.new-game.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: menu-integrity-ui-${{ github.sha }}
+          path: |
+            artifacts/menu-integrity/
+            artifacts/load-game/
+            artifacts/new-game/
+            !artifacts/load-game/storage/**
+          if-no-files-found: warn
