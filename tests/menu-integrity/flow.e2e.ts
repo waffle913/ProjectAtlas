@@ -151,7 +151,6 @@ test('all menu viewports/scales, read-only preview continuity and honest unavail
 test('free idle, manual interruption, cancellable country focus and reduced motion',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await setup(page);await page.getByRole('button',{name:'Nouvelle partie',exact:true}).click();
  const canvas=page.locator('.ng-globe canvas');await expect(canvas).toHaveAttribute('data-motion','animated');await expect(canvas).toHaveAttribute('data-camera-mode','free');await expect(page.locator('.ng-country-title h1')).toHaveText('France');
- await canvas.evaluate(node=>{(window as any).__atlasPointerEvents=[];for(const type of ['pointerdown','pointermove','pointerup','pointercancel','gotpointercapture','lostpointercapture'])node.addEventListener(type,event=>{const e=event as PointerEvent;const events=(window as any).__atlasPointerEvents;events.push({type,pointerId:e.pointerId,buttons:e.buttons,x:e.clientX,y:e.clientY,captured:node.hasPointerCapture(e.pointerId),cursor:getComputedStyle(node).cursor});if(events.length>160)events.shift();});});
  const lon=await canvas.getAttribute('data-camera-longitude');await expect.poll(()=>canvas.getAttribute('data-camera-longitude')).not.toBe(lon);
  const b=(await canvas.boundingBox())!;const x=b.x+b.width*.5,y=b.y+b.height*.5;
  await page.mouse.move(x,y);await page.mouse.down();await expect(canvas).toHaveAttribute('data-interacting','true');
@@ -176,6 +175,8 @@ test('free idle, manual interruption, cancellable country focus and reduced moti
  const reducedBox=(await canvas.boundingBox())!;await page.mouse.move(reducedBox.x+reducedBox.width/2,reducedBox.y+reducedBox.height/2);await page.mouse.down();await page.mouse.move(reducedBox.x+reducedBox.width/2+60,reducedBox.y+reducedBox.height/2+20,{steps:6});await page.mouse.up();
  await expect(canvas).toHaveAttribute('data-interacting','false');const noInertia=await observeCamera(canvas,1100);expect(noInertia.max).toBeCloseTo(noInertia.initial,2);expect(noInertia.min).toBeCloseTo(noInertia.initial,2);
  // Cancellation/capture loss must not turn the subsequent release into a country click.
+ // Settings navigation remounts the globe: observe this current canvas, not the disposed one.
+ await canvas.evaluate(node=>{(window as any).__atlasPointerEvents=[];for(const type of ['pointerdown','pointermove','pointerup','pointercancel','gotpointercapture','lostpointercapture'])node.addEventListener(type,event=>{const e=event as PointerEvent;const events=(window as any).__atlasPointerEvents;events.push({type,pointerId:e.pointerId,buttons:e.buttons,x:e.clientX,y:e.clientY,captured:node.hasPointerCapture(e.pointerId),cursor:getComputedStyle(node).cursor});if(events.length>160)events.shift();});});
  for(const interruption of ['cancel','lost']){
   const rect=(await canvas.boundingBox())!;await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);await page.mouse.down();await expect(canvas).toHaveAttribute('data-interacting','true');
   await canvas.evaluate((node,kind)=>{const events=(window as any).__atlasPointerEvents;const id=events.filter((e:any)=>e.type==='pointerdown').at(-1).pointerId;if(kind==='cancel')node.dispatchEvent(new PointerEvent('pointercancel',{pointerId:id,pointerType:'mouse',bubbles:true}));else node.releasePointerCapture(id);},interruption);
@@ -184,7 +185,7 @@ test('free idle, manual interruption, cancellable country focus and reduced moti
  }
  const beforeDrag=Number(await canvas.getAttribute('data-camera-longitude'));const rect=(await canvas.boundingBox())!;await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);await page.mouse.down();await page.mouse.move(rect.x+rect.width/2+70,rect.y+rect.height/2+20,{steps:6});await page.mouse.up();expect(Math.abs(Number(await canvas.getAttribute('data-camera-longitude'))-beforeDrag)).toBeGreaterThan(.1);
  await page.getByRole('button',{name:'Recentrer sur le pays choisi'}).click();await expect(canvas).toHaveAttribute('data-camera-mode','focused');await page.getByRole('button',{name:'Zoom avant',exact:true}).click();await centered();
- await test.info().attach('pointer-events',{body:Buffer.from(JSON.stringify(await page.evaluate(()=>(window as any).__atlasPointerEvents),null,2)),contentType:'application/json'});
+ const pointerEvents=await page.evaluate(()=>(window as any).__atlasPointerEvents);expect(pointerEvents.some((e:any)=>e.type==='pointercancel')).toBe(true);expect(pointerEvents.some((e:any)=>e.type==='lostpointercapture')).toBe(true);await test.info().attach('pointer-events',{body:Buffer.from(JSON.stringify(pointerEvents,null,2)),contentType:'application/json'});
  await page.getByRole('button',{name:'Paramètres',exact:true}).click();await page.getByRole('button',{name:'Accessibility',exact:true}).click();await page.getByLabel('Reduced motion',{exact:true}).uncheck();await page.emulateMedia({reducedMotion:'reduce'});await back(page);await expect(canvas).toHaveAttribute('data-motion','reduced');await expect(page.locator('html')).toHaveClass(/reduced-motion/);expect(errors).toEqual([]);
 });
 
