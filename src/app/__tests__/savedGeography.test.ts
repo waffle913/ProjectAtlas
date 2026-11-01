@@ -67,6 +67,23 @@ describe('synthetic saved-world UI projection (not production data)',()=>{
   expect(b.polygons.filter(p=>p.regionId===maine.id).every(p=>p.countryId===canada && !p.control)).toBe(true);
   expect(sovereignBorderSegments(b.polygons).length).toBeLessThan(sovereignBorderSegments(a.polygons).length);
  });
+ it('covers a foreign contested Region without a Canadian intelligence report',async()=>{
+  const foreign=worldRegions.find(r=>r.parentCountryId!==canada && r.parentCountryId!==usa
+    && r.geographyMapping.status==='mapped' && Boolean(regionRegistry.geometryAssetsByCountry[r.parentCountryId]));
+  expect(foreign).toBeDefined();
+  if(!foreign)return;
+  const s=structuredClone(snapshots.occupied);
+  s.operations.regionControl[foreign.id]='contested';
+  vi.stubGlobal('fetch',vi.fn(async(url:string)=>new Response(await fs.readFile('public'+url,'utf8'))));
+  const selected=[maine,foreign];
+  const data={registry:{regions:selected,geometryAssetsByCountry:regionRegistry.geometryAssetsByCountry},
+    regionsByCountryId:new Map([
+      [canada,[]], [usa,[maine]], [foreign.parentCountryId,[foreign]],
+    ]),regionsById:new Map(selected.map(r=>[r.id,r]))} as unknown as LoadedRegionData;
+  const projected=await savedGeography(s,data,[]);
+  expect(projected.polygons.some(p=>p.regionId===foreign.id && p.countryId===s.regionOwnership[foreign.id]
+    && p.control==='contested')).toBe(true);
+ });
  it('writes invariant-validated synthetic fixtures for the runner browser, restores exact saved snapshots',async()=>{
   const entries=[];
   for(const [id,state] of Object.entries({occupied:snapshots.occupied,ceded:snapshots.ceded,opposition:snapshots.opposition!})){

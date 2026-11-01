@@ -57,7 +57,7 @@ Les premiers échecs CI ont permis de corriger la fixture d'opposition canadienn
 
 Inventaire principal : `src/App.tsx` (routage/aperçu détaché), `src/components/SaveManager.tsx` et `.css`, `src/app/loadCampaign.ts`, `src/app/savedGeography.ts`, lecture diagnostique de `saveStorage.ts`, options du globe partagé, tests unitaires, `tests/load-game/*`, `playwright.load-game.config.ts`, workflow dédié, documentation et captures. Pas de nouvelle dépendance ou ressource mondiale.
 
-Limites à réviser : données géographiques manquantes avec repli explicite ; limites de précision Admin0/Admin1 ; contrôle militaire uniquement connu dans les rapports accessibles (pas une carte omnisciente) ; rapports possibles avant une décision du même jour ; journal international non exhaustif ; fonctions/noms de sources parfois en anglais ; aperçu réinitialisé vers la liste après Paramètres/Crédits ; défilement vertical à 150 % et dans le panneau ; rendu natif Tauri/Rust non exécuté par ces tests Chromium ; quota du stockage web inchangé. BUG-001 et UX-001 différés inchangés.
+Limites à réviser : données géographiques manquantes avec repli explicite ; limites de précision Admin0/Admin1 ; détails militaires du panneau seulement connus dans les rapports accessibles (le globe reste un aperçu géopolitique global) ; rapports possibles avant une décision du même jour ; journal international non exhaustif ; fonctions/noms de sources parfois en anglais ; aperçu réinitialisé vers la liste après Paramètres/Crédits ; défilement vertical à 150 % et dans le panneau ; rendu natif Tauri/Rust non exécuté par ces tests Chromium ; quota du stockage web inchangé. BUG-001 et UX-001 différés inchangés.
 
 
 ## Correctif de cohérence carte / actualités (revue post-livraison)
