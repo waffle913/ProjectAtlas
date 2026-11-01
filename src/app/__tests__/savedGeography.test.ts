@@ -84,6 +84,18 @@ describe('synthetic saved-world UI projection (not production data)',()=>{
   expect(projected.polygons.some(p=>p.regionId===foreign.id && p.countryId===s.regionOwnership[foreign.id]
     && p.control==='contested')).toBe(true);
  });
+ it('does not silently accept a missing component or invalid coordinates in a mapped Region',async()=>{
+  const r={...maine,geographyMapping:{status:'mapped' as const,datasetId:'synthetic',sourceFeatureIds:['one','two']}};
+  const data={registry:{regions:[r],geometryAssetsByCountry:{[usa]:'/synthetic'}},regionsByCountryId:new Map([[canada,[]],[usa,[r]]]),regionsById:new Map([[r.id,r]])} as unknown as LoadedRegionData;
+  const feature={type:'Feature',properties:{sourceId:'one',regionId:r.id},geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}};
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify({type:'FeatureCollection',features:[feature]}))));
+  const partial=await savedGeography(snapshots.occupied,data,[]);
+  expect(partial.polygons).toEqual([]);expect(partial.warnings.join(' ')).toContain('Maine');
+  const invalid={...feature,properties:{sourceId:'two',regionId:r.id},geometry:{type:'Polygon',coordinates:[[[0,0],[1,100],[1,1],[0,0]]]}};
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify({type:'FeatureCollection',features:[feature,invalid]}))));
+  const result=await savedGeography(snapshots.occupied,data,[]);
+  expect(result.polygons).toEqual([]);expect(result.warnings.join(' ')).toContain('Maine');
+ });
  it('writes invariant-validated synthetic fixtures for the runner browser, restores exact saved snapshots',async()=>{
   const entries=[];
   for(const [id,state] of Object.entries({occupied:snapshots.occupied,ceded:snapshots.ceded,opposition:snapshots.opposition!})){

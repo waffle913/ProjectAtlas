@@ -40,6 +40,7 @@ export function savedCampaignNews(
   // "attacker_victory" in the existing endWar engine transfers the target Region;
   // it does NOT establish that a separate peace treaty was signed.
   for (const war of state.wars) {
+    if (!admissible(war.startDate)) continue;
     const scope = scopeFor(war.attackerCountryId, war.defenderCountryId);
     const sides = label(war.attackerCountryId) + ' / ' + label(war.defenderCountryId);
     const region = label(war.targetRegionId);
@@ -105,13 +106,15 @@ export function savedCampaignNews(
     export_restriction: 'Restrictions sur les exportations',
   };
   for (const action of Object.values(state.international.actions)) {
+    if (!admissible(action.declaredOn)) continue;
     // Foreign condemnations alone are too minor to be international headlines.
     if (action.kind === 'condemnation' && action.actorCountryId !== playedCountryId && action.targetCountryId !== playedCountryId) continue;
     const scope = scopeFor(action.actorCountryId, action.targetCountryId);
     add(scope, {
       id: 'international:declared:' + action.id, date: action.declaredOn,
       title: (actionKind[action.kind] ?? 'Mesure diplomatique') + ' : ' + label(action.actorCountryId) + ' envers ' + label(action.targetCountryId),
-      detail: 'Mesure déclarée. Entrée en application enregistrée : ' + action.effectiveOn + (action.categories.length ? ' · Secteurs : ' + action.categories.join(', ') : '') + '.',
+      detail: (admissible(action.effectiveOn) ? 'Application enregistrée depuis le ' + action.effectiveOn : 'Mesure déclarée, non encore applicable à la date de la sauvegarde')
+        + (action.categories.length ? ' · Secteurs : ' + action.categories.join(', ') : '') + '.',
       sourceLabel: 'Action internationale enregistrée', importance: action.kind === 'condemnation' ? 45 : 80,
     });
     if (action.status === 'lifted' && admissible(action.ceasesOn)) add(scope, {
@@ -148,11 +151,24 @@ export function savedCampaignNews(
 
   // Only already access-filtered public/authorized briefings and policy results
   // are included. Hidden canonical crisis state is never turned into "news".
+  const briefings = new Map(state.information.briefings.map(briefing => [briefing.id, briefing]));
+  const coveredProposals = new Map(summary.events.flatMap(entry => {
+    const briefing = briefings.get(entry.id);
+    return admissible(entry.date) && briefing?.eventType === 'proposal_result'
+      && briefing.fact.kind === 'parliamentary_result' && ['adopted','rejected'].includes(briefing.fact.outcome??'')
+      && briefing.fact.proposalId ? [[briefing.fact.proposalId,entry.date] as const] : [];
+  }));
   for (const entry of [...summary.events, ...summary.decisions, ...summary.situations]) {
     if (!admissible(entry.date)) continue;
+    const briefing = summary.events.includes(entry) ? briefings.get(entry.id) : undefined;
+    if (!briefing && summary.decisions.includes(entry) && coveredProposals.get(entry.id) === entry.date) continue;
+    const importance = briefing
+      ? briefing.severity === 'urgent' ? 96 : briefing.eventType === 'crisis_activation' ? 85
+        : briefing.severity === 'important' ? 75 : briefing.severity === 'advisory' ? 50 : 35
+      : summary.decisions.includes(entry) ? 65 : 40;
     add('national', {
       id: 'briefing:' + entry.id, date: entry.date, title: entry.title, detail: entry.detail,
-      sourceLabel: 'Information accessible enregistrée', importance: 55,
+      sourceLabel: 'Information accessible enregistrée', importance,
     });
   }
 
@@ -160,7 +176,9 @@ export function savedCampaignNews(
     const unique = new Map(items.map(item => [item.id, item]));
     return [...unique.values()]
       .sort((a, b) => b.importance - a.importance || b.date.localeCompare(a.date) || a.id.localeCompare(b.id))
-      .slice(0, 12);
+      .slice(0, 12)
+      // Select major events first, then present the retained history chronologically.
+      .sort((a,b) => b.date.localeCompare(a.date) || b.importance-a.importance || a.id.localeCompare(b.id));
   };
   return { national: finish(national), international: finish(international) };
 }

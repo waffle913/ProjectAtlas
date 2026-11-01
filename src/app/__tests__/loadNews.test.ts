@@ -73,6 +73,50 @@ describe('save-preview campaign news from persisted dated history', () => {
       .some(item => item.sourceLabel === 'Rapport international daté')).toBe(false);
   });
 
+  it('keeps retained news chronological while reserving space for major events', () => {
+    const summary={events:Array.from({length:15},(_,i)=>({id:'minor-'+i,date:'2031-06-18',title:'Minor '+i,detail:'Recorded'})),
+      decisions:[],situations:[]};
+    const state=structuredClone(fixtures.occupied);
+    state.wars[0].startDate='2031-06-01';
+    const result=savedCampaignNews(state,canada,names,summary);
+    expect(result.national.some(n=>n.id==='war:start:'+state.wars[0].id)).toBe(true);
+    expect(result.national).toHaveLength(12);
+    const dates=result.national.map(n=>n.date);
+    expect(dates).toEqual([...dates].sort().reverse());
+  });
+  it('does not duplicate a proposal outcome already covered by an accessible briefing', () => {
+    const state=structuredClone(fixtures.occupied);
+    state.information.briefings.push({id:'public-result',countryId:canada,portfolio:'finance',access:'public',eventType:'proposal_result',
+      severity:'important',createdOn:state.date,sourceId:'p',headline:'Réforme enregistrée',
+      fact:{kind:'parliamentary_result',proposalId:'p',outcome:'adopted',evidenceStatus:'modelled'},pauseRequested:false});
+    const result=savedCampaignNews(state,canada,names,{events:[{id:'public-result',date:state.date,title:'Réforme enregistrée',detail:'Résultat'}],
+      decisions:[{id:'p',date:state.date,title:'Réforme fiscale',detail:'Adoptée'}],situations:[]});
+    expect(result.national.filter(n=>n.id==='briefing:p')).toEqual([]);
+    expect(result.national.filter(n=>n.id==='briefing:public-result')).toHaveLength(1);
+  });
+  it('does not announce scheduled restrictions as already applied or their future lifting as past news', () => {
+    const state=structuredClone(fixtures.occupied);
+    state.international.actions.scheduled={id:'scheduled',actorCountryId:canada,targetCountryId:usa,kind:'import_restriction',categories:[],
+      declaredOn:state.date,effectiveOn:'2031-06-19',ceasesOn:'2031-07-01',status:'lifted',declaredByPersonId:state.governance.player.controlledPersonId!,
+      provenance:'synthetic',limitation:'Test only'};
+    const result=news(state).national;
+    expect(result.find(n=>n.id==='international:declared:scheduled')?.detail).toContain('non encore applicable');
+    expect(result.some(n=>n.id==='international:lifted:scheduled')).toBe(false);
+    expect(JSON.stringify(result)).not.toContain('2031-07-01');
+    state.international.actions.scheduled.declaredOn='2032-01-01';
+    expect(news(state).national.some(n=>n.id.includes('scheduled'))).toBe(false);
+  });
+  it('filters private crisis briefings for opposition and preserves an available public crisis briefing', () => {
+    const state=structuredClone(fixtures.opposition);
+    const base={countryId:canada,portfolio:'interior_security' as const,eventType:'crisis_activation' as const,severity:'urgent' as const,
+      createdOn:state.date,sourceId:'synthetic-crisis',fact:{kind:'crisis_activation' as const,evidenceStatus:'modelled' as const},pauseRequested:false};
+    state.information.briefings.push({...base,id:'crisis-public',access:'public',headline:'Crise documentée publiquement'},
+      {...base,id:'crisis-secret',access:'government',headline:'RENSEIGNEMENT SECRET'});
+    const result=news(state);
+    expect(result.national.some(n=>n.title==='Crise documentée publiquement')).toBe(true);
+    expect(JSON.stringify(result)).not.toContain('RENSEIGNEMENT SECRET');
+  });
+
   it('does not project classified facts or unavailable economics as public news', () => {
     const a = news(fixtures.opposition!);
     expect(JSON.stringify(a)).not.toMatch(/enemyStrength|recordedEnemyPersonnelLosses|deployment/);

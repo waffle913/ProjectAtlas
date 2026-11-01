@@ -22,6 +22,14 @@ export function savedRegionStyle(state: SimulationState, regionId: string) {
   return { countryId };
 }
 
+/** Reject incomplete/malformed local polygons rather than presenting missing land as faithful coverage. */
+function polygonGeometryAvailable(geometry: GeoJSON.Geometry): boolean {
+  const polygons=geometry.type==='Polygon'?[geometry.coordinates]:geometry.type==='MultiPolygon'?geometry.coordinates:[];
+  return polygons.length>0 && polygons.every(p=>p.length>0 && p.every(r=>r.length>=4
+    && r.every(v=>v.length>=2 && Number.isFinite(v[0]) && Number.isFinite(v[1]) && Math.abs(v[0])<=180 && Math.abs(v[1])<=90)
+    && r[0][0]===r[r.length-1][0] && r[0][1]===r[r.length-1][1]));
+}
+
 /** Fetch only affected parent Countries plus the played Country, from pinned local assets. */
 export async function savedGeography(state: SimulationState, data: LoadedRegionData, territories: readonly Territory[], signal?: AbortSignal): Promise<SavedGeography> {
   const parents=new Set<string>();
@@ -51,6 +59,7 @@ export async function savedGeography(state: SimulationState, data: LoadedRegionD
     const regions=data.regionsByCountryId.get(parent)??[];
     const covered=new Set<string>();
     const add=(r:RegionEntity,geometry:GeoJSON.Geometry)=>{
+      if(!polygonGeometryAvailable(geometry))return;
       const style=savedRegionStyle(state,r.id);
       if(!style.countryId)return;
       const source:Territory={id:r.id,name:r.commonName,ownerCountryId:style.countryId,geometry,kind:'other',sourceFeatureId:r.id,sourceDatasetId:'existing-region-registry',sourceMetadata:{}};
@@ -61,10 +70,21 @@ export async function savedGeography(state: SimulationState, data: LoadedRegionD
     if(asset)try {
       const response=await fetch(asset,{signal});if(!response.ok)throw new Error('asset unavailable');
       const collection=await response.json() as GeoJSON.FeatureCollection;
+      const grouped=new Map<string,GeoJSON.Feature[]>();
       for(const feature of collection.features){
         const id=feature.properties?.regionId;const r=data.regionsById.get(id);
-        // The shipped asset is already bound to permanent Region IDs; reject cross-parent mappings.
-        if(r?.parentCountryId===parent && feature.geometry && r.geographyMapping.status==='mapped')add(r,feature.geometry);
+        if(r?.parentCountryId!==parent || r.geographyMapping.status!=='mapped')continue;
+        const entries=grouped.get(r.id)??[];entries.push(feature);grouped.set(r.id,entries);
+      }
+      for(const r of regions){
+        if(r.geographyMapping.status!=='mapped')continue;
+        const entries=grouped.get(r.id)??[];
+        const sourceIds=entries.map(f=>String(f.properties?.sourceId??''));
+        const expected=r.geographyMapping.sourceFeatureIds;
+        if(sourceIds.length!==expected.length || new Set(sourceIds).size!==sourceIds.length
+          || expected.some(id=>!sourceIds.includes(id))
+          || entries.some(f=>!f.geometry || !polygonGeometryAvailable(f.geometry)))continue;
+        for(const feature of entries)add(r,feature.geometry!);
       }
     }catch(error){if(signal?.aborted)throw error;warnings.push(`Géométrie régionale inaccessible : ${parent}. Aucun contour de remplacement inventé.`);}
     for(const r of regions)if(r.geographyMapping.status==='fallback_admin0'){
