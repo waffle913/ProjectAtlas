@@ -1,0 +1,13 @@
+# Plan — Charger une partie
+
+Base : origin/main bf6b7b2 ; branche ui/load-game-globe. Mission limitée à l'interface, aucune règle moteur, migration, identité ou donnée mondiale modifiée.
+
+1. Liste simple issue du backend existant ; sélection distincte du chargement, suppression confirmée et erreurs par entrée. Ajouter uniquement une lecture diagnostique au service existant pour rendre visibles les index inaccessibles/orphelins, sans autre stockage.
+2. Aperçu : validation/restauration dans un instantané détaché via restoreSimulationState ; aucune installation dans App/clock, commande, progression ou écriture. Chargement explicite relit et valide à nouveau via loadSlot existant. Retour conserve la campagne active et sa pause.
+3. Projection UI : identité/fonction sauvées, résumés via campaignSummary, statistiques seulement via rapports datés/accessibles. Pas de statistiques initiales présentées comme actuelles. Actualités internationales vides si aucun journal admissible.
+4. Géographie : vérifier géométries Admin1 existantes et IDs permanents. Remplacer la couche nationale des pays concernés par leurs régions ; souveraineté sauvegardée, contrôle/occupation distincts, rayures seulement avec rapport gouvernemental accessible actuel et cohérence des composantes canoniques. Aucune exposition de forces cachées. Anciennes sauvegardes : migration existante isolée, sans histoire inventée. Couverture incomplète = repli explicite, pas de pays entier recoloré.
+5. Réutiliser CountryGlobe/globeRenderer avec options purement graphiques. Supprimer les segments internes entre régions du même souverain, maintenir la frontière d'occupation comme distinction séparée. Aucun nouveau moteur ni animation UX-001, BUG-001 inchangé.
+6. IMPLEMENTATION puis REVIEW du diff : mutations/saves, asynchronisme et sélection périmée, accès opposition, dates futures, unknown != zero, indépendance A/B/C, identité et géométrie. Tests unitaires synthétiques clairement nommés ; navigateur sur runner avec vraies sauvegardes créées par les fonctions existantes. Captures liste/aperçu aux deux résolutions et 150 %, WebGL dégradé.
+7. Exclusivement GitHub Actions pour tests/build/benchmarks. Publier, lire résultats et captures, corriger, documenter limites et ouvrir PR vers main sans fusion.
+
+Risques : coût du chargement géographique (chargement ciblé, pas quotidien) ; rapports militaires bornés et éventuellement périmés ; absence de journal international complet ; sauvegardes/index corrompus indépendants ; géométries fallback et précision Natural Earth ; monde exact non automatiquement connaissance du joueur. Le globe affiche la souveraineté sauvegardée et les couches militaires connues, avec limites explicites.
