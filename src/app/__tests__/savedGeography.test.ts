@@ -19,13 +19,13 @@ describe('synthetic saved-world UI projection (not production data)',()=>{
   expect(savedRegionStyle(snapshots.occupied,maine.id).control).toBe('occupied');
   expect(JSON.stringify(snapshots.occupied)).toBe(a);expect(JSON.stringify(snapshots.ceded)).toBe(b);
  });
- it('does not expose military state to opposition or turn stale reports into current occupation',()=>{
+ it('keeps a saved occupation visible between reports and without government access',()=>{
   expect(snapshots.opposition).toBeDefined();
-  expect(savedRegionStyle(snapshots.opposition!,maine.id)).toEqual({countryId:usa});
+  expect(savedRegionStyle(snapshots.opposition!,maine.id)).toEqual({countryId:usa,control:'occupied',controllerId:canada});
   expect(campaignPresentation(snapshots.opposition!).economicReports).toEqual([]);
   expect(campaignPresentation(snapshots.opposition!).population).toBeUndefined();
   expect(campaignPresentation(snapshots.opposition!).monthlyOutput).toBeUndefined();
-  expect(savedRegionStyle({...snapshots.occupied,date:'2031-06-19'},maine.id)).toEqual({countryId:usa});
+  expect(savedRegionStyle({...snapshots.occupied,date:'2031-06-19'},maine.id)).toEqual({countryId:usa,control:'occupied',controllerId:canada});
   const noOccupation={...snapshots.occupied,occupationByRegion:{}};
   expect(savedRegionStyle(noOccupation,maine.id)).toEqual({countryId:usa});
  });

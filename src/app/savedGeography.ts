@@ -1,45 +1,57 @@
 import type { RegionEntity, SimulationState, Territory } from '../types';
 import type { LoadedRegionData } from '../data/regionData';
 import { globePolygons, type GlobePolygon } from '../components/new-game/globeGeometry';
-import { campaignPresentation } from './loadCampaign';
 import { effectiveForeignController } from '../simulation/operations/runtime';
 
 export type SavedPolygon = GlobePolygon & { regionId?: string; control?: 'occupied'|'contested'; controllerId?: string };
 export interface SavedGeography { polygons: SavedPolygon[]; warnings: string[] }
 
-/** Sovereignty is public; military shading needs current accessible evidence, not omniscience. */
-export function savedRegionStyle(state: SimulationState, regionId: string, presentation = campaignPresentation(state)) {
+/**
+ * Snapshot of actual regional control; dated government reports are NOT the
+ * source of truth for the geopolitical save-preview map.
+ * Only region-level status is revealed, never hidden units or troop strengths.
+ */
+export function savedRegionStyle(state: SimulationState, regionId: string) {
   const countryId = state.regionOwnership[regionId];
-  const report = presentation.operations;
-  const known = report?.asOfDate === state.date && report.status !== 'unavailable'
-    ? report.wars.find(w=>w.targetRegionId===regionId) : undefined;
-  if (known?.control === 'contested' && state.operations.regionControl[regionId] === 'contested')
-    return { countryId, control: 'contested' as const };
+  const control = state.operations.regionControl[regionId];
+  if (control === 'contested') return { countryId, control: 'contested' as const };
   const occupation = state.occupationByRegion[regionId];
-  if (known?.control === 'foreign_controlled' && state.operations.regionControl[regionId] === 'foreign_controlled'
-    && occupation && occupation.startDate <= state.date && effectiveForeignController(state,regionId) === occupation.occupierCountryId)
-    return { countryId, control:'occupied' as const, controllerId:occupation.occupierCountryId };
+  if (control === 'foreign_controlled' && occupation && occupation.startDate <= state.date
+    && effectiveForeignController(state,regionId) === occupation.occupierCountryId)
+    return { countryId, control: 'occupied' as const, controllerId: occupation.occupierCountryId };
   return { countryId };
 }
 
 /** Fetch only affected parent Countries plus the played Country, from pinned local assets. */
 export async function savedGeography(state: SimulationState, data: LoadedRegionData, territories: readonly Territory[], signal?: AbortSignal): Promise<SavedGeography> {
-  const view=campaignPresentation(state);
   const parents=new Set<string>();
-  if(view.countryId)parents.add(view.countryId);
+  const controlledId=state.governance.player.controlledPersonId;
+  const playedCountry=controlledId ? state.governance.persons[controlledId]?.countryId : undefined;
+  if(playedCountry)parents.add(playedCountry);
   for(const r of data.registry.regions) if(state.regionOwnership[r.id]!==r.initialOwnerCountryId){
     parents.add(r.parentCountryId);
     const owner=state.regionOwnership[r.id];if(owner)parents.add(owner);
   }
-  // Don't use hidden current military state to decide which geographic assets to request.
-  for(const war of view.operations?.wars??[]) { const r=data.regionsById.get(war.targetRegionId);if(r)parents.add(r.parentCountryId); }
+  // Include all regions whose regional control differs from ordinary peacetime,
+  // not only the player's objectives covered by an accessible monthly report.
+  for(const id of new Set([
+    ...Object.keys(state.occupationByRegion),
+    ...Object.keys(state.operations.regionControl).filter(id => state.operations.regionControl[id] === 'contested' || state.operations.regionControl[id] === 'foreign_controlled'),
+  ])) {
+    const region=data.regionsById.get(id);
+    if(region) {
+      parents.add(region.parentCountryId);
+      const owner=state.regionOwnership[id];
+      if(owner)parents.add(owner);
+    }
+  }
   const polygons:SavedPolygon[]=globePolygons(territories.filter(t=>!t.ownerCountryId || !parents.has(t.ownerCountryId)));
   const warnings:string[]=[];
   for(const parent of [...parents].sort()) {
     const regions=data.regionsByCountryId.get(parent)??[];
     const covered=new Set<string>();
     const add=(r:RegionEntity,geometry:GeoJSON.Geometry)=>{
-      const style=savedRegionStyle(state,r.id,view);
+      const style=savedRegionStyle(state,r.id);
       if(!style.countryId)return;
       const source:Territory={id:r.id,name:r.commonName,ownerCountryId:style.countryId,geometry,kind:'other',sourceFeatureId:r.id,sourceDatasetId:'existing-region-registry',sourceMetadata:{}};
       const countryId=style.countryId;
