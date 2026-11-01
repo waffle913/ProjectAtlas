@@ -1,0 +1,78 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { xyz, lonLat, countryAt, countryCenter, type GlobePolygon, type Point } from './globeGeometry';
+export interface GlobeMarker { x:number;y:number;visible:boolean }
+export interface GlobeController { select(id: string): void; zoom(factor: number): void; recenter(): void; dispose(): void }
+function surfaceGeometry(polygons: readonly GlobePolygon[]): THREE.BufferGeometry {
+  const vertices: number[]=[];
+  const triangle=(a:Point,b:Point,c:Point,depth=0) => {
+    const distances=[Math.hypot(a[0]-b[0],a[1]-b[1]),Math.hypot(b[0]-c[0],b[1]-c[1]),Math.hypot(c[0]-a[0],c[1]-a[1])];
+    const edge=distances.indexOf(Math.max(...distances));
+    if(distances[edge]>4 && depth<8) {
+      const p=[a,b,c][edge],q=[b,c,a][edge],r=[c,a,b][edge];const m:Point=[(p[0]+q[0])/2,(p[1]+q[1])/2];
+      triangle(p,m,r,depth+1);triangle(m,q,r,depth+1);return;
+    }
+    vertices.push(...xyz(a,1.004),...xyz(b,1.004),...xyz(c,1.004));
+  };
+  for(const polygon of polygons) {
+    const rings=polygon.rings.map(r=>r.map(p=>new THREE.Vector2(...p)));
+    if((rings[0]?.length??0)<3)continue;
+    const faces=THREE.ShapeUtils.triangulateShape(rings[0],rings.slice(1));const points=rings.flat();
+    for(const f of faces) triangle(points[f[0]].toArray() as Point,points[f[1]].toArray() as Point,points[f[2]].toArray() as Point);
+  }
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.computeVertexNormals();return geometry;
+}
+function borderGeometry(polygons: readonly GlobePolygon[]): THREE.BufferGeometry {
+  const vertices:number[]=[];
+  for(const p of polygons)for(const ring of p.rings)for(let i=0;i<ring.length;i++){
+    const a=ring[i],b=ring[(i+1)%ring.length];let bx=b[0];while(bx-a[0]>180)bx-=360;while(bx-a[0]<-180)bx+=360;
+    const n=Math.max(1,Math.ceil(Math.hypot(bx-a[0],b[1]-a[1])/2));
+    for(let j=0;j<n;j++)for(const t of [j/n,(j+1)/n])vertices.push(...xyz([a[0]+(bx-a[0])*t,a[1]+(b[1]-a[1])*t],1.007));
+  }
+  return new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+}
+export function mountGlobe(host: HTMLElement, polygons: readonly GlobePolygon[], onSelect:(id:string)=>void, onHover:(id?:string,point?:GlobeMarker)=>void,onMarker:(point:GlobeMarker)=>void): GlobeController {
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('data-texture-status','loading');renderer.domElement.setAttribute('aria-label','Globe terrestre 3D interactif');host.append(renderer.domElement);
+  const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(40,1,.1,20);
+  const controls=new OrbitControls(camera,renderer.domElement);controls.enablePan=false;controls.enableDamping=false;controls.minDistance=1.65;controls.maxDistance=5;controls.rotateSpeed=.55;controls.zoomSpeed=.7;
+  const sphereGeometry=new THREE.SphereGeometry(1,96,64);
+  const sphereMaterial=new THREE.MeshBasicMaterial({color:0x8eafd3});
+  const earth=new THREE.Mesh(sphereGeometry,sphereMaterial);scene.add(earth);
+  sphereMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nfloat lightMask=smoothstep(0.12,0.45,diffuseColor.r+diffuseColor.g+diffuseColor.b);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(1.0,0.65,0.25)*max(max(diffuseColor.r,diffuseColor.g),diffuseColor.b)*1.6,lightMask);');};
+  let dead=false,selected='';
+  const texture=new THREE.TextureLoader().load('/globe/black-marble-2016.jpg',()=>{if(dead){texture.dispose();return;}texture.colorSpace=THREE.SRGBColorSpace;sphereMaterial.map=texture;sphereMaterial.needsUpdate=true;renderer.domElement.setAttribute('data-texture-status','ready');render();},undefined,()=>render());
+  const borders=new THREE.LineSegments(borderGeometry(polygons),new THREE.LineBasicMaterial({color:0x4194c3,transparent:true,opacity:.65}));scene.add(borders);
+  const highlight=new THREE.Mesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial({color:0xe7ac4e,transparent:true,opacity:.52,side:THREE.DoubleSide,depthWrite:false}));scene.add(highlight);
+  const outline=new THREE.LineSegments(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xffd58c,transparent:true,opacity:1}));scene.add(outline);
+  const hover=new THREE.Mesh(new THREE.BufferGeometry(),new THREE.MeshBasicMaterial({color:0xffd58c,transparent:true,opacity:.3,side:THREE.DoubleSide,depthWrite:false}));scene.add(hover);
+  const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.012,64,48),new THREE.ShaderMaterial({transparent:true,side:THREE.BackSide,depthWrite:false,blending:THREE.AdditiveBlending,
+    vertexShader:'varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.0);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',
+    fragmentShader:'varying vec3 n;varying vec3 v;void main(){float a=pow(1.0-abs(dot(normalize(n),normalize(v))),3.0);gl_FragColor=vec4(0.25,0.6,1.0,a*0.9);}'}));scene.add(atmosphere);
+  const render=()=>{if(dead)return;renderer.render(scene,camera);const center=countryCenter(polygons,selected);if(center){const position=new THREE.Vector3(...xyz(center,1.01));const visible=position.clone().normalize().dot(camera.position.clone().normalize())>0;position.project(camera);const rect=host.getBoundingClientRect();onMarker({x:rect.left+(position.x+1)/2*rect.width,y:rect.top+(1-position.y)/2*rect.height,visible});}else{onMarker({x:0,y:0,visible:false});}};
+  const orient=(point:Point)=>{camera.position.set(...xyz([point[0]+8,Math.max(-80,Math.min(80,point[1]-12))],3.1));camera.lookAt(0,0,0);controls.update();render();};
+  orient([12,40]);controls.addEventListener('change',render);
+  const resize=()=>{if(dead)return;const r=host.getBoundingClientRect();if(!r.width||!r.height)return;camera.aspect=r.width/r.height;camera.updateProjectionMatrix();renderer.setSize(r.width,r.height);render();};
+  const observer=new ResizeObserver(resize);observer.observe(host);resize();
+  const raycaster=new THREE.Raycaster();const pointer=new THREE.Vector2();let down:[number,number]|undefined,hoverId:string|undefined;
+  const hit=(e:PointerEvent)=>{const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(earth)[0];return hit?countryAt(polygons,...lonLat(hit.point.toArray() as [number,number,number])):undefined;};
+  const pointerDown=(e:PointerEvent)=>{down=[e.clientX,e.clientY];};
+  const pointerUp=(e:PointerEvent)=>{if(down && Math.hypot(e.clientX-down[0],e.clientY-down[1])<5){const id=hit(e);if(id)onSelect(id);}down=undefined;};
+  const pointerMove=(e:PointerEvent)=>{if(e.buttons)return;const id=hit(e);if(id===hoverId)return;hoverId=id;hover.geometry.dispose();hover.geometry=id && id!==selected?surfaceGeometry(polygons.filter(p=>p.countryId===id)):new THREE.BufferGeometry();onHover(id,{x:e.clientX,y:e.clientY,visible:true});render();};
+  const leave=()=>{hoverId=undefined;onHover();hover.geometry.dispose();hover.geometry=new THREE.BufferGeometry();render();};
+  const keyDown=(e:KeyboardEvent)=>{
+    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','+','-'].includes(e.key))return;
+    e.preventDefault();
+    if(e.key==='Home'){orient(countryCenter(polygons,selected)??[12,40]);return;}
+    if(e.key==='+' || e.key==='-'){camera.position.multiplyScalar(e.key==='+'?.85:1.15).clampLength(1.65,5);controls.update();render();return;}
+    const p=lonLat(camera.position.toArray() as [number,number,number]);
+    p[0]+=e.key==='ArrowLeft'?-5:e.key==='ArrowRight'?5:0;
+    p[1]=Math.max(-85,Math.min(85,p[1]+(e.key==='ArrowUp'?5:e.key==='ArrowDown'?-5:0)));
+    camera.position.set(...xyz(p,camera.position.length()));controls.update();render();
+  };
+  renderer.domElement.addEventListener('keydown',keyDown);
+  const contextLost=(e:Event)=>{e.preventDefault();host.dispatchEvent(new Event('globe-unavailable'));};
+  renderer.domElement.addEventListener('pointerdown',pointerDown);renderer.domElement.addEventListener('pointerup',pointerUp);renderer.domElement.addEventListener('pointermove',pointerMove);renderer.domElement.addEventListener('pointerleave',leave);renderer.domElement.addEventListener('webglcontextlost',contextLost);
+  return {select(id){selected=id;hover.geometry.dispose();hover.geometry=new THREE.BufferGeometry();onHover();const p=polygons.filter(p=>p.countryId===id);highlight.geometry.dispose();outline.geometry.dispose();highlight.geometry=surfaceGeometry(p);outline.geometry=borderGeometry(p);const center=countryCenter(polygons,id);if(center)orient(center);else render();},zoom(factor){camera.position.multiplyScalar(factor).clampLength(1.65,5);controls.update();render();},recenter(){orient(countryCenter(polygons,selected)??[12,40]);},dispose(){dead=true;observer.disconnect();controls.removeEventListener('change',render);controls.dispose();renderer.domElement.removeEventListener('keydown',keyDown);renderer.domElement.removeEventListener('pointerdown',pointerDown);renderer.domElement.removeEventListener('pointerup',pointerUp);renderer.domElement.removeEventListener('pointermove',pointerMove);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',contextLost);scene.traverse(o=>{if(o instanceof THREE.Mesh || o instanceof THREE.LineSegments){o.geometry.dispose();const materials=Array.isArray(o.material)?o.material:[o.material];materials.forEach(m=>m.dispose());}});texture.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();}};
+}

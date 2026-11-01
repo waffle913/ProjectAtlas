@@ -1,0 +1,31 @@
+name: new-game-ui
+on:
+  push:
+    branches: [ui/new-game-globe]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  interface-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Unit and policy-boundary regression tests
+        run: npm test -- src/app/__tests__ src/components/__tests__ src/simulation/__tests__/startSelection.test.ts src/simulation/__tests__/executiveAuthority.test.ts --maxWorkers=1
+      - name: Type check and production build
+        run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Real WebGL screenshots and campaign flow
+        run: npx playwright test --config=playwright.new-game.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: new-game-ui-${{ github.sha }}
+          path: artifacts/new-game/
+          if-no-files-found: warn

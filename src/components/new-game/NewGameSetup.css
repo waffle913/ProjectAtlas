@@ -1,0 +1,88 @@
+.new-game-setup { position:relative;isolation:isolate;display:block;height:100svh;min-height:720px;overflow:hidden;background:#010810;color:#d9e2eb;font:calc(14px * var(--ng-scale,1)) 'Segoe UI',Arial,sans-serif; }
+.new-game-setup::before {content:'';position:absolute;inset:0;z-index:-2;background:radial-gradient(1px 1px at 18% 12%,#d7e7f6 70%,transparent),radial-gradient(1px 1px at 66% 73%,#74b4ee 70%,transparent),radial-gradient(1px 1px at 52% 29%,#6da5d9 70%,transparent),radial-gradient(ellipse at 45% 70%,#0c2540,transparent 65%);background-size:157px 139px,103px 173px,211px 197px,100% 100%;opacity:.75;}
+.new-game-setup button,.new-game-setup input,.new-game-setup select {font:inherit;color:inherit;}
+.new-game-setup button {cursor:pointer;border:1px solid #294251;background:#030f1add;}
+.new-game-setup button:disabled {cursor:not-allowed;color:#788794;opacity:.68;}
+.new-game-setup button:focus-visible,.new-game-setup input:focus-visible,.new-game-setup select:focus-visible {outline:2px solid #efd092;outline-offset:3px;}
+.new-game-setup h2 {color:#e8c58c;font-size:1.2em;letter-spacing:.06em;font-weight:400;}
+.ng-globe {position:absolute;left:5%;right:18%;top:8%;bottom:-19%;z-index:-1;touch-action:none;}
+.ng-globe canvas {display:block;}
+.ng-sidebar {position:absolute;left:1.3%;top:1.5%;width:13.4%;}
+.ng-brand {height:110px;position:relative;padding:20px 8px;}
+.ng-brand > span {display:block;letter-spacing:.55em;font-size:.82em;}
+.ng-brand > strong {display:block;font-size:2.5em;font-weight:300;letter-spacing:.19em;}
+.ng-brand .atlas-emblem {position:absolute;left:20%;top:-5px;width:140px;height:120px;color:#b18b46;stroke:currentColor;stroke-width:.7;opacity:.5;z-index:-1;}
+.ng-sidebar nav {border:1px solid #183044;border-radius:5px;overflow:hidden;background:#010d17ce;}
+.ng-sidebar button {display:flex;align-items:center;text-align:left;width:100%;padding:1.2em .9em;gap:1em;font-size:.86em;text-transform:uppercase;border:0;border-bottom:1px solid #162936;min-height:58px;}
+.ng-sidebar button svg {width:2em;height:2em;flex-shrink:0;}
+.ng-sidebar .active {color:#f6e7ca;background:linear-gradient(90deg,#65502b9c,#251f149c);border:1px solid #a88a50;box-shadow:inset 3px 0 #ffe5ad,0 0 10px #e5bc4c33;}
+.ng-steps {position:absolute;left:22.5%;top:1.8%;right:20%;display:flex;gap:.5em;}
+.ng-steps button {display:flex;align-items:center;gap:1em;padding:0;background:none;border:0;flex:1;min-width:0;text-align:left;}
+.ng-steps b {display:grid;place-items:center;width:1.8em;height:1.8em;flex-shrink:0;border:2px solid #71889d;border-radius:50%;font-size:1.7em;font-weight:400;}
+.ng-steps strong {display:block;text-transform:uppercase;font-weight:500;font-size:.95em;}
+.ng-steps small {display:block;color:#8da0b2;margin-top:.3em;font-size:.85em;}
+.ng-steps i {font-size:3em;font-style:normal;color:#8ba0b0;margin-left:auto;margin-right:.25em;}
+.ng-steps [aria-current=step] {color:#ffe7b3;}
+.ng-steps [aria-current=step] b {border-color:#ffe7b3;box-shadow:0 0 20px #ffd5737a;}
+.ng-country-panel {position:absolute;right:1.15%;top:10.7%;bottom:8.5%;width:27.5%;display:flex;flex-direction:column;gap:18px;min-width:0;}
+.ng-search {height:50px;display:flex;align-items:center;background:#020f19e8;border:1px solid #345368;border-radius:5px;padding:0 15px;gap:15px;flex-shrink:0;}
+.ng-search label {position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;}
+.ng-search > span {font-size:2.2em;color:#9db4c7;}
+.ng-search input {width:100%;min-width:0;border:0;background:none;outline:none;}
+.ng-search-results {position:absolute;z-index:10;top:55px;right:0;left:0;max-height:340px;overflow:auto;background:#071725;border:1px solid #42647b;}
+.ng-search-results button {display:block;width:100%;text-align:left;padding:10px;}
+.ng-search-results small {display:block;color:#9b8f74;}
+.ng-card {padding:20px;border:1px solid #28485c;border-radius:5px;background:#010c15ed;min-height:0;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px;}
+.ng-country-title {display:flex;align-items:center;gap:18px;}
+.ng-country-title h1 {font-size:1.8em;font-weight:500;margin:0 0 .2em;}
+.ng-country-title p {font-size:1em;color:#b9c7d4;margin:0;}
+.ng-country-code {display:grid;place-items:center;flex-shrink:0;width:76px;height:54px;background:#163549;border:1px solid #3e596b;border-radius:3px;font-size:1.6em;color:#dfbe7d;}
+.ng-flag-fr {background:linear-gradient(90deg,#172e76 0 33.33%,#eee 33.33% 66.66%,#c62d44 66.66%);border:0;}
+.ng-country-banner {height:112px;min-height:85px;position:relative;background:radial-gradient(ellipse at 65% 20%,#20384e,#07131e);border:1px solid #284052;overflow:hidden;}
+.ng-country-banner svg {width:100%;height:100%;fill:#d7af5a40;stroke:#e5bd79;stroke-width:1.2;}
+.ng-country-banner small {position:absolute;bottom:5px;left:8px;color:#a1b1c0;font-size:.65em;}
+.ng-tabs {display:flex;border-bottom:1px solid #a18750;flex-shrink:0;}
+.ng-tabs button {font-size:.75em;text-transform:uppercase;border:0;background:none;flex:1;padding:.8em .25em;}
+.ng-tabs [aria-selected=true] {background:#b48b3d27;color:#ffe6b1;}
+.ng-information {flex:1;min-height:0;overflow:auto;}
+.ng-card dl {margin:0;}
+.ng-fact {display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid #1e36464a;padding:.65em .25em;font-size:.88em;}
+.ng-fact dt {color:#9fb1c3;flex-shrink:0;max-width:47%;}
+.ng-fact dd {margin:0;text-align:right;overflow-wrap:anywhere;}
+.ng-fact small {display:block;font-size:.68em;color:#738b9f;margin-top:3px;}
+.ng-note {color:#8fa4b6;font-size:.78em;line-height:1.55;}
+.ng-catalog-label {display:block;font-size:.72em;color:#8fa4b6;}
+.ng-catalog-label select {display:block;width:100%;padding:6px;background:#071521;border:1px solid #284b61;margin-top:5px;}
+.ng-step-actions {display:flex;gap:10px;margin-top:auto;flex-shrink:0;}
+.ng-card .ng-continue {flex:1;min-height:58px;text-transform:uppercase;background:linear-gradient(120deg,#67512c98,#211b1090);border:1px solid #cda25e;color:#f8ead0;box-shadow:inset 0 0 15px #c7a25220,0 0 10px #f2c05525;}
+.ng-continue span {margin-left:15px;font-size:1.5em;}
+.ng-card .ng-back {padding:10px;color:#b7c6d1;}
+.ng-role-panel,.ng-configuration,.ng-recap {flex:1;overflow:auto;min-height:0;}
+.ng-paths {display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ng-paths button {padding:12px 8px;font-size:.9em;}
+.ng-paths small,.ng-person small,.ng-person span {display:block;font-size:.8em;color:#98acbc;margin-top:5px;}
+.ng-person {display:block;width:100%;padding:12px;margin-top:10px;text-align:left;}
+.ng-person[aria-pressed=true],.ng-paths [aria-pressed=true] {border-color:#d4b577;background:#6d582d45;}
+.ng-card details {margin-top:15px;font-size:.75em;line-height:1.5;color:#a6b7c5;}
+.ng-card summary {cursor:pointer;color:#d7bc87;}
+.ng-card details p {border-bottom:1px solid #253849;padding-bottom:8px;}
+.ng-unavailable {color:#e6bb8e;font-size:.9em;line-height:1.5;}
+.ng-globe-controls {position:absolute;left:10.5%;bottom:16%;display:flex;flex-direction:column;gap:4px;}
+.ng-globe-controls button {width:42px;height:42px;font-size:1.8em;border-radius:4px;}
+.ng-globe-help {position:absolute;bottom:3%;left:11%;right:34%;display:flex;justify-content:space-around;gap:12px;background:#02101cd9;padding:18px;color:#9bb1c3;font-size:.9em;border-radius:25px;pointer-events:none;}
+.ng-hover {position:absolute;left:36%;top:53%;padding:.5em .7em;background:#020b14d9;color:#f5dba6;border-radius:4px;pointer-events:none;font-size:1.2em;}
+.ng-globe-fallback,.ng-globe-status {position:absolute;left:23%;top:35%;width:34%;padding:24px;background:#071b2bf0;border:1px solid #39586e;line-height:1.6;}
+.ng-attribution {position:absolute;bottom:5px;left:26%;color:#7790a4;font-size:.6em;}
+.ng-large-ui {min-height:1000px;overflow:auto;}
+.ng-large-ui .ng-country-panel {width:34%;top:13%;}
+.ng-large-ui .ng-steps {right:3%;left:20%;}
+.ng-large-ui .ng-sidebar {width:17%;}
+@media(min-width:1700px) {.new-game-setup {font-size:calc(16px * var(--ng-scale,1));}.ng-brand{height:130px;}.ng-country-banner{height:145px;}}
+@media(max-width:1100px) {.new-game-setup{height:auto;min-height:1100px;overflow:auto;}.ng-sidebar{width:19%;}.ng-country-panel{width:43%;top:13%;bottom:6%;}.ng-steps{left:23%;right:2%;}.ng-steps small{display:none;}.ng-globe{left:5%;right:24%;bottom:5%;}.ng-globe-help{right:47%;left:2%;}.ng-hover{left:26%;}.ng-attribution{left:2%;}.ng-brand .atlas-emblem{left:2%;}}
+@media(max-width:650px) {.new-game-setup{min-height:1500px;padding-top:410px;}.ng-sidebar{top:10px;left:12px;width:calc(100% - 24px);}.ng-brand{height:80px;}.ng-sidebar nav{display:flex;flex-wrap:wrap;}.ng-sidebar button{width:auto;flex:1;font-size:.7em;padding:8px;min-height:45px;}.ng-steps{top:215px;left:12px;right:12px;}.ng-steps b{font-size:1.2em;}.ng-steps button{gap:5px;}.ng-steps strong{font-size:.65em;}.ng-steps i{display:none;}.ng-country-panel{position:relative;top:auto;right:auto;margin:0 12px;width:calc(100% - 24px);height:1000px;}.ng-globe{top:260px;bottom:auto;left:0;right:0;height:350px;}.ng-hover,.ng-globe-help{display:none;}.ng-globe-controls{left:12px;top:300px;bottom:auto;}.ng-attribution{left:12px;right:12px;}}
+
+.ng-card .ng-catalog { margin:0;font-size:.75em;flex-shrink:0; }
+@media (max-height:850px) and (min-width:1101px) {.ng-card {padding:14px;gap:8px;}.ng-country-banner {height:80px;min-height:65px;}.ng-fact {padding:.4em .2em;}.ng-card .ng-continue {min-height:50px;}}
+/* At enlarged UI sizes, remove decorative separators before they crowd step labels. */
+.ng-large-ui .ng-steps i { display:none; }
+.ng-large-ui .ng-steps span { min-width:0; }

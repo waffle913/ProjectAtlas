@@ -64,8 +64,8 @@ describe('0.21 playable shell', () => {
 
   it('release menu and new-game flow contain no obsolete candidate/milestone branding', () => {
     const menu = renderToStaticMarkup(createElement(MainMenu, { hasSave: false, settings: DEFAULT_SETTINGS, onContinue: () => {}, onNewGame: () => {}, onLoad: () => {}, onSettings: () => {}, onCredits: () => {}, onExit: () => {} }));
-    expect(menu).toContain('New Game');
-    expect(menu).toContain('Load Game');
+    expect(menu).toContain('Nouvelle partie');
+    expect(menu).toContain('Charger une partie');
     expect(menu).not.toContain('candidate');
     expect(menu).not.toContain('MILESTONE');
     expect(menu).not.toContain('0.17');
