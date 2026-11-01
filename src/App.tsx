@@ -453,7 +453,7 @@ export default function App() {
   const exitApp = () => { void exitApplication(); };
   if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} />;
   if (screen === 'load') return storageReady
-    ? <SaveManager onLoad={loadSlot} onPreview={previewSlot} onBack={() => { setLoadSlotError(undefined); setScreen(loadOrigin.current); }} error={loadSlotError} territories={world?.territories} regions={regionData} countries={countryData?.registry.countries} uiScale={settings.graphics.uiScale} onNewGame={startNewGame} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} />
+    ? <SaveManager onLoad={loadSlot} onPreview={previewSlot} onBack={() => { setLoadSlotError(undefined); setScreen(loadOrigin.current); }} error={loadSlotError ?? storageError} territories={world?.territories} regions={regionData} countries={countryData?.registry.countries} uiScale={settings.graphics.uiScale} onNewGame={startNewGame} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} />
     : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={returnFromAuxiliary}>← Back</button></main>;
   if (screen === 'credits') return (
     <main className="load-state credits">

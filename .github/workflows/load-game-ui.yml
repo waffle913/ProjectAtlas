@@ -22,6 +22,8 @@ jobs:
       - name: Unit tests and invariant-validated synthetic browser snapshots
         run: npm test -- src/app/__tests__ src/components/__tests__ src/simulation/__tests__/startSelection.test.ts src/simulation/__tests__/executiveAuthority.test.ts --maxWorkers=1
       - run: npm run build
+      - name: Stage synthetic snapshots outside the shipped product
+        run: cp -r artifacts/load-game/storage dist/__synthetic_saves__
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --config=playwright.load-game.config.ts
       - name: Existing new-game regression
@@ -33,4 +35,5 @@ jobs:
           path: |
             artifacts/load-game/
             artifacts/new-game/
+            !artifacts/load-game/storage/**
           if-no-files-found: warn

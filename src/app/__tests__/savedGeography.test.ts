@@ -23,9 +23,21 @@ describe('synthetic saved-world UI projection (not production data)',()=>{
   expect(snapshots.opposition).toBeDefined();
   expect(savedRegionStyle(snapshots.opposition!,maine.id)).toEqual({countryId:usa});
   expect(campaignPresentation(snapshots.opposition!).economicReports).toEqual([]);
+  expect(campaignPresentation(snapshots.opposition!).population).toBeUndefined();
+  expect(campaignPresentation(snapshots.opposition!).monthlyOutput).toBeUndefined();
   expect(savedRegionStyle({...snapshots.occupied,date:'2031-06-19'},maine.id)).toEqual({countryId:usa});
   const noOccupation={...snapshots.occupied,occupationByRegion:{}};
   expect(savedRegionStyle(noOccupation,maine.id)).toEqual({countryId:usa});
+ });
+ it('keeps unknown aggregates unavailable and excludes future economic and military reports',()=>{
+  const s=structuredClone(snapshots.occupied);const view=campaignPresentation(s);
+  expect(view.population).toBeGreaterThan(0);expect(view.monthlyOutput).toBeUndefined();
+  s.information.operationsReports!.latest[canada].producedOn='2032-01-01';
+  expect(campaignPresentation(s).operations).toBeUndefined();
+  s.information.latestGovernmentReports={future:{id:'future',countryId:canada,indicator:'unemployment_rate',valueBps:0,asOfDate:'2032-01-01',status:'modelled',coverage:'complete',unit:'basis_points',source:'socioeconomy.monthly',limitation:'Synthetic test'}};
+  expect(campaignPresentation(s).economicReports).toEqual([]);
+  s.information.latestGovernmentReports.future.asOfDate=s.date;
+  expect(campaignPresentation(s).economicReports[0].valueBps).toBe(0);
  });
  it('renders contested separately and never infers a cession from an ended war',()=>{
   const s=structuredClone(snapshots.occupied);s.operations.regionControl[maine.id]='contested';
@@ -62,7 +74,8 @@ describe('synthetic saved-world UI projection (not production data)',()=>{
    const restored=restoreSimulationState(raw,worldRegions,{}, {},worldContext);
    expect(restored.date).toBe(state.date);expect(restored.engine.tick).toBe(state.engine.tick);
    expect(restored.regionOwnership).toEqual(state.regionOwnership);expect(restored.occupationByRegion).toEqual(state.occupationByRegion);
-   entries.push({id:'synthetic.'+id,raw,metadata:{name:'TEST SYNTHÉTIQUE — Canada 2031 · '+id,countryId:canada,countryName:'Canada',controlledPersonName:state.governance.persons[state.governance.player.controlledPersonId!].displayName,office:null,simulationDate:state.date,createdAt:'2026-10-31T00:00:00Z',modifiedAt:'2026-10-31T00:00:00Z',schemaVersion:state.schemaVersion}});
+   if(process.env.CI){await fs.mkdir('artifacts/load-game/storage',{recursive:true});await fs.writeFile('artifacts/load-game/storage/synthetic.'+id+'.json',raw);}
+   entries.push({id:'synthetic.'+id,metadata:{name:'TEST SYNTHÉTIQUE — Canada 2031 · '+id,countryId:canada,countryName:'Canada',controlledPersonName:state.governance.persons[state.governance.player.controlledPersonId!].displayName,office:null,simulationDate:state.date,createdAt:'2026-10-31T00:00:00Z',modifiedAt:'2026-10-31T00:00:00Z',schemaVersion:state.schemaVersion}});
   }
   if(process.env.CI){await fs.mkdir('artifacts/load-game',{recursive:true});await fs.writeFile('artifacts/load-game/fixtures.json',JSON.stringify(entries));}
  });

@@ -2,17 +2,31 @@ import { test,expect } from '@playwright/test';
 import fs from 'node:fs/promises';
 async function storage(page:import('@playwright/test').Page){
  const entries=JSON.parse(await fs.readFile('artifacts/load-game/fixtures.json','utf8'));
+ // Exercise the production native adapter through a synthetic IPC boundary. Full-world saves
+ // exceed browser localStorage quotas; do not change production storage to fit the test.
  await page.addInitScript((entries)=>{
-  if(localStorage.getItem('load-ui-fixture-installed'))return;
-  localStorage.setItem('load-ui-fixture-installed','yes');
-  const index:Record<string,unknown>={};
-  for(const entry of entries){localStorage.setItem('projectatlas.save.'+entry.id,entry.raw);index[entry.id]=entry.metadata;}
-  index['synthetic.corrupt']={...entries[0].metadata,name:'TEST SYNTHÉTIQUE — corrompue'};
-  index['synthetic.incompatible']={...entries[0].metadata,name:'TEST SYNTHÉTIQUE — incompatible'};
-  index['synthetic.missing']={...entries[0].metadata,name:'TEST SYNTHÉTIQUE — introuvable'};
-  localStorage.setItem('projectatlas.save.synthetic.corrupt','{broken');
-  localStorage.setItem('projectatlas.save.synthetic.incompatible',JSON.stringify({...JSON.parse(entries[0].raw),schemaVersion:999}));
-  localStorage.setItem('projectatlas.save.__index__',JSON.stringify(index));
+  const index:Record<string,unknown>={};const writes=new Map<string,string>();const removed=new Set<string>();
+  for(const entry of entries)index[entry.id]=entry.metadata;
+  for(const kind of ['corrupt','incompatible','missing'])index['synthetic.'+kind]={...entries[0].metadata,name:'TEST SYNTHÉTIQUE — '+({corrupt:'corrompue',incompatible:'incompatible',missing:'introuvable'})[kind as 'corrupt'|'incompatible'|'missing']};
+  let settings:string|null=null;
+  (window as unknown as {__syntheticWrites:number}).__syntheticWrites=0;
+  (window as unknown as {__TAURI_INTERNALS__:unknown}).__TAURI_INTERNALS__={invoke:async(command:string,args:Record<string,unknown>={})=>{
+   const id=String(args.id);
+   if(command==='settings_read')return settings;
+   if(command==='settings_write'){settings=String(args.json);return;}
+   if(command==='set_display_mode')return;
+   if(command==='save_file_list')return [...entries.map(e=>e.id),'synthetic.corrupt','synthetic.incompatible','__index__'];
+   if(command==='save_file_read'){
+    if(removed.has(id))return null;if(writes.has(id))return writes.get(id);
+    if(id==='__index__')return JSON.stringify(index);
+    if(id==='synthetic.corrupt')return '{broken';
+    if(id==='synthetic.incompatible')return JSON.stringify({schemaVersion:999});
+    const response=await fetch('/__synthetic_saves__/'+id+'.json');return response.ok?await response.text():null;
+   }
+   if(command==='save_file_write'){(window as unknown as {__syntheticWrites:number}).__syntheticWrites++;writes.set(id,String(args.data));return;}
+   if(command==='save_file_delete'){(window as unknown as {__syntheticWrites:number}).__syntheticWrites++;removed.add(id);return;}
+   throw new Error('Unexpected synthetic IPC command '+command);
+  }};
  },entries);
 }
 test('real load list, saved world, explicit restore and independent history',async({page})=>{
@@ -34,7 +48,7 @@ test('real load list, saved world, explicit restore and independent history',asy
   await page.setViewportSize(viewport);await page.screenshot({path:`artifacts/load-game/occupied-${viewport.width}x${viewport.height}.png`});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
  }
- const original=await page.evaluate(()=>localStorage.getItem('projectatlas.save.synthetic.occupied'));
+ const original=await page.evaluate(()=>(window as unknown as {__syntheticWrites:number}).__syntheticWrites);
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
  await page.locator('.lg-save-name').filter({hasText:'· ceded'}).click();await expect(page.locator('.ng-globe canvas')).toHaveAttribute('data-texture-status','ready');
  await page.setViewportSize({width:1920,height:1080});await page.screenshot({path:'artifacts/load-game/ceded-1920x1080.png'});
@@ -42,7 +56,7 @@ test('real load list, saved world, explicit restore and independent history',asy
  await page.locator('.lg-save-name').filter({hasText:'· opposition'}).click();await expect(page.locator('.lg-campaign-panel')).toContainText('Aucun rapport militaire accessible');
  await page.screenshot({path:'artifacts/load-game/opposition-1920x1080.png'});
  await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();await page.locator('.lg-save-name').filter({hasText:'· occupied'}).click();
- expect(await page.evaluate(()=>localStorage.getItem('projectatlas.save.synthetic.occupied'))).toBe(original);
+ expect(await page.evaluate(()=>(window as unknown as {__syntheticWrites:number}).__syntheticWrites)).toBe(original);
  await page.getByRole('button',{name:'Charger la campagne',exact:false}).click();await expect(page.locator('.clock strong')).toContainText('2031');
  await page.getByRole('button',{name:'Menu',exact:true}).click();await page.getByRole('button',{name:'Load Game',exact:true}).click();
  await page.locator('.lg-save-name').filter({hasText:'· ceded'}).click();await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
