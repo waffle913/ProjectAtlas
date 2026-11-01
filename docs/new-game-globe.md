@@ -31,3 +31,18 @@ Référence visuelle reçue après le plan : `docs/new-game-reference.png`, four
 Versions verrouillées : Three.js 0.187.0, Playwright 1.64.1. Licence MIT de Three.js (r187) distribuée dans `public/globe/three-LICENSE.txt`. SHA-256 de la texture NASA non modifiée : `D87DE751A264E4F8FF69C68DE5DAB9606DAEE87A6F15AE743C93200743BD7EC1`.
 
 Relecture visuelle distante : cadrage au-dessus/à gauche du centre du globe pour rapprocher la France de sa position de référence ; étiquette projetée depuis la géométrie réelle, sans coordonnées écran fixes. L'atmosphère est volontairement fine ; les lumières historiques sont rendues dans une palette chaude par shader. Le catalogue complet est repliable pour préserver la place des informations à 1366 × 768. Les valeurs structurées nommées sont formatées explicitement ; aucune coercition `[object Object]`. Les observations postérieures au départ sont masquées ; le régime vient de l'API institutionnelle canonique et non du snapshot descriptif plus tardif.
+
+## Résultats exécutés et livraison
+
+Code validé : `2bc7efa82880e8facf8cc99445ffc3103d255edc` sur `ui/new-game-globe`. [Workflow interface réussi](https://github.com/waffle913/ProjectAtlas/actions/runs/41254977600) :
+- `npm test -- src/app/__tests__ src/components/__tests__ src/simulation/__tests__/startSelection.test.ts src/simulation/__tests__/executiveAuthority.test.ts --maxWorkers=1` : 19 fichiers, 171 tests réussis.
+- `npm run build` : type-check et compilation de production réussis.
+- `npx playwright test --config=playwright.new-game.config.ts` : 2 scénarios réussis, 31,1 s. Rotation réelle souris/clavier, sélection géographique, recherche, zoom, catalogue sans géométrie, parcours complet et reprise depuis une partie active ; repli WebGL séparé. Aucun appel externe ni erreur navigateur observé.
+- Captures et comparaison : [galerie](new-game-captures/README.md), téléchargées de l'artefact 13062985246. Contrôle à 100 % et 150 %, 1920 × 1080 et 1366 × 768. À grande échelle, défilement vertical volontaire ; aucune promesse que tous les faits tiennent simultanément.
+- [Verify général Linux/Windows](https://github.com/waffle913/ProjectAtlas/actions/runs/41254977606) encore en cours à la rédaction : aucune réussite globale revendiquée. La validation ciblée ci-dessus est terminée. Aucun test, build ou benchmark exécuté localement.
+
+Relecture séparée du diff : aucune modification de `src/simulation`, `src/data`, `public/data` ou `src-tauri` par rapport à main. Les protections politiques et le modèle de sauvegarde sont conservés. Le pays sans géométrie ne conserve pas l'étiquette du pays précédent et son recentrage est désactivé. Les séparateurs décoratifs sont masqués à 150 % pour éviter le chevauchement des étapes.
+
+Limites : le catalogue existant ne fournit pas de géométrie à tous les pays ; ils restent inspectables et sélectionnables par le catalogue, sans inventer de frontières. Les indisponibilités de rôle proviennent du moteur canonique. Les faits sans date admissible restent indisponibles. La texture NASA 2016 est un décor historique. Cette livraison ne constitue ni une acceptation de jalon moteur ni une autorisation de fusion.
+
+Inventaire principal : `src/App.tsx`, `src/app/newCampaign.ts`, `src/app/countryPresentation.ts`, `src/components/new-game/*`, tests unitaires associés, `tests/new-game/flow.e2e.ts`, `playwright.new-game.config.ts`, workflow `new-game-ui.yml`, dépendances verrouillées, ressources/licences `public/globe/*`. Le menu existant exporte seulement son logo et ses icônes pour réutilisation. Aucune fusion dans main ; validation utilisateur requise avant intégration.
