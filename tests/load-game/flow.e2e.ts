@@ -23,7 +23,7 @@ async function storage(page:import('@playwright/test').Page){
     if(id==='synthetic.incompatible')return JSON.stringify({schemaVersion:999});
     const response=await fetch('/__synthetic_saves__/'+id+'.json');return response.ok?await response.text():null;
    }
-   if(command==='save_file_write'){(window as unknown as {__syntheticWrites:number}).__syntheticWrites++;writes.set(id,String(args.data));return;}
+   if(command==='save_file_write'){if(id!=='__index__')(window as unknown as {__syntheticLastSave:string}).__syntheticLastSave=String(args.data);(window as unknown as {__syntheticWrites:number}).__syntheticWrites++;writes.set(id,String(args.data));return;}
    if(command==='save_file_delete'){(window as unknown as {__syntheticWrites:number}).__syntheticWrites++;removed.add(id);return;}
    throw new Error('Unexpected synthetic IPC command '+command);
   }};
@@ -61,6 +61,15 @@ test('real load list, saved world, explicit restore and independent history',asy
  await page.getByRole('button',{name:'Menu',exact:true}).click();await page.getByRole('button',{name:'Load Game',exact:true}).click();
  await page.locator('.lg-save-name').filter({hasText:'· ceded'}).click();await page.getByRole('button',{name:'Retour à la liste',exact:false}).click();
  await page.getByRole('button',{name:'Retour au menu',exact:false}).click();await expect(page.locator('.clock strong')).toContainText('2031');
+ // Verify the active snapshot after previewing B by saving through the actual game UI/backend.
+ await page.getByRole('button',{name:'Menu',exact:true}).click();await page.getByRole('button',{name:'Save As',exact:true}).click();
+ await page.getByPlaceholder('Save name').fill('TEST SYNTHÉTIQUE — contrôle de continuité');
+ await page.getByRole('dialog',{name:'Save game',exact:true}).getByRole('button',{name:'Save',exact:true}).click();
+ await expect(page.getByRole('dialog',{name:'Save game',exact:true})).toHaveCount(0);
+ const expected=JSON.parse(await fs.readFile('artifacts/load-game/storage/synthetic.occupied.json','utf8'));
+ const maine=Object.keys(expected.occupationByRegion)[0];
+ const active=await page.evaluate((maine)=>{const s=JSON.parse((window as unknown as {__syntheticLastSave:string}).__syntheticLastSave);return {date:s.date,tick:s.engine.tick,seed:s.engine.seed,paused:s.paused,person:s.governance.player.controlledPersonId,owner:s.regionOwnership[maine],occupation:s.occupationByRegion[maine]};},maine);
+ expect(active).toEqual({date:expected.date,tick:expected.engine.tick,seed:expected.engine.seed,paused:expected.paused,person:expected.governance.player.controlledPersonId,owner:expected.regionOwnership[maine],occupation:expected.occupationByRegion[maine]});
  // Existing pause menu remains authoritative; returning from settings/load never restores a preview.
  await page.getByRole('button',{name:'Menu',exact:true}).click();await page.getByRole('button',{name:'Return to Main Menu',exact:true}).click();
  await page.getByRole('button',{name:'Paramètres',exact:true}).click();await page.locator('.settings-pane label').filter({hasText:'UI scale'}).locator('select').selectOption('1.5');await page.getByRole('button',{name:/Back/}).click();
