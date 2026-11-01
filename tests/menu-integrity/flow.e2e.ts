@@ -12,7 +12,10 @@ test('active session continuation, replacement guards, explicit exit and native 
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.emulateMedia({reducedMotion:'reduce'});await setup(page);
  await expect(page.getByRole('button',{name:'Continuer',exact:false}).first()).toBeDisabled();
  await selectSave(page);await page.getByRole('button',{name:'Charger la campagne',exact:false}).click();
- await expect(page.locator('.clock strong')).toContainText('2031');await page.getByRole('button',{name:'×2',exact:true}).click();
+ await expect(page.locator('.clock strong')).toContainText('2031');
+ const openingDate=await page.locator('.clock strong').textContent();await page.locator('.clock').getByRole('button',{name:'▶ Resume',exact:true}).click();await expect.poll(()=>page.locator('.clock strong').textContent()).not.toBe(openingDate);
+ await page.getByRole('button',{name:'Menu',exact:true}).click();const suspendedDate=await page.locator('.clock strong').textContent();await page.waitForTimeout(800);await expect(page.locator('.clock strong')).toHaveText(suspendedDate!);await page.getByRole('dialog',{name:'Pause menu',exact:true}).getByRole('button',{name:'Resume',exact:true}).click();await expect.poll(()=>page.locator('.clock strong').textContent()).not.toBe(suspendedDate);
+ await page.locator('.clock').getByRole('button',{name:'Ⅱ Pause',exact:true}).click();await page.getByRole('button',{name:'×2',exact:true}).click();
  const date=await page.locator('.clock strong').textContent();
  await page.getByRole('button',{name:'Menu',exact:true}).click();await shot(page,'pause-1920x1080');await page.getByRole('button',{name:'Return to Main Menu',exact:true}).click();
  await expect(page.locator('.atlas-continue')).toContainText('non sauvegardée');

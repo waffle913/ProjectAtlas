@@ -485,7 +485,7 @@ export default function App() {
     try {
       const restored=previewSlot(id);integrity.current.begin(true,id);applyState(restored);
       setLoadSlotError(undefined);
-      setMenuSelection(undefined);
+      setMenuSelection(undefined);setLoadPreview(undefined);
       setScreen('game');
     } catch (error) {
       setLoadSlotError(error instanceof Error ? `Could not load save: ${error.message}` : 'Could not load save.');
@@ -521,7 +521,7 @@ export default function App() {
   const exitApp = () => requestDestructive('quitter ProjectAtlas',async()=>{await exitApplication();});
   closeAction.current=exitApp;
   const renderScreen=()=>{
-  if (screen === 'settings') return <SettingsMenu settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} error={settingsError} displayError={displayError} onRetryDisplay={()=>setDisplayRetry(n=>n+1)} />;
+  if (screen === 'settings') return <SettingsMenu ready={storageReady} settings={settings} onChange={persistSettings} onBack={returnFromAuxiliary} error={settingsError??storageError} displayError={displayError} onRetryDisplay={()=>setDisplayRetry(n=>n+1)} />;
   if (screen === 'load') return storageReady
     ? <SaveManager onLoad={loadSlot} onPreview={previewSlot} onBack={() => { setLoadSlotError(undefined);setLoadPreview(undefined); setScreen(loadOrigin.current); }} selectedPreview={loadPreview} onSelectionChange={setLoadPreview} onDeleted={id=>{integrity.current.removedSave(id);setSaves(listSaves());}} error={loadSlotError ?? storageError} territories={world?.territories} regions={regionData} countries={countryData?.registry.countries} uiScale={settings.graphics.uiScale} reducedMotion={settings.accessibility.reducedMotion} onNewGame={startNewGame} onSettings={()=>openAuxiliary('settings')} onCredits={()=>openAuxiliary('credits')} onExit={exitApp} />
     : <main className="load-state"><h1>{storageState === 'error' ? 'Save storage unavailable' : 'Storage initializing'}</h1><p>{storageState === 'error' ? (storageError ?? 'Local save storage could not be read.') : 'Local save storage is still being prepared. Please wait a moment.'}</p><button onClick={returnFromAuxiliary}>← Back</button></main>;

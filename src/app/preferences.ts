@@ -116,8 +116,10 @@ export function normalizeSettings(raw: unknown): AppSettings {
   if(typeof merged.audio.muteWhenUnfocused!=='boolean')merged.audio.muteWhenUnfocused=false;
   if(typeof merged.interface.confirmHighImpact!=='boolean')merged.interface.confirmHighImpact=true;
   if(!['sparse','normal','dense'].includes(merged.interface.mapLabelDensity))merged.interface.mapLabelDensity='normal';
-  merged.interface.tooltipDelayMs=clamp(Number(merged.interface.tooltipDelayMs)||350,0,2000);
-  if(![3000,6000,10000].includes(Number(merged.accessibility.notificationDurationMs)))merged.accessibility.notificationDurationMs=6000;
+  const delay=Number(merged.interface.tooltipDelayMs);
+  merged.interface.tooltipDelayMs=Number.isFinite(delay)?clamp(delay,0,2000):350;
+  const duration=Number(merged.accessibility.notificationDurationMs);
+  merged.accessibility.notificationDurationMs=[3000,6000,10000].includes(duration)?duration:6000;
   return merged;
 }
 

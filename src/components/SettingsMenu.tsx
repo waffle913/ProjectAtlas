@@ -13,11 +13,12 @@ type SettingsPatch = {
   accessibility?: Partial<AppSettings['accessibility']>;
 };
 
-export function SettingsMenu({ settings, onChange, onBack, error, displayError, onRetryDisplay }: {
+export function SettingsMenu({ settings, onChange, onBack, error, displayError, onRetryDisplay, ready=true }: {
   settings: AppSettings;
   onChange: (next: AppSettings) => void;
   onBack: () => void;
   error?:string; displayError?:string; onRetryDisplay?:()=>void;
+  ready?:boolean;
 }) {
   const [category, setCategory] = useState<Category>('graphics');
   const update = (patch: SettingsPatch) => {
@@ -43,7 +44,8 @@ export function SettingsMenu({ settings, onChange, onBack, error, displayError, 
         </header>
         {error && <p className="menu-error" role="alert">{error}</p>}
         {displayError && <div className="menu-error" role="alert"><p>{displayError}</p><button onClick={onRetryDisplay}>Réessayer le mode d’affichage</button></div>}
-        <div className="settings-body">
+        {!ready && <p role="status" className="settings-note">Préparation du stockage natif : les réglages seront modifiables après lecture des préférences enregistrées.</p>}
+        <fieldset className="settings-body" disabled={!ready}>
           <nav className="settings-tabs" aria-label="Settings categories">
             {categories.map(([id, label]) => <button key={id} className={category === id ? 'active' : ''} onClick={() => setCategory(id)}>{label}</button>)}
           </nav>
@@ -117,7 +119,7 @@ export function SettingsMenu({ settings, onChange, onBack, error, displayError, 
             </>}
             <div className="settings-actions"><button onClick={() => onChange(structuredClone(DEFAULT_SETTINGS))}>Restore defaults</button></div>
           </section>
-        </div>
+        </fieldset>
       </div>
     </main>
   );

@@ -14,7 +14,7 @@ Parent : ui/load-game-globe ace4f7aac71d549c43762c5707f5070e36182245. Branche ui
 
 ## Risques et choix de compatibilité
 
-Le drapeau de pause posé par les menus n'est pas une modification de progression. Les ticks/commandes et changements explicites du contrôle d'horloge sont suivis ; l'accusé d'une sauvegarde concerne exclusivement la révision capturée et sa session. La fermeture forcée du processus ne peut pas afficher une modale React : avertissement beforeunload navigateur, commandes Quitter protégées ; limite native à vérifier et documenter. Une session nouvelle non encore sauvegardée est protégée dès sa création. Pas de comparaison quotidienne par sérialisation complète. Aucun second état mondial/horloge/RNG.
+Le drapeau de pause posé par les menus n'est pas une modification de progression. Les ticks/commandes et changements explicites du contrôle d'horloge sont suivis ; l'accusé d'une sauvegarde concerne exclusivement la révision capturée et sa session. La fermeture native standard est interceptée et protégée par la modale ; une fermeture forcée du processus ne peut pas afficher de modale React. Le navigateur conserve son avertissement beforeunload. Une session nouvelle non encore sauvegardée est protégée dès sa création. Pas de comparaison quotidienne par sérialisation complète. Aucun second état mondial/horloge/RNG.
 
 Audit initial des réglages : audio sans ressources/système ; tooltipDelay, mapLabelDensity, confirmHighImpact et notificationDuration non consommés ; showProvenance, pauseOnUrgent, autosave et intervalle réellement raccordés ; uiScale accessibilité contradictoire avec graphics ; highContrast/reducedMotion appliquent seulement une classe sans couverture des nouveaux menus/globe ; defaultSpeed propose 3 alors que l'horloge accepte 1/2/5 et n'est pas appliqué à la création ; mode natif avale actuellement ses erreurs. Ces écarts seront corrigés ou explicitement désactivés, sans simuler de fonctionnalités.
 
@@ -64,3 +64,9 @@ Les notices MIT Three.js et ISC Lucide sont consultables dans l'application à p
 Windows : `cargo test` après build frontend, et `npm run tauri:build`, artefact `projectatlas-windows` contenant l'installateur NSIS et l'exécutable. La vérification générale du dépôt reste dans `verify` sur Actions. Aucun test/build/capture lancé localement.
 
 Les sauvegardes des tests sont synthétiques, nommées explicitement, produites par les fixtures existantes et validées par les invariants. Leur IPC de test passe par l'adaptateur natif de production ; les fichiers mondiaux restent servis hors du produit et ne sont pas placés dans le localStorage limité du navigateur. Cela ne remplace pas le test humain de l'exécutable Windows.
+
+Revue complémentaire : les contrôles Paramètres restent provisoirement désactivés pendant la lecture initiale du stockage natif pour éviter de perdre une modification sous le résultat tardif de cette lecture. Retour reste accessible. Un chargement réussi libère l’aperçu détaché, qui n’est conservé que dans le parcours de consultation.
+
+## Relais utilisateur
+À la demande de l'utilisateur, la mission s'arrête après publication et lancement des vérifications GitHub. Les résultats, captures et artefacts Windows doivent être contrôlés par l'équipe ; aucune réussite finale ni acceptation n'est déclarée. Les erreurs éventuelles seront examinées par l'utilisateur avant une nouvelle demande de correction. PR #3 en brouillon vers ui/load-game-globe, aucune fusion.
+

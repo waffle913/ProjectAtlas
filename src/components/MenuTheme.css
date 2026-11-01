@@ -44,3 +44,4 @@
 .menu-global-error{position:fixed;z-index:600;bottom:2%;left:10%;right:10%;font:calc(14px * var(--ui-scale,1)) sans-serif}.menu-global-error button{margin-left:1em;padding:.4em;color:#fff;background:#273743;border:1px solid #bd8f6a}
 
 .credits-notice pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.5;color:#b8cbd9}
+.settings-frame>.settings-body{border:0;padding:0;min-width:0}.settings-body:disabled{opacity:.65}
