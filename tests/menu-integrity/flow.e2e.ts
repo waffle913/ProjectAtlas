@@ -1,9 +1,63 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page,type Request,type Response,type ConsoleMessage} from '@playwright/test';
 import {storage} from '../helpers/nativeFixtures';
 import fs from 'node:fs/promises';
 const back=(p:Page)=>p.getByRole('button',{name:/Back/}).click();
 const guard=(p:Page)=>p.getByRole('dialog',{name:'Confirmer l’abandon de progression'});
-async function setup(p:Page){await storage(p);await p.goto('/');await expect(p.getByRole('button',{name:'Nouvelle partie',exact:true})).toBeEnabled();}
+// A separate, finite startup budget; ordinary assertions and the 240 s scenario budget stay unchanged.
+const INITIALIZATION_TIMEOUT_MS=60_000;
+async function setup(p:Page){
+ const started=performance.now();
+ const requests=new Map<Request,{url:string;startedMs:number;status?:number;finishedMs?:number;failure?:string}>();
+ const consoleErrors:string[]=[],pageErrors:string[]=[];
+ const onRequest=(r:Request)=>requests.set(r,{url:r.url(),startedMs:performance.now()-started});
+ const onResponse=(r:Response)=>{const entry=requests.get(r.request());if(entry)entry.status=r.status();};
+ const onFinished=(r:Request)=>{const entry=requests.get(r);if(entry)entry.finishedMs=performance.now()-started;};
+ const onFailed=(r:Request)=>{const entry=requests.get(r);if(entry){entry.finishedMs=performance.now()-started;entry.failure=r.failure()?.errorText??'requestfailed';}};
+ const onConsole=(m:ConsoleMessage)=>{if(m.type()==='error')consoleErrors.push(m.text());};
+ const onError=(e:Error)=>pageErrors.push(e.message);
+ p.on('request',onRequest);p.on('response',onResponse);p.on('requestfinished',onFinished);p.on('requestfailed',onFailed);p.on('console',onConsole);p.on('pageerror',onError);
+ let ready=false,failure:unknown;
+ try{
+  await storage(p);
+  const remaining=()=>Math.max(1,INITIALIZATION_TIMEOUT_MS-(performance.now()-started));
+  await p.goto('/',{timeout:remaining()});
+  // This real control is gated by dataReady && storageReady in production.
+  await expect(p.getByRole('button',{name:'Nouvelle partie',exact:true})).toBeEnabled({timeout:remaining()});
+  ready=true;
+ }catch(error){failure=error;}
+ const elapsedMs=Math.round(performance.now()-started);
+ try{
+  const network=[...requests.values()].map(r=>({...r,durationMs:r.finishedMs===undefined?null:Math.round(r.finishedMs-r.startedMs)}));
+  // Reading the DOM is diagnostic only; no state is forced or reconstructed.
+  // Bound diagnostics as well if the renderer has stopped responding.
+  let diagnosticTimer:ReturnType<typeof setTimeout>|undefined;
+  let observed:unknown;
+  try{observed=await Promise.race([
+   p.evaluate(()=>({
+    title:document.title,
+    newGame:[...document.querySelectorAll('button')].filter(b=>b.textContent?.trim()==='Nouvelle partie').map(b=>({disabled:b.disabled,title:b.title})),
+    alerts:[...document.querySelectorAll('[role="alert"]')].map(n=>n.textContent),
+    statuses:[...document.querySelectorAll('[role="status"],.load-state,.atlas-empty,.atlas-menu-error')].map(n=>n.textContent),
+    visibleText:document.body.innerText,
+    storage:{notice:document.querySelector('.atlas-empty')?.textContent??null,
+     syntheticReads:(window as any).__syntheticReads??null,syntheticWrites:(window as any).__syntheticWrites??null,
+     persistedSettingsPresent:localStorage.getItem('synthetic-native-settings')!==null},
+   })).catch(error=>({diagnosticError:String(error)})),
+   new Promise(resolve=>{diagnosticTimer=setTimeout(()=>resolve({diagnosticError:'DOM non accessible sous 3 s ; consulter trace/capture et requêtes ci-dessous.'}),3000);}),
+  ]);}finally{if(diagnosticTimer)clearTimeout(diagnosticTimer);}
+  const pending=network.filter(r=>r.finishedMs===undefined);
+  const report={ready,elapsedMs,budgetMs:INITIALIZATION_TIMEOUT_MS,observed,
+   loadingStage:ready?'dataReady && storageReady confirmés par le bouton activé':pending.length?{pendingResources:pending.map(r=>r.url)}:'Aucune requête en cours : traitement des données ou stockage non prêt ; étape interne non exposée par le menu.',
+   network,failedRequests:network.filter(r=>r.failure || (r.status??0)>=400),consoleErrors,pageErrors,
+   failure:failure instanceof Error?failure.message:failure===undefined?null:String(failure)};
+  const path=test.info().outputPath('initialization.json');await fs.writeFile(path,JSON.stringify(report,null,2));await test.info().attach('initialization',{path,contentType:'application/json'});
+  console.log(`[initialization] ready=${ready} elapsed=${elapsedMs}ms budget=${INITIALIZATION_TIMEOUT_MS}ms failedRequests=${report.failedRequests.length} pageErrors=${pageErrors.length}`);
+  if(!ready)console.error('[initialization failure]',JSON.stringify(report));
+ }finally{
+  p.off('request',onRequest);p.off('response',onResponse);p.off('requestfinished',onFinished);p.off('requestfailed',onFailed);p.off('console',onConsole);p.off('pageerror',onError);
+ }
+ if(!ready)throw new Error(`Initialisation non terminée après ${elapsedMs} ms (borne ${INITIALIZATION_TIMEOUT_MS} ms). Voir initialization.json : étape observable, stockage, erreurs et requêtes.`,{cause:failure});
+}
 async function selectSave(p:Page,name='occupied'){await p.getByRole('button',{name:'Charger une partie',exact:true}).click();await p.locator('.lg-save-name').filter({hasText:'· '+name}).click();await expect(p.locator('.lg-campaign-panel')).toBeVisible();}
 async function choose(p:Page,name:string){await p.getByLabel('Rechercher un pays',{exact:true}).fill(name);await p.locator('.ng-search-results button').filter({hasText:name}).first().click();}
 async function fitted(p:Page){const canvas=p.locator('.ng-globe canvas');await expect(canvas).toHaveAttribute('data-camera-mode','focused');await expect.poll(async()=>{const b=JSON.parse((await canvas.getAttribute('data-focus-bounds'))??'{}');return Math.max(Math.abs(b.minX),Math.abs(b.maxX),Math.abs(b.minY),Math.abs(b.maxY));}).toBeLessThan(.95);}
