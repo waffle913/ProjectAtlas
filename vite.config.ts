@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'; import react from '@vitejs/plugin-react';
 export default defineConfig({
+  define: { 'import.meta.env.VITE_DIAGNOSTIC_SHA': JSON.stringify(process.env.GITHUB_SHA ?? 'development/unknown') },
   plugins: [react()],
   test: {
     // Full-world integration tests (multilateral, elections, constitution) run the whole invariant

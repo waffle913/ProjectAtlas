@@ -45,3 +45,4 @@
 
 .credits-notice pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.5;color:#b8cbd9}
 .settings-frame>.settings-body{border:0;padding:0;min-width:0}.settings-body:disabled{opacity:.65}
+.ui-diagnostic-launch{padding:1em;background:#071928;color:#e1e8ef}.ui-diagnostic-panel{position:fixed;bottom:0;left:0;z-index:900;padding:.5em;background:#071928;color:#e1e8ef;border:1px solid #bc995d;max-width:100%;display:flex;gap:.5em;flex-wrap:wrap}.ui-diagnostic-panel button,.ui-diagnostic-launch button{font:inherit;padding:.4em;cursor:pointer}

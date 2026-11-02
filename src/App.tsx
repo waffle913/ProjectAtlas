@@ -1,3 +1,4 @@
+import { UiDiagnostics } from './components/UiDiagnostics';
 import { SessionIntegrity } from './app/sessionIntegrity';
 import { MenuDialog } from './components/MenuDialog';
 import { CreditsMenu } from './components/CreditsMenu';
@@ -836,7 +837,7 @@ export default function App() {
     </main>
   );
   };
-  return <><div className="app-screen app-screen-enter" data-screen={screen} key={screen}>{renderScreen()}</div>
+  return <><UiDiagnostics screen={screen}/><div className="app-screen app-screen-enter" data-screen={screen} key={screen}>{renderScreen()}</div>
     {guardError && !pendingDestructive && <div className="menu-global-error menu-error" role="alert">{guardError}<button onClick={()=>setGuardError(undefined)}>Fermer</button></div>}
     {pendingDestructive && <MenuDialog title="Progression non sauvegardée" label="Confirmer l’abandon de progression" onCancel={()=>{if(!guardBusy)setPendingDestructive(undefined);}}>
       <p>Cette action va {pendingDestructive.label} et abandonner la progression non sauvegardée de la session active.</p>

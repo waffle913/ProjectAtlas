@@ -1,0 +1,93 @@
+// UI-only, volatile diagnostics. Never reads campaign, preferences, DOM text or storage.
+export const DIAGNOSTIC_LIMIT = 2400;
+export const DIAGNOSTIC_DURATION_MS = 5 * 60_000;
+type Row = { ms: number; type: string; [key: string]: unknown };
+export function boundedJournal(limit = DIAGNOSTIC_LIMIT) {
+  const rows: Row[] = [];
+  let next = 0, dropped = 0;
+  return {
+    add(row: Row) {
+      if (rows.length < limit) rows.push(row);
+      else { rows[next] = row; next = (next + 1) % limit; dropped++; }
+    },
+    snapshot: () => ({ dropped, rows: rows.length < limit || next === 0 ? [...rows] : [...rows.slice(next), ...rows.slice(0, next)] }),
+  };
+}
+export function startUiDiagnostics(onExpired: () => void) {
+  const journal = boundedJournal(), started = performance.now();
+  let stopped = false, stoppedAt = 0, raf = 0, lastFrame = started, bucketStart = started;
+  let count = 0, total = 0, max = 0, over50 = 0, lastMove = -Infinity, moveCount = 0;
+  const counts: Record<string, number> = {};
+  const record = (type: string, values: Record<string, unknown> = {}) => journal.add({ ms: Math.round(performance.now() - started), type, ...values });
+  const viewport = () => ({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio, focused: document.hasFocus(), visibility: document.visibilityState });
+  const cleanups: (() => void)[] = [];
+  const listen = (target: EventTarget, name: string, listener: EventListener) => {
+    target.addEventListener(name, listener, { capture: true, passive: true });
+    cleanups.push(() => target.removeEventListener(name, listener, true));
+  };
+  const mouse: EventListener = event => {
+    const e = event as PointerEvent;
+    counts[e.type] = (counts[e.type] ?? 0) + 1;
+    if (e.type === 'pointermove' || e.type === 'mousemove') {
+      moveCount++;
+      if (performance.now() - lastMove < 100) return;
+      lastMove = performance.now();
+    }
+    const target = e.target instanceof Element ? e.target : null;
+    record(e.type, { x: e.clientX, y: e.clientY, button: e.button, buttons: e.buttons,
+      pointerType: e.pointerType ?? null, pointerId: e.pointerId ?? null,
+      captured: target && e.pointerId !== undefined ? target.hasPointerCapture(e.pointerId) : null,
+      target: target?.tagName ?? null, cursor: target ? getComputedStyle(target).cursor : null });
+  };
+  for (const name of ['pointermove','mousemove','pointerdown','pointerup','mousedown','mouseup','pointercancel','gotpointercapture','lostpointercapture','contextmenu']) listen(window, name, mouse);
+  for (const name of ['focus','blur','resize']) listen(window, name, () => record(name, viewport()));
+  listen(document, 'visibilitychange', () => record('visibility', viewport()));
+  for (const name of ['animationstart','animationend','animationcancel','transitionrun','transitionend','transitioncancel']) {
+    listen(document, name, e => record(name, { target: e.target instanceof Element ? e.target.tagName : null }));
+  }
+  let observer: PerformanceObserver | undefined;
+  let longTasks = typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes?.includes('longtask');
+  const recordTasks = (entries: PerformanceEntry[]) => { for (const e of entries) record('longtask', { startMs: Math.round(e.startTime - started), durationMs: Math.round(e.duration) }); };
+  if (longTasks) {
+    try {
+      observer = new PerformanceObserver(list => recordTasks(list.getEntries()));
+      observer.observe({ type: 'longtask' });
+    } catch { observer?.disconnect(); observer = undefined; longTasks = false; }
+  }
+  const flushFrames = (now: number) => {
+    record('frames', { windowMs: Math.round(now - bucketStart), count, meanMs: count ? total / count : null, maxMs: max, over50, moveCount, ...viewport() });
+    bucketStart = now; count = total = max = over50 = moveCount = 0;
+  };
+  const frame = (now: number) => {
+    const gap = now - lastFrame; lastFrame = now;
+    count++; total += gap; max = Math.max(max, gap); if (gap > 50) over50++;
+    if (now - bucketStart >= 1000) flushFrames(now);
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  // Diagnostic expiry only; never a simulation timer. Hidden windows may throttle it.
+  const expiry = window.setTimeout(() => { stop(); onExpired(); }, DIAGNOSTIC_DURATION_MS);
+  function stop() {
+    if (stopped) return;
+    stopped = true; stoppedAt = performance.now(); cancelAnimationFrame(raf); clearTimeout(expiry);
+    if (observer) { recordTasks(observer.takeRecords()); observer.disconnect(); }
+    cleanups.forEach(cleanup => cleanup()); flushFrames(performance.now()); record('stop');
+  }
+  const ua = navigator.userAgent;
+  const environment = {
+    windows: /Windows/.test(ua), chromium: ua.match(/(?:Chrome|Chromium)\/[\d.]+/)?.[0] ?? null,
+    edge: ua.match(/Edg\/[\d.]+/)?.[0] ?? null,
+    native: '__TAURI_INTERNALS__' in window, longTasks,
+    gpu: 'unavailable: no diagnostic WebGL context created, preserving the menu-without-globe comparison',
+    webView2ExactVersion: 'unavailable: Chromium UA does not establish the installed WebView2 version',
+    gpuDriver: 'unavailable: collect manually using Windows diagnostics',
+    build: import.meta.env.VITE_DIAGNOSTIC_SHA ?? 'development/unknown',
+  };
+  record('start', viewport());
+  return {
+    stop,
+    screen: (screen: string) => { if (!stopped) record('screen', { screen }); },
+    mark: () => { if (!stopped) record('user-marker'); },
+    snapshot: () => ({ schema: 'projectatlas-ui-diagnostic-v1', environment, elapsedMs: Math.round((stopped ? stoppedAt : performance.now()) - started), stopped, counts: { ...counts }, ...journal.snapshot() }),
+  };
+}

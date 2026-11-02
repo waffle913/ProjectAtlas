@@ -90,6 +90,37 @@ await expect(p.getByRole('combobox',{name:'UI scale',exact:true})).toHaveValue('
 }
 async function shot(p:Page,name:string){await fs.mkdir('artifacts/menu-integrity',{recursive:true});await p.screenshot({path:`artifacts/menu-integrity/${name}.png`,fullPage:true});expect(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);}
 
+test('explicit volatile cursor diagnostics export without campaign or preference writes',async({page})=>{
+ await setup(page);
+ await expect(page.getByRole('complementary',{name:'Diagnostic du curseur'})).toHaveCount(0);
+ const before=await page.evaluate(()=>JSON.stringify({...localStorage}));
+ await page.getByRole('button',{name:'Paramètres',exact:true}).click();
+ await page.getByRole('button',{name:'Activer le diagnostic du curseur (5 min)',exact:true}).click();
+ await back(page);
+ await expect(page.locator('.atlas-menu')).toBeVisible();
+ await page.mouse.move(350,250);await page.mouse.click(350,250,{button:'right'});
+ await page.keyboard.press('Escape');
+ await page.getByRole('button',{name:'Marquer le symptôme',exact:true}).click();
+ // A known synthetic JS stall verifies instrumentation, not the Windows symptom.
+ await page.evaluate(()=>{const start=performance.now();while(performance.now()-start<90){/* test only */}});
+ await expect.poll(()=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>resolve(true))))).toBe(true);
+ const downloadPromise=page.waitForEvent('download');
+ await page.getByRole('button',{name:'Arrêter et exporter le diagnostic',exact:true}).click();
+ const download=await downloadPromise;const path=test.info().outputPath('ui-diagnostic.json');await download.saveAs(path);
+ const report=JSON.parse(await fs.readFile(path,'utf8'));
+ expect(report.stopped).toBe(true);expect(report.rows.length).toBeLessThanOrEqual(2400);
+ expect(report.rows.some((r:any)=>r.type==='screen'&&r.screen==='menu')).toBe(true);
+ expect(report.rows.some((r:any)=>r.type==='contextmenu'&&r.x===350&&r.y===250)).toBe(true);
+ expect(report.rows.some((r:any)=>r.type==='user-marker')).toBe(true);
+ expect(report.rows.some((r:any)=>r.type==='frames'&&r.maxMs>=50)).toBe(true);
+ if(report.environment.longTasks)expect(report.rows.some((r:any)=>r.type==='longtask'&&r.durationMs>=50)).toBe(true);
+ expect(JSON.stringify(report)).not.toMatch(/controlledPerson|simulationState|synthetic-native-settings|synthetic-native-saves/);
+ expect(await page.evaluate(()=>JSON.stringify({...localStorage}))).toBe(before);
+ await test.info().attach('ui-diagnostic',{path,contentType:'application/json'});
+ await page.getByRole('button',{name:'Effacer et fermer le diagnostic',exact:true}).click();
+ await expect(page.getByRole('complementary',{name:'Diagnostic du curseur'})).toHaveCount(0);
+});
+
 test('active session continuation, replacement guards, explicit exit and native close',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.emulateMedia({reducedMotion:'reduce'});await setup(page);
  await expect(page.getByRole('button',{name:'Continuer',exact:false}).first()).toBeDisabled();
