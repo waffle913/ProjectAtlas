@@ -49,6 +49,8 @@ describe('diagnostic keyboard receipt and retained context', () => {
   });
   it('pins preceding events with measured coverage despite ring overwrite, bounded to four contexts', () => {
     const session = diagnostics.startUiDiagnostics(() => {}); session.screen('menu');
+    session.mark();
+    expect(session.snapshot().markerContexts[0].marker.type).toBe('user-marker');
     window.dispatchEvent(new MouseEvent('mousemove', {clientX:72,clientY:31}));
     vi.advanceTimersByTime(1000); key('F9');
     for (let n = 0; n < diagnostics.DIAGNOSTIC_LIMIT + 10; n++) window.dispatchEvent(new Event('resize'));
@@ -56,10 +58,10 @@ describe('diagnostic keyboard receipt and retained context', () => {
     expect(report.dropped).toBeGreaterThan(0); expect(report.rows).toHaveLength(diagnostics.DIAGNOSTIC_LIMIT);
     expect(report.rows.some(row => row.type === 'symptom-start')).toBe(false);
     expect(report.markerContexts[0].rows.some(row => row.type === 'mousemove' && row.x === 72)).toBe(true);
-    expect(report.markerContexts[0].coverage.spanMs).toBe(1000);
+    expect(report.markerContexts[1].coverage.spanMs).toBe(1000);
     for (let n = 0; n < 5; n++) key(n % 2 ? 'F9' : 'F10');
     expect(session.snapshot().markerContexts).toHaveLength(4);
-    expect(session.snapshot().discardedMarkerContexts).toBe(2); session.stop();
+    expect(session.snapshot().discardedMarkerContexts).toBe(3); session.stop();
   });
   it('does not listen while inactive and removes keyboard listeners on component unmount', () => {
     const start = vi.spyOn(diagnostics, 'startUiDiagnostics');

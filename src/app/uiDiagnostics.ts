@@ -69,21 +69,24 @@ export function startUiDiagnostics(onExpired: () => void) {
     spanMs: rows.length ? rows.at(-1)!.ms - rows[0].ms : 0, entries: rows.length });
   const markerContexts: { marker: Row; droppedBeforeMarker: number; coverage: ReturnType<typeof coverage>; rows: Row[] }[] = [];
   let discardedMarkerContexts = 0, keyboardMarkersReceived = 0;
+  const captureMarker = (type: string, values: Record<string, unknown>) => {
+    if (stopped) return;
+    const now = performance.now(), receivedMs = Math.round(now - started);
+    flushFrames(now);
+    const marker: Row = { ms: receivedMs, receivedMs, type, ...values, sincePreviousFrameMs: Math.max(0, now - lastFrame),
+      timingMeaning: 'handler receipt only; symptom onset/recovery time unknown', ...viewport() };
+    journal.add(marker);
+    const before = journal.snapshot();
+    markerContexts.push({ marker, droppedBeforeMarker: before.dropped, coverage: coverage(before.rows), rows: before.rows });
+    if (markerContexts.length > DIAGNOSTIC_MARKER_CONTEXTS) { markerContexts.shift(); discardedMarkerContexts++; }
+  };
   listen(window, 'keydown', event => {
     const e = event as KeyboardEvent;
     if (stopped || e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || (e.key !== 'F9' && e.key !== 'F10')) return;
     // Only bare function keys while explicitly recording. F10's browser menu
     // default is suppressed; ordinary text, modifiers and IME stay untouched.
-    e.preventDefault();
-    const now = performance.now(), receivedMs = Math.round(now - started);
-    flushFrames(now);
-    const marker: Row = { ms: receivedMs, receivedMs, type: e.key === 'F9' ? 'symptom-start' : 'symptom-end',
-      source: 'keyboard', eventTimeStampMs: e.timeStamp, sincePreviousFrameMs: Math.max(0, now - lastFrame),
-      timingMeaning: 'handler receipt only; symptom onset/recovery time unknown', ...viewport() };
-    journal.add(marker); keyboardMarkersReceived++;
-    const before = journal.snapshot();
-    markerContexts.push({ marker, droppedBeforeMarker: before.dropped, coverage: coverage(before.rows), rows: before.rows });
-    if (markerContexts.length > DIAGNOSTIC_MARKER_CONTEXTS) { markerContexts.shift(); discardedMarkerContexts++; }
+    e.preventDefault(); keyboardMarkersReceived++;
+    captureMarker(e.key === 'F9' ? 'symptom-start' : 'symptom-end', { source: 'keyboard', eventTimeStampMs: e.timeStamp });
   }, false);
   const frame = (now: number) => {
     const gap = now - lastFrame; lastFrame = now;
@@ -114,7 +117,7 @@ export function startUiDiagnostics(onExpired: () => void) {
   return {
     stop,
     screen: (screen: string) => { if (!stopped) record('screen', { screen }); },
-    mark: () => { if (!stopped) record('user-marker'); },
+    mark: () => captureMarker('user-marker', { source: 'button' }),
     snapshot: () => {
       const current = journal.snapshot();
       return { schema: 'projectatlas-ui-diagnostic-v2', environment, elapsedMs: Math.round((stopped ? stoppedAt : performance.now()) - started), stopped, counts: { ...counts }, ...current,
