@@ -3,7 +3,7 @@ import { startUiDiagnostics } from '../app/uiDiagnostics';
 import type { MenuScreen } from './MainMenu';
 
 export function UiDiagnostics({ screen }: { screen: MenuScreen }) {
-  const session = useRef<ReturnType<typeof startUiDiagnostics>>();
+  const session = useRef<ReturnType<typeof startUiDiagnostics> | undefined>(undefined);
   const [state, setState] = useState<'off' | 'recording' | 'stopped'>('off');
   const [error, setError] = useState(false);
   const activate = () => {
