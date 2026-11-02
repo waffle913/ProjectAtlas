@@ -30,6 +30,12 @@ describe('volatile diagnostic bounds', () => {
     const docAdded = vi.spyOn(doc, 'addEventListener'), docRemoved = vi.spyOn(doc, 'removeEventListener');
     const session = startUiDiagnostics(expired);
     session.screen('menu');
+    const focusListener = added.mock.calls.find(c => c[0] === 'blur')![1] as EventListener;
+    // A captured child-control event must not be labelled window focus loss.
+    focusListener({ target: doc } as unknown as Event);
+    expect(session.snapshot().rows.some(row => row.type === 'blur')).toBe(false);
+    win.dispatchEvent(new Event('blur'));
+    expect(session.snapshot().rows.filter(row => row.type === 'blur')).toHaveLength(1);
     vi.advanceTimersByTime(DIAGNOSTIC_DURATION_MS);
     expect(expired).toHaveBeenCalledOnce(); expect(cancel).toHaveBeenCalledWith(42);
     expect(removed.mock.calls.map(c => c[0])).toEqual(added.mock.calls.map(c => c[0]));
