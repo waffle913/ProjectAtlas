@@ -42,7 +42,11 @@ export function startUiDiagnostics(onExpired: () => void) {
       target: target?.tagName ?? null, cursor: target ? getComputedStyle(target).cursor : null });
   };
   for (const name of ['pointermove','mousemove','pointerdown','pointerup','mousedown','mouseup','pointercancel','gotpointercapture','lostpointercapture','contextmenu']) listen(window, name, mouse);
-  for (const name of ['focus','blur','resize']) listen(window, name, () => record(name, viewport()));
+  for (const name of ['focus','blur','resize']) listen(window, name, event => {
+    // Capturing focus/blur also receives child controls' events. They do not
+    // establish native-window focus loss (e.g. clicking an ordinary button).
+    if (event.target === window) record(name, viewport());
+  });
   listen(document, 'visibilitychange', () => record('visibility', viewport()));
   for (const name of ['animationstart','animationend','animationcancel','transitionrun','transitionend','transitioncancel']) {
     listen(document, name, e => record(name, { target: e.target instanceof Element ? e.target.tagName : null }));
@@ -79,7 +83,7 @@ export function startUiDiagnostics(onExpired: () => void) {
   const environment = {
     windows: /Windows/.test(ua), chromium: ua.match(/(?:Chrome|Chromium)\/[\d.]+/)?.[0] ?? null,
     edge: ua.match(/Edg\/[\d.]+/)?.[0] ?? null,
-    native: '__TAURI_INTERNALS__' in window, longTasks,
+    tauriBridgePresent: '__TAURI_INTERNALS__' in window, longTasks,
     gpu: 'unavailable: no diagnostic WebGL context created, preserving the menu-without-globe comparison',
     webView2ExactVersion: 'unavailable: Chromium UA does not establish the installed WebView2 version',
     gpuDriver: 'unavailable: collect manually using Windows diagnostics',
