@@ -90,3 +90,8 @@
   .atlas-large-ui .atlas-content { top: auto; height: auto; width: 100%; grid-template-columns: minmax(0,1fr); }
   .atlas-large-ui .atlas-nav button { padding-left: .6em; gap: .6em; font-size: .85em; }
 }
+.atlas-nav{display:grid;grid-template-rows:minmax(66px,auto) minmax(48px,auto) minmax(0,1fr);gap:8px;min-height:0}
+.atlas-nav .atlas-continue{height:auto;margin:0}
+.atlas-nav .atlas-load-latest{border:1px solid #315069;font-size:.8em;padding:.7em 1.1em;gap:1em}
+.atlas-load-latest small{display:block;color:#9fb4c5;font-size:.8em;text-transform:none;margin-top:.35em}
+.atlas-nav-list{height:auto}

@@ -1,4 +1,4 @@
-﻿// @vitest-environment happy-dom
+// @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -24,6 +24,12 @@ function entry(id: string, modifiedAt: string): SaveEntry {
   return { id, metadata: { name: `Save ${id}`, countryId: id, countryName: `Country ${id}`, controlledPersonName: `Person ${id}`, office: null, simulationDate: '2026-02-03', createdAt: modifiedAt, modifiedAt, schemaVersion: 20 } };
 }
 describe('reference main menu after audit', () => {
+  it('resumes memory independently of storage and never treats a save as an active session',()=>{
+    const onLoadLatest=vi.fn();const {props,render}=mount({hasSave:true,saves:[entry('a','2026-01-01')],onLoadLatest});
+    expect(button('Continuer').disabled).toBe(true);
+    act(()=>button('Charger la dernière sauvegarde').click());expect(onLoadLatest).toHaveBeenCalledOnce();expect(props.onContinue).not.toHaveBeenCalled();
+    render({hasSession:true,ready:false});expect(button('Continuer').disabled).toBe(false);act(()=>button('Continuer').click());expect(props.onContinue).toHaveBeenCalledOnce();
+  });
   it('routes existing actions, removes in-game shortcuts and hides campaign panel before any selection', () => {
     const { props } = mount();
     for (const [label, handler] of [['Nouvelle partie',props.onNewGame],['Charger une partie',props.onLoad],['Paramètres',props.onSettings],['Crédits',props.onCredits],['Quitter',props.onExit],['Voir toutes',props.onLoad],['Documentation',props.onCredits]] as const) {
@@ -42,7 +48,7 @@ describe('reference main menu after audit', () => {
   it('selects without loading, shows the selected context, and only loads on explicit confirmation', () => {
     const saves = [entry('a','2026-01-01'),entry('e','2026-01-05'),entry('c','2026-01-03'),entry('b','2026-01-02'),entry('d','2026-01-04')];
     const original = saves.map(s => s.id);
-    const { props, render } = mount({ hasSave: true, saves });
+    const { props, render } = mount({ hasSave: true, hasSession: true, saves });
     expect([...container.querySelectorAll('.atlas-save strong')].map(el => el.textContent)).toEqual(['Country e','Country d','Country c','Country b']);
     expect(container.querySelector('.atlas-summary')).toBeNull();
     act(() => (container.querySelectorAll('.atlas-save')[1] as HTMLButtonElement).click());

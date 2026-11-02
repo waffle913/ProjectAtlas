@@ -33,7 +33,7 @@ describe('0.21 playable shell', () => {
     const loaded = loadSettings();
     expect(loaded.audio.masterVolume).toBe(1);
     expect(loaded.graphics.uiScale).toBe(1.5);
-    expect(loaded.gameplay.defaultSpeed).toBe(3);
+    expect(loaded.gameplay.defaultSpeed).toBe(1);
     expect(loaded.version).toBe(1);
   });
 

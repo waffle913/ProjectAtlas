@@ -86,7 +86,7 @@ export function setSettingsBackend(next: StorageBackend): void { backend = next;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-function sanitize(raw: unknown): AppSettings {
+export function normalizeSettings(raw: unknown): AppSettings {
   const base = structuredClone(DEFAULT_SETTINGS);
   if (!raw || typeof raw !== 'object') return base;
   const input = raw as Partial<AppSettings>;
@@ -104,23 +104,39 @@ function sanitize(raw: unknown): AppSettings {
   merged.audio.notificationVolume = clamp(Number(merged.audio.notificationVolume) || 0, 0, 1);
   merged.graphics.uiScale = clamp(Number(merged.graphics.uiScale) || 1, 0.75, 1.5);
   merged.accessibility.uiScale = clamp(Number(merged.accessibility.uiScale) || 1, 0.75, 1.5);
-  merged.gameplay.defaultSpeed = clamp(Number(merged.gameplay.defaultSpeed) || 1, 1, 3);
+  // Keep legacy v1 fields readable while exposing one effective scale.
+  const scale = merged.accessibility.uiScale>1?Math.max(merged.graphics.uiScale,merged.accessibility.uiScale):merged.graphics.uiScale;
+  merged.graphics.uiScale=scale;merged.accessibility.uiScale=scale;
+  if(!['windowed','borderless','fullscreen'].includes(merged.graphics.displayMode))merged.graphics.displayMode='windowed';
+  merged.gameplay.defaultSpeed=[1,2,5].includes(Number(merged.gameplay.defaultSpeed))?Number(merged.gameplay.defaultSpeed):1;
+  merged.gameplay.autosaveIntervalMinutes=[5,10,15,30].includes(Number(merged.gameplay.autosaveIntervalMinutes))?Number(merged.gameplay.autosaveIntervalMinutes):15;
+  for(const key of ['pauseOnUrgent','autosave'] as const)if(typeof merged.gameplay[key]!=='boolean')merged.gameplay[key]=base.gameplay[key];
+  for(const key of ['highContrast','reducedMotion'] as const)if(typeof merged.accessibility[key]!=='boolean')merged.accessibility[key]=base.accessibility[key];
+  if(typeof merged.interface.showProvenance!=='boolean')merged.interface.showProvenance=base.interface.showProvenance;
+  if(typeof merged.audio.muteWhenUnfocused!=='boolean')merged.audio.muteWhenUnfocused=false;
+  if(typeof merged.interface.confirmHighImpact!=='boolean')merged.interface.confirmHighImpact=true;
+  if(!['sparse','normal','dense'].includes(merged.interface.mapLabelDensity))merged.interface.mapLabelDensity='normal';
+  const delay=Number(merged.interface.tooltipDelayMs);
+  merged.interface.tooltipDelayMs=Number.isFinite(delay)?clamp(delay,0,2000):350;
+  const duration=Number(merged.accessibility.notificationDurationMs);
+  merged.accessibility.notificationDurationMs=[3000,6000,10000].includes(duration)?duration:6000;
   return merged;
 }
 
 export function loadSettings(): AppSettings {
-  const raw = backend.get(SETTINGS_KEY);
-  if (!raw) return structuredClone(DEFAULT_SETTINGS);
-  try { return sanitize(JSON.parse(raw)); } catch { return structuredClone(DEFAULT_SETTINGS); }
+  try {
+    const raw = backend.get(SETTINGS_KEY);
+    return raw ? normalizeSettings(JSON.parse(raw)) : structuredClone(DEFAULT_SETTINGS);
+  } catch { return structuredClone(DEFAULT_SETTINGS); }
 }
 
 /** Persists settings. Resolves only after the medium accepted the write; rejects on failure. */
 export function saveSettings(settings: AppSettings): Promise<void> {
-  return backend.set(SETTINGS_KEY, JSON.stringify(settings));
+  return backend.set(SETTINGS_KEY, JSON.stringify(normalizeSettings(settings)));
 }
 
 export function applyUiScale(settings: AppSettings): void {
-  document.documentElement.style.setProperty('--ui-scale', String(settings.graphics.uiScale));
+  document.documentElement.style.setProperty('--ui-scale', String(normalizeSettings(settings).graphics.uiScale));
   document.documentElement.classList.toggle('high-contrast', settings.accessibility.highContrast);
-  document.documentElement.classList.toggle('reduced-motion', settings.accessibility.reducedMotion);
+  document.documentElement.classList.toggle('reduced-motion', settings.accessibility.reducedMotion || Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
 }

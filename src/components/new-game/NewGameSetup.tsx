@@ -8,13 +8,13 @@ import { AtlasMark, Icon } from '../MainMenu';
 import { CountryGlobe } from './CountryGlobe';
 import { countryCenter, globePolygons } from './globeGeometry';
 import './NewGameSetup.css';
-export interface NewGameDraft { countryId: string; path: PoliticalStartPath; personId: string; step: number; visited: number; query: string; tab: string }
+export interface NewGameDraft { countryId: string; path: PoliticalStartPath; personId: string; step: number; visited: number; cameraFocus?:number; query: string; tab: string }
 export const initialNewGameDraft = (countries: LoadedCountryData['registry']['countries']): NewGameDraft => ({countryId:countries.find(c=>c.externalIds.isoAlpha2==='FR')?.id??countries[0]?.id??'',path:'national_leader',personId:'',step:0,visited:0,query:'',tab:'Aperçu'});
 const pathLabels:Record<PoliticalStartPath,string>={national_leader:'Dirigeant national',opposition_party_leader:'Chef de parti d’opposition'};
 const steps=[['Pays','Sélection du pays'],['Rôle','Choix de départ'],['Configuration','Paramètres de partie'],['Récapitulatif','Vérification et lancement']];
-export function NewGameSetup({ data, territories, selectionState, draft, onDraftChange, onConfirm, onBack, onLoad, onSettings, onCredits, onExit, uiScale=1 }: {
+export function NewGameSetup({ data, territories, selectionState, draft, onDraftChange, onConfirm, onBack, onLoad, onSettings, onCredits, onExit, uiScale=1, reducedMotion=false }: {
   data:LoadedCountryData;territories:readonly Territory[];selectionState:SimulationState;draft:NewGameDraft;onDraftChange:(draft:NewGameDraft)=>void;onConfirm:(countryId:string,path:PoliticalStartPath,personId:string)=>void;
-  onBack:()=>void;onLoad:()=>void;onSettings:()=>void;onCredits:()=>void;onExit:()=>void;uiScale?:number;
+  onBack:()=>void;onLoad:()=>void;onSettings:()=>void;onCredits:()=>void;onExit:()=>void;uiScale?:number;reducedMotion?:boolean;
 }) {
   const [error,setError]=useState('');const [catalogOpen,setCatalogOpen]=useState(false);
   const countries=data.registry.countries;
@@ -25,7 +25,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
   const candidates=options.paths[draft.path].candidates;
   const person=candidates.find(p=>p.personId===draft.personId);
   const update=(patch:Partial<NewGameDraft>)=>{setError('');onDraftChange({...draft,...patch});};
-  const chooseCountry=(countryId:string)=>{setCatalogOpen(false);update({countryId,personId:'',path:'national_leader',step:0,visited:0,query:''});};
+  const chooseCountry=(countryId:string)=>{setCatalogOpen(false);update({countryId,cameraFocus:(draft.cameraFocus??0)+1,personId:'',path:'national_leader',step:0,visited:0,query:''});};
   const matches=countries.filter(c=>`${c.commonName} ${c.officialName??''} ${c.externalIds.isoAlpha2??''}`.toLocaleLowerCase().includes(draft.query.trim().toLocaleLowerCase()));
   const canContinue=draft.step===0?Boolean(country):Boolean(person);
   const next=()=>{if(canContinue)update({step:Math.min(3,draft.step+1),visited:Math.max(draft.visited,Math.min(3,draft.step+1))});};
@@ -36,7 +36,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
   const fact=(key:string,label:string)=>{const f=facts?.[key];return <div className="ng-fact" key={key}><dt>{label}</dt><dd>{factAvailableAtStart(f)?<>{formatCatalogValue(f.value)}<small>{f.referenceDate} · {f.isEstimate?'estimation · ':''}{f.source.name}</small></>:<span title={f?.status==='unavailable'?f.reason:undefined}>Indisponible</span>}</dd></div>;};
   const silhouette=useMemo(()=>{const polygons=globePolygons(territories).filter(p=>p.countryId===draft.countryId).sort((a,b)=>b.area-a.area);const ring=polygons[0]?.rings[0];if(!ring?.length)return '';const center=countryCenter(polygons,draft.countryId)!;const span=Math.max(...ring.map(p=>Math.abs(p[0]-center[0])),...ring.map(p=>Math.abs(p[1]-center[1])))||1;return ring.map((p,i)=>`${i?'L':'M'}${200+(p[0]-center[0])/span*75},${90-(p[1]-center[1])/span*75}`).join(' ')+' Z';},[territories,draft.countryId]);
   return <main className={`new-game-setup${uiScale>1.1?' ng-large-ui':''}`} lang="fr" style={{'--ng-scale':uiScale} as React.CSSProperties}>
-    <CountryGlobe territories={territories} selectedId={draft.countryId} onSelect={chooseCountry} names={names}/>
+    <CountryGlobe initialFocus={false} focusRequest={draft.cameraFocus??0} reducedMotion={reducedMotion} territories={territories} selectedId={draft.countryId} onSelect={chooseCountry} names={names}/>
     <aside className="ng-sidebar"><div className="ng-brand"><AtlasMark/><span>PROJECT</span><strong>ATLAS</strong></div><nav aria-label="Navigation de campagne"><button onClick={onBack}>← Retour au menu</button><button className="active" onClick={()=>update({step:0})}><Icon name="globe"/>Nouvelle partie</button><button onClick={onLoad}><Icon name="folder"/>Charger une partie</button><button onClick={onSettings}><Icon name="settings"/>Paramètres</button><button onClick={onCredits}><Icon name="book"/>Crédits</button><button onClick={onExit}><Icon name="power"/>Quitter</button></nav></aside>
     <nav className="ng-steps" aria-label="Étapes de nouvelle partie">{steps.map(([title,description],i)=><button key={title} onClick={()=>update({step:i})} disabled={i>draft.visited} aria-current={i===draft.step?'step':undefined}><b>{i+1}</b><span><strong>{title}</strong><small>{description}</small></span>{i<3 && <i aria-hidden="true">›</i>}</button>)}</nav>
     <div className="ng-country-panel">
@@ -44,7 +44,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
       {draft.query.trim() && <div className="ng-search-results" aria-label="Résultats de recherche">{matches.length?matches.slice(0,12).map(c=><button key={c.id} onClick={()=>chooseCountry(c.id)}>{c.commonName}{!available.has(c.id)&&<small>Démarrage indisponible</small>}</button>):<p>Aucun pays correspondant.</p>}</div>}
       <section className="ng-card" aria-label="Préparation de campagne">
         <div className="ng-country-title"><span className={`ng-country-code${country?.externalIds.isoAlpha2==='FR'?' ng-flag-fr':''}`} aria-hidden="true">{country?.externalIds.isoAlpha2==='FR'?'':country?.externalIds.isoAlpha2??'—'}</span><div><h1>{country?.commonName??'Choisir un pays'}</h1><p>{systemTitle}</p></div></div>
-        {draft.step===0 && <><div className="ng-country-banner"><svg viewBox="0 0 400 180" aria-label="Contour du territoire principal"><path d={silhouette}/></svg><small>{silhouette?'Géométrie du catalogue · Natural Earth':'Géométrie indisponible — sélection par le catalogue'}</small></div>
+        {draft.step===0 && <><div className="ng-country-banner"><svg viewBox="0 0 400 180" aria-label="Contour du territoire principal"><path d={silhouette}/></svg><small>{silhouette?'Contour du territoire principal':'Géométrie indisponible — sélection par le catalogue'}</small></div>
           <div className="ng-tabs" role="tablist" aria-label="Informations du pays">{['Aperçu','Économie','Politique','Société','Relations'].map(tab=><button role="tab" aria-selected={draft.tab===tab} key={tab} onClick={()=>update({tab})}>{tab}</button>)}</div>
           <div className="ng-information" role="tabpanel" aria-label={draft.tab}><dl>
             {draft.tab==='Aperçu' && <><div className="ng-fact"><dt>Capitale</dt><dd>{country?.capital??'Indisponible'}</dd></div>{fact('population','Population')}{fact('nominalGdpUsd','PIB nominal (USD)')}{fact('gdpPerCapitaUsd','PIB par habitant (USD)')}{politicalFact}<div className="ng-fact"><dt>Région</dt><dd>{country?.unSubregion??'Indisponible'}</dd></div></>}
@@ -52,7 +52,7 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
             {draft.tab==='Politique' && <>{politicalFact}<div className="ng-fact"><dt>Voies de départ</dt><dd>{options.playable?'Consulter l’étape Rôle':'Indisponibles'}</dd></div></>}
             {draft.tab==='Société' && <>{fact('population','Population')}{fact('languages','Langues')}</>}
             {draft.tab==='Relations' && <div className="ng-fact"><dt>Relations diplomatiques</dt><dd>Indisponibles avant le lancement</dd></div>}
-          </dl><small className="ng-note">Données datées du catalogue, sans valeur illustrative. {country?.sources.details?.[0]?.name}</small></div>
+          </dl><small className="ng-note">Données datées du catalogue, sans valeur illustrative.</small></div>
           <details className="ng-catalog" open={catalogOpen} onToggle={e=>setCatalogOpen(e.currentTarget.open)}><summary>Catalogue complet des pays</summary><label className="ng-catalog-label">Tous les pays<select aria-label="Catalogue complet des pays" value={draft.countryId} onChange={e=>chooseCountry(e.target.value)}>{countries.slice().sort((a,b)=>a.commonName.localeCompare(b.commonName)).map(c=><option key={c.id} value={c.id}>{c.commonName}{available.has(c.id)?'':' — démarrage indisponible'}</option>)}</select></label></details>
         </>}
         {draft.step===1 && <div className="ng-role-panel"><h2>Choisir votre rôle</h2><p className="ng-note">La fonction réellement occupée détermine les pouvoirs. Aucun poste n’est attribué par cet écran.</p><div className="ng-paths">{(['national_leader','opposition_party_leader'] as const).map(path=><button key={path} aria-pressed={draft.path===path} disabled={!options.paths[path].candidates.length} onClick={()=>update({path,personId:''})}>{pathLabels[path]}<small>{options.paths[path].candidates.length?`${options.paths[path].candidates.length} choix admissible(s)`:'Indisponible'}</small></button>)}</div>
@@ -67,6 +67,6 @@ export function NewGameSetup({ data, territories, selectionState, draft, onDraft
         <div className="ng-step-actions">{draft.step>0 && <button className="ng-back" onClick={()=>update({step:draft.step-1})}>← Précédent</button>}<button className="ng-continue" disabled={!canContinue} onClick={()=>{if(draft.step<3)next();else if(person){try{onConfirm(draft.countryId,draft.path,person.personId);}catch(e){setError(e instanceof Error?e.message:String(e));}}}}>{draft.step===3?'Lancer la campagne':'Continuer'} <span>→</span></button></div>
       </section>
     </div>
-    <div className="ng-attribution">Texture nocturne historique NASA (2016) · décor hors ligne, pas une observation 2026</div>
+    <div className="ng-attribution">Fond visuel historique (2016), sans observation de campagne</div>
   </main>;
 }

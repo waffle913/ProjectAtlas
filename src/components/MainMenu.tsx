@@ -34,7 +34,8 @@ function formatDate(value: string) {
   const date = new Date(`${value.slice(0, 10)}T12:00:00Z`);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
-export function MainMenu({ onContinue, onNewGame, onLoad, onLoadSave, onSelectSave, selectedSaveId, summary, onSettings, onCredits, onExit, hasSave, ready = true, settings, saves = [], storageStatus = 'ready', error }: {
+export function MainMenu({ onContinue, onLoadLatest,hasSession=false,sessionDescription, onNewGame, onLoad, onLoadSave, onSelectSave, selectedSaveId, summary, onSettings, onCredits, onExit, hasSave, ready = true, settings, saves = [], storageStatus = 'ready', error }: {
+  onLoadLatest?:()=>void;hasSession?:boolean;sessionDescription?:string;
   onContinue: () => void; onNewGame: () => void; onLoad: () => void; onSettings: () => void; onCredits: () => void; onExit: () => void;
   onLoadSave?: (id: string) => void; onSelectSave?: (id: string) => void; selectedSaveId?: string; summary?: CampaignSummary; hasSave: boolean; ready?: boolean; settings: AppSettings;
   saves?: SaveEntry[]; storageStatus?: 'initializing' | 'ready' | 'error'; error?: string;
@@ -59,9 +60,10 @@ export function MainMenu({ onContinue, onNewGame, onLoad, onLoadSave, onSelectSa
     <div className="atlas-brand"><AtlasMark/><span>PROJECT</span><h1>ATLAS</h1></div>
     <div className="atlas-content">
       <nav className="atlas-nav" aria-label="Menu principal">
-        <button className="atlas-continue" onClick={onContinue} disabled={!hasSave || !ready} aria-label="Continuer">
-          <Icon name="play"/><span>Continuer<small>{!ready ? 'Chargement en cours…' : latest ? `${latest.metadata.countryName} — ${formatDate(latest.metadata.simulationDate)}` : 'Aucune sauvegarde disponible'}</small></span><b className="atlas-chevron">›</b>
+        <button className="atlas-continue" onClick={onContinue} disabled={!hasSession} aria-label="Continuer">
+          <Icon name="play"/><span>Continuer<small>{hasSession ? sessionDescription??'Reprendre la session active en mémoire' : 'Aucune session active en mémoire'}</small></span><b className="atlas-chevron">›</b>
         </button>
+        <button className="atlas-load-latest" disabled={!hasSave || !ready || !onLoadLatest} onClick={onLoadLatest}><Icon name="folder"/><span>Charger la dernière sauvegarde<small>{latest?`${latest.metadata.countryName} — ${formatDate(latest.metadata.simulationDate)}`:'Aucune sauvegarde disponible'}</small></span></button>
         <div className="atlas-nav-list">{actions.map(({icon,label,action,disabled}) => <button key={label} onClick={action} disabled={!action || disabled} title={!action ? unavailable : disabled ? 'Chargement en cours' : undefined}>
           <Icon name={icon}/><span>{label}</span>{!action && <small>Indisponible</small>}
         </button>)}</div>

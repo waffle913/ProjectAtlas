@@ -3,7 +3,7 @@ import { act,createElement } from 'react';
 import { createRoot,type Root } from 'react-dom/client';
 import { afterEach,describe,it,expect,vi } from 'vitest';
 import { SaveManager } from '../SaveManager';
-import { setSaveBackend } from '../../app/saveStorage';
+import { listSaves, setSaveBackend } from '../../app/saveStorage';
 import { worldBase } from '../../simulation/__tests__/worldScenario';
 vi.mock('../new-game/CountryGlobe',()=>({CountryGlobe:()=>createElement('div')}));
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
@@ -19,6 +19,13 @@ function mount(){
 const click=(text:string)=>act(()=>{const button=[...el.querySelectorAll('button')].find(b=>b.textContent?.trim()===text);if(!button)throw new Error(text);button.click();});
 afterEach(()=>{if(root)act(()=>root!.unmount());el?.remove();root=undefined;});
 describe('load screen actions are explicit',()=>{
+ it('remounts a controlled detached preview without restoring or installing it again',()=>{
+  const {props,state,before}=mount();const selectedPreview={entry:listSaves()[0],state};const onSelectionChange=vi.fn();
+  act(()=>root!.render(createElement(SaveManager,{...props,selectedPreview,onSelectionChange})));
+  expect(el.querySelector('[aria-label="Aperçu de campagne"]')).not.toBeNull();expect(props.onPreview).not.toHaveBeenCalled();expect(props.onLoad).not.toHaveBeenCalled();
+  act(()=>root!.unmount());root=createRoot(el);act(()=>root!.render(createElement(SaveManager,{...props,selectedPreview,onSelectionChange})));
+  expect(el.querySelector('[aria-label="Aperçu de campagne"]')).not.toBeNull();expect(props.onPreview).not.toHaveBeenCalled();expect(JSON.stringify(state)).toBe(before);
+ });
  it('selection previews only; return preserves active state; final load is distinct',()=>{
   const {props,state,before}=mount();act(()=>el.querySelector<HTMLButtonElement>('.lg-save-name')!.click());
   expect(props.onPreview).toHaveBeenCalledWith('a');expect(props.onLoad).not.toHaveBeenCalled();

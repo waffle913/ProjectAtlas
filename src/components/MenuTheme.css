@@ -1,0 +1,48 @@
+/* Common presentation for menus and modal panels; no simulation side effects. */
+.app-screen{min-height:100svh}
+.app-screen-enter{animation:menu-appear .18s ease-out both}
+@keyframes menu-appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.menu-page,.settings-screen{display:block;min-height:100svh;height:auto;padding:4vh 5vw;background:radial-gradient(ellipse at 25% 0,#163048,#010810 65%);color:#dce6ee;font:calc(14px * var(--ui-scale,1)) 'Segoe UI',Arial,sans-serif}
+.menu-frame,.settings-frame{max-width:1300px;margin:auto;border:1px solid #315269;border-radius:7px;padding:1.8em;background:#010b15ed;box-shadow:0 20px 70px #0008}
+.menu-heading,.settings-header{display:flex;align-items:center;justify-content:space-between;gap:1em;background:transparent;padding:0 0 1em;border-bottom:1px solid #9b804d}
+.menu-wordmark{display:flex;align-items:center;gap:1em;letter-spacing:.18em;color:#eac98b}
+.menu-wordmark svg{width:3em;height:3em;stroke:#d6b579;stroke-width:1}
+.menu-page button,.settings-screen button,.menu-dialog button,.menu-dialog input,.menu-dialog select{font:inherit;color:inherit;background:#071928;border:1px solid #395a70;border-radius:4px;padding:.65em 1em}
+.menu-page h1,.settings-screen h1,.menu-dialog h1{font-size:1.65em;font-weight:400;color:#f0d39c}
+.menu-page h2,.settings-screen h2{font-size:1.2em;color:#dabb83;text-transform:none}
+.menu-page p,.menu-dialog p{line-height:1.55}
+.menu-page a,.settings-screen a{color:#e4c58d}
+.menu-page button:focus-visible,.settings-screen :focus-visible,.menu-dialog :focus-visible{outline:2px solid #ffe0a1;outline-offset:3px}
+.menu-note,.settings-note{color:#98b1c5;line-height:1.55;font-size:.9em}
+.settings-body{display:grid;grid-template-columns:minmax(180px,24%) 1fr;gap:1.7em;margin-top:1.5em}
+.settings-tabs{display:flex;flex-direction:column;gap:.5em}
+.settings-tabs button{text-align:left}
+.settings-tabs .active{border-color:#d5af68;background:#5c492644;color:#ffe6b5}
+.settings-pane{min-width:0;max-height:70svh;overflow:auto;padding:.3em .5em .8em}
+.settings-pane label{display:flex;align-items:center;justify-content:space-between;gap:1em;margin:1em 0;padding:.5em;border-bottom:1px solid #1d3545}
+.settings-pane select{font:inherit;color:inherit;background:#081c2b;padding:.45em;border:1px solid #41617a;max-width:60%}
+.settings-pane input[type=checkbox]{width:1.3em;height:1.3em;accent-color:#d4ae68}
+.settings-pane fieldset{border:0;padding:0;margin:0}
+.settings-pane :disabled{opacity:.5;cursor:not-allowed}
+.settings-actions{margin-top:1.5em}
+.menu-error{padding:.8em;border:1px solid #9b6256;color:#ffd0bd;background:#281316}
+.menu-overlay{position:fixed;inset:0;z-index:500;display:grid;place-items:center;padding:2vh 3vw;background:#000b;backdrop-filter:blur(5px);font:calc(14px * var(--ui-scale,1)) 'Segoe UI',Arial,sans-serif;color:#e1e8ef}
+.menu-dialog{width:min(580px,100%);max-height:90svh;overflow:auto;padding:1.6em;border:1px solid #bc995d;border-radius:6px;background:linear-gradient(140deg,#102435,#010b15);box-shadow:0 20px 80px #000b;animation:menu-appear .16s ease-out}
+.menu-dialog button{display:block;width:100%;margin:.7em 0;cursor:pointer}
+.menu-dialog input{width:100%}
+.menu-dialog .danger{border-color:#ba7964;color:#ffd2bd}
+.menu-dialog button:disabled{opacity:.55;cursor:not-allowed}
+.credits-grid{display:grid;grid-template-columns:1fr 1fr;gap:2em}
+.credits-grid section{border-top:1px solid #3f5260;padding-top:.6em}
+.lg-list-panel,.lg-campaign-panel,.ng-role-panel,.ng-configuration,.ng-recap,.ng-information{animation:menu-appear .16s ease-out}
+:root.reduced-motion .app-screen-enter,:root.reduced-motion .menu-dialog,:root.reduced-motion .lg-list-panel,:root.reduced-motion .lg-campaign-panel,:root.reduced-motion .ng-role-panel,:root.reduced-motion .ng-configuration,:root.reduced-motion .ng-recap,:root.reduced-motion .ng-information{animation:none}
+:root.high-contrast .menu-frame,:root.high-contrast .settings-frame,:root.high-contrast .menu-dialog,:root.high-contrast .ng-card,:root.high-contrast .lg-campaign-panel,:root.high-contrast .lg-list-panel{background:#000;border-color:#fff;color:#fff}
+:root.high-contrast .menu-page,:root.high-contrast .settings-screen{background:#000;color:#fff}
+:root.high-contrast .menu-note,:root.high-contrast .settings-note,:root.high-contrast .lg-panel-scroll p,:root.high-contrast .lg-panel-scroll small,:root.high-contrast .ng-note{color:#e7eff7}
+@media(prefers-reduced-motion:reduce){.app-screen-enter,.menu-dialog,.lg-list-panel,.lg-campaign-panel,.ng-role-panel,.ng-configuration,.ng-recap,.ng-information{animation:none!important}}
+@media(max-width:800px){.menu-page,.settings-screen{padding:2vh 2vw}.settings-body{grid-template-columns:1fr}.settings-tabs{flex-direction:row;flex-wrap:wrap}.settings-tabs button{flex:1}.credits-grid{grid-template-columns:1fr}.settings-pane{max-height:none}.settings-pane label{flex-wrap:wrap}}
+.menu-global-error{position:fixed;z-index:600;bottom:2%;left:10%;right:10%;font:calc(14px * var(--ui-scale,1)) sans-serif}.menu-global-error button{margin-left:1em;padding:.4em;color:#fff;background:#273743;border:1px solid #bd8f6a}
+
+.credits-notice pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.5;color:#b8cbd9}
+.settings-frame>.settings-body{border:0;padding:0;min-width:0}.settings-body:disabled{opacity:.65}
+.ui-diagnostic-launch{padding:1em;background:#071928;color:#e1e8ef}.ui-diagnostic-panel{position:fixed;bottom:0;left:0;z-index:900;padding:.5em;background:#071928;color:#e1e8ef;border:1px solid #bc995d;max-width:100%;display:flex;gap:.5em;flex-wrap:wrap}.ui-diagnostic-panel button,.ui-diagnostic-launch button{font:inherit;padding:.4em;cursor:pointer}
