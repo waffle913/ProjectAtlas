@@ -34,7 +34,15 @@ public static class AtlasCursorProbe {
 $cursorSize = [Runtime.InteropServices.Marshal]::SizeOf([type][AtlasCursorProbe+CURSORINFO])
 $guiSize = [Runtime.InteropServices.Marshal]::SizeOf([type][AtlasCursorProbe+GUITHREADINFO])
 if ($cursorSize -ne (8 + [IntPtr]::Size + 8) -or $guiSize -ne (24 + 6 * [IntPtr]::Size)) { throw 'Unexpected native structure layout' }
-if ($ValidateOnly) { Write-Output 'Native probe compiled; Win32 structure layouts validated; no collection started.'; return }
+function Test-AtlasSwitch([string]$CommandLine,[string]$Name) {
+    return $CommandLine -match ('(?:^|[\s"])--' + [regex]::Escape($Name) + '(?:[=\s"]|$)')
+}
+if ($ValidateOnly) {
+    if (-not (Test-AtlasSwitch 'webview.exe "--force-high-performance-gpu"' 'force-high-performance-gpu') -or
+        -not (Test-AtlasSwitch '--disable-gpu=true' 'disable-gpu') -or
+        (Test-AtlasSwitch '--disable-gpu-compositing' 'disable-gpu')) { throw 'Known switch boundary validation failed' }
+    Write-Output 'Native probe compiled; structures and known-switch boundaries validated; no collection started.'; return
+}
 $targets = @(Get-Process -Name projectatlas -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero })
 if ($targets.Count -ne 1) { throw 'Open exactly one ProjectAtlas window before starting the collector.' }
 $targetProcess = $targets[0]
@@ -62,8 +70,8 @@ try {
             if ($runtime.ExecutablePath) { $runtimeVersions += [Diagnostics.FileVersionInfo]::GetVersionInfo($runtime.ExecutablePath).FileVersion }
             if ($null -ne $runtime.CommandLine) {
                 $switchPresence.unknown = $false
-                if ($runtime.CommandLine -match '(?:^|\s)--force-high-performance-gpu(?:\s|$)') { $switchPresence.forceHighPerformanceGpu = $true }
-                if ($runtime.CommandLine -match '(?:^|\s)--disable-gpu(?:\s|$)') { $switchPresence.disableGpu = $true }
+                if (Test-AtlasSwitch $runtime.CommandLine 'force-high-performance-gpu') { $switchPresence.forceHighPerformanceGpu = $true }
+                if (Test-AtlasSwitch $runtime.CommandLine 'disable-gpu') { $switchPresence.disableGpu = $true }
             }
         }
     }
