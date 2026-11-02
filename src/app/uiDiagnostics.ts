@@ -61,8 +61,8 @@ export function startUiDiagnostics(onExpired: () => void) {
       observer.observe({ type: 'longtask' });
     } catch { observer?.disconnect(); observer = undefined; longTasks = false; }
   }
-  const flushFrames = (now: number) => {
-    record('frames', { ms: Math.round(now - started), windowMs: Math.round(now - bucketStart), count, meanMs: count ? total / count : null, maxMs: max, over50, moveCount, ...viewport() });
+  const flushFrames = (now: number, receivedMs = Math.round(performance.now() - started)) => {
+    record('frames', { ms: receivedMs, windowMs: Math.round(now - bucketStart), count, meanMs: count ? total / count : null, maxMs: max, over50, moveCount, ...viewport() });
     bucketStart = now; count = total = max = over50 = moveCount = 0;
   };
   const coverage = (rows: Row[]) => ({ firstMs: rows[0]?.ms ?? null, lastMs: rows.at(-1)?.ms ?? null,
@@ -72,7 +72,7 @@ export function startUiDiagnostics(onExpired: () => void) {
   const captureMarker = (type: string, values: Record<string, unknown>) => {
     if (stopped) return;
     const now = performance.now(), receivedMs = Math.round(now - started);
-    flushFrames(now);
+    flushFrames(now, receivedMs);
     const marker: Row = { ms: receivedMs, receivedMs, type, ...values, sincePreviousFrameMs: Math.max(0, now - lastFrame),
       timingMeaning: 'handler receipt only; symptom onset/recovery time unknown', ...viewport() };
     journal.add(marker);
