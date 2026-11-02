@@ -134,6 +134,34 @@ test('explicit volatile cursor diagnostics export without campaign or preference
  await expect(page.getByRole('complementary',{name:'Diagnostic du curseur'})).toHaveCount(0);
 });
 
+test('keyboard-only symptom boundaries preserve context and stop intercepting after export',async({page})=>{
+ await setup(page);
+ const unintercepted=()=>page.evaluate(()=>['F9','F10'].every(key=>window.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}))));
+ expect(await unintercepted()).toBe(true);
+ const stored=await page.evaluate(()=>JSON.stringify({...localStorage}));
+ const enter=async(button:import('@playwright/test').Locator)=>{await button.focus();await page.keyboard.press('Enter');};
+ await enter(page.getByRole('button',{name:'Paramètres',exact:true}));
+ await enter(page.getByRole('button',{name:'Activer le diagnostic du curseur (5 min)',exact:true}));
+ await expect(page.getByRole('complementary',{name:'Diagnostic du curseur'})).toContainText('F9');
+ await enter(page.getByRole('button',{name:/Back/}));
+ await page.keyboard.press('F9'); await page.keyboard.press('F10');
+ const downloadPromise=page.waitForEvent('download');
+ await enter(page.getByRole('button',{name:'Arrêter et exporter le diagnostic',exact:true}));
+ const path=test.info().outputPath('keyboard-diagnostic.json');await (await downloadPromise).saveAs(path);
+ const report=JSON.parse(await fs.readFile(path,'utf8'));
+ await test.info().attach('keyboard-diagnostic',{path,contentType:'application/json'});
+ const markers=report.rows.filter((r:any)=>r.type==='symptom-start'||r.type==='symptom-end');
+ expect(markers.map((r:any)=>r.type)).toEqual(['symptom-start','symptom-end']);
+ expect(markers[1].receivedMs).toBeGreaterThanOrEqual(markers[0].receivedMs);
+ expect(markers.every((r:any)=>r.ms===r.receivedMs)).toBe(true);
+ expect(report.rows.map((r:any)=>r.ms)).toEqual(report.rows.map((r:any)=>r.ms).sort((a:number,b:number)=>a-b));
+ expect(report.markerContexts[0].rows.some((r:any)=>r.type==='screen'&&r.screen==='menu')).toBe(true);
+ expect(report.markerContexts[0].coverage.entries).toBeGreaterThan(1);
+ expect(report.counts.pointerdown??0).toBe(0);expect(report.counts.mousedown??0).toBe(0);
+ expect(await unintercepted()).toBe(true);
+ expect(await page.evaluate(()=>JSON.stringify({...localStorage}))).toBe(stored);
+});
+
 test('active session continuation, replacement guards, explicit exit and native close',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.emulateMedia({reducedMotion:'reduce'});await setup(page);
  await expect(page.getByRole('button',{name:'Continuer',exact:false}).first()).toBeDisabled();

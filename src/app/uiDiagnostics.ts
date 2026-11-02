@@ -1,6 +1,7 @@
 // UI-only, volatile diagnostics. Never reads campaign, preferences, DOM text or storage.
 export const DIAGNOSTIC_LIMIT = 2400;
 export const DIAGNOSTIC_DURATION_MS = 5 * 60_000;
+export const DIAGNOSTIC_MARKER_CONTEXTS = 4;
 type Row = { ms: number; type: string; [key: string]: unknown };
 export function boundedJournal(limit = DIAGNOSTIC_LIMIT) {
   const rows: Row[] = [];
@@ -23,8 +24,8 @@ export function startUiDiagnostics(onExpired: () => void) {
   };
   const viewport = () => ({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio, focused: document.hasFocus(), visibility: document.visibilityState });
   const cleanups: (() => void)[] = [];
-  const listen = (target: EventTarget, name: string, listener: EventListener) => {
-    target.addEventListener(name, listener, { capture: true, passive: true });
+  const listen = (target: EventTarget, name: string, listener: EventListener, passive = true) => {
+    target.addEventListener(name, listener, { capture: true, passive });
     cleanups.push(() => target.removeEventListener(name, listener, { capture: true }));
   };
   const mouse: EventListener = event => {
@@ -61,9 +62,29 @@ export function startUiDiagnostics(onExpired: () => void) {
     } catch { observer?.disconnect(); observer = undefined; longTasks = false; }
   }
   const flushFrames = (now: number) => {
-    record('frames', { windowMs: Math.round(now - bucketStart), count, meanMs: count ? total / count : null, maxMs: max, over50, moveCount, ...viewport() });
+    record('frames', { ms: Math.round(now - started), windowMs: Math.round(now - bucketStart), count, meanMs: count ? total / count : null, maxMs: max, over50, moveCount, ...viewport() });
     bucketStart = now; count = total = max = over50 = moveCount = 0;
   };
+  const coverage = (rows: Row[]) => ({ firstMs: rows[0]?.ms ?? null, lastMs: rows.at(-1)?.ms ?? null,
+    spanMs: rows.length ? rows.at(-1)!.ms - rows[0].ms : 0, entries: rows.length });
+  const markerContexts: { marker: Row; droppedBeforeMarker: number; coverage: ReturnType<typeof coverage>; rows: Row[] }[] = [];
+  let discardedMarkerContexts = 0, keyboardMarkersReceived = 0;
+  listen(window, 'keydown', event => {
+    const e = event as KeyboardEvent;
+    if (stopped || e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || (e.key !== 'F9' && e.key !== 'F10')) return;
+    // Only bare function keys while explicitly recording. F10's browser menu
+    // default is suppressed; ordinary text, modifiers and IME stay untouched.
+    e.preventDefault();
+    const now = performance.now(), receivedMs = Math.round(now - started);
+    flushFrames(now);
+    const marker: Row = { ms: receivedMs, receivedMs, type: e.key === 'F9' ? 'symptom-start' : 'symptom-end',
+      source: 'keyboard', eventTimeStampMs: e.timeStamp, sincePreviousFrameMs: Math.max(0, now - lastFrame),
+      timingMeaning: 'handler receipt only; symptom onset/recovery time unknown', ...viewport() };
+    journal.add(marker); keyboardMarkersReceived++;
+    const before = journal.snapshot();
+    markerContexts.push({ marker, droppedBeforeMarker: before.dropped, coverage: coverage(before.rows), rows: before.rows });
+    if (markerContexts.length > DIAGNOSTIC_MARKER_CONTEXTS) { markerContexts.shift(); discardedMarkerContexts++; }
+  }, false);
   const frame = (now: number) => {
     const gap = now - lastFrame; lastFrame = now;
     count++; total += gap; max = Math.max(max, gap); if (gap > 50) over50++;
@@ -94,6 +115,13 @@ export function startUiDiagnostics(onExpired: () => void) {
     stop,
     screen: (screen: string) => { if (!stopped) record('screen', { screen }); },
     mark: () => { if (!stopped) record('user-marker'); },
-    snapshot: () => ({ schema: 'projectatlas-ui-diagnostic-v1', environment, elapsedMs: Math.round((stopped ? stoppedAt : performance.now()) - started), stopped, counts: { ...counts }, ...journal.snapshot() }),
+    snapshot: () => {
+      const current = journal.snapshot();
+      return { schema: 'projectatlas-ui-diagnostic-v2', environment, elapsedMs: Math.round((stopped ? stoppedAt : performance.now()) - started), stopped, counts: { ...counts }, ...current,
+        coverage: coverage(current.rows), markerContexts: markerContexts.map(context => ({ ...context, rows: [...context.rows] })), discardedMarkerContexts,
+        limits: { entries: DIAGNOSTIC_LIMIT, markerContexts: DIAGNOSTIC_MARKER_CONTEXTS, durationMs: DIAGNOSTIC_DURATION_MS },
+        keyboard: { keyboardMarkersReceived, keys: ['F9', 'F10'], timingMeaning: 'receipt time, never inferred symptom time',
+          limitation: 'No receipt cannot distinguish no press, blocked JS, lost native focus or OS interception. RAF gaps and focus/visibility are supporting observations only.' } };
+    },
   };
 }

@@ -25,6 +25,7 @@ export function UiDiagnostics({ screen }: { screen: MenuScreen }) {
   if (state === 'off') return screen === 'settings' ? <aside className="ui-diagnostic-launch"><button onClick={activate}>Activer le diagnostic du curseur (5 min)</button><p>Journal en mémoire : cadence, événements et coordonnées, sans contenu de campagne. Export manuel uniquement.</p></aside> : null;
   return <aside className="ui-diagnostic-panel" aria-label="Diagnostic du curseur">
     <span role="status">Diagnostic {state === 'recording' ? 'en cours (5 min maximum)' : 'arrêté'}</span>
+    <span>F9 : symptôme présent · F10 : retour à la normale (heure de réception)</span>
     <button disabled={state !== 'recording'} onClick={() => session.current?.mark()}>Marquer le symptôme</button>
     <button onClick={exportLog}>Arrêter et exporter le diagnostic</button>
     <button onClick={() => { session.current?.stop(); session.current = undefined; setState('off'); }}>Effacer et fermer le diagnostic</button>
