@@ -18,12 +18,14 @@ export function startUiDiagnostics(onExpired: () => void) {
   let stopped = false, stoppedAt = 0, raf = 0, lastFrame = started, bucketStart = started;
   let count = 0, total = 0, max = 0, over50 = 0, lastMove = -Infinity, moveCount = 0;
   const counts: Record<string, number> = {};
-  const record = (type: string, values: Record<string, unknown> = {}) => journal.add({ ms: Math.round(performance.now() - started), type, ...values });
+  const record = (type: string, values: Record<string, unknown> = {}) => {
+    if (!stopped) journal.add({ ms: Math.round(performance.now() - started), type, ...values });
+  };
   const viewport = () => ({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio, focused: document.hasFocus(), visibility: document.visibilityState });
   const cleanups: (() => void)[] = [];
   const listen = (target: EventTarget, name: string, listener: EventListener) => {
     target.addEventListener(name, listener, { capture: true, passive: true });
-    cleanups.push(() => target.removeEventListener(name, listener, true));
+    cleanups.push(() => target.removeEventListener(name, listener, { capture: true }));
   };
   const mouse: EventListener = event => {
     const e = event as PointerEvent;
@@ -69,9 +71,9 @@ export function startUiDiagnostics(onExpired: () => void) {
   const expiry = window.setTimeout(() => { stop(); onExpired(); }, DIAGNOSTIC_DURATION_MS);
   function stop() {
     if (stopped) return;
-    stopped = true; stoppedAt = performance.now(); cancelAnimationFrame(raf); clearTimeout(expiry);
+    stoppedAt = performance.now(); cancelAnimationFrame(raf); clearTimeout(expiry);
     if (observer) { recordTasks(observer.takeRecords()); observer.disconnect(); }
-    cleanups.forEach(cleanup => cleanup()); flushFrames(performance.now()); record('stop');
+    cleanups.forEach(cleanup => cleanup()); flushFrames(performance.now()); record('stop'); stopped = true;
   }
   const ua = navigator.userAgent;
   const environment = {
