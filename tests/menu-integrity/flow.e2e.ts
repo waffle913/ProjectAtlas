@@ -123,6 +123,8 @@ test('explicit volatile cursor diagnostics export without campaign or preference
  const report=JSON.parse(await fs.readFile(path,'utf8'));
  await test.info().attach('ui-diagnostic',{path,contentType:'application/json'});
  expect(report.stopped).toBe(true);expect(report.rows.length).toBeLessThanOrEqual(2400);
+ expect(Number.isFinite(report.clock.startedUnixMs)).toBe(true);
+ expect(report.clock.startedUnixMs).toBe(report.clock.performanceTimeOriginUnixMs+report.clock.startedPerformanceMs);
  expect(report.rows.some((r:any)=>r.type==='screen'&&r.screen==='menu')).toBe(true);
  expect(report.rows.some((r:any)=>r.type==='contextmenu'&&r.x===350&&r.y===250)).toBe(true);
  expect(report.rows.some((r:any)=>r.type==='user-marker')).toBe(true);

@@ -121,6 +121,9 @@ export function startUiDiagnostics(onExpired: () => void) {
     snapshot: () => {
       const current = journal.snapshot();
       return { schema: 'projectatlas-ui-diagnostic-v2', environment, elapsedMs: Math.round((stopped ? stoppedAt : performance.now()) - started), stopped, counts: { ...counts }, ...current,
+        clock: { performanceTimeOriginUnixMs: performance.timeOrigin, startedPerformanceMs: started,
+          startedUnixMs: performance.timeOrigin + started,
+          correlation: 'UTC estimate for external native observations = startedUnixMs + row.ms; use native monotonic/UTC drift and key samples to bound uncertainty, never infer symptom onset.' },
         coverage: coverage(current.rows), markerContexts: markerContexts.map(context => ({ ...context, rows: [...context.rows] })), discardedMarkerContexts,
         limits: { entries: DIAGNOSTIC_LIMIT, markerContexts: DIAGNOSTIC_MARKER_CONTEXTS, durationMs: DIAGNOSTIC_DURATION_MS },
         keyboard: { keyboardMarkersReceived, keys: ['F9', 'F10'], timingMeaning: 'receipt time, never inferred symptom time',

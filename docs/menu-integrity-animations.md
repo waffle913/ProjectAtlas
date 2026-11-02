@@ -327,3 +327,74 @@ JSON exporté réel téléchargé et ouvert : schema v2 / build 0a30925 ; sympto
 Artefact Windows téléchargé et inspecté, jamais lancé : archive SHA256 `f0d7a76ff2c07eacc62ecd325bef3ebaee5ebd3041aa4f8cf3c71ec102302f98`, `projectatlas.exe` `a0d8fbbee71ca70b986534625a125130f0a9649069264f6f76c0745f6360dfcb`, installateur `bundle/nsis/ProjectAtlas_1.0.0_x64-setup.exe` `ac9ca6fe0935affceb9383af33abc0133e73a2248b025a05945391698c7b0618`. Métadonnées liées au SHA 0a30925. Le commit documentaire de livraison suivant ne change pas le code testé ; ses propres checks ne sont pas annoncés validés.
 
 Instruction humaine : activer le diagnostic, garder la fenêtre au premier plan, appuyer une fois sur F9 dès perception du symptôme puis F10 au retour normal ; exporter après reprise, au clavier Tab/Entrée si nécessaire. Noter toute touche non reçue, perte de focus ou recours à Fn et joindre la vidéo lorsque possible. Le JSON ne reconstitue pas un début inconnu et ne prouve pas la rasterisation du curseur Windows. BUG-UI-003 reste **OUVERT**, BUG-UI-002 reste validé ; aucune modification graphique/moteur/données/sauvegarde/migration/droit/BUG-001. Aucun test/build/Rust local ; `git diff --check` réussi. Arrêt à la vérification GitHub selon préférence antérieure, PR #3 toujours en brouillon, aucune fusion ni acceptation humaine déduite.
+
+## Investigation causale — suite AUDIT-2026-11-01-14 et addendum
+
+### État examiné et méthode
+
+Départ local et origin identiques : `c22df5b23722e80258fe0c9e953a7e4aaaddbabd`. PR #3 ouverte, draft=true, merged=false, base ui/load-game-globe. Au contrôle initial : menus et Windows/Rust de ce HEAD réussis ; verify général Linux/Windows encore en cours (41386159277). Aucun résultat en cours requalifié en succès. Deux fichiers reasonix non suivis préexistants conservés.
+
+Plan ciblé : exploiter les deux analyses antérieures, relire le second fichier brut disponible, inspecter configuration et dépendances réellement compilées, confronter les incidents officiels à leurs conditions, puis ajouter uniquement une observation native externe bornée et une base de corrélation temporelle. Aucun changement de rendu, paramètre WebView2, animation, curseur, moteur, donnée, sauvegarde/migration/droit ou BUG-001/BUG-UI-002. Le journal natif ne prétend pas mesurer les frames présentées.
+
+### Chronologie et observations
+
+Premier diagnostic : build a68120b, environ79,464 s ; marqueurs65,800/68,784/74,864 s dans Paramètres, tous APRÈS disparition du symptôme selon l'utilisateur. Pas d'inférence sur le gel à partir des mesures normales autour d'eux. Longue tâche755 ms à l'ouverture de Nouvelle partie : problème de latence distinct, causalité avec le curseur non démontrée. Cette chronologie provient d'AUDIT-12 et du témoignage ; le premier original n'a pas été retrouvé pour une nouvelle analyse brute pendant cette passe.
+
+Second original effectivement retrouvé dans Downloads sous le nom projectatlas-ui-diagnostic.json (nom utilisateur initial suffixé(1)), relu : build0a30925, schema v2,31440 ms,222 entrées,dropped=0 ; SHA256 `7327f172415d55902bc2855b4e994381ee53e67c674630dbdeafa66b1cf64cd4`. Aucun fichier utilisateur brut publié dans le dépôt.
+
+| Réception relative | Fait brut / interprétation autorisée |
+|---|---|
+| 0 | Écran settings |
+| 7218 ms | Écran menu, avant toute ouverture du globe dans ce journal |
+| 8184 ms | F9, symptôme signalé ; pas heure physique exacte |
+| 12584 ms | F10, retour normal signalé ; intervalle nominal4400 ms |
+| 15337 ms | Écran settings |
+| 16128 ms | F9, nouveau symptôme signalé |
+| 18680 ms | F10 probablement accidentel selon correction utilisateur ; NE PAS clôturer automatiquement l'épisode |
+| 26513 ms | pointerdown et mousedown droits, x627/y910, capture DOM false |
+| 26616 ms | contextmenu aux mêmes coordonnées ; hors premier épisode, dans le second prolongé hypothétique |
+| 29056 ms | F10, fin possible non confirmée |
+| 31440 ms | Fin d'enregistrement |
+
+Premier intervalle8184–12584 : dix échantillons de mouvement, x315–1140/y498–788 ; six résumés RAF, maximum17 ms. Second nominal INCERTAIN16128–18680 : six mouvements, x817–1307/y499–594, quatre résumés, maximum17 ms. Hypothèse prolongée16128–29056 :54 mouvements, x582–1919/y497–1079 ;15 résumés, maximum17 ms. Les résumés peuvent chevaucher les bornes : ne pas diviser naïvement leurs totaux pour déduire une fréquence exacte de l'intervalle. Aucun événement focus/blur/visibility/resize, aucune longue tâche, aucun got/lostpointercapture/pointercancel ni captured=true dans les222 lignes. Cela décrit les événements JS reçus, pas le focus/capture natifs ou le rafraîchissement DWM.
+
+### Inspection native et versions
+
+Tauri crée une seule fenêtre normale1280×800, minimum1024×640, redimensionnable, initialement non plein écran ; pas de transparent/alwaysOnTop/window-effects ou arguments navigateur configurés. set_display_mode change décorations/plein écran par les API existantes ; aucune commande de déplacement/confinement/masquage du curseur. Pas de commande Win32 personnalisée ni de ProcessFailed/CursorChanged natif instrumenté. Les menus React changent les vues, sans détruire/recréer des fenêtres WebView2. Contexte CSS : fond statique du menu, entrée180 ms, dialogues avec backdrop blur ; pas de preuve de défaut causal CSS.
+
+Les logs du build0a30925 Windows, job125084767749/run41385323094, ont été relus : tauri2.12.5, tauri-runtime-wry2.12.3, tao0.37.2, wry0.57.1, webview2-com et webview2-com-sys0.39.1. Ces bindings SDK ne sont PAS la version du runtime installé. Cargo.toml utilise version2 et aucun Cargo.lock n'est suivi/retrouvé : ne pas attribuer ces versions à tous les builds futurs. Aucune dépendance changée ici.
+
+Le [source Wry0.57.1](https://raw.githubusercontent.com/tauri-apps/wry/wry-v0.57.1/src/webview2/mod.rs) utilise ICoreWebView2Controller et CreateCoreWebView2Controller[WithOptions], hébergé dans un HWND. Ce n'est pas le chemin de l'hôte composition personnalisé avec SendMouseInput décrit dans l'incident5695. Cela n'exclut pas la composition interne Chromium/DWM. Le JSON utilisateur expose seulement Chrome/Edge156.0.0.0, pas le numéro exact WebView2. Aucun processus ProjectAtlas actuellement ouvert trouvé lors du contrôle ciblé : pas de mesure native indépendante ni de reproduction locale du symptôme.
+
+### Incidents officiels comparés, sans assimilation causale
+
+| Source primaire | Versions et conditions rapportées | Concordance / différence ProjectAtlas |
+|---|---|---|
+| [WebView2#5788](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5788) | Runtime156.0.4314.50, Tauri2.12.2/Wry0.57, Intel Arc iGPU + écrans virtuels, argument force-high-performance-gpu ; CSS animé figé mais UI interactive ;155.0.4283.45 témoin | Famille156 et interactivité compatibles ; pas un curseur double documenté. Aucun argument forcé dans notre code, GPU et arguments effectifs du poste inconnus. Piste conditionnelle, pas diagnostic. |
+| [WebView2#5687](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5687) |152.0.4191.53, WPF Windows11 ; fermeture d'une WebView pendant curseur masqué avec une autre ouverte ;151 témoin | Curseur invisible/app interactive apparentés, mais une fenêtre chez nous, pas de fermeture WebView au changement de menu, famille156. Conditions non établies. |
+| [WebView2#5695](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5695) |152.0.4191.x, hôte Win32 composition et SendMouseInput, glisser répété hors écran ;151 témoin | Entrées devenant inactives différentes de notre journal ; chemin hôte différent. Pas de raison de copier son contournement. |
+| [WebView2#3509](https://github.com/MicrosoftEdge/WebView2Feedback/issues/3509) | SDK1.0.1774.30, WinUI3/MAUI/UWP Windows11 ; cursor:none/curseur non supporté déclenche un hang initial | Notre CSS utilise curseurs système, pas cursor:none, pas cet hôte. Faible correspondance. |
+| [Tauri#14764](https://github.com/tauri-apps/tauri/issues/14764) | Tauri2.9.5/Wry0.53.5, WebView2144.0.3719.67 ; fenêtre transparente, traînée de barre de titre au déplacement/focus | Notre fenêtre n'est pas transparente ; symptôme et versions différents. Ne justifie pas une modification de transparence ou un refresh forcé. |
+
+Hypothèses classées : (1) gel JS global prolongé moins probable pendant les fenêtres signalées, pas exclusion d'une pause brève ou hors échantillons ; (2) capture DOM défectueuse non étayée dans ce journal, capture/focus natifs encore inconnus ; (3) état de visibilité du curseur système, surface résiduelle, composition Windows/WebView2/pilote restent plausibles mais non départagés ; (4) lien causal Three/OrbitControls non nécessaire, aucun globe ouvert dans ce second journal. Aucune cause suffisamment démontrée pour appliquer un correctif.
+
+### Instrumentation externe retenue et limites
+
+Nouveau compagnon scripts/windows/Collect-AtlasCursorDiagnostic.ps1, livré dans l'artefact Windows. Lancement explicite, processus séparé du jeu : échantillonne par défaut100 ms pendant90 s, durées10–300 s/intervalles50–500 ms bornés par paramètres, nombre maximum de lignes calculé, aucune collecte tant qu'il n'est pas lancé. Pas d'installation/hook/tâche persistante, pas d'entrée injectée, SetCursor/ShowCursor/rafraîchissement/message forcé ou changement GPU. À la fin il exporte un JSON horodaté dans le dossier choisi ; fermeture anormale du terminal peut empêcher l'export. Ce compagnon reste indépendant du diagnostic JS : sa durée propre ne s'arrête pas au bouton d'arrêt JS, attendre son échéance ou quitter le processus ; aucune ressource persistante après sa fin.
+
+Données : [GetCursorInfo/CURSORINFO](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-cursorinfo) donne la position native logique et les flags showing/suppressed, **pas l'image réellement présentée** ; [GetGUIThreadInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getguithreadinfo) du thread GUI cible donne focus/capture/menu ; visibilité/minimisation, dimensions client et DPI. Position exportée uniquement lorsque la racine de fenêtre ProjectAtlas est au premier plan et le point dans son client. Racine d'un popup distinct peut être classée hors racine : foreground=false ne prouve pas une autre application. Données de focus/capture concernent le thread interrogé, pas tous les threads WebView2.
+
+[GetAsyncKeyState](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getasynckeystate) lit seulement F9/F10 lorsque cette racine est au premier plan, bit haut uniquement : observation d'une touche maintenue, pas réception d'un message natif ni horodatage physique du début. Un appui court peut être manqué, UIPI/desktop peuvent rendre0 ; aucune conclusion à partir d'une absence seule. Versions de fichiers msedgewebview2.exe descendants du jeu et présence de deux arguments connus (force-high-performance-gpu/disable-gpu) sont relevées si accessibles ; aucun argument n'est appliqué. Les lignes de commande/chemins/titres/PID/noms de compte et informations des autres applications ne sont pas exportés ; pas de contenu de campagne ou saisie générale.
+
+JS exporte désormais clock.startedUnixMs = performance.timeOrigin + début monotone ; pour une ligne JS, UTC estimée = startedUnixMs + row.ms. Natif exporte UTC et temps Stopwatch au début ET à la fin de chaque échantillon. Comparer ces horloges et leur dérive avant d'aligner ; utiliser les observations de F9/F10 comme points de rapprochement. Incertitude au moins liée à l'écart réel entre échantillons/à leur durée, à la précision des horloges et à toute correction UTC ; ce n'est pas une synchronisation subframe. Les anciens journaux sans clock ne se réalignent pas rétroactivement sur un futur relevé natif. Coordonnées Win32 du collecteur dans son contexte DPI, pas pixels CSS : comparer continuité et calibrer, pas égalité brute. Un sampler ponctuellement retardé n'est pas une preuve de gel du jeu.
+
+### Prochain test humain discriminant
+
+1. Extraire le nouvel artefact ; ouvrir une seule instance ProjectAtlas. Ne pas utiliser une autre fenêtre/sauvegarde pour reproduire.
+2. Depuis le dossier extrait, lancer explicitement : `powershell.exe -NoProfile -File .\Collect-AtlasCursorDiagnostic.ps1 -DurationSeconds 90 -IntervalMs 100`. Aucune élévation ni modification de stratégie d'exécution demandée ; si une stratégie bloque le script, conserver l'erreur et utiliser une exécution autorisée sur le poste, sans contournement.
+3. Revenir au jeu, activer son diagnostic et garder d'abord le menu sans globe. Filmer avec caméra externe ou capture incluant réellement le pointeur. Presser F9 dès perception puis F10 à la fin certaine, en les maintenant environ0,3 s pour augmenter la chance de lecture par le sampler ; expliquer tout appui accidentel. Reproduire le clic droit seulement comme observation, pas comme réparation.
+4. Exporter le JSON JS après reprise puis attendre la fin du collecteur. Fournir les deux JSON et la vidéo ; relever GPU/pilote/Windows, mode, écrans/DPI et session locale/distante sans identifiant matériel ou compte. Refaire une session témoin sans symptôme, puis si nécessaire une session globe distincte. Ne changer aucun paramètre GPU/WebView2 pendant cette première comparaison.
+5. Si les points natifs et JS bougent mais une ancienne flèche reste visible en vidéo, la piste présentation/plan du curseur se renforce sans désigner le pilote. Si showing devient false/suppressed malgré souris, examiner la gestion native de visibilité. Si focus/capture/menu natif change sans équivalent DOM, examiner popup/activation/hôte. Si F9 est échantillonné nativement mais reçu tard en JS et RAF montre une pause, examiner la file JS/hôte ; ne pas appeler l'écart « début du bug ». Si tous les relevés continuent normalement, les flags ne peuvent trancher image résiduelle contre composition : vidéo et trace de présentation deviennent nécessaires.
+6. Escalade proposée seulement ensuite : [diagnostics Microsoft WebView2](https://github.com/MicrosoftEdge/WebView2Feedback/blob/main/diagnostics/README.md) et [profil ETW officiel](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Feedback/main/diagnostics/etw.md), fenêtre très courte avant/pendant/après symptôme. Cette trace n'est ni activée ni téléversée ici ; elle peut contenir des données système sensibles et réclame une analyse privée et une configuration adaptée à la présentation/GPU. Le profil CPU n'est pas à lui seul une preuve des frames présentées. Aucun ETW/dump mémoire général ajouté au produit.
+
+Validation de cette passe à suivre via GitHub : suites existantes inchangées, horloge de corrélation vérifiée en E2E ; compagnon compilé et structures Win32 contrôlées par -ValidateOnly sur Windows, ce contrôle ne simule pas une reproduction native. Aucun test/build lourd local. BUG-UI-003 reste OUVERT, PR #3 en brouillon, aucun merge/approbation/acceptation.
