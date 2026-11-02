@@ -102,12 +102,26 @@ test('explicit volatile cursor diagnostics export without campaign or preference
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Marquer le symptôme',exact:true}).click();
  // A known synthetic JS stall verifies instrumentation, not the Windows symptom.
- await page.evaluate(()=>{const start=performance.now();while(performance.now()-start<90){/* test only */}});
+ await page.evaluate(()=>new Promise<void>((resolve,reject)=>{
+  const supported=typeof PerformanceObserver!=='undefined'&&PerformanceObserver.supportedEntryTypes.includes('longtask');
+  let observer:PerformanceObserver|undefined;
+  const timeout=setTimeout(()=>{observer?.disconnect();reject(new Error('Synthetic browser task not observed within 3 seconds'));},3000);
+  if(supported){
+   observer=new PerformanceObserver(list=>{if(list.getEntries().some(e=>e.duration>=80)){observer?.disconnect();clearTimeout(timeout);resolve();}});
+   observer.observe({type:'longtask'});
+  }
+  // DevTools evaluation is not necessarily a PerformanceLongTaskTiming task.
+  // Schedule a real browser timer task and wait for observable API delivery.
+  setTimeout(()=>{const start=performance.now();while(performance.now()-start<90){/* test only */}
+   if(!supported){clearTimeout(timeout);resolve();}
+  },0);
+ }));
  await expect.poll(()=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>resolve(true))))).toBe(true);
  const downloadPromise=page.waitForEvent('download');
  await page.getByRole('button',{name:'Arrêter et exporter le diagnostic',exact:true}).click();
  const download=await downloadPromise;const path=test.info().outputPath('ui-diagnostic.json');await download.saveAs(path);
  const report=JSON.parse(await fs.readFile(path,'utf8'));
+ await test.info().attach('ui-diagnostic',{path,contentType:'application/json'});
  expect(report.stopped).toBe(true);expect(report.rows.length).toBeLessThanOrEqual(2400);
  expect(report.rows.some((r:any)=>r.type==='screen'&&r.screen==='menu')).toBe(true);
  expect(report.rows.some((r:any)=>r.type==='contextmenu'&&r.x===350&&r.y===250)).toBe(true);
@@ -116,7 +130,6 @@ test('explicit volatile cursor diagnostics export without campaign or preference
  if(report.environment.longTasks)expect(report.rows.some((r:any)=>r.type==='longtask'&&r.durationMs>=50)).toBe(true);
  expect(JSON.stringify(report)).not.toMatch(/controlledPerson|simulationState|synthetic-native-settings|synthetic-native-saves/);
  expect(await page.evaluate(()=>JSON.stringify({...localStorage}))).toBe(before);
- await test.info().attach('ui-diagnostic',{path,contentType:'application/json'});
  await page.getByRole('button',{name:'Effacer et fermer le diagnostic',exact:true}).click();
  await expect(page.getByRole('complementary',{name:'Diagnostic du curseur'})).toHaveCount(0);
 });
